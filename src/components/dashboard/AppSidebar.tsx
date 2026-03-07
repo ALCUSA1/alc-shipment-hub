@@ -1,4 +1,7 @@
-import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut, Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers } from "lucide-react";
+import {
+  LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut,
+  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Shield
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,33 +15,55 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
-const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
-  { title: "Shipments", url: "/dashboard/shipments", icon: Package },
-  { title: "Quotes", url: "/dashboard/quotes", icon: DollarSign },
-  { title: "Trucking", url: "/dashboard/trucking", icon: Truck },
-  { title: "Warehouses", url: "/dashboard/warehouses", icon: Warehouse },
-  { title: "Documents", url: "/dashboard/documents", icon: FileText },
-  { title: "Accounting", url: "/dashboard/accounting", icon: Calculator },
-  { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp },
-  { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
-  { title: "Partners", url: "/dashboard/partners", icon: Users },
-  { title: "Team", url: "/dashboard/team", icon: UsersRound },
-  { title: "Account", url: "/dashboard/account", icon: Settings },
+const navGroups = [
+  {
+    label: "Overview",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { title: "Quotes", url: "/dashboard/quotes", icon: DollarSign },
+      { title: "Shipments", url: "/dashboard/shipments", icon: Package },
+      { title: "Trucking", url: "/dashboard/trucking", icon: Truck },
+      { title: "Warehouses", url: "/dashboard/warehouses", icon: Warehouse },
+      { title: "Documents", url: "/dashboard/documents", icon: FileText },
+    ],
+  },
+  {
+    label: "Finance & Sales",
+    items: [
+      { title: "Accounting", url: "/dashboard/accounting", icon: Calculator },
+      { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp },
+      { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
+      { title: "Partners", url: "/dashboard/partners", icon: Users },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
+      { title: "Team", url: "/dashboard/team", icon: UsersRound },
+      { title: "Account", url: "/dashboard/account", icon: Settings },
+    ],
+  },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, user } = useAuth();
-  const { roles } = useUserRole();
+  const { roles, isAdmin } = useUserRole();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -62,38 +87,56 @@ export function AppSidebar() {
     navigate("/");
   };
 
-  const visibleItems = items.filter((item) => canAccessRoute(item.url, roles));
-
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border">
         <img src={logoSrc} alt="Logo" className="h-7 w-auto shrink-0 max-w-[28px] object-contain" />
         {!collapsed && <span className="font-bold text-sm text-sidebar-foreground truncate">{companyLabel}</span>}
       </div>
-      <SidebarContent className="pt-4">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/dashboard"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="pt-2">
+        {navGroups.map((group, gi) => {
+          const visibleItems = group.items.filter((item) => canAccessRoute(item.url, roles));
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <SidebarGroup key={group.label}>
+              {!collapsed && (
+                <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest px-4 mb-1">
+                  {group.label}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {visibleItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={item.url}
+                          end={item.url === "/dashboard"}
+                          className="hover:bg-sidebar-accent/50"
+                          activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                        >
+                          <item.icon className="mr-2 h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
-      <div className="mt-auto p-3 border-t border-sidebar-border">
+      <div className="mt-auto border-t border-sidebar-border p-3 space-y-1">
+        {isAdmin && (
+          <SidebarMenuButton onClick={() => navigate("/admin")}>
+            <div className="flex items-center gap-2 text-sidebar-primary text-sm cursor-pointer font-medium">
+              <Shield className="h-4 w-4" />
+              {!collapsed && <span>Admin Portal</span>}
+            </div>
+          </SidebarMenuButton>
+        )}
         <SidebarMenuButton onClick={handleLogout}>
           <div className="flex items-center gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground text-sm cursor-pointer">
             <LogOut className="h-4 w-4" />
