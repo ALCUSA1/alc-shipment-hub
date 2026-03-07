@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +19,6 @@ const AdminSystem = () => {
       const ediMessages = ediRes.data || [];
       const ediErrors = ediMessages.filter(m => m.status === "error").length;
       const ediPending = ediMessages.filter(m => m.status === "pending").length;
-
       const docs = docsRes.data || [];
       const docsPending = docs.filter(d => d.status === "pending").length;
 
@@ -57,95 +55,88 @@ const AdminSystem = () => {
     },
   ];
 
-  const statusColors = {
-    operational: "bg-green-100 text-green-700 border-green-200",
-    degraded: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    down: "bg-destructive/10 text-destructive border-destructive/20",
+  const statusStyles = {
+    operational: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/20", icon: CheckCircle2 },
+    degraded: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/20", icon: AlertTriangle },
+    down: { bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/20", icon: AlertTriangle },
   };
 
   return (
     <AdminLayout>
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <Server className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-bold text-foreground">System Health</h1>
+          <Server className="h-5 w-5 text-indigo-400" />
+          <h1 className="text-2xl font-bold text-white">System Health</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Monitor system status, EDI processing, and data volumes</p>
+        <p className="text-sm text-[hsl(220,10%,50%)]">Monitor system status, EDI processing, and data volumes</p>
       </div>
 
       {/* Health Checks */}
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        {healthChecks.map((check) => (
-          <Card key={check.name}>
-            <CardContent className="pt-6">
+        {healthChecks.map((check) => {
+          const style = statusStyles[check.status];
+          const StatusIcon = style.icon;
+          return (
+            <div key={check.name} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <check.icon className="h-5 w-5 text-accent" />
-                  <span className="font-semibold text-foreground">{check.name}</span>
+                  <check.icon className="h-5 w-5 text-indigo-400" />
+                  <span className="font-semibold text-white text-sm">{check.name}</span>
                 </div>
-                <Badge variant="outline" className={statusColors[check.status]}>
-                  {check.status === "operational" && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                  {check.status === "degraded" && <AlertTriangle className="h-3 w-3 mr-1" />}
+                <Badge variant="outline" className={`${style.bg} ${style.text} ${style.border} text-[10px]`}>
+                  <StatusIcon className="h-3 w-3 mr-1" />
                   {check.status}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">{check.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+              <p className="text-xs text-[hsl(220,10%,45%)]">{check.description}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Data Volumes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Data Volumes</CardTitle>
-          <CardDescription>Record counts across major platform tables</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? <Skeleton className="h-32 w-full" /> : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { label: "Shipments", value: data?.totalShipments },
-                { label: "Tracking Events", value: data?.totalTrackingEvents },
-                { label: "EDI Messages", value: data?.totalEdi },
-                { label: "Documents", value: data?.totalDocuments },
-              ].map((item) => (
-                <div key={item.label} className="rounded-lg border border-border p-4 bg-muted/20">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{item.label}</p>
-                  <p className="text-2xl font-bold text-foreground mt-1">{(item.value || 0).toLocaleString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6 mb-6">
+        <h2 className="text-sm font-semibold text-white mb-1">Data Volumes</h2>
+        <p className="text-xs text-[hsl(220,10%,40%)] mb-4">Record counts across major platform tables</p>
+        {isLoading ? <Skeleton className="h-32 w-full bg-[hsl(220,15%,15%)]" /> : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Shipments", value: data?.totalShipments },
+              { label: "Tracking Events", value: data?.totalTrackingEvents },
+              { label: "EDI Messages", value: data?.totalEdi },
+              { label: "Documents", value: data?.totalDocuments },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg border border-[hsl(220,15%,15%)] p-4 bg-[hsl(220,15%,8%)]">
+                <p className="text-[10px] font-semibold text-[hsl(220,10%,40%)] uppercase tracking-wider">{item.label}</p>
+                <p className="text-2xl font-bold text-white mt-1">{(item.value || 0).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* EDI Summary */}
       {data && (data.ediErrors > 0 || data.ediPending > 0) && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Radio className="h-4 w-4 text-accent" />
-              EDI Status Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              {data.ediPending > 0 && (
-                <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-700">{data.ediPending} pending</span>
-                </div>
-              )}
-              {data.ediErrors > 0 && (
-                <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <span className="text-sm font-medium text-destructive">{data.ediErrors} errors</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Radio className="h-4 w-4 text-indigo-400" />
+            <h2 className="text-sm font-semibold text-white">EDI Status Summary</h2>
+          </div>
+          <div className="flex gap-4">
+            {data.ediPending > 0 && (
+              <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">{data.ediPending} pending</span>
+              </div>
+            )}
+            {data.ediErrors > 0 && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+                <span className="text-sm font-medium text-red-400">{data.ediErrors} errors</span>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </AdminLayout>
   );
