@@ -441,6 +441,13 @@ export function CarrierRateSelector({
                   ? `Book with ${selectedRate.carrier} — $${getTotalRate(selectedRate).toLocaleString()}`
                   : "Select a rate to book"}
               </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setAlertDialogOpen(true)}
+              >
+                <Bell className="h-4 w-4 mr-1" />
+                Set Rate Alert
             </div>
           )}
         </CardContent>
@@ -502,6 +509,14 @@ export function CarrierRateSelector({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RateAlertDialog
+        open={alertDialogOpen}
+        onOpenChange={setAlertDialogOpen}
+        defaultOrigin={originPort || ""}
+        defaultDestination={destinationPort || ""}
+        defaultContainerType={activeContainerType}
+      />
     </>
   );
 }
