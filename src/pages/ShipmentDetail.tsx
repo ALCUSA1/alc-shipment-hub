@@ -443,6 +443,12 @@ const ShipmentDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Profit & Loss */}
+          <ShipmentPnL
+            shipmentId={id!}
+            quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
+          />
         </motion.div>
 
         {/* Sidebar */}
