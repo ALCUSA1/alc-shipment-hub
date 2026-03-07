@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,12 +51,7 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const CARRIERS = [
-  { value: "maersk", label: "Maersk" },
-  { value: "msc", label: "MSC" },
-  { value: "cmacgm", label: "CMA CGM" },
-  { value: "evergreen", label: "Evergreen" },
-];
+// CARRIERS list removed — now handled by CarrierRateSelector
 
 const ShipmentDetail = () => {
   const { id } = useParams();
