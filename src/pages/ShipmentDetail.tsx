@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,16 @@ const ShipmentDetail = () => {
     queryKey: ["documents", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("documents").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: quotes } = useQuery({
+    queryKey: ["shipment-quotes", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("quotes").select("amount, status").eq("shipment_id", id!).eq("status", "accepted");
       if (error) throw error;
       return data;
     },
@@ -432,6 +443,12 @@ const ShipmentDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Profit & Loss */}
+          <ShipmentPnL
+            shipmentId={id!}
+            quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
+          />
         </motion.div>
 
         {/* Sidebar */}

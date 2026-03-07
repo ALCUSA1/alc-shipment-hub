@@ -811,6 +811,65 @@ export type Database = {
           },
         ]
       }
+      shipment_financials: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          currency: string
+          date: string | null
+          description: string
+          entry_type: string
+          id: string
+          invoice_ref: string | null
+          notes: string | null
+          shipment_id: string
+          updated_at: string
+          user_id: string
+          vendor: string | null
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          currency?: string
+          date?: string | null
+          description: string
+          entry_type?: string
+          id?: string
+          invoice_ref?: string | null
+          notes?: string | null
+          shipment_id: string
+          updated_at?: string
+          user_id: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          currency?: string
+          date?: string | null
+          description?: string
+          entry_type?: string
+          id?: string
+          invoice_ref?: string | null
+          notes?: string | null
+          shipment_id?: string
+          updated_at?: string
+          user_id?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_financials_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_parties: {
         Row: {
           address: string | null
