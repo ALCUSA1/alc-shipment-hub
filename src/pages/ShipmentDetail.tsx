@@ -6,8 +6,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Ship, Loader2, Radio } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Ship, Loader2, Radio, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,10 +58,27 @@ const CARRIERS = [
 
 const ShipmentDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedCarrier, setSelectedCarrier] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!id) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("shipments").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Shipment deleted", description: "The draft shipment has been removed." });
+      navigate("/dashboard/shipments");
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Realtime subscriptions for live updates
   useEffect(() => {
@@ -248,10 +276,37 @@ const ShipmentDetail = () => {
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
-          <Button variant="electric" size="sm">
-            <FileText className="mr-2 h-4 w-4" />
-            Generate Documents
-          </Button>
+          <div className="flex items-center gap-2">
+            {shipment.status === "draft" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Draft
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete draft shipment?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete shipment <strong>{shipment.shipment_ref}</strong> and all associated cargo, containers, parties, and quotes. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <Button variant="electric" size="sm">
+              <FileText className="mr-2 h-4 w-4" />
+              Generate Documents
+            </Button>
+          </div>
         </div>
       </div>
 
