@@ -70,7 +70,7 @@ const Shipments = () => {
 
   const filtered = useMemo(() => {
     if (!shipments) return [];
-    return shipments.filter((s) => {
+    const list = shipments.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (typeFilter !== "all" && s.shipment_type !== typeFilter) return false;
       if (search) {
@@ -82,7 +82,42 @@ const Shipments = () => {
       }
       return true;
     });
-  }, [shipments, search, statusFilter, typeFilter]);
+
+    // Sort
+    const getValue = (s: any): string => {
+      switch (sortKey) {
+        case "shipment_ref": return s.shipment_ref || "";
+        case "customer": return (s.companies as any)?.company_name || "";
+        case "origin_port": return s.origin_port || "";
+        case "shipment_type": return s.shipment_type || "";
+        case "status": return s.status || "";
+        default: return "";
+      }
+    };
+    list.sort((a, b) => {
+      const va = getValue(a).toLowerCase();
+      const vb = getValue(b).toLowerCase();
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return list;
+  }, [shipments, search, statusFilter, typeFilter, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
 
   // Reset page when filters change
   const totalFiltered = filtered.length;
