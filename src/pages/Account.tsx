@@ -91,7 +91,8 @@ const Account = () => {
         supabase.from("companies").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
       ]);
       if (profileRes.data) {
-        setProfile({ full_name: profileRes.data.full_name || "", company_name: profileRes.data.company_name || "", avatar_url: profileRes.data.avatar_url || "" });
+        const logoUrl = (profileRes.data as any).logo_url || "";
+        setProfile({ full_name: profileRes.data.full_name || "", company_name: profileRes.data.company_name || "", avatar_url: logoUrl || profileRes.data.avatar_url || "" });
       }
       if (companyRes.data) {
         const c = companyRes.data;
