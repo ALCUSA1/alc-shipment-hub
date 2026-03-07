@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -41,6 +41,9 @@ const formatStatus = (s: string) =>
 
 const PAGE_SIZE = 20;
 
+type SortKey = "shipment_ref" | "customer" | "origin_port" | "shipment_type" | "status";
+type SortDir = "asc" | "desc";
+
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,6 +51,8 @@ const Shipments = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>("shipment_ref");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["shipments-list", user?.id],
@@ -65,7 +70,7 @@ const Shipments = () => {
 
   const filtered = useMemo(() => {
     if (!shipments) return [];
-    return shipments.filter((s) => {
+    const list = shipments.filter((s) => {
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
       if (typeFilter !== "all" && s.shipment_type !== typeFilter) return false;
       if (search) {
@@ -77,7 +82,42 @@ const Shipments = () => {
       }
       return true;
     });
-  }, [shipments, search, statusFilter, typeFilter]);
+
+    // Sort
+    const getValue = (s: any): string => {
+      switch (sortKey) {
+        case "shipment_ref": return s.shipment_ref || "";
+        case "customer": return (s.companies as any)?.company_name || "";
+        case "origin_port": return s.origin_port || "";
+        case "shipment_type": return s.shipment_type || "";
+        case "status": return s.status || "";
+        default: return "";
+      }
+    };
+    list.sort((a, b) => {
+      const va = getValue(a).toLowerCase();
+      const vb = getValue(b).toLowerCase();
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return list;
+  }, [shipments, search, statusFilter, typeFilter, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
 
   // Reset page when filters change
   const totalFiltered = filtered.length;
@@ -155,11 +195,21 @@ const Shipments = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left font-medium text-muted-foreground p-4">Reference</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Customer</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Route</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Type</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Status</th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_ref")}>
+                      <span className="inline-flex items-center">Reference<SortIcon col="shipment_ref" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("customer")}>
+                      <span className="inline-flex items-center">Customer<SortIcon col="customer" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("origin_port")}>
+                      <span className="inline-flex items-center">Route<SortIcon col="origin_port" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_type")}>
+                      <span className="inline-flex items-center">Type<SortIcon col="shipment_type" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("status")}>
+                      <span className="inline-flex items-center">Status<SortIcon col="status" /></span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
