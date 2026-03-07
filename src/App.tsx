@@ -41,6 +41,8 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import AdminFinancials from "./pages/admin/AdminFinancials";
 import AdminSystem from "./pages/admin/AdminSystem";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminShipments from "./pages/admin/AdminShipments";
+import AdminShipmentDetail from "./pages/admin/AdminShipmentDetail";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,8 @@ const App = () => (
             <Route path="/admin/activity" element={<AdminGate><AdminActivity /></AdminGate>} />
             <Route path="/admin/financials" element={<AdminGate><AdminFinancials /></AdminGate>} />
             <Route path="/admin/system" element={<AdminGate><AdminSystem /></AdminGate>} />
+            <Route path="/admin/shipments" element={<AdminGate><AdminShipments /></AdminGate>} />
+            <Route path="/admin/shipments/:id" element={<AdminGate><AdminShipmentDetail /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
