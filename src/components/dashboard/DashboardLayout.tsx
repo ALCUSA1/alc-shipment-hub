@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
@@ -12,8 +13,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b px-4">
+          <header className="h-14 flex items-center justify-between border-b px-4">
             <SidebarTrigger />
+            <NotificationBell />
           </header>
           <main className="flex-1 p-6 bg-secondary/50">
             <AnimatePresence mode="wait">
