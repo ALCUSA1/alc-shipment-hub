@@ -800,41 +800,100 @@ export type Database = {
       quotes: {
         Row: {
           amount: number | null
+          approval_token: string | null
+          approved_at: string | null
+          carrier: string | null
+          carrier_cost: number | null
+          carrier_rate_id: string | null
+          company_id: string | null
+          container_type: string | null
           created_at: string
           currency: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_price: number | null
+          destination_port: string | null
           id: string
+          margin_type: string | null
+          margin_value: number | null
           notes: string | null
+          origin_port: string | null
           shipment_id: string
           status: string
+          transit_days: number | null
           updated_at: string
           user_id: string
           valid_until: string | null
         }
         Insert: {
           amount?: number | null
+          approval_token?: string | null
+          approved_at?: string | null
+          carrier?: string | null
+          carrier_cost?: number | null
+          carrier_rate_id?: string | null
+          company_id?: string | null
+          container_type?: string | null
           created_at?: string
           currency?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_price?: number | null
+          destination_port?: string | null
           id?: string
+          margin_type?: string | null
+          margin_value?: number | null
           notes?: string | null
+          origin_port?: string | null
           shipment_id: string
           status?: string
+          transit_days?: number | null
           updated_at?: string
           user_id: string
           valid_until?: string | null
         }
         Update: {
           amount?: number | null
+          approval_token?: string | null
+          approved_at?: string | null
+          carrier?: string | null
+          carrier_cost?: number | null
+          carrier_rate_id?: string | null
+          company_id?: string | null
+          container_type?: string | null
           created_at?: string
           currency?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_price?: number | null
+          destination_port?: string | null
           id?: string
+          margin_type?: string | null
+          margin_value?: number | null
           notes?: string | null
+          origin_port?: string | null
           shipment_id?: string
           status?: string
+          transit_days?: number | null
           updated_at?: string
           user_id?: string
           valid_until?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quotes_carrier_rate_id_fkey"
+            columns: ["carrier_rate_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotes_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -990,9 +1049,12 @@ export type Database = {
         Row: {
           booking_ref: string | null
           company_id: string | null
+          converted_from_quote_id: string | null
           created_at: string
+          cy_cutoff: string | null
           delivery_location: string | null
           destination_port: string | null
+          doc_cutoff: string | null
           eta: string | null
           etd: string | null
           id: string
@@ -1000,18 +1062,23 @@ export type Database = {
           pickup_location: string | null
           shipment_ref: string
           shipment_type: string
+          si_cutoff: string | null
           status: string
           updated_at: string
           user_id: string
           vessel: string | null
+          vgm_cutoff: string | null
           voyage: string | null
         }
         Insert: {
           booking_ref?: string | null
           company_id?: string | null
+          converted_from_quote_id?: string | null
           created_at?: string
+          cy_cutoff?: string | null
           delivery_location?: string | null
           destination_port?: string | null
+          doc_cutoff?: string | null
           eta?: string | null
           etd?: string | null
           id?: string
@@ -1019,18 +1086,23 @@ export type Database = {
           pickup_location?: string | null
           shipment_ref: string
           shipment_type?: string
+          si_cutoff?: string | null
           status?: string
           updated_at?: string
           user_id: string
           vessel?: string | null
+          vgm_cutoff?: string | null
           voyage?: string | null
         }
         Update: {
           booking_ref?: string | null
           company_id?: string | null
+          converted_from_quote_id?: string | null
           created_at?: string
+          cy_cutoff?: string | null
           delivery_location?: string | null
           destination_port?: string | null
+          doc_cutoff?: string | null
           eta?: string | null
           etd?: string | null
           id?: string
@@ -1038,10 +1110,12 @@ export type Database = {
           pickup_location?: string | null
           shipment_ref?: string
           shipment_type?: string
+          si_cutoff?: string | null
           status?: string
           updated_at?: string
           user_id?: string
           vessel?: string | null
+          vgm_cutoff?: string | null
           voyage?: string | null
         }
         Relationships: [
@@ -1050,6 +1124,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_converted_from_quote_id_fkey"
+            columns: ["converted_from_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]

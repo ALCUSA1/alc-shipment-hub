@@ -18,6 +18,8 @@ import Shipments from "./pages/Shipments";
 import NewShipment from "./pages/NewShipment";
 import ShipmentDetail from "./pages/ShipmentDetail";
 import Quotes from "./pages/Quotes";
+import NewQuote from "./pages/NewQuote";
+import QuoteApproval from "./pages/QuoteApproval";
 import Documents from "./pages/Documents";
 import Partners from "./pages/Partners";
 import Account from "./pages/Account";
@@ -54,6 +56,8 @@ const App = () => (
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
             <Route path="/dashboard/quotes" element={<RoleGate><Quotes /></RoleGate>} />
+            <Route path="/dashboard/quotes/new" element={<ProtectedRoute><NewQuote /></ProtectedRoute>} />
+            <Route path="/quote/approve" element={<QuoteApproval />} />
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
             <Route path="/dashboard/trucking" element={<RoleGate><Trucking /></RoleGate>} />
             <Route path="/dashboard/warehouses" element={<RoleGate><Warehouses /></RoleGate>} />
