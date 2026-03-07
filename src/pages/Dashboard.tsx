@@ -72,7 +72,7 @@ const Dashboard = () => {
           .eq("status", "pending"),
         supabase
           .from("shipments")
-          .select("id, shipment_ref, origin_port, destination_port, status, created_at")
+          .select("id, shipment_ref, origin_port, destination_port, status, created_at, companies(company_name)")
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
