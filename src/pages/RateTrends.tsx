@@ -212,11 +212,17 @@ const RateTrends = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Track carrier rate history across routes and container types
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track carrier rate history across routes and container types
+          </p>
+        </div>
+        <Button onClick={() => setAlertDialogOpen(true)} className="gap-2">
+          <Bell className="h-4 w-4" />
+          Set Rate Alert
+        </Button>
       </div>
 
       {/* Filters */}
@@ -381,6 +387,61 @@ const RateTrends = () => {
           </div>
         </>
       )}
+
+      {/* Rate Alerts Management */}
+      {rateAlerts.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4 text-accent" />
+              Your Rate Alerts
+            </CardTitle>
+            <CardDescription>
+              Manage your price drop notifications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {rateAlerts.map((alert) => (
+                <div key={alert.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={alert.is_active}
+                      onCheckedChange={() => toggleAlert(alert.id, alert.is_active)}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {alert.origin_port} → {alert.destination_port}
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {alert.container_type.toUpperCase()}
+                        </span>
+                        {alert.carrier && (
+                          <span className="ml-2 text-xs text-muted-foreground">• {alert.carrier}</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Alert when below ${alert.threshold_rate.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteAlert(alert.id)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <RateAlertDialog
+        open={alertDialogOpen}
+        onOpenChange={setAlertDialogOpen}
+        defaultOrigin={selectedRoute !== "all" ? selectedRoute.split("→")[0] : ""}
+        defaultDestination={selectedRoute !== "all" ? selectedRoute.split("→")[1] : ""}
+        defaultContainerType={selectedContainer !== "all" ? selectedContainer : "40hc"}
+        defaultCarrier={selectedCarrier !== "all" ? selectedCarrier : undefined}
+      />
     </DashboardLayout>
   );
 };
