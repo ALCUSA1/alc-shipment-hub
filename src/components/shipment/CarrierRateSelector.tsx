@@ -43,10 +43,16 @@ interface CarrierRateSelectorProps {
 
 function parseSurcharges(surcharges: Json): Surcharge[] {
   if (!Array.isArray(surcharges)) return [];
-  return surcharges.filter(
-    (s): s is Surcharge =>
-      typeof s === "object" && s !== null && "code" in s && "amount" in s
-  );
+  return surcharges
+    .filter((s) => typeof s === "object" && s !== null && "code" in s && "amount" in s)
+    .map((s) => {
+      const obj = s as Record<string, Json>;
+      return {
+        code: String(obj.code ?? ""),
+        description: String(obj.description ?? ""),
+        amount: Number(obj.amount ?? 0),
+      };
+    });
 }
 
 export function CarrierRateSelector({
