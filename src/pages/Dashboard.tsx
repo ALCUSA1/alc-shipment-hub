@@ -8,9 +8,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { canAccessRoute } from "@/lib/permissions";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { Package, DollarSign, Truck, Warehouse, Clock, ArrowRight, TrendingUp, Users, ContactRound } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from "recharts";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import {
+  Package, DollarSign, Truck, Warehouse, Clock, ArrowRight, TrendingUp,
+  ContactRound, Plus, Layers, FileText, Zap
+} from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, CartesianGrid,
+} from "recharts";
 
 interface ShipmentRow {
   id: string;
@@ -32,21 +38,13 @@ const statusColor: Record<string, string> = {
 };
 
 const statusLabel: Record<string, string> = {
-  draft: "Draft",
-  booked: "Booked",
-  in_transit: "In Transit",
-  arrived: "Arrived",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
+  draft: "Draft", booked: "Booked", in_transit: "In Transit",
+  arrived: "Arrived", delivered: "Delivered", cancelled: "Cancelled",
 };
 
 const PIE_COLORS = [
-  "hsl(217, 95%, 58%)",   // accent/electric
-  "hsl(45, 93%, 55%)",    // yellow
-  "hsl(160, 60%, 45%)",   // green
-  "hsl(200, 70%, 55%)",   // blue
-  "hsl(0, 84%, 60%)",     // red
-  "hsl(215, 14%, 70%)",   // gray
+  "hsl(217, 95%, 58%)", "hsl(45, 93%, 55%)", "hsl(160, 60%, 45%)",
+  "hsl(200, 70%, 55%)", "hsl(0, 84%, 60%)", "hsl(215, 14%, 70%)",
 ];
 
 const Dashboard = () => {
@@ -63,6 +61,7 @@ const Dashboard = () => {
   const [monthlyTrend, setMonthlyTrend] = useState<{ month: string; shipments: number; quotes: number }[]>([]);
   const [companyCount, setCompanyCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [acceptedQuotes, setAcceptedQuotes] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -70,31 +69,14 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
 
-      const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes, allShipmentsRes] = await Promise.all([
-        supabase
-          .from("shipments")
-          .select("id, status", { count: "exact" })
-          .in("status", ["booked", "in_transit", "arrived"]),
-        supabase
-          .from("quotes")
-          .select("id", { count: "exact" })
-          .eq("status", "pending"),
-        supabase
-          .from("truck_pickups")
-          .select("id", { count: "exact" })
-          .eq("status", "scheduled"),
-        supabase
-          .from("warehouse_operations")
-          .select("id", { count: "exact" })
-          .eq("status", "pending"),
-        supabase
-          .from("shipments")
-          .select("id, shipment_ref, origin_port, destination_port, status, created_at, companies(company_name)")
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("shipments")
-          .select("id, status, created_at"),
+      const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes, allShipmentsRes, acceptedQuotesRes] = await Promise.all([
+        supabase.from("shipments").select("id, status", { count: "exact" }).in("status", ["booked", "in_transit", "arrived"]),
+        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "pending"),
+        supabase.from("truck_pickups").select("id", { count: "exact" }).eq("status", "scheduled"),
+        supabase.from("warehouse_operations").select("id", { count: "exact" }).eq("status", "pending"),
+        supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, created_at, companies(company_name)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("shipments").select("id, status, created_at"),
+        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "accepted"),
       ]);
 
       setActiveCount(shipmentsRes.count ?? 0);
@@ -102,71 +84,39 @@ const Dashboard = () => {
       setTruckPickups(pickupsRes.count ?? 0);
       setWarehouseArrivals(warehouseRes.count ?? 0);
       setRecentShipments((recentShipmentsRes.data as ShipmentRow[]) ?? []);
+      setAcceptedQuotes(acceptedQuotesRes.count ?? 0);
 
-      // Status breakdown for pie chart
       const allShipments = allShipmentsRes.data || [];
       const statusMap: Record<string, number> = {};
-      for (const s of allShipments) {
-        statusMap[s.status] = (statusMap[s.status] || 0) + 1;
-      }
-      setStatusBreakdown(
-        Object.entries(statusMap).map(([name, value]) => ({
-          name: statusLabel[name] || name,
-          value,
-        }))
-      );
+      for (const s of allShipments) statusMap[s.status] = (statusMap[s.status] || 0) + 1;
+      setStatusBreakdown(Object.entries(statusMap).map(([name, value]) => ({ name: statusLabel[name] || name, value })));
 
-      // Monthly trend (last 6 months)
       const months: { month: string; shipments: number; quotes: number }[] = [];
       for (let i = 5; i >= 0; i--) {
         const d = subMonths(new Date(), i);
         const start = startOfMonth(d).toISOString();
         const end = endOfMonth(d).toISOString();
-        const shipCount = allShipments.filter(
-          (s) => s.created_at >= start && s.created_at <= end
-        ).length;
-        months.push({
-          month: format(d, "MMM"),
-          shipments: shipCount,
-          quotes: 0,
-        });
+        months.push({ month: format(d, "MMM"), shipments: allShipments.filter(s => s.created_at >= start && s.created_at <= end).length, quotes: 0 });
       }
-
-      // Fill in quote counts per month
       const { data: allQuotes } = await supabase.from("quotes").select("id, created_at");
       if (allQuotes) {
         for (let i = 5; i >= 0; i--) {
           const d = subMonths(new Date(), i);
           const start = startOfMonth(d).toISOString();
           const end = endOfMonth(d).toISOString();
-          months[5 - i].quotes = allQuotes.filter(
-            (q) => q.created_at >= start && q.created_at <= end
-          ).length;
+          months[5 - i].quotes = allQuotes.filter(q => q.created_at >= start && q.created_at <= end).length;
         }
       }
       setMonthlyTrend(months);
 
-      // CRM stats
-      const { count: crmCount } = await supabase
-        .from("companies")
-        .select("id", { count: "exact" });
+      const { count: crmCount } = await supabase.from("companies").select("id", { count: "exact" });
       setCompanyCount(crmCount ?? 0);
 
-      // Revenue from accepted quotes
-      const { data: revenueData } = await supabase
-        .from("quotes")
-        .select("amount")
-        .eq("status", "accepted");
-      setTotalRevenue(
-        (revenueData || []).reduce((sum, q) => sum + (q.amount || 0), 0)
-      );
+      const { data: revenueData } = await supabase.from("quotes").select("amount").eq("status", "accepted");
+      setTotalRevenue((revenueData || []).reduce((sum, q) => sum + (q.amount || 0), 0));
 
-      // Recent updates count
       const yesterday = new Date(Date.now() - 86400000).toISOString();
-      const { count: updatedCount } = await supabase
-        .from("shipments")
-        .select("id", { count: "exact" })
-        .gte("updated_at", yesterday);
+      const { count: updatedCount } = await supabase.from("shipments").select("id", { count: "exact" }).gte("updated_at", yesterday);
       setRecentEventsCount(updatedCount ?? 0);
 
       setLoading(false);
@@ -175,19 +125,15 @@ const Dashboard = () => {
     fetchData();
   }, [user]);
 
-  // Role-aware stats
   const canOps = canAccessRoute("/dashboard/trucking", roles);
   const canSales = canAccessRoute("/dashboard/crm", roles);
 
   const stats = [
     { label: "Active Shipments", value: activeCount, icon: Package, sub: "Booked, in transit & arrived", link: "/dashboard/shipments" },
-    { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, sub: "Awaiting response", link: "/dashboard/quotes" },
+    { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, sub: "Awaiting customer response", link: "/dashboard/quotes" },
     ...(canOps ? [
       { label: "Truck Pickups", value: truckPickups, icon: Truck, sub: "Scheduled pickups", link: "/dashboard/trucking" },
       { label: "Warehouse Arrivals", value: warehouseArrivals, icon: Warehouse, sub: "Pending cargo", link: "/dashboard/warehouses" },
-    ] : []),
-    ...(canSales ? [
-      { label: "CRM Companies", value: companyCount, icon: ContactRound, sub: "Active accounts", link: "/dashboard/crm" },
     ] : []),
     { label: "Recent Updates", value: recentEventsCount, icon: Clock, sub: "Last 24 hours", link: "/dashboard/shipments" },
   ];
@@ -198,39 +144,116 @@ const Dashboard = () => {
       <div className="bg-popover border rounded-lg px-3 py-2 shadow-md text-xs">
         <p className="font-medium text-foreground mb-1">{label}</p>
         {payload.map((p: any) => (
-          <p key={p.name} style={{ color: p.color }}>
-            {p.name}: {p.value}
-          </p>
+          <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value}</p>
         ))}
       </div>
     );
   };
 
+  // Determine if user is brand new (no shipments, no quotes)
+  const isEmpty = !loading && recentShipments.length === 0 && pendingQuotes === 0;
+
   return (
     <DashboardLayout>
-      <div className="mb-8 flex items-center justify-between">
+      {/* Header with Quick Actions */}
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Your shipment coordination overview</p>
         </div>
-        <Button variant="electric" asChild>
-          <Link to="/dashboard/shipments/new">New Shipment <ArrowRight className="ml-2 h-4 w-4" /></Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/dashboard/pipeline">
+              <Layers className="mr-2 h-4 w-4" />
+              Pipeline
+            </Link>
+          </Button>
+          <Button variant="electric" size="sm" asChild>
+            <Link to="/dashboard/quotes/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Quote
+            </Link>
+          </Button>
+        </div>
       </div>
 
+      {/* Getting Started Guide — shown when platform is empty */}
+      {isEmpty && (
+        <Card className="mb-8 border-accent/30 bg-accent/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5 text-accent" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground mb-1">Welcome! Here's how to get started</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  The platform follows a simple flow: <strong>Quote → Approve → Convert to Shipment → Track & Deliver</strong>
+                </p>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <Link to="/dashboard/crm" className="group rounded-lg border border-border bg-card p-4 hover:border-accent/50 hover:shadow-sm transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="h-6 w-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">1</span>
+                      <span className="text-sm font-medium text-foreground">Add a Customer</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Go to CRM and add your first customer account with compliance details.</p>
+                  </Link>
+                  <Link to="/dashboard/quotes/new" className="group rounded-lg border border-border bg-card p-4 hover:border-accent/50 hover:shadow-sm transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="h-6 w-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">2</span>
+                      <span className="text-sm font-medium text-foreground">Create a Quote</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Select a route, pick a carrier rate, add your margin, and send to your customer.</p>
+                  </Link>
+                  <Link to="/dashboard/quotes" className="group rounded-lg border border-border bg-card p-4 hover:border-accent/50 hover:shadow-sm transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="h-6 w-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">3</span>
+                      <span className="text-sm font-medium text-foreground">Convert to Shipment</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Once approved, convert the quote into a shipment with auto-generated documents.</p>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Items — things that need attention */}
+      {!loading && (acceptedQuotes > 0 || pendingQuotes > 0) && (
+        <div className="flex flex-wrap gap-3 mb-6">
+          {acceptedQuotes > 0 && (
+            <Link to="/dashboard/quotes" className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors">
+              <DollarSign className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">
+                {acceptedQuotes} quote{acceptedQuotes > 1 ? "s" : ""} ready to convert
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 text-green-600" />
+            </Link>
+          )}
+          {pendingQuotes > 0 && (
+            <Link to="/dashboard/quotes" className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+              <Clock className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm font-medium text-yellow-700">
+                {pendingQuotes} quote{pendingQuotes > 1 ? "s" : ""} awaiting approval
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 text-yellow-600" />
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Metric Cards */}
-      <div className={`grid sm:grid-cols-2 lg:grid-cols-${Math.min(stats.length, 5)} gap-4 mb-8`}>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((s) => (
           <Link key={s.label} to={s.link} className="group">
-            <Card className="transition-shadow group-hover:shadow-md">
+            <Card className="transition-shadow group-hover:shadow-md h-full">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
                 <s.icon className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <Skeleton className="h-8 w-16" />
-                ) : (
+                {loading ? <Skeleton className="h-8 w-16" /> : (
                   <div className="text-2xl font-bold text-foreground">{s.value}</div>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">{s.sub}</p>
@@ -242,7 +265,6 @@ const Dashboard = () => {
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-3 gap-4 mb-8">
-        {/* Monthly Trend */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -252,9 +274,7 @@ const Dashboard = () => {
             <CardDescription>Shipments and quotes over the last 6 months</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-[220px] w-full" />
-            ) : monthlyTrend.every((m) => m.shipments === 0 && m.quotes === 0) ? (
+            {loading ? <Skeleton className="h-[220px] w-full" /> : monthlyTrend.every(m => m.shipments === 0 && m.quotes === 0) ? (
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">
                 No activity data yet. Create shipments and quotes to see trends.
               </div>
@@ -273,35 +293,20 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Status Breakdown Pie */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Shipment Status</CardTitle>
             <CardDescription>Current distribution</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <Skeleton className="h-[220px] w-full" />
-            ) : statusBreakdown.length === 0 ? (
-              <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">
-                No shipments yet
-              </div>
+            {loading ? <Skeleton className="h-[220px] w-full" /> : statusBreakdown.length === 0 ? (
+              <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">No shipments yet</div>
             ) : (
               <div className="flex flex-col items-center">
                 <ResponsiveContainer width="100%" height={160}>
                   <PieChart>
-                    <Pie
-                      data={statusBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={65}
-                      dataKey="value"
-                      paddingAngle={3}
-                    >
-                      {statusBreakdown.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
+                    <Pie data={statusBreakdown} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={3}>
+                      {statusBreakdown.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                   </PieChart>
@@ -332,9 +337,7 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <Skeleton className="h-10 w-32" />
-              ) : (
+              {loading ? <Skeleton className="h-10 w-32" /> : (
                 <div className="text-3xl font-bold text-foreground">
                   ${totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </div>
@@ -342,6 +345,20 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">Total from accepted quotes</p>
             </CardContent>
           </Card>
+          {companyCount > 0 && (
+            <Link to="/dashboard/crm">
+              <Card className="h-full hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">CRM Companies</CardTitle>
+                  <ContactRound className="h-4 w-4 text-accent" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground">{companyCount}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Active accounts</p>
+                </CardContent>
+              </Card>
+            </Link>
+          )}
         </div>
       )}
 
@@ -356,14 +373,20 @@ const Dashboard = () => {
         <CardContent>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-lg" />
-              ))}
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
             </div>
           ) : recentShipments.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No shipments yet. Create your first shipment to get started.
-            </p>
+            <div className="text-center py-8">
+              <Package className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No shipments yet.</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-4">Start by creating a quote — once approved, convert it to a shipment.</p>
+              <Button variant="electric" size="sm" asChild>
+                <Link to="/dashboard/quotes/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Your First Quote
+                </Link>
+              </Button>
+            </div>
           ) : (
             <div className="space-y-2">
               {recentShipments.map((s) => (
