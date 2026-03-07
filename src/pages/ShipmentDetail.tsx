@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
+import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
@@ -419,6 +420,12 @@ const ShipmentDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Demurrage & Detention */}
+          <DemurrageTracker
+            shipmentId={id!}
+            shipmentStatus={shipment.status}
+          />
 
           {/* Profit & Loss */}
           <ShipmentPnL
