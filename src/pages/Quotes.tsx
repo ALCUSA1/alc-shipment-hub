@@ -145,7 +145,27 @@ const Quotes = () => {
         });
       }
 
-      // 5. Update quote status to converted and link shipment
+      // 5. Auto-generate document checklist based on shipment type
+      const requiredDocs = [
+        "bill_of_lading",
+        "commercial_invoice",
+        "packing_list",
+        "shipper_letter_of_instruction",
+        "dock_receipt",
+        "certificate_of_origin",
+        "insurance_certificate",
+        "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          doc_type: docType,
+          status: "pending",
+        }))
+      );
+
+      // 6. Update quote status to converted and link shipment
       await supabase.from("quotes").update({
         status: "converted",
         shipment_id: shipment.id,

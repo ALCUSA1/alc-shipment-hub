@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
+import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -482,31 +483,8 @@ const ShipmentDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Documents */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-4 w-4 text-accent" />
-                Documents
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {documents && documents.length > 0 ? (
-                <div className="space-y-3">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                      <p className="text-sm text-foreground">{doc.doc_type}</p>
-                      <span className={`text-xs font-medium ${doc.status === "generated" ? "text-green-600" : "text-muted-foreground"}`}>
-                        {formatStatus(doc.status)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No documents yet.</p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Document Checklist */}
+          <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
         </motion.div>
       </div>
     </DashboardLayout>
