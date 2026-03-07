@@ -41,6 +41,9 @@ const formatStatus = (s: string) =>
 
 const PAGE_SIZE = 20;
 
+type SortKey = "shipment_ref" | "customer" | "origin_port" | "shipment_type" | "status";
+type SortDir = "asc" | "desc";
+
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,6 +51,8 @@ const Shipments = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>("shipment_ref");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["shipments-list", user?.id],
