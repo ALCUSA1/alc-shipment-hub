@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Shield, Loader2, Trash2 } from "lucide-react";
+import { UserPlus, Shield, Loader2, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole, type AppRole } from "@/hooks/useUserRole";
@@ -94,6 +95,20 @@ const Team = () => {
       toast({ title: "Invite Failed", description: err.message, variant: "destructive" });
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleChangeRole = async (roleId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole as any })
+        .eq("id", roleId);
+      if (error) throw error;
+      toast({ title: "Role Updated", description: `Changed to ${ROLE_LABELS[newRole]}` });
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
@@ -210,9 +225,24 @@ const Team = () => {
                   <div className="flex items-center gap-2">
                     {member.roles.map((r) => (
                       <div key={r.id} className="flex items-center gap-1">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_COLORS[r.role] || "bg-secondary text-muted-foreground"}`}>
-                          {ROLE_LABELS[r.role] || r.role}
-                        </span>
+                        {member.user_id !== user?.id ? (
+                          <Select value={r.role} onValueChange={(val) => handleChangeRole(r.id, val)}>
+                            <SelectTrigger className="h-7 w-auto gap-1 border-0 px-2.5 py-0.5 text-xs font-medium rounded-full shadow-none focus:ring-0">
+                              <span className={`inline-flex items-center rounded-full ${ROLE_COLORS[r.role] || "bg-secondary text-muted-foreground"}`}>
+                                {ROLE_LABELS[r.role] || r.role}
+                              </span>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_COLORS[r.role] || "bg-secondary text-muted-foreground"}`}>
+                            {ROLE_LABELS[r.role] || r.role}
+                          </span>
+                        )}
                         {member.user_id !== user?.id && (
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveRole(r.id)}>
                             <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
