@@ -27,7 +27,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8"
         >
           <Globe className="h-4 w-4" />
-          Shipper Logistics Workspace
+          Shipment Coordination Workspace
         </motion.div>
 
         <motion.h1
@@ -36,9 +36,9 @@ export function HeroSection() {
           transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
           className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6"
         >
-          Enter shipment data once.
+          Coordinate freight, trucking,
           <br />
-          <span className="text-gradient">Everything else happens automatically.</span>
+          <span className="text-gradient">and warehouses in one workspace.</span>
         </motion.h1>
 
         <motion.p
@@ -47,7 +47,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
           className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed mb-10"
         >
-          ALC Shipper Portal is the first Shipper Logistics Workspace designed for exporters and importers to coordinate shipments, generate shipping documents, request freight quotes, and track cargo in one centralized platform.
+          ALC Shipper Portal is the Shipment Coordination Workspace where shippers, freight forwarders, trucking companies, warehouses, and shipping lines collaborate on every shipment.
         </motion.p>
 
         <motion.div

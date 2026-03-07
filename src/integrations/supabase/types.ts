@@ -380,6 +380,130 @@ export type Database = {
           },
         ]
       }
+      truck_pickups: {
+        Row: {
+          cargo_description: string | null
+          container_type: string | null
+          created_at: string
+          delivery_location: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          notes: string | null
+          pickup_date: string | null
+          pickup_location: string | null
+          pickup_time: string | null
+          shipment_id: string
+          status: string
+          truck_plate: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo_description?: string | null
+          container_type?: string | null
+          created_at?: string
+          delivery_location?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          pickup_date?: string | null
+          pickup_location?: string | null
+          pickup_time?: string | null
+          shipment_id: string
+          status?: string
+          truck_plate?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo_description?: string | null
+          container_type?: string | null
+          created_at?: string
+          delivery_location?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          pickup_date?: string | null
+          pickup_location?: string | null
+          pickup_time?: string | null
+          shipment_id?: string
+          status?: string
+          truck_plate?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truck_pickups_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_operations: {
+        Row: {
+          cargo_description: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          num_packages: number | null
+          operation_type: string
+          release_authorization: string | null
+          shipment_id: string
+          status: string
+          storage_instructions: string | null
+          updated_at: string
+          volume: number | null
+          warehouse_location: string | null
+          warehouse_name: string | null
+          weight: number | null
+        }
+        Insert: {
+          cargo_description?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          num_packages?: number | null
+          operation_type?: string
+          release_authorization?: string | null
+          shipment_id: string
+          status?: string
+          storage_instructions?: string | null
+          updated_at?: string
+          volume?: number | null
+          warehouse_location?: string | null
+          warehouse_name?: string | null
+          weight?: number | null
+        }
+        Update: {
+          cargo_description?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          num_packages?: number | null
+          operation_type?: string
+          release_authorization?: string | null
+          shipment_id?: string
+          status?: string
+          storage_instructions?: string | null
+          updated_at?: string
+          volume?: number | null
+          warehouse_location?: string | null
+          warehouse_name?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_operations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

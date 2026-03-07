@@ -5,6 +5,7 @@ import { CategorySection } from "@/components/marketing/CategorySection";
 import { BeforeAfterSection } from "@/components/marketing/BeforeAfterSection";
 import { WorkflowSection } from "@/components/marketing/WorkflowSection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
+import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
 import { CTASection } from "@/components/marketing/CTASection";
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
       <BeforeAfterSection />
       <WorkflowSection />
       <FeaturesSection />
+      <PartnerAccessSection />
       <CTASection />
     </MarketingLayout>
   );

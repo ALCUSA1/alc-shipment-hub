@@ -3,12 +3,12 @@ import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/component
 import { motion } from "framer-motion";
 
 const problems = [
-  { icon: Mail, text: "Exporters and importers manage shipments through long email threads, spreadsheets, and scattered documents." },
-  { icon: FileSpreadsheet, text: "Shipment instructions are repeated multiple times across different channels." },
-  { icon: Search, text: "Important documents get buried in inboxes and shared drives." },
+  { icon: Mail, text: "Shippers coordinate freight, trucking, and warehouses through scattered email threads." },
+  { icon: FileSpreadsheet, text: "Trucking companies receive pickup instructions by phone with incomplete details." },
+  { icon: Search, text: "Warehouse teams lack structured cargo arrival and release instructions." },
   { icon: Clock, text: "Freight quote requests require extensive back and forth communication." },
-  { icon: AlertTriangle, text: "Shipment updates arrive inconsistently from different systems." },
-  { icon: Layers, text: "Teams lack a centralized workspace to coordinate logistics operations." },
+  { icon: AlertTriangle, text: "Shipment updates arrive inconsistently from different logistics parties." },
+  { icon: Layers, text: "No centralized workspace exists to coordinate all logistics operations." },
 ];
 
 export function ProblemSection() {
@@ -18,10 +18,10 @@ export function ProblemSection() {
         <ScrollReveal>
           <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">The Problem</p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Shipping coordination is still stuck in email.
+            Shipment coordination is fragmented.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mb-16">
-            This creates unnecessary complexity for businesses that depend on global shipping.
+            Logistics parties operate in silos, creating delays and miscommunication across the supply chain.
           </p>
         </ScrollReveal>
 

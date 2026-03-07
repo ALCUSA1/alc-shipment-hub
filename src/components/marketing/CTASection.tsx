@@ -9,10 +9,10 @@ export function CTASection() {
       <div className="container-narrow">
         <ScrollReveal>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
-            A new workspace for global shipping.
+            A single workspace for global shipment coordination.
           </h2>
           <p className="text-lg text-primary-foreground/60 max-w-xl mx-auto mb-10">
-            Stop managing shipments through email threads and spreadsheets. Operate from a modern logistics workspace.
+            Coordinate freight, trucking, warehouses, and shipment tracking from one modern logistics workspace.
           </p>
           <Button variant="electric" size="lg" className="text-base px-8 h-12" asChild>
             <Link to="/signup">
