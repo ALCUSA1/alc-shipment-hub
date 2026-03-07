@@ -90,7 +90,7 @@ const NewShipment = () => {
           destination_port: shipment.destinationPort || null,
           pickup_location: shipment.pickupLocation || null,
           delivery_location: shipment.deliveryLocation || null,
-          company_id: shipment.companyId || null,
+          company_id: shipment.companyId && shipment.companyId !== "none" ? shipment.companyId : null,
         })
         .select("id")
         .single();
@@ -212,7 +212,7 @@ const NewShipment = () => {
                     <Select value={shipment.companyId} onValueChange={(v) => setShipment({ ...shipment, companyId: v })}>
                       <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">— None —</SelectItem>
+                        <SelectItem value="none">— None —</SelectItem>
                         {crmCompanies.map(c => (
                           <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
                         ))}
