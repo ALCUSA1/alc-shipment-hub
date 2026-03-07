@@ -430,12 +430,16 @@ const ShipmentDetail = () => {
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
           {/* Cutoff Deadlines */}
-          <CutoffTracker cutoffs={{
-            cy_cutoff: (shipment as any).cy_cutoff,
-            si_cutoff: (shipment as any).si_cutoff,
-            vgm_cutoff: (shipment as any).vgm_cutoff,
-            doc_cutoff: (shipment as any).doc_cutoff,
-          }} />
+          <CutoffTracker
+            shipmentId={id!}
+            etd={shipment.etd}
+            cutoffs={{
+              cy_cutoff: (shipment as any).cy_cutoff,
+              si_cutoff: (shipment as any).si_cutoff,
+              vgm_cutoff: (shipment as any).vgm_cutoff,
+              doc_cutoff: (shipment as any).doc_cutoff,
+            }}
+          />
 
           {/* Carrier Rate Selection & Booking */}
           <CarrierRateSelector
