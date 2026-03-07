@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Building2, Shield, FileCheck, CreditCard, User, Loader2 } from "lucide-react";
+import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X } from "lucide-react";
 
 interface ProfileData {
   full_name: string;
@@ -91,7 +91,8 @@ const Account = () => {
         supabase.from("companies").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
       ]);
       if (profileRes.data) {
-        setProfile({ full_name: profileRes.data.full_name || "", company_name: profileRes.data.company_name || "", avatar_url: profileRes.data.avatar_url || "" });
+        const logoUrl = (profileRes.data as any).logo_url || "";
+        setProfile({ full_name: profileRes.data.full_name || "", company_name: profileRes.data.company_name || "", avatar_url: logoUrl || profileRes.data.avatar_url || "" });
       }
       if (companyRes.data) {
         const c = companyRes.data;
@@ -116,6 +117,44 @@ const Account = () => {
     };
     load();
   }, [user]);
+
+  const [logoUploading, setLogoUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please upload an image file.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Maximum 2MB.", variant: "destructive" });
+      return;
+    }
+    setLogoUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/logo.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("logos").upload(path, file, { upsert: true });
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      setLogoUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
+    const logoUrl = urlData.publicUrl + `?t=${Date.now()}`;
+    await supabase.from("profiles").update({ logo_url: logoUrl } as any).eq("user_id", user.id);
+    setProfile(p => ({ ...p, avatar_url: logoUrl }));
+    toast({ title: "Logo uploaded" });
+    setLogoUploading(false);
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!user) return;
+    await supabase.from("profiles").update({ logo_url: null } as any).eq("user_id", user.id);
+    setProfile(p => ({ ...p, avatar_url: "" }));
+    toast({ title: "Logo removed" });
+  };
 
   const saveProfile = async () => {
     if (!user) return;
@@ -207,7 +246,33 @@ const Account = () => {
               <CardTitle className="text-base">Your Profile</CardTitle>
               <CardDescription>Personal account information</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 max-w-lg">
+            <CardContent className="space-y-6 max-w-lg">
+              <div>
+                <Label className="mb-3 block">Company Logo</Label>
+                <div className="flex items-center gap-4">
+                  {profile.avatar_url ? (
+                    <div className="relative group">
+                      <img src={profile.avatar_url} alt="Logo" className="h-16 w-16 rounded-lg object-contain border bg-secondary" />
+                      <button onClick={handleRemoveLogo} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="h-16 w-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-secondary/50">
+                      <Building2 className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={logoUploading}>
+                      {logoUploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
+                      {profile.avatar_url ? "Change" : "Upload"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 2MB</p>
+                  </div>
+                </div>
+              </div>
+              <Separator />
               <div><Label>Full Name</Label><Input value={profile.full_name} onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))} className="mt-1" /></div>
               <div><Label>Email</Label><Input value={user?.email || ""} disabled className="mt-1 opacity-60" /></div>
               <div><Label>Company Display Name</Label><Input value={profile.company_name} onChange={e => setProfile(p => ({ ...p, company_name: e.target.value }))} className="mt-1" /></div>

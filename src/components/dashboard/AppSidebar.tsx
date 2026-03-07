@@ -3,6 +3,8 @@ import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
@@ -31,9 +33,25 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
+
+  const { data: profile } = useQuery({
+    queryKey: ["sidebar-profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("logo_url, company_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const logoSrc = (profile as any)?.logo_url || alcLogo;
+  const companyLabel = profile?.company_name || "ALC Shipper Portal";
 
   const handleLogout = async () => {
     await signOut();
@@ -45,8 +63,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border">
-        <img src={alcLogo} alt="ALC Logo" className="h-7 w-auto shrink-0" />
-        {!collapsed && <span className="font-bold text-sm text-sidebar-foreground">ALC Shipper Portal</span>}
+        <img src={logoSrc} alt="Logo" className="h-7 w-auto shrink-0 max-w-[28px] object-contain" />
+        {!collapsed && <span className="font-bold text-sm text-sidebar-foreground truncate">{companyLabel}</span>}
       </div>
       <SidebarContent className="pt-4">
         <SidebarGroup>
