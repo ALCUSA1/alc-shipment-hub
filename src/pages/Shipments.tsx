@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 
 const shipments = [
@@ -20,8 +20,9 @@ const statusColor: Record<string, string> = {
   "Pending": "bg-secondary text-muted-foreground",
 };
 
-const Shipments = () => (
-  <DashboardLayout>
+const Shipments = () => {
+  const navigate = useNavigate();
+  return (
     <div className="mb-8 flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
@@ -48,7 +49,7 @@ const Shipments = () => (
             </thead>
             <tbody>
               {shipments.map((s) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => window.location.href = `/dashboard/shipments/${s.id}`}>
+                <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
                   <td className="p-4 font-mono font-medium text-accent hover:underline">{s.id}</td>
                   <td className="p-4 text-muted-foreground">{s.origin}</td>
                   <td className="p-4 text-muted-foreground">{s.destination}</td>
@@ -65,6 +66,6 @@ const Shipments = () => (
       </CardContent>
     </Card>
   </DashboardLayout>
-);
-
+  );
+};
 export default Shipments;
