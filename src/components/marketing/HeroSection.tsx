@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden">
-      {/* Background pattern */}
       <div className="absolute inset-0 bg-gray-light">
         <svg className="absolute inset-0 w-full h-full opacity-[0.04]" viewBox="0 0 1200 800">
           <path d="M100,400 Q300,200 500,350 T900,300" fill="none" stroke="hsl(213,67%,14%)" strokeWidth="1.5" />
@@ -20,22 +20,42 @@ export function HeroSection() {
       </div>
 
       <div className="relative max-w-5xl mx-auto px-6 py-28 md:py-40 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8"
+        >
           <Globe className="h-4 w-4" />
           Shipper Logistics Workspace
-        </div>
+        </motion.div>
 
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6">
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+          className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6"
+        >
           Enter shipment data once.
           <br />
           <span className="text-gradient">Everything else happens automatically.</span>
-        </h1>
+        </motion.h1>
 
-        <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed mb-10">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+          className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed mb-10"
+        >
           ALC Shipper Portal is the first Shipper Logistics Workspace designed for exporters and importers to coordinate shipments, generate shipping documents, request freight quotes, and track cargo in one centralized platform.
-        </p>
+        </motion.p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
           <Button variant="electric" size="lg" className="text-base px-8 h-12" asChild>
             <Link to="/signup">
               Start Shipping
@@ -45,7 +65,7 @@ export function HeroSection() {
           <Button variant="hero-outline" size="lg" className="text-base px-8 h-12">
             Request Demo
           </Button>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
