@@ -34,12 +34,13 @@ interface CarrierRate {
 
 function parseSurchargeTotal(surcharges: Json): number {
   if (!Array.isArray(surcharges)) return 0;
-  return surcharges.reduce((sum, s) => {
+  let total = 0;
+  for (const s of surcharges) {
     if (typeof s === "object" && s !== null && "amount" in s) {
-      return sum + (Number((s as Record<string, unknown>).amount) || 0);
+      total += Number((s as Record<string, unknown>).amount) || 0;
     }
-    return sum;
-  }, 0);
+  }
+  return total;
 }
 
 function getTotalRate(rate: CarrierRate) {
