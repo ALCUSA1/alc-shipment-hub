@@ -39,12 +39,15 @@ const TYPE_OPTIONS = [
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const PAGE_SIZE = 20;
+
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["shipments-list", user?.id],
