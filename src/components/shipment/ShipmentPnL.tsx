@@ -45,9 +45,13 @@ interface FinancialEntry {
 interface ShipmentPnLProps {
   shipmentId: string;
   quoteAmount?: number | null;
+  shipmentStatus?: string;
 }
 
-export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
+const COMPLETED_STATUSES = ["delivered", "completed", "cancelled"];
+
+export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: ShipmentPnLProps) {
+  const isEditable = !COMPLETED_STATUSES.includes(shipmentStatus || "");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -162,7 +166,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
           <DollarSign className="h-4 w-4 text-accent" />
           Profit & Loss Statement
         </CardTitle>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {isEditable && <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="electric" size="sm">
               <Plus className="h-4 w-4 mr-1" /> Add Entry
@@ -225,7 +229,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </CardHeader>
       <CardContent>
         {/* Summary Cards */}
@@ -243,8 +247,8 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
           {revenueFromQuote > 0 && (
             <StatementRow label="Accepted Quote" amount={fmt(revenueFromQuote)} indent />
           )}
-          {revenueEntries.map((e) => (
-            <StatementRow key={e.id} label={e.description} amount={fmt(e.amount)} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+           {revenueEntries.map((e) => (
+            <StatementRow key={e.id} label={e.description} amount={fmt(e.amount)} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
           ))}
           <StatementTotal label="Total Revenue" amount={fmt(totalRevenue)} />
 
@@ -256,7 +260,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
             <div key={group.label}>
               <p className="text-xs font-medium text-muted-foreground pl-4 pt-1">{group.label}</p>
               {group.items.map((e) => (
-                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
               ))}
             </div>
           ))}
@@ -277,7 +281,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
             <div key={group.label}>
               <p className="text-xs font-medium text-muted-foreground pl-4 pt-1">{group.label}</p>
               {group.items.map((e) => (
-                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
               ))}
             </div>
           ))}
