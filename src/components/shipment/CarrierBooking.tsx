@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Ship, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -31,6 +32,7 @@ interface CarrierBookingProps {
 export function CarrierBooking({ shipmentId, shipmentRef }: CarrierBookingProps) {
   const queryClient = useQueryClient();
   const [selectedCarrier, setSelectedCarrier] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: bookings = [] } = useQuery({
     queryKey: ["edi-bookings", shipmentId],
@@ -71,6 +73,11 @@ export function CarrierBooking({ shipmentId, shipmentRef }: CarrierBookingProps)
       toast.error("Please select a shipping line");
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = () => {
+    setConfirmOpen(false);
     sendBooking.mutate(selectedCarrier);
   };
 
@@ -145,6 +152,21 @@ export function CarrierBooking({ shipmentId, shipmentRef }: CarrierBookingProps)
           </p>
         )}
       </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send booking request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send a booking request for shipment <span className="font-semibold text-foreground">{shipmentRef}</span> to <span className="font-semibold text-foreground">{carrierName(selectedCarrier)}</span>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>Send Booking</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
