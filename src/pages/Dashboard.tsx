@@ -1,81 +1,179 @@
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, DollarSign, FileText, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
-const stats = [
-  { label: "Active Shipments", value: "12", icon: Package, change: "+3 this week" },
-  { label: "Pending Quotes", value: "5", icon: DollarSign, change: "2 awaiting response" },
-  { label: "Documents Generated", value: "48", icon: FileText, change: "+8 today" },
-  { label: "Recent Updates", value: "7", icon: Clock, change: "Last 24 hours" },
-];
-
-const recentShipments = [
-  { id: "SHP-2024-001", route: "Shanghai → Los Angeles", status: "In Transit", date: "Mar 5, 2026" },
-  { id: "SHP-2024-002", route: "Rotterdam → New York", status: "Booking Confirmed", date: "Mar 4, 2026" },
-  { id: "SHP-2024-003", route: "Singapore → Dubai", status: "Cargo Received", date: "Mar 3, 2026" },
-  { id: "SHP-2024-004", route: "Hamburg → Santos", status: "Delivered", date: "Mar 1, 2026" },
-];
+interface ShipmentRow {
+  id: string;
+  shipment_ref: string;
+  origin_port: string | null;
+  destination_port: string | null;
+  status: string;
+  created_at: string;
+}
 
 const statusColor: Record<string, string> = {
-  "In Transit": "bg-accent/10 text-accent",
-  "Booking Confirmed": "bg-yellow-100 text-yellow-700",
-  "Cargo Received": "bg-blue-100 text-blue-700",
-  "Delivered": "bg-green-100 text-green-700",
+  draft: "bg-secondary text-muted-foreground",
+  booked: "bg-yellow-100 text-yellow-700",
+  in_transit: "bg-accent/10 text-accent",
+  arrived: "bg-blue-100 text-blue-700",
+  delivered: "bg-green-100 text-green-700",
+  cancelled: "bg-destructive/10 text-destructive",
 };
 
-const Dashboard = () => (
-  <DashboardLayout>
-    <div className="mb-8 flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Your logistics operations overview</p>
-      </div>
-      <Button variant="electric" asChild>
-        <Link to="/dashboard/shipments/new">New Shipment <ArrowRight className="ml-2 h-4 w-4" /></Link>
-      </Button>
-    </div>
+const statusLabel: Record<string, string> = {
+  draft: "Draft",
+  booked: "Booked",
+  in_transit: "In Transit",
+  arrived: "Arrived",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
 
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {stats.map((s) => (
-        <Card key={s.label}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
-            <s.icon className="h-4 w-4 text-accent" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{s.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{s.change}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+const Dashboard = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [activeCount, setActiveCount] = useState(0);
+  const [pendingQuotes, setPendingQuotes] = useState(0);
+  const [docCount, setDocCount] = useState(0);
+  const [recentEventsCount, setRecentEventsCount] = useState(0);
+  const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
 
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Recent Shipments</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {recentShipments.map((s) => (
-            <div key={s.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/80 transition-colors">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-mono font-medium text-foreground">{s.id}</span>
-                <span className="text-sm text-muted-foreground">{s.route}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
-                  {s.status}
-                </span>
-                <span className="text-xs text-muted-foreground">{s.date}</span>
-              </div>
-            </div>
-          ))}
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+
+      const [shipmentsRes, quotesRes, docsRes, recentShipmentsRes] = await Promise.all([
+        supabase
+          .from("shipments")
+          .select("id, status", { count: "exact" })
+          .in("status", ["booked", "in_transit", "arrived"]),
+        supabase
+          .from("quotes")
+          .select("id", { count: "exact" })
+          .eq("status", "pending"),
+        supabase
+          .from("documents")
+          .select("id", { count: "exact" }),
+        supabase
+          .from("shipments")
+          .select("id, shipment_ref, origin_port, destination_port, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(5),
+      ]);
+
+      setActiveCount(shipmentsRes.count ?? 0);
+      setPendingQuotes(quotesRes.count ?? 0);
+      setDocCount(docsRes.count ?? 0);
+      setRecentShipments((recentShipmentsRes.data as ShipmentRow[]) ?? []);
+
+      // Count shipments updated in last 24h
+      const yesterday = new Date(Date.now() - 86400000).toISOString();
+      const { count: updatedCount } = await supabase
+        .from("shipments")
+        .select("id", { count: "exact" })
+        .gte("updated_at", yesterday);
+      setRecentEventsCount(updatedCount ?? 0);
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [user]);
+
+  const stats = [
+    { label: "Active Shipments", value: activeCount, icon: Package, change: "Booked, in transit & arrived" },
+    { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, change: "Awaiting response" },
+    { label: "Documents", value: docCount, icon: FileText, change: "Total generated" },
+    { label: "Recent Updates", value: recentEventsCount, icon: Clock, change: "Last 24 hours" },
+  ];
+
+  return (
+    <DashboardLayout>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Your logistics operations overview</p>
         </div>
-      </CardContent>
-    </Card>
-  </DashboardLayout>
-);
+        <Button variant="electric" asChild>
+          <Link to="/dashboard/shipments/new">New Shipment <ArrowRight className="ml-2 h-4 w-4" /></Link>
+        </Button>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map((s) => (
+          <Card key={s.label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
+              <s.icon className="h-4 w-4 text-accent" />
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold text-foreground">{s.value}</div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">{s.change}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Recent Shipments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : recentShipments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No shipments yet. Create your first shipment to get started.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {recentShipments.map((s) => (
+                <Link
+                  key={s.id}
+                  to={`/dashboard/shipments/${s.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary/80 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-mono font-medium text-foreground">{s.shipment_ref}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {s.origin_port && s.destination_port
+                        ? `${s.origin_port} → ${s.destination_port}`
+                        : s.origin_port || s.destination_port || "No route set"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
+                      {statusLabel[s.status] || s.status}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(s.created_at), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </DashboardLayout>
+  );
+};
 
 export default Dashboard;
