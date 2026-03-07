@@ -123,7 +123,7 @@ export function CarrierBooking({
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as CarrierRate[];
+      return (data as unknown) as CarrierRate[];
     },
     enabled: true,
   });
