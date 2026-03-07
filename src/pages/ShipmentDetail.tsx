@@ -199,6 +199,7 @@ const ShipmentDetail = () => {
     .join(", ") || "—";
 
   const firstCargo = cargo?.[0];
+  const companyName = (shipment as any).companies?.company_name as string | undefined;
 
   return (
     <DashboardLayout>
