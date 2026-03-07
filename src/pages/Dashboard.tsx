@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, DollarSign, FileText, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { Package, DollarSign, Truck, Warehouse, Clock, ArrowRight } from "lucide-react";
 
 interface ShipmentRow {
   id: string;
@@ -41,7 +41,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeCount, setActiveCount] = useState(0);
   const [pendingQuotes, setPendingQuotes] = useState(0);
-  const [docCount, setDocCount] = useState(0);
+  const [truckPickups, setTruckPickups] = useState(0);
+  const [warehouseArrivals, setWarehouseArrivals] = useState(0);
   const [recentEventsCount, setRecentEventsCount] = useState(0);
   const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
 
@@ -51,7 +52,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
 
-      const [shipmentsRes, quotesRes, docsRes, recentShipmentsRes] = await Promise.all([
+      const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes] = await Promise.all([
         supabase
           .from("shipments")
           .select("id, status", { count: "exact" })
@@ -61,8 +62,13 @@ const Dashboard = () => {
           .select("id", { count: "exact" })
           .eq("status", "pending"),
         supabase
-          .from("documents")
-          .select("id", { count: "exact" }),
+          .from("truck_pickups")
+          .select("id", { count: "exact" })
+          .eq("status", "scheduled"),
+        supabase
+          .from("warehouse_operations")
+          .select("id", { count: "exact" })
+          .eq("status", "pending"),
         supabase
           .from("shipments")
           .select("id, shipment_ref, origin_port, destination_port, status, created_at")
@@ -72,10 +78,10 @@ const Dashboard = () => {
 
       setActiveCount(shipmentsRes.count ?? 0);
       setPendingQuotes(quotesRes.count ?? 0);
-      setDocCount(docsRes.count ?? 0);
+      setTruckPickups(pickupsRes.count ?? 0);
+      setWarehouseArrivals(warehouseRes.count ?? 0);
       setRecentShipments((recentShipmentsRes.data as ShipmentRow[]) ?? []);
 
-      // Count shipments updated in last 24h
       const yesterday = new Date(Date.now() - 86400000).toISOString();
       const { count: updatedCount } = await supabase
         .from("shipments")
@@ -92,7 +98,8 @@ const Dashboard = () => {
   const stats = [
     { label: "Active Shipments", value: activeCount, icon: Package, change: "Booked, in transit & arrived" },
     { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, change: "Awaiting response" },
-    { label: "Documents", value: docCount, icon: FileText, change: "Total generated" },
+    { label: "Truck Pickups", value: truckPickups, icon: Truck, change: "Scheduled pickups" },
+    { label: "Warehouse Arrivals", value: warehouseArrivals, icon: Warehouse, change: "Pending cargo" },
     { label: "Recent Updates", value: recentEventsCount, icon: Clock, change: "Last 24 hours" },
   ];
 
@@ -101,14 +108,14 @@ const Dashboard = () => {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Your logistics operations overview</p>
+          <p className="text-sm text-muted-foreground">Your shipment coordination overview</p>
         </div>
         <Button variant="electric" asChild>
           <Link to="/dashboard/shipments/new">New Shipment <ArrowRight className="ml-2 h-4 w-4" /></Link>
         </Button>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((s) => (
           <Card key={s.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">

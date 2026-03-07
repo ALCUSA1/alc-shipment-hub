@@ -3,17 +3,18 @@ import { ScrollReveal } from "@/components/motion/ScrollReveal";
 
 const before = [
   "Shipping coordination happens through email threads, spreadsheets, and document attachments.",
-  "Shipment details are repeated multiple times.",
-  "Important documents get lost.",
+  "Trucking companies receive instructions by phone or email with missing details.",
+  "Warehouses lack structured cargo arrival notices.",
+  "Shipment details are repeated multiple times across different channels.",
   "Shipment updates arrive from different systems.",
 ];
 
 const after = [
-  "Shipment data is entered once.",
-  "Documents are automatically generated.",
-  "Freight quotes are managed in the workspace.",
-  "Shipment progress is tracked in one place.",
-  "Teams operate from a single source of truth.",
+  "Shipment data is entered once and shared across all parties.",
+  "Trucking companies receive structured pickup instructions automatically.",
+  "Warehouses get cargo handling details with storage requirements.",
+  "Documents are automatically generated from shipment data.",
+  "Freight, trucking, warehouse, and tracking are coordinated in one workspace.",
 ];
 
 export function BeforeAfterSection() {
@@ -22,7 +23,7 @@ export function BeforeAfterSection() {
       <div className="container-narrow">
         <ScrollReveal>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-16 text-center leading-tight">
-            A better way to ship.
+            A better way to coordinate shipments.
           </h2>
         </ScrollReveal>
 

@@ -1,13 +1,15 @@
-import { ClipboardList, MessageSquare, CheckCircle, FileText, Truck } from "lucide-react";
+import { ClipboardList, MessageSquare, CheckCircle, Truck, Warehouse, Ship, MapPin } from "lucide-react";
 import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/components/motion/ScrollReveal";
 import { motion } from "framer-motion";
 
 const steps = [
-  { icon: ClipboardList, step: "01", title: "Create shipment request", desc: "The shipper enters shipment data directly into the platform." },
-  { icon: MessageSquare, step: "02", title: "Request freight quote", desc: "The system generates a quote request." },
-  { icon: CheckCircle, step: "03", title: "Approve shipment", desc: "Once approved, the shipment becomes confirmed." },
-  { icon: FileText, step: "04", title: "Automatic document generation", desc: "The system automatically generates Bill of Lading, invoice, packing list, and shipping instructions." },
-  { icon: Truck, step: "05", title: "Shipment coordination", desc: "Trucking companies, warehouses, and shipping lines receive the information they need." },
+  { icon: ClipboardList, step: "01", title: "Create shipment request", desc: "The shipper enters shipment data including origin, destination, cargo details, pickup location, and delivery location." },
+  { icon: MessageSquare, step: "02", title: "Request freight quote", desc: "Freight forwarders provide pricing for the shipment." },
+  { icon: CheckCircle, step: "03", title: "Confirm shipment", desc: "Once approved, the shipment becomes active in the workspace." },
+  { icon: Truck, step: "04", title: "Coordinate trucking pickup", desc: "The trucking company receives pickup instructions including location, container type, cargo details, and pickup time." },
+  { icon: Warehouse, step: "05", title: "Warehouse handling", desc: "Warehouse operators receive cargo arrival instructions and storage details." },
+  { icon: Ship, step: "06", title: "Shipment departure and tracking", desc: "The shipment is loaded and tracking milestones begin." },
+  { icon: MapPin, step: "07", title: "Delivery coordination", desc: "Final delivery is scheduled through trucking partners." },
 ];
 
 export function WorkflowSection() {
@@ -17,7 +19,7 @@ export function WorkflowSection() {
         <ScrollReveal>
           <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">How It Works</p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-16 leading-tight">
-            The Shipper Logistics Workspace in action.
+            The Shipment Coordination Workspace in action.
           </h2>
         </ScrollReveal>
 
