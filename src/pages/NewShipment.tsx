@@ -90,7 +90,7 @@ const NewShipment = () => {
           destination_port: shipment.destinationPort || null,
           pickup_location: shipment.pickupLocation || null,
           delivery_location: shipment.deliveryLocation || null,
-          company_id: shipment.companyId || null,
+          company_id: shipment.companyId && shipment.companyId !== "none" ? shipment.companyId : null,
         })
         .select("id")
         .single();
