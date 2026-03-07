@@ -1,4 +1,6 @@
 import { ClipboardList, MessageSquare, CheckCircle, FileText, Truck } from "lucide-react";
+import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/components/motion/ScrollReveal";
+import { motion } from "framer-motion";
 
 const steps = [
   { icon: ClipboardList, step: "01", title: "Create shipment request", desc: "The shipper enters shipment data directly into the platform." },
@@ -12,14 +14,16 @@ export function WorkflowSection() {
   return (
     <section className="section-padding bg-background">
       <div className="container-narrow">
-        <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">How It Works</p>
-        <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-16 leading-tight">
-          The Shipper Logistics Workspace in action.
-        </h2>
+        <ScrollReveal>
+          <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">How It Works</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-16 leading-tight">
+            The Shipper Logistics Workspace in action.
+          </h2>
+        </ScrollReveal>
 
-        <div className="space-y-6">
+        <StaggerContainer className="space-y-6" staggerDelay={0.1}>
           {steps.map((s, i) => (
-            <div key={i} className="flex items-start gap-6 p-6 rounded-xl border bg-card hover:border-accent/30 transition-colors group">
+            <motion.div key={i} variants={staggerItemVariants} className="flex items-start gap-6 p-6 rounded-xl border bg-card hover:border-accent/30 transition-colors group">
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10 text-accent shrink-0 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
                 <s.icon className="h-5 w-5" />
               </div>
@@ -28,9 +32,9 @@ export function WorkflowSection() {
                 <h3 className="text-lg font-semibold text-foreground mb-1">{s.title}</h3>
                 <p className="text-sm text-muted-foreground">{s.desc}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );
