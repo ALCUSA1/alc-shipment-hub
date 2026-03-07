@@ -24,6 +24,7 @@ import CRM from "./pages/CRM";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
