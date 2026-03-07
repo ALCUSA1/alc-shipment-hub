@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
+import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -429,6 +430,15 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
+          {/* Shipping Line Schedule */}
+          <VoyageDatesEditor
+            shipmentId={id!}
+            etd={shipment.etd}
+            eta={shipment.eta}
+            vessel={shipment.vessel}
+            voyage={shipment.voyage}
+          />
+
           {/* Cutoff Deadlines */}
           <CutoffTracker
             shipmentId={id!}
