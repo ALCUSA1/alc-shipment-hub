@@ -1,9 +1,12 @@
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -17,12 +20,31 @@ const statusColor: Record<string, string> = {
   pending: "bg-secondary text-muted-foreground",
 };
 
+const STATUS_OPTIONS = [
+  { value: "all", label: "All Statuses" },
+  { value: "draft", label: "Draft" },
+  { value: "pending", label: "Pending" },
+  { value: "booking_confirmed", label: "Booking Confirmed" },
+  { value: "cargo_received", label: "Cargo Received" },
+  { value: "in_transit", label: "In Transit" },
+  { value: "delivered", label: "Delivered" },
+];
+
+const TYPE_OPTIONS = [
+  { value: "all", label: "All Types" },
+  { value: "export", label: "Export" },
+  { value: "import", label: "Import" },
+];
+
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["shipments-list", user?.id],
@@ -38,9 +60,33 @@ const Shipments = () => {
     enabled: !!user,
   });
 
+  const filtered = useMemo(() => {
+    if (!shipments) return [];
+    return shipments.filter((s) => {
+      if (statusFilter !== "all" && s.status !== statusFilter) return false;
+      if (typeFilter !== "all" && s.shipment_type !== typeFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const companyName = ((s.companies as any)?.company_name || "").toLowerCase();
+        const ref = (s.shipment_ref || "").toLowerCase();
+        const route = `${s.origin_port || ""} ${s.destination_port || ""}`.toLowerCase();
+        if (!ref.includes(q) && !companyName.includes(q) && !route.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [shipments, search, statusFilter, typeFilter]);
+
+  const hasActiveFilters = search || statusFilter !== "all" || typeFilter !== "all";
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setTypeFilter("all");
+  };
+
   return (
     <DashboardLayout>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
           <p className="text-sm text-muted-foreground">Manage your shipment operations</p>
@@ -50,15 +96,49 @@ const Shipments = () => {
         </Button>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search ref, customer, port…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {TYPE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <X className="h-4 w-4 mr-1" /> Clear
+          </Button>
+        )}
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-3">
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
-          ) : !shipments || shipments.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground text-sm">
-              No shipments yet. Create your first shipment to get started.
+              {hasActiveFilters ? "No shipments match your filters." : "No shipments yet. Create your first shipment to get started."}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -73,7 +153,7 @@ const Shipments = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {shipments.map((s) => {
+                  {filtered.map((s) => {
                     const companyName = (s.companies as any)?.company_name;
                     return (
                       <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
