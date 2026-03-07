@@ -50,7 +50,7 @@ const Accounting = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipment_financials")
-        .select("shipment_id, entry_type, amount")
+        .select("shipment_id, entry_type, amount, category")
         .eq("user_id", user!.id);
       if (error) throw error;
       return data;
@@ -66,18 +66,19 @@ const Accounting = () => {
       quoteMap.set(q.shipment_id, (quoteMap.get(q.shipment_id) || 0) + (q.amount || 0));
     });
 
-    const financialMap = new Map<string, { revenue: number; cost: number; expense: number }>();
+    const financialMap = new Map<string, { revenue: number; cost: number; expense: number; ddCost: number }>();
     (allFinancials || []).forEach((f) => {
-      const existing = financialMap.get(f.shipment_id) || { revenue: 0, cost: 0, expense: 0 };
+      const existing = financialMap.get(f.shipment_id) || { revenue: 0, cost: 0, expense: 0, ddCost: 0 };
       if (f.entry_type === "revenue") existing.revenue += f.amount;
       else if (f.entry_type === "cost") existing.cost += f.amount;
       else existing.expense += f.amount;
+      if (f.category === "demurrage_detention") existing.ddCost += f.amount;
       financialMap.set(f.shipment_id, existing);
     });
 
     return shipments.map((s) => {
       const quoteRevenue = quoteMap.get(s.id) || 0;
-      const fin = financialMap.get(s.id) || { revenue: 0, cost: 0, expense: 0 };
+      const fin = financialMap.get(s.id) || { revenue: 0, cost: 0, expense: 0, ddCost: 0 };
       const totalRevenue = quoteRevenue + fin.revenue;
       const grossProfit = totalRevenue - fin.cost;
       const netProfit = grossProfit - fin.expense;
@@ -88,6 +89,7 @@ const Accounting = () => {
         totalRevenue,
         totalCost: fin.cost,
         totalExpense: fin.expense,
+        ddCost: fin.ddCost,
         grossProfit,
         netProfit,
         netMargin,
@@ -109,6 +111,7 @@ const Accounting = () => {
       }
       if (marginFilter === "profitable" && s.netProfit <= 0) return false;
       if (marginFilter === "loss" && s.netProfit >= 0) return false;
+      if (marginFilter === "has_dd" && s.ddCost <= 0) return false;
       return true;
     });
   }, [pnlData, search, marginFilter]);
@@ -159,6 +162,7 @@ const Accounting = () => {
             <SelectItem value="all">All Shipments</SelectItem>
             <SelectItem value="profitable">Profitable</SelectItem>
             <SelectItem value="loss">At a Loss</SelectItem>
+            <SelectItem value="has_dd">Has D&D Costs</SelectItem>
           </SelectContent>
         </Select>
       </div>
