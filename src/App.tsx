@@ -23,6 +23,8 @@ import Account from "./pages/Account";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Companies from "./pages/Companies";
+import CompanyDetail from "./pages/CompanyDetail";
 
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/companies" element={<ProtectedRoute><Companies /></ProtectedRoute>} />
+            <Route path="/dashboard/companies/:id" element={<ProtectedRoute><CompanyDetail /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
