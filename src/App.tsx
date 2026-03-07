@@ -22,6 +22,7 @@ import Partners from "./pages/Partners";
 import Account from "./pages/Account";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
             <Route path="/dashboard/quotes" element={<ProtectedRoute><Quotes /></ProtectedRoute>} />
+            <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
             <Route path="/dashboard/trucking" element={<ProtectedRoute><Trucking /></ProtectedRoute>} />
             <Route path="/dashboard/warehouses" element={<ProtectedRoute><Warehouses /></ProtectedRoute>} />
             <Route path="/dashboard/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
