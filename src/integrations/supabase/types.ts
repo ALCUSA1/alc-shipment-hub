@@ -96,6 +96,142 @@ export type Database = {
           },
         ]
       }
+      customs_filings: {
+        Row: {
+          aes_citation: string | null
+          broker_email: string | null
+          broker_name: string | null
+          broker_ref: string | null
+          carrier_name: string | null
+          consignee_address: string | null
+          consignee_name: string | null
+          country_of_destination: string | null
+          created_at: string
+          export_date: string | null
+          exporter_ein: string | null
+          exporter_name: string | null
+          filing_type: string
+          hts_codes: Json | null
+          id: string
+          itn: string | null
+          mode_of_transport: string | null
+          notes: string | null
+          port_of_export: string | null
+          port_of_unlading: string | null
+          shipment_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          aes_citation?: string | null
+          broker_email?: string | null
+          broker_name?: string | null
+          broker_ref?: string | null
+          carrier_name?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          country_of_destination?: string | null
+          created_at?: string
+          export_date?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          filing_type?: string
+          hts_codes?: Json | null
+          id?: string
+          itn?: string | null
+          mode_of_transport?: string | null
+          notes?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          shipment_id: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          aes_citation?: string | null
+          broker_email?: string | null
+          broker_name?: string | null
+          broker_ref?: string | null
+          carrier_name?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          country_of_destination?: string | null
+          created_at?: string
+          export_date?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          filing_type?: string
+          hts_codes?: Json | null
+          id?: string
+          itn?: string | null
+          mode_of_transport?: string | null
+          notes?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          shipment_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_filings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customs_milestones: {
+        Row: {
+          created_at: string
+          event_date: string
+          filing_id: string
+          id: string
+          milestone: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_date?: string
+          filing_id: string
+          id?: string
+          milestone: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          filing_id?: string
+          id?: string
+          milestone?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_milestones_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "customs_filings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
