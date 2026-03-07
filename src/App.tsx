@@ -27,6 +27,7 @@ import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Team from "./pages/Team";
 import Accounting from "./pages/Accounting";
+import RateTrends from "./pages/RateTrends";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/dashboard/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/dashboard/crm" element={<RoleGate><CRM /></RoleGate>} />
             <Route path="/dashboard/accounting" element={<RoleGate><Accounting /></RoleGate>} />
+            <Route path="/dashboard/rate-trends" element={<ProtectedRoute><RateTrends /></ProtectedRoute>} />
             <Route path="/dashboard/partners" element={<RoleGate><Partners /></RoleGate>} />
             <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
             <Route path="/dashboard/team" element={<RoleGate><Team /></RoleGate>} />
