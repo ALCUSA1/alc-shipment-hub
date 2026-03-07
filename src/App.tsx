@@ -22,6 +22,7 @@ import Partners from "./pages/Partners";
 import Account from "./pages/Account";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
