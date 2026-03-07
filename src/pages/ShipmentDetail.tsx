@@ -57,9 +57,6 @@ const ShipmentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedCarrier, setSelectedCarrier] = useState("");
-  const [bookingLoading, setBookingLoading] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -185,26 +182,7 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
-  const handleBooking = async () => {
-    if (!selectedCarrier) return;
-    setBookingLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("carrier-booking", {
-        body: { shipment_id: id, carrier: selectedCarrier },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast({ title: "Booking Sent", description: data.message });
-      setConfirmOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["shipment", id] });
-      queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
-      queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
-    } catch (err: any) {
-      toast({ title: "Booking Failed", description: err.message, variant: "destructive" });
-    } finally {
-      setBookingLoading(false);
-    }
-  };
+  // Booking is now handled by CarrierRateSelector
 
   if (isLoading) {
     return (
