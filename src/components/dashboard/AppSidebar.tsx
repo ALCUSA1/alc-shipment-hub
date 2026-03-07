@@ -2,6 +2,7 @@ import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
@@ -23,7 +24,7 @@ const items = [
   { title: "Documents", url: "/dashboard/documents", icon: FileText },
   { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
   { title: "Partners", url: "/dashboard/partners", icon: Users },
-  { title: "Team", url: "/dashboard/team", icon: UsersRound },
+  { title: "Team", url: "/dashboard/team", icon: UsersRound, adminOnly: true },
   { title: "Account", url: "/dashboard/account", icon: Settings },
 ];
 
@@ -31,12 +32,15 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
+
+  const visibleItems = items.filter((item) => !(item as any).adminOnly || isAdmin);
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -48,7 +52,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
