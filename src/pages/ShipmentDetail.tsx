@@ -1,238 +1,116 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Package, Ship, FileText, Users, Clock, Check, Circle } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 
-const shipmentsData: Record<string, {
-  id: string;
-  origin: string;
-  originPort: string;
-  destination: string;
-  destinationPort: string;
-  status: string;
-  commodity: string;
-  containers: string;
-  hsCode: string;
-  grossWeight: string;
-  volume: string;
-  packages: string;
-  packageType: string;
-  shipper: string;
-  consignee: string;
-  forwarder: string;
-  vessel: string;
-  voyage: string;
-  etd: string;
-  eta: string;
-  bookingRef: string;
-  milestones: { label: string; date: string | null; location: string | null; completed: boolean }[];
-  documents: { name: string; status: string }[];
-  parties: { role: string; name: string; contact: string }[];
-}> = {
-  "SHP-2024-001": {
-    id: "SHP-2024-001",
-    origin: "Shanghai, China",
-    originPort: "CNSHA",
-    destination: "Los Angeles, USA",
-    destinationPort: "USLAX",
-    status: "In Transit",
-    commodity: "Electronics",
-    containers: "2x40HC",
-    hsCode: "8471.30",
-    grossWeight: "24,500 kg",
-    volume: "65 CBM",
-    packages: "480",
-    packageType: "Cartons",
-    shipper: "Shanghai Electronics Co.",
-    consignee: "West Coast Imports LLC",
-    forwarder: "Global Freight Solutions",
-    vessel: "MSC ANNA",
-    voyage: "FA425E",
-    etd: "Mar 1, 2026",
-    eta: "Mar 18, 2026",
-    bookingRef: "MSCU7284561",
-    milestones: [
-      { label: "Booking Confirmed", date: "Feb 25, 2026", location: "Shanghai, China", completed: true },
-      { label: "Cargo Received", date: "Feb 28, 2026", location: "Shanghai CFS", completed: true },
-      { label: "Container Loaded", date: "Mar 1, 2026", location: "Shanghai Port", completed: true },
-      { label: "Vessel Departed", date: "Mar 1, 2026", location: "Port of Shanghai", completed: true },
-      { label: "In Transit", date: "Mar 5, 2026", location: "Pacific Ocean", completed: true },
-      { label: "Port Arrival", date: null, location: null, completed: false },
-      { label: "Customs Clearance", date: null, location: null, completed: false },
-      { label: "Delivered", date: null, location: null, completed: false },
-    ],
-    documents: [
-      { name: "Bill of Lading", status: "Generated" },
-      { name: "Commercial Invoice", status: "Generated" },
-      { name: "Packing List", status: "Generated" },
-      { name: "Shipping Instructions", status: "Generated" },
-      { name: "Delivery Order", status: "Pending" },
-      { name: "Warehouse Instructions", status: "Pending" },
-    ],
-    parties: [
-      { role: "Shipper", name: "Shanghai Electronics Co.", contact: "li.wei@shanghaielectronics.cn" },
-      { role: "Consignee", name: "West Coast Imports LLC", contact: "mike@westcoastimports.com" },
-      { role: "Freight Forwarder", name: "Global Freight Solutions", contact: "ops@globalfreight.com" },
-      { role: "Trucking Company", name: "Pacific Haulers", contact: "dispatch@pacifichaulers.com" },
-      { role: "Customs Broker", name: "LA Customs Services", contact: "clearance@lacustoms.com" },
-    ],
-  },
-  "SHP-2024-002": {
-    id: "SHP-2024-002",
-    origin: "Rotterdam, Netherlands",
-    originPort: "NLRTM",
-    destination: "New York, USA",
-    destinationPort: "USNYC",
-    status: "Booking Confirmed",
-    commodity: "Machinery",
-    containers: "1x20GP",
-    hsCode: "8462.10",
-    grossWeight: "18,200 kg",
-    volume: "28 CBM",
-    packages: "12",
-    packageType: "Crates",
-    shipper: "Dutch Machinery BV",
-    consignee: "Northeast Manufacturing Inc.",
-    forwarder: "Euro Logistics",
-    vessel: "TBD",
-    voyage: "TBD",
-    etd: "Mar 10, 2026",
-    eta: "Mar 22, 2026",
-    bookingRef: "EGLV2938471",
-    milestones: [
-      { label: "Booking Confirmed", date: "Mar 4, 2026", location: "Rotterdam, Netherlands", completed: true },
-      { label: "Cargo Received", date: null, location: null, completed: false },
-      { label: "Container Loaded", date: null, location: null, completed: false },
-      { label: "Vessel Departed", date: null, location: null, completed: false },
-      { label: "In Transit", date: null, location: null, completed: false },
-      { label: "Port Arrival", date: null, location: null, completed: false },
-      { label: "Customs Clearance", date: null, location: null, completed: false },
-      { label: "Delivered", date: null, location: null, completed: false },
-    ],
-    documents: [
-      { name: "Bill of Lading", status: "Pending" },
-      { name: "Commercial Invoice", status: "Generated" },
-      { name: "Packing List", status: "Generated" },
-      { name: "Shipping Instructions", status: "Pending" },
-    ],
-    parties: [
-      { role: "Shipper", name: "Dutch Machinery BV", contact: "jan@dutchmachinery.nl" },
-      { role: "Consignee", name: "Northeast Manufacturing Inc.", contact: "procurement@nemfg.com" },
-      { role: "Freight Forwarder", name: "Euro Logistics", contact: "bookings@eurologistics.eu" },
-    ],
-  },
-  "SHP-2024-003": {
-    id: "SHP-2024-003",
-    origin: "Singapore",
-    originPort: "SGSIN",
-    destination: "Dubai, UAE",
-    destinationPort: "AEJEA",
-    status: "Cargo Received",
-    commodity: "Textiles",
-    containers: "3x40HC",
-    hsCode: "6204.62",
-    grossWeight: "32,100 kg",
-    volume: "195 CBM",
-    packages: "1,200",
-    packageType: "Cartons",
-    shipper: "SG Textiles Pte Ltd",
-    consignee: "Gulf Trading FZE",
-    forwarder: "Asia Pacific Shipping",
-    vessel: "EVER GIVEN",
-    voyage: "0325W",
-    etd: "Mar 8, 2026",
-    eta: "Mar 20, 2026",
-    bookingRef: "EISU8374921",
-    milestones: [
-      { label: "Booking Confirmed", date: "Feb 28, 2026", location: "Singapore", completed: true },
-      { label: "Cargo Received", date: "Mar 3, 2026", location: "Singapore CFS", completed: true },
-      { label: "Container Loaded", date: null, location: null, completed: false },
-      { label: "Vessel Departed", date: null, location: null, completed: false },
-      { label: "In Transit", date: null, location: null, completed: false },
-      { label: "Port Arrival", date: null, location: null, completed: false },
-      { label: "Customs Clearance", date: null, location: null, completed: false },
-      { label: "Delivered", date: null, location: null, completed: false },
-    ],
-    documents: [
-      { name: "Bill of Lading", status: "Pending" },
-      { name: "Commercial Invoice", status: "Generated" },
-      { name: "Packing List", status: "Generated" },
-      { name: "Shipping Instructions", status: "Generated" },
-    ],
-    parties: [
-      { role: "Shipper", name: "SG Textiles Pte Ltd", contact: "export@sgtextiles.sg" },
-      { role: "Consignee", name: "Gulf Trading FZE", contact: "import@gulftrading.ae" },
-      { role: "Freight Forwarder", name: "Asia Pacific Shipping", contact: "ops@apshipping.com" },
-    ],
-  },
-  "SHP-2024-004": {
-    id: "SHP-2024-004",
-    origin: "Hamburg, Germany",
-    originPort: "DEHAM",
-    destination: "Santos, Brazil",
-    destinationPort: "BRSSZ",
-    status: "Delivered",
-    commodity: "Auto Parts",
-    containers: "1x40HC",
-    hsCode: "8708.99",
-    grossWeight: "14,800 kg",
-    volume: "58 CBM",
-    packages: "340",
-    packageType: "Pallets",
-    shipper: "German Auto Parts GmbH",
-    consignee: "Brasil Automotivo Ltda",
-    forwarder: "TransAtlantic Freight",
-    vessel: "HAMBURG EXPRESS",
-    voyage: "025S",
-    etd: "Feb 10, 2026",
-    eta: "Mar 1, 2026",
-    bookingRef: "HLCU5829371",
-    milestones: [
-      { label: "Booking Confirmed", date: "Feb 5, 2026", location: "Hamburg, Germany", completed: true },
-      { label: "Cargo Received", date: "Feb 8, 2026", location: "Hamburg Warehouse", completed: true },
-      { label: "Container Loaded", date: "Feb 10, 2026", location: "Port of Hamburg", completed: true },
-      { label: "Vessel Departed", date: "Feb 10, 2026", location: "Port of Hamburg", completed: true },
-      { label: "In Transit", date: "Feb 15, 2026", location: "Atlantic Ocean", completed: true },
-      { label: "Port Arrival", date: "Feb 28, 2026", location: "Port of Santos", completed: true },
-      { label: "Customs Clearance", date: "Mar 1, 2026", location: "Santos, Brazil", completed: true },
-      { label: "Delivered", date: "Mar 1, 2026", location: "São Paulo, Brazil", completed: true },
-    ],
-    documents: [
-      { name: "Bill of Lading", status: "Generated" },
-      { name: "Commercial Invoice", status: "Generated" },
-      { name: "Packing List", status: "Generated" },
-      { name: "Shipping Instructions", status: "Generated" },
-      { name: "Delivery Order", status: "Generated" },
-      { name: "Warehouse Instructions", status: "Generated" },
-    ],
-    parties: [
-      { role: "Shipper", name: "German Auto Parts GmbH", contact: "export@gaparts.de" },
-      { role: "Consignee", name: "Brasil Automotivo Ltda", contact: "compras@brasilautomotivo.com.br" },
-      { role: "Freight Forwarder", name: "TransAtlantic Freight", contact: "ops@transatlantic.com" },
-      { role: "Customs Broker", name: "Santos Despachos", contact: "despacho@santosdespachos.com.br" },
-    ],
-  },
-};
+const MILESTONES_ORDER = [
+  "Booking Confirmed",
+  "Cargo Received",
+  "Container Loaded",
+  "Vessel Departed",
+  "In Transit",
+  "Port Arrival",
+  "Customs Clearance",
+  "Delivered",
+];
 
 const statusColor: Record<string, string> = {
-  "In Transit": "bg-accent/10 text-accent",
-  "Booking Confirmed": "bg-yellow-100 text-yellow-700",
-  "Cargo Received": "bg-blue-100 text-blue-700",
-  "Delivered": "bg-green-100 text-green-700",
-  "Pending": "bg-secondary text-muted-foreground",
+  "in_transit": "bg-accent/10 text-accent",
+  "booking_confirmed": "bg-yellow-100 text-yellow-700",
+  "cargo_received": "bg-blue-100 text-blue-700",
+  "delivered": "bg-green-100 text-green-700",
+  "draft": "bg-secondary text-muted-foreground",
+  "pending": "bg-secondary text-muted-foreground",
 };
 
-const docStatusStyle: Record<string, string> = {
-  Generated: "text-green-600",
-  Pending: "text-muted-foreground",
-};
+const formatStatus = (s: string) =>
+  s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const ShipmentDetail = () => {
   const { id } = useParams();
-  const shipment = shipmentsData[id || ""];
+
+  const { data: shipment, isLoading } = useQuery({
+    queryKey: ["shipment", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shipments")
+        .select("*")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: cargo } = useQuery({
+    queryKey: ["cargo", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cargo").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: containers } = useQuery({
+    queryKey: ["containers", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("containers").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: parties } = useQuery({
+    queryKey: ["parties", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("shipment_parties").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: trackingEvents } = useQuery({
+    queryKey: ["tracking_events", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tracking_events").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: documents } = useQuery({
+    queryKey: ["documents", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("documents").select("*").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!shipment) {
     return (
@@ -248,11 +126,32 @@ const ShipmentDetail = () => {
     );
   }
 
+  // Build milestones from tracking events
+  const completedMilestones = new Map(
+    (trackingEvents || []).map((e) => [e.milestone, e])
+  );
+
+  const milestones = MILESTONES_ORDER.map((label) => {
+    const event = completedMilestones.get(label);
+    return {
+      label,
+      date: event ? format(new Date(event.event_date), "MMM d, yyyy") : null,
+      location: event?.location || null,
+      completed: !!event,
+    };
+  });
+
   const currentMilestoneIndex = (() => {
     let last = -1;
-    shipment.milestones.forEach((m, i) => { if (m.completed) last = i; });
+    milestones.forEach((m, i) => { if (m.completed) last = i; });
     return last;
   })();
+
+  const containersSummary = (containers || [])
+    .map((c) => `${c.quantity}x${c.container_type}`)
+    .join(", ") || "—";
+
+  const firstCargo = cargo?.[0];
 
   return (
     <DashboardLayout>
@@ -267,13 +166,13 @@ const ShipmentDetail = () => {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-foreground">{shipment.id}</h1>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[shipment.status]}`}>
-                {shipment.status}
+              <h1 className="text-2xl font-bold text-foreground">{shipment.shipment_ref}</h1>
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[shipment.status] || "bg-secondary text-muted-foreground"}`}>
+                {formatStatus(shipment.status)}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              {shipment.origin} → {shipment.destination}
+              {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
           <Button variant="electric" size="sm">
@@ -284,11 +183,7 @@ const ShipmentDetail = () => {
       </div>
 
       {/* Milestone Timeline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -298,20 +193,17 @@ const ShipmentDetail = () => {
           </CardHeader>
           <CardContent>
             <div className="relative">
-              {/* Timeline line */}
               <div className="absolute top-4 left-4 right-4 h-0.5 bg-border hidden md:block" />
               <div className="absolute top-4 left-4 h-0.5 bg-accent hidden md:block" style={{
                 width: currentMilestoneIndex >= 0
-                  ? `${(currentMilestoneIndex / (shipment.milestones.length - 1)) * 100}%`
+                  ? `${(currentMilestoneIndex / (milestones.length - 1)) * 100}%`
                   : '0%',
                 maxWidth: 'calc(100% - 2rem)',
               }} />
-
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                {shipment.milestones.map((milestone, i) => {
+                {milestones.map((milestone, i) => {
                   const isActive = i === currentMilestoneIndex;
                   const isCompleted = milestone.completed;
-
                   return (
                     <motion.div
                       key={milestone.label}
@@ -320,30 +212,20 @@ const ShipmentDetail = () => {
                       transition={{ delay: i * 0.06, duration: 0.4 }}
                       className="flex flex-col items-center text-center relative"
                     >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center z-10 mb-3 transition-all ${
-                          isCompleted
-                            ? isActive
-                              ? "bg-accent text-accent-foreground ring-4 ring-accent/20"
-                              : "bg-accent text-accent-foreground"
-                            : "bg-secondary border-2 border-border text-muted-foreground"
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <Check className="h-3.5 w-3.5" />
-                        ) : (
-                          <Circle className="h-3 w-3" />
-                        )}
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 mb-3 transition-all ${
+                        isCompleted
+                          ? isActive
+                            ? "bg-accent text-accent-foreground ring-4 ring-accent/20"
+                            : "bg-accent text-accent-foreground"
+                          : "bg-secondary border-2 border-border text-muted-foreground"
+                      }`}>
+                        {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
                       </div>
                       <p className={`text-xs font-medium leading-tight mb-1 ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
                         {milestone.label}
                       </p>
-                      {milestone.date && (
-                        <p className="text-[10px] text-muted-foreground">{milestone.date}</p>
-                      )}
-                      {milestone.location && (
-                        <p className="text-[10px] text-muted-foreground/60">{milestone.location}</p>
-                      )}
+                      {milestone.date && <p className="text-[10px] text-muted-foreground">{milestone.date}</p>}
+                      {milestone.location && <p className="text-[10px] text-muted-foreground/60">{milestone.location}</p>}
                     </motion.div>
                   );
                 })}
@@ -355,12 +237,7 @@ const ShipmentDetail = () => {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Shipment Details */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="lg:col-span-2 space-y-6"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -370,59 +247,67 @@ const ShipmentDetail = () => {
             </CardHeader>
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
-                <InfoRow label="Origin" value={shipment.origin} />
-                <InfoRow label="Destination" value={shipment.destination} />
-                <InfoRow label="Origin Port" value={shipment.originPort} />
-                <InfoRow label="Destination Port" value={shipment.destinationPort} />
-                <InfoRow label="Vessel" value={shipment.vessel} />
-                <InfoRow label="Voyage" value={shipment.voyage} />
-                <InfoRow label="ETD" value={shipment.etd} />
-                <InfoRow label="ETA" value={shipment.eta} />
-                <InfoRow label="Booking Ref" value={shipment.bookingRef} />
-                <InfoRow label="Containers" value={shipment.containers} />
+                <InfoRow label="Shipment Type" value={formatStatus(shipment.shipment_type)} />
+                <InfoRow label="Status" value={formatStatus(shipment.status)} />
+                <InfoRow label="Origin Port" value={shipment.origin_port || "—"} />
+                <InfoRow label="Destination Port" value={shipment.destination_port || "—"} />
+                <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
+                <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
+                <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
+                <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
+                <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
+                <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
+                <InfoRow label="Booking Ref" value={shipment.booking_ref || "—"} />
+                <InfoRow label="Containers" value={containersSummary} />
               </div>
-              <Separator className="my-5" />
-              <h4 className="text-sm font-semibold text-foreground mb-3">Cargo Information</h4>
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
-                <InfoRow label="Commodity" value={shipment.commodity} />
-                <InfoRow label="HS Code" value={shipment.hsCode} />
-                <InfoRow label="Gross Weight" value={shipment.grossWeight} />
-                <InfoRow label="Volume" value={shipment.volume} />
-                <InfoRow label="Packages" value={`${shipment.packages} ${shipment.packageType}`} />
-              </div>
+              {firstCargo && (
+                <>
+                  <Separator className="my-5" />
+                  <h4 className="text-sm font-semibold text-foreground mb-3">Cargo Information</h4>
+                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
+                    <InfoRow label="Commodity" value={firstCargo.commodity || "—"} />
+                    <InfoRow label="HS Code" value={firstCargo.hs_code || "—"} />
+                    <InfoRow label="Gross Weight" value={firstCargo.gross_weight ? `${firstCargo.gross_weight} kg` : "—"} />
+                    <InfoRow label="Volume" value={firstCargo.volume ? `${firstCargo.volume} CBM` : "—"} />
+                    <InfoRow label="Packages" value={firstCargo.num_packages ? `${firstCargo.num_packages} ${firstCargo.package_type || ""}`.trim() : "—"} />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
           {/* Parties */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-4 w-4 text-accent" />
-                Parties
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {shipment.parties.map((party) => (
-                  <div key={party.role} className="flex items-start justify-between py-2 border-b last:border-0">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{party.role}</p>
-                      <p className="text-sm font-medium text-foreground">{party.name}</p>
+          {parties && parties.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-accent" />
+                  Parties
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {parties.map((party) => (
+                    <div key={party.id} className="flex items-start justify-between py-2 border-b last:border-0">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{party.role}</p>
+                        <p className="text-sm font-medium text-foreground">{party.company_name}</p>
+                        {party.contact_name && <p className="text-xs text-muted-foreground">{party.contact_name}</p>}
+                      </div>
+                      <div className="text-right">
+                        {party.email && <p className="text-xs text-muted-foreground">{party.email}</p>}
+                        {party.phone && <p className="text-xs text-muted-foreground">{party.phone}</p>}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{party.contact}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </motion.div>
 
         {/* Documents sidebar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -431,14 +316,20 @@ const ShipmentDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {shipment.documents.map((doc) => (
-                  <div key={doc.name} className="flex items-center justify-between py-2 border-b last:border-0">
-                    <p className="text-sm text-foreground">{doc.name}</p>
-                    <span className={`text-xs font-medium ${docStatusStyle[doc.status]}`}>{doc.status}</span>
-                  </div>
-                ))}
-              </div>
+              {documents && documents.length > 0 ? (
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <p className="text-sm text-foreground">{doc.doc_type}</p>
+                      <span className={`text-xs font-medium ${doc.status === "generated" ? "text-green-600" : "text-muted-foreground"}`}>
+                        {formatStatus(doc.status)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No documents yet.</p>
+              )}
             </CardContent>
           </Card>
         </motion.div>
