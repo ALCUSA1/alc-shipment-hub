@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
+import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
