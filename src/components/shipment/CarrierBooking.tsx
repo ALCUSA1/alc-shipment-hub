@@ -152,6 +152,21 @@ export function CarrierBooking({ shipmentId, shipmentRef }: CarrierBookingProps)
           </p>
         )}
       </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send booking request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send a booking request for shipment <span className="font-semibold text-foreground">{shipmentRef}</span> to <span className="font-semibold text-foreground">{carrierName(selectedCarrier)}</span>. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>Send Booking</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
