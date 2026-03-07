@@ -6,6 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
 import { CarrierBooking } from "@/components/shipment/CarrierBooking";
 import { CarrierStatusUpdates } from "@/components/shipment/CarrierStatusUpdates";
+import { CustomsFiling } from "@/components/shipment/CustomsFiling";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -306,6 +307,19 @@ const ShipmentDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* US Customs Filing */}
+          <CustomsFiling
+            shipmentId={shipment.id}
+            shipment={{
+              shipment_ref: shipment.shipment_ref,
+              origin_port: shipment.origin_port,
+              destination_port: shipment.destination_port,
+              vessel: shipment.vessel,
+              voyage: shipment.voyage,
+              etd: shipment.etd,
+            }}
+          />
         </motion.div>
 
         {/* Documents sidebar */}
