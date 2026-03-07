@@ -219,6 +219,7 @@ const ShipmentDetail = () => {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
+              {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
