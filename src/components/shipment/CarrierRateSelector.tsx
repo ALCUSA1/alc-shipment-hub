@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Ship, Check, Loader2, Clock, DollarSign, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Ship, Check, Loader2, Clock, ChevronDown, ChevronUp, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -41,6 +41,13 @@ interface CarrierRateSelectorProps {
   containerType: string | null;
 }
 
+interface TrendData {
+  points: number[];
+  change: number;
+  changePercent: number;
+  direction: "up" | "down" | "flat";
+}
+
 function parseSurcharges(surcharges: Json): Surcharge[] {
   if (!Array.isArray(surcharges)) return [];
   return surcharges
@@ -53,6 +60,65 @@ function parseSurcharges(surcharges: Json): Surcharge[] {
         amount: Number(obj.amount ?? 0),
       };
     });
+}
+
+function getTotalRate(rate: CarrierRate) {
+  const surcharges = parseSurcharges(rate.surcharges);
+  return rate.base_rate + surcharges.reduce((sum, s) => sum + s.amount, 0);
+}
+
+/** Mini SVG sparkline */
+function Sparkline({ points, direction }: { points: number[]; direction: "up" | "down" | "flat" }) {
+  if (points.length < 2) return null;
+  const w = 60;
+  const h = 20;
+  const padding = 2;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min || 1;
+
+  const coords = points.map((p, i) => ({
+    x: padding + (i / (points.length - 1)) * (w - padding * 2),
+    y: padding + (1 - (p - min) / range) * (h - padding * 2),
+  }));
+
+  const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`).join(" ");
+  const color =
+    direction === "up" ? "hsl(var(--destructive))" :
+    direction === "down" ? "hsl(142 76% 36%)" :
+    "hsl(var(--muted-foreground))";
+
+  return (
+    <svg width={w} height={h} className="flex-shrink-0">
+      <path d={pathD} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={coords[coords.length - 1].x} cy={coords[coords.length - 1].y} r="2" fill={color} />
+    </svg>
+  );
+}
+
+function TrendBadge({ trend }: { trend: TrendData }) {
+  if (trend.points.length < 2) return null;
+
+  const Icon = trend.direction === "up" ? TrendingUp : trend.direction === "down" ? TrendingDown : Minus;
+  const colorClass =
+    trend.direction === "up" ? "text-destructive" :
+    trend.direction === "down" ? "text-green-600" :
+    "text-muted-foreground";
+
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <Sparkline points={trend.points} direction={trend.direction} />
+      <div className={`flex items-center gap-0.5 text-[10px] font-medium ${colorClass}`}>
+        <Icon className="h-3 w-3" />
+        {trend.direction === "flat" ? "Stable" : (
+          <>
+            {trend.direction === "up" ? "+" : ""}${Math.abs(trend.change).toLocaleString()}
+            <span className="opacity-60">({Math.abs(trend.changePercent).toFixed(1)}%)</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function CarrierRateSelector({
@@ -75,15 +141,14 @@ export function CarrierRateSelector({
     { value: "40hc", label: "40' HC" },
   ];
 
-  // Fetch ALL rates for this route (no container filter) so we can toggle client-side
-  const { data: allRates = [], isLoading } = useQuery({
-    queryKey: ["carrier-rates", originPort, destinationPort],
+  // Fetch ALL rates for this route (current + historical) for trend analysis
+  const { data: allRatesRaw = [], isLoading } = useQuery({
+    queryKey: ["carrier-rates-all", originPort, destinationPort],
     queryFn: async () => {
       let query = supabase
         .from("carrier_rates")
         .select("*")
-        .gte("valid_until", new Date().toISOString().split("T")[0])
-        .order("base_rate", { ascending: true });
+        .order("valid_from", { ascending: true });
 
       if (originPort) query = query.eq("origin_port", originPort);
       if (destinationPort) query = query.eq("destination_port", destinationPort);
@@ -95,11 +160,57 @@ export function CarrierRateSelector({
     enabled: !!(originPort && destinationPort),
   });
 
-  // Filter by active container type
-  const rates = allRates.filter((r) => r.container_type === activeContainerType);
+  // Split into current (valid now) and all (for trends)
+  const today = new Date().toISOString().split("T")[0];
+  const currentRates = allRatesRaw.filter((r) => r.valid_until >= today);
+  const allRates = currentRates; // for container type filtering
 
-  // Available container types from the data
-  const availableTypes = [...new Set(allRates.map((r) => r.container_type))];
+  // Filter by active container type (current rates only)
+  const rates = currentRates
+    .filter((r) => r.container_type === activeContainerType)
+    .sort((a, b) => getTotalRate(a) - getTotalRate(b));
+
+  // Available container types from current data
+  const availableTypes = [...new Set(currentRates.map((r) => r.container_type))];
+
+  // Build trend data per carrier+containerType
+  const trendMap = useMemo(() => {
+    const map = new Map<string, TrendData>();
+
+    // Group all historical rates by carrier+containerType
+    const groups = new Map<string, CarrierRate[]>();
+    allRatesRaw
+      .filter((r) => r.container_type === activeContainerType)
+      .forEach((r) => {
+        const key = r.carrier;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(r);
+      });
+
+    groups.forEach((carrierRates, carrier) => {
+      // Sort by valid_from to get chronological order
+      const sorted = carrierRates.sort(
+        (a, b) => new Date(a.valid_from).getTime() - new Date(b.valid_from).getTime()
+      );
+      const points = sorted.map(getTotalRate);
+
+      if (points.length < 2) {
+        map.set(carrier, { points, change: 0, changePercent: 0, direction: "flat" });
+        return;
+      }
+
+      const prev = points[points.length - 2];
+      const curr = points[points.length - 1];
+      const change = curr - prev;
+      const changePercent = prev > 0 ? (change / prev) * 100 : 0;
+      const direction: "up" | "down" | "flat" =
+        Math.abs(changePercent) < 0.5 ? "flat" : change > 0 ? "up" : "down";
+
+      map.set(carrier, { points, change, changePercent, direction });
+    });
+
+    return map;
+  }, [allRatesRaw, activeContainerType]);
 
   // Reset selection when switching container type
   const handleContainerSwitch = (type: string) => {
@@ -129,11 +240,6 @@ export function CarrierRateSelector({
     } finally {
       setBookingLoading(false);
     }
-  };
-
-  const getTotalRate = (rate: CarrierRate) => {
-    const surcharges = parseSurcharges(rate.surcharges);
-    return rate.base_rate + surcharges.reduce((sum, s) => sum + s.amount, 0);
   };
 
   // Find best rate
@@ -200,11 +306,12 @@ export function CarrierRateSelector({
               );
             })}
           </div>
+
           {isLoading ? (
             <div className="space-y-3">
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
             </div>
           ) : rates.length === 0 ? (
             <div className="text-center py-6">
@@ -220,6 +327,7 @@ export function CarrierRateSelector({
                 const isSelected = selectedRate?.id === rate.id;
                 const isBest = rate.id === bestRateId;
                 const isExpanded = expandedId === rate.id;
+                const trend = trendMap.get(rate.carrier);
 
                 return (
                   <div
@@ -232,9 +340,9 @@ export function CarrierRateSelector({
                     onClick={() => setSelectedRate(rate)}
                   >
                     {/* Header row */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-2">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
                           isSelected ? "border-accent bg-accent" : "border-muted-foreground/30"
                         }`}>
                           {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
@@ -259,6 +367,10 @@ export function CarrierRateSelector({
                               Valid until {format(new Date(rate.valid_until), "MMM d")}
                             </span>
                           </div>
+                          {/* Trend indicator */}
+                          {trend && trend.points.length >= 2 && (
+                            <TrendBadge trend={trend} />
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
