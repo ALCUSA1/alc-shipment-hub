@@ -57,7 +57,7 @@ const ShipmentDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("*")
+        .select("*, companies(company_name)")
         .eq("id", id!)
         .single();
       if (error) throw error;
@@ -199,6 +199,7 @@ const ShipmentDetail = () => {
     .join(", ") || "—";
 
   const firstCargo = cargo?.[0];
+  const companyName = (shipment as any).companies?.company_name as string | undefined;
 
   return (
     <DashboardLayout>
@@ -219,6 +220,7 @@ const ShipmentDetail = () => {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
+              {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
