@@ -52,6 +52,30 @@ const ShipmentDetail = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // Realtime subscriptions for live updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`shipment-realtime-${id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments', filter: `id=eq.${id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["shipment", id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tracking_events', filter: `shipment_id=eq.${id}` }, (payload) => {
+        queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
+        if (payload.eventType === 'INSERT') {
+          const newEvent = payload.new as any;
+          toast({ title: "Tracking Update", description: `${newEvent.milestone}${newEvent.location ? ` — ${newEvent.location}` : ''}` });
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'edi_messages', filter: `shipment_id=eq.${id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [id, queryClient]);
+
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["shipment", id],
     queryFn: async () => {
