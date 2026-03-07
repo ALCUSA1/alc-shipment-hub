@@ -23,7 +23,6 @@ import Account from "./pages/Account";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
-
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,7 +52,6 @@ const App = () => (
             <Route path="/dashboard/warehouses" element={<ProtectedRoute><Warehouses /></ProtectedRoute>} />
             <Route path="/dashboard/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/dashboard/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
-            
             <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
