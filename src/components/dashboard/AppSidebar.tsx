@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut,
-  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Shield
+  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Shield, Bell
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -54,6 +54,7 @@ const navGroups = [
     label: "Settings",
     items: [
       { title: "Team", url: "/dashboard/team", icon: UsersRound },
+      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
       { title: "Account", url: "/dashboard/account", icon: Settings },
     ],
   },

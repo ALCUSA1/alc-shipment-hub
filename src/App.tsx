@@ -33,6 +33,7 @@ import Accounting from "./pages/Accounting";
 import RateTrends from "./pages/RateTrends";
 import Pipeline from "./pages/Pipeline";
 import ResetPassword from "./pages/ResetPassword";
+import NotificationPreferences from "./pages/NotificationPreferences";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/dashboard/rate-trends" element={<ProtectedRoute><RateTrends /></ProtectedRoute>} />
             <Route path="/dashboard/partners" element={<RoleGate><Partners /></RoleGate>} />
             <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+            <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationPreferences /></ProtectedRoute>} />
             <Route path="/dashboard/team" element={<RoleGate><Team /></RoleGate>} />
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
 

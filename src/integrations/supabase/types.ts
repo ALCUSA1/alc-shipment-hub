@@ -706,6 +706,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          demurrage_alerts: boolean
+          id: string
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string
+          quiet_hours_start: string
+          rate_alerts: boolean
+          shipment_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          demurrage_alerts?: boolean
+          id?: string
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          rate_alerts?: boolean
+          shipment_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          demurrage_alerts?: boolean
+          id?: string
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          rate_alerts?: boolean
+          shipment_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
