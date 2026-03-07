@@ -58,6 +58,57 @@ export type Database = {
           },
         ]
       }
+      carrier_rates: {
+        Row: {
+          base_rate: number
+          carrier: string
+          container_type: string
+          created_at: string
+          currency: string
+          destination_port: string
+          id: string
+          notes: string | null
+          origin_port: string
+          surcharges: Json
+          transit_days: number | null
+          updated_at: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          base_rate: number
+          carrier: string
+          container_type: string
+          created_at?: string
+          currency?: string
+          destination_port: string
+          id?: string
+          notes?: string | null
+          origin_port: string
+          surcharges?: Json
+          transit_days?: number | null
+          updated_at?: string
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          base_rate?: number
+          carrier?: string
+          container_type?: string
+          created_at?: string
+          currency?: string
+          destination_port?: string
+          id?: string
+          notes?: string | null
+          origin_port?: string
+          surcharges?: Json
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
       containers: {
         Row: {
           container_number: string | null
