@@ -57,7 +57,7 @@ const ShipmentDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("*")
+        .select("*, companies(company_name)")
         .eq("id", id!)
         .single();
       if (error) throw error;
