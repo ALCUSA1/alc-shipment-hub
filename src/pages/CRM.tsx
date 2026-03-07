@@ -12,13 +12,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import {
-  Plus, Search, Building2, Shield, FileCheck, CreditCard, Loader2, ChevronRight, Users, X,
+  Plus, Search, Building2, Shield, FileCheck, CreditCard, Loader2, ChevronRight, Users, X, AlertTriangle, AlertCircle,
 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { differenceInDays, parseISO } from "date-fns";
 
 type Company = Tables<"companies">;
 type Contact = Tables<"company_contacts">;
