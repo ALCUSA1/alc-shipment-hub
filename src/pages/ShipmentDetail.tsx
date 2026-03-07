@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
 import { CarrierBooking } from "@/components/shipment/CarrierBooking";
+import { CarrierStatusUpdates } from "@/components/shipment/CarrierStatusUpdates";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -311,6 +312,9 @@ const ShipmentDetail = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
           {/* Carrier Booking */}
           <CarrierBooking shipmentId={shipment.id} shipmentRef={shipment.shipment_ref} />
+
+          {/* Carrier Status Updates */}
+          <CarrierStatusUpdates shipmentId={shipment.id} />
 
           {/* Documents */}
           <Card>
