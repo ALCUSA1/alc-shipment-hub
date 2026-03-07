@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Ship, Loader2, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 const MILESTONES_ORDER = [
   "Booking Confirmed",
@@ -33,8 +38,19 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const CARRIERS = [
+  { value: "maersk", label: "Maersk" },
+  { value: "msc", label: "MSC" },
+  { value: "cmacgm", label: "CMA CGM" },
+  { value: "evergreen", label: "Evergreen" },
+];
+
 const ShipmentDetail = () => {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+  const [selectedCarrier, setSelectedCarrier] = useState("");
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["shipment", id],
