@@ -428,48 +428,14 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Carrier Booking */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Ship className="h-4 w-4 text-accent" />
-                Carrier Booking
-              </CardTitle>
-              <CardDescription>Send booking request (IFTMIN) to a shipping line</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
-                <SelectTrigger><SelectValue placeholder="Select carrier" /></SelectTrigger>
-                <SelectContent>
-                  {CARRIERS.map(c => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="electric" className="w-full" disabled={!selectedCarrier}>
-                    <Ship className="h-4 w-4 mr-1" />Send Booking Request
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Confirm Booking Request</DialogTitle>
-                    <DialogDescription>
-                      This will send an IFTMIN booking request to <strong>{CARRIERS.find(c => c.value === selectedCarrier)?.label}</strong> for shipment <strong>{shipment.shipment_ref}</strong>.
-                      The carrier will process this and respond with a booking confirmation.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-                    <Button variant="electric" onClick={handleBooking} disabled={bookingLoading}>
-                      {bookingLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Confirm & Send
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
+          {/* Carrier Rate Selection & Booking */}
+          <CarrierRateSelector
+            shipmentId={id!}
+            shipmentRef={shipment.shipment_ref}
+            originPort={shipment.origin_port}
+            destinationPort={shipment.destination_port}
+            containerType={(containers && containers.length > 0) ? containers[0].container_type : null}
+          />
 
           {/* EDI Message Log */}
           <Card>
