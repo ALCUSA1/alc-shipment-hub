@@ -109,270 +109,6 @@ export type Database = {
         }
         Relationships: []
       }
-      companies: {
-        Row: {
-          address: string | null
-          billing_address: string | null
-          billing_email: string | null
-          cargo_insurance_expiry: string | null
-          cargo_insurance_policy: string | null
-          cargo_insurance_provider: string | null
-          city: string | null
-          company_name: string
-          country: string | null
-          created_at: string
-          credit_limit: number | null
-          credit_terms: string | null
-          duns_number: string | null
-          ein: string | null
-          email: string | null
-          fmc_license_expiry: string | null
-          fmc_license_number: string | null
-          fmc_license_status: string | null
-          general_liability_expiry: string | null
-          general_liability_policy: string | null
-          general_liability_provider: string | null
-          id: string
-          industry: string | null
-          notes: string | null
-          oti_bond_amount: number | null
-          oti_bond_number: string | null
-          oti_bond_surety: string | null
-          payment_terms_days: number | null
-          phone: string | null
-          sam_expiry: string | null
-          sam_registration: string | null
-          state: string | null
-          status: Database["public"]["Enums"]["company_status"]
-          trade_name: string | null
-          updated_at: string
-          user_id: string
-          w9_on_file: boolean | null
-          website: string | null
-          zip: string | null
-        }
-        Insert: {
-          address?: string | null
-          billing_address?: string | null
-          billing_email?: string | null
-          cargo_insurance_expiry?: string | null
-          cargo_insurance_policy?: string | null
-          cargo_insurance_provider?: string | null
-          city?: string | null
-          company_name: string
-          country?: string | null
-          created_at?: string
-          credit_limit?: number | null
-          credit_terms?: string | null
-          duns_number?: string | null
-          ein?: string | null
-          email?: string | null
-          fmc_license_expiry?: string | null
-          fmc_license_number?: string | null
-          fmc_license_status?: string | null
-          general_liability_expiry?: string | null
-          general_liability_policy?: string | null
-          general_liability_provider?: string | null
-          id?: string
-          industry?: string | null
-          notes?: string | null
-          oti_bond_amount?: number | null
-          oti_bond_number?: string | null
-          oti_bond_surety?: string | null
-          payment_terms_days?: number | null
-          phone?: string | null
-          sam_expiry?: string | null
-          sam_registration?: string | null
-          state?: string | null
-          status?: Database["public"]["Enums"]["company_status"]
-          trade_name?: string | null
-          updated_at?: string
-          user_id: string
-          w9_on_file?: boolean | null
-          website?: string | null
-          zip?: string | null
-        }
-        Update: {
-          address?: string | null
-          billing_address?: string | null
-          billing_email?: string | null
-          cargo_insurance_expiry?: string | null
-          cargo_insurance_policy?: string | null
-          cargo_insurance_provider?: string | null
-          city?: string | null
-          company_name?: string
-          country?: string | null
-          created_at?: string
-          credit_limit?: number | null
-          credit_terms?: string | null
-          duns_number?: string | null
-          ein?: string | null
-          email?: string | null
-          fmc_license_expiry?: string | null
-          fmc_license_number?: string | null
-          fmc_license_status?: string | null
-          general_liability_expiry?: string | null
-          general_liability_policy?: string | null
-          general_liability_provider?: string | null
-          id?: string
-          industry?: string | null
-          notes?: string | null
-          oti_bond_amount?: number | null
-          oti_bond_number?: string | null
-          oti_bond_surety?: string | null
-          payment_terms_days?: number | null
-          phone?: string | null
-          sam_expiry?: string | null
-          sam_registration?: string | null
-          state?: string | null
-          status?: Database["public"]["Enums"]["company_status"]
-          trade_name?: string | null
-          updated_at?: string
-          user_id?: string
-          w9_on_file?: boolean | null
-          website?: string | null
-          zip?: string | null
-        }
-        Relationships: []
-      }
-      company_activities: {
-        Row: {
-          activity_type: string
-          company_id: string
-          created_at: string
-          description: string | null
-          id: string
-          metadata: Json | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          activity_type: string
-          company_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          metadata?: Json | null
-          title: string
-          user_id: string
-        }
-        Update: {
-          activity_type?: string
-          company_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          metadata?: Json | null
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_activities_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      company_contacts: {
-        Row: {
-          company_id: string
-          created_at: string
-          email: string | null
-          full_name: string
-          id: string
-          is_primary: boolean | null
-          notes: string | null
-          phone: string | null
-          role: string
-          title: string | null
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          email?: string | null
-          full_name: string
-          id?: string
-          is_primary?: boolean | null
-          notes?: string | null
-          phone?: string | null
-          role?: string
-          title?: string | null
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          email?: string | null
-          full_name?: string
-          id?: string
-          is_primary?: boolean | null
-          notes?: string | null
-          phone?: string | null
-          role?: string
-          title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_contacts_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      company_documents: {
-        Row: {
-          company_id: string
-          created_at: string
-          doc_name: string
-          doc_type: string
-          expiry_date: string | null
-          file_url: string | null
-          id: string
-          notes: string | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          doc_name: string
-          doc_type: string
-          expiry_date?: string | null
-          file_url?: string | null
-          id?: string
-          notes?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          doc_name?: string
-          doc_type?: string
-          expiry_date?: string | null
-          file_url?: string | null
-          id?: string
-          notes?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_documents_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       containers: {
         Row: {
           container_number: string | null
@@ -855,7 +591,6 @@ export type Database = {
       shipments: {
         Row: {
           booking_ref: string | null
-          company_id: string | null
           created_at: string
           delivery_location: string | null
           destination_port: string | null
@@ -874,7 +609,6 @@ export type Database = {
         }
         Insert: {
           booking_ref?: string | null
-          company_id?: string | null
           created_at?: string
           delivery_location?: string | null
           destination_port?: string | null
@@ -893,7 +627,6 @@ export type Database = {
         }
         Update: {
           booking_ref?: string | null
-          company_id?: string | null
           created_at?: string
           delivery_location?: string | null
           destination_port?: string | null
@@ -910,15 +643,7 @@ export type Database = {
           vessel?: string | null
           voyage?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "shipments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tracking_events: {
         Row: {
@@ -1090,12 +815,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      company_status:
-        | "prospect"
-        | "pending_compliance"
-        | "active"
-        | "suspended"
-        | "inactive"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1222,14 +942,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      company_status: [
-        "prospect",
-        "pending_compliance",
-        "active",
-        "suspended",
-        "inactive",
-      ],
-    },
+    Enums: {},
   },
 } as const
