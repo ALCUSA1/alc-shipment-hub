@@ -6,6 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
 import { CarrierBooking } from "@/components/shipment/CarrierBooking";
 import { CarrierStatusUpdates } from "@/components/shipment/CarrierStatusUpdates";
+import { CustomsFiling } from "@/components/shipment/CustomsFiling";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
