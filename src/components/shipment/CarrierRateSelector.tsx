@@ -63,13 +63,21 @@ export function CarrierRateSelector({
   containerType,
 }: CarrierRateSelectorProps) {
   const queryClient = useQueryClient();
+  const [activeContainerType, setActiveContainerType] = useState<string>(containerType || "40hc");
   const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
 
-  const { data: rates = [], isLoading } = useQuery({
-    queryKey: ["carrier-rates", originPort, destinationPort, containerType],
+  const CONTAINER_TYPES = [
+    { value: "20gp", label: "20' GP" },
+    { value: "40gp", label: "40' GP" },
+    { value: "40hc", label: "40' HC" },
+  ];
+
+  // Fetch ALL rates for this route (no container filter) so we can toggle client-side
+  const { data: allRates = [], isLoading } = useQuery({
+    queryKey: ["carrier-rates", originPort, destinationPort],
     queryFn: async () => {
       let query = supabase
         .from("carrier_rates")
@@ -79,7 +87,6 @@ export function CarrierRateSelector({
 
       if (originPort) query = query.eq("origin_port", originPort);
       if (destinationPort) query = query.eq("destination_port", destinationPort);
-      if (containerType) query = query.eq("container_type", containerType);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -87,6 +94,19 @@ export function CarrierRateSelector({
     },
     enabled: !!(originPort && destinationPort),
   });
+
+  // Filter by active container type
+  const rates = allRates.filter((r) => r.container_type === activeContainerType);
+
+  // Available container types from the data
+  const availableTypes = [...new Set(allRates.map((r) => r.container_type))];
+
+  // Reset selection when switching container type
+  const handleContainerSwitch = (type: string) => {
+    setActiveContainerType(type);
+    setSelectedRate(null);
+    setExpandedId(null);
+  };
 
   const handleBooking = async () => {
     if (!selectedRate) return;
@@ -150,10 +170,36 @@ export function CarrierRateSelector({
           </CardTitle>
           <CardDescription>
             {originPort} → {destinationPort}
-            {containerType && <span className="ml-1">· {containerType.toUpperCase()}</span>}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Container type toggle */}
+          <div className="flex items-center gap-1 mb-4 p-1 bg-secondary rounded-lg w-fit">
+            {CONTAINER_TYPES.map((ct) => {
+              const hasRates = availableTypes.includes(ct.value);
+              return (
+                <button
+                  key={ct.value}
+                  onClick={() => handleContainerSwitch(ct.value)}
+                  disabled={!hasRates}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    activeContainerType === ct.value
+                      ? "bg-accent text-accent-foreground shadow-sm"
+                      : hasRates
+                        ? "text-muted-foreground hover:text-foreground"
+                        : "text-muted-foreground/40 cursor-not-allowed"
+                  }`}
+                >
+                  {ct.label}
+                  {hasRates && (
+                    <span className="ml-1 text-[10px] opacity-60">
+                      ({allRates.filter((r) => r.container_type === ct.value).length})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
           {isLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-20 w-full" />
