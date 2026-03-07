@@ -1,1 +1,13 @@
 project_id = "sikosqmgmwvdmxzigjpl"
+
+[functions.carrier-booking]
+verify_jwt = false
+
+[functions.carrier-webhook]
+verify_jwt = false
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
