@@ -3,12 +3,17 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Minus, Ship } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { TrendingUp, TrendingDown, Minus, Ship, Bell, BellOff, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
+import { RateAlertDialog } from "@/components/rate-alerts/RateAlertDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 interface CarrierRate {
@@ -55,9 +60,12 @@ const CONTAINER_TYPES = [
 ];
 
 const RateTrends = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedRoute, setSelectedRoute] = useState<string>("all");
   const [selectedContainer, setSelectedContainer] = useState<string>("40hc");
   const [selectedCarrier, setSelectedCarrier] = useState<string>("all");
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
 
   const { data: allRates = [], isLoading } = useQuery({
     queryKey: ["rate-trends-all"],
@@ -70,6 +78,42 @@ const RateTrends = () => {
       return data as CarrierRate[];
     },
   });
+
+  // Fetch user's rate alerts
+  interface RateAlert {
+    id: string;
+    origin_port: string;
+    destination_port: string;
+    container_type: string;
+    carrier: string | null;
+    threshold_rate: number;
+    is_active: boolean;
+  }
+
+  const { data: rateAlerts = [] } = useQuery({
+    queryKey: ["rate-alerts", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rate_alerts")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as RateAlert[];
+    },
+    enabled: !!user,
+  });
+
+  const toggleAlert = async (alertId: string, isActive: boolean) => {
+    await supabase.from("rate_alerts").update({ is_active: !isActive }).eq("id", alertId);
+    queryClient.invalidateQueries({ queryKey: ["rate-alerts"] });
+  };
+
+  const deleteAlert = async (alertId: string) => {
+    await supabase.from("rate_alerts").delete().eq("id", alertId);
+    queryClient.invalidateQueries({ queryKey: ["rate-alerts"] });
+    toast({ title: "Alert deleted" });
+  };
 
   // Derive unique routes and carriers
   const routes = useMemo(() => {
