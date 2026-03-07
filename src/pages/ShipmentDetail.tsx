@@ -116,6 +116,37 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
+  const { data: ediMessages } = useQuery({
+    queryKey: ["edi_messages", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("edi_messages").select("*").eq("shipment_id", id!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const handleBooking = async () => {
+    if (!selectedCarrier) return;
+    setBookingLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("carrier-booking", {
+        body: { shipment_id: id, carrier: selectedCarrier },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Booking Sent", description: data.message });
+      setConfirmOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["shipment", id] });
+      queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
+      queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
+    } catch (err: any) {
+      toast({ title: "Booking Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
