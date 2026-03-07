@@ -50,7 +50,7 @@ const Accounting = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipment_financials")
-        .select("shipment_id, entry_type, amount")
+        .select("shipment_id, entry_type, amount, category")
         .eq("user_id", user!.id);
       if (error) throw error;
       return data;
