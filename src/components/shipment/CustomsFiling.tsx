@@ -133,7 +133,7 @@ export function CustomsFiling({ shipmentId, shipment }: CustomsFilingProps) {
         broker_name: form.broker_name || null,
         broker_email: form.broker_email || null,
         notes: form.notes || null,
-        hts_codes: form.hts_lines.filter((l) => l.hts_code),
+        hts_codes: form.hts_lines.filter((l) => l.hts_code) as unknown as Record<string, unknown>[],
         status: "draft",
       };
 
