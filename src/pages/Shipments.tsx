@@ -79,12 +79,19 @@ const Shipments = () => {
     });
   }, [shipments, search, statusFilter, typeFilter]);
 
+  // Reset page when filters change
+  const totalFiltered = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const safeCurrentPage = Math.min(page, totalPages);
+  const paginatedRows = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
   const hasActiveFilters = search || statusFilter !== "all" || typeFilter !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
     setTypeFilter("all");
+    setPage(1);
   };
 
   return (
