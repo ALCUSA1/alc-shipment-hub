@@ -1,6 +1,7 @@
 import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { Link, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
@@ -25,7 +26,13 @@ const items = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -57,11 +64,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <div className="mt-auto p-3 border-t border-sidebar-border">
-        <SidebarMenuButton asChild>
-          <Link to="/" className="flex items-center gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground text-sm">
+        <SidebarMenuButton onClick={handleLogout}>
+          <div className="flex items-center gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground text-sm cursor-pointer">
             <LogOut className="h-4 w-4" />
             {!collapsed && <span>Log Out</span>}
-          </Link>
+          </div>
         </SidebarMenuButton>
       </div>
     </Sidebar>
