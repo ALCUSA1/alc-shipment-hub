@@ -1,6 +1,7 @@
-import { Ship, LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link, useLocation } from "react-router-dom";
+import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -29,7 +30,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border">
-        <Ship className="h-6 w-6 text-sidebar-primary shrink-0" />
+        <img src={alcLogo} alt="ALC Logo" className="h-7 w-auto shrink-0" />
         {!collapsed && <span className="font-bold text-sm text-sidebar-foreground">ALC Shipper Portal</span>}
       </div>
       <SidebarContent className="pt-4">
