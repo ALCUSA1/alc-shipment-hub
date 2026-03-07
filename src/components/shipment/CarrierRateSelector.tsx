@@ -448,6 +448,7 @@ export function CarrierRateSelector({
               >
                 <Bell className="h-4 w-4 mr-1" />
                 Set Rate Alert
+              </Button>
             </div>
           )}
         </CardContent>
