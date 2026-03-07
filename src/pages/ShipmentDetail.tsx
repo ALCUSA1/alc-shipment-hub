@@ -248,7 +248,11 @@ const ShipmentDetail = () => {
     );
   }
 
-  const currentMilestoneIndex = shipment.milestones.findLastIndex((m) => m.completed);
+  const currentMilestoneIndex = (() => {
+    let last = -1;
+    shipment.milestones.forEach((m, i) => { if (m.completed) last = i; });
+    return last;
+  })();
 
   return (
     <DashboardLayout>
