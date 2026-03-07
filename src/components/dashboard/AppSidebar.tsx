@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut, Truck, Warehouse, ContactRound } from "lucide-react";
+import { LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut, Truck, Warehouse, ContactRound, UsersRound } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ const items = [
   { title: "Documents", url: "/dashboard/documents", icon: FileText },
   { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
   { title: "Partners", url: "/dashboard/partners", icon: Users },
+  { title: "Team", url: "/dashboard/team", icon: UsersRound },
   { title: "Account", url: "/dashboard/account", icon: Settings },
 ];
 

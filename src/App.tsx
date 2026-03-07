@@ -24,6 +24,7 @@ import CRM from "./pages/CRM";
 import Trucking from "./pages/Trucking";
 import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/dashboard/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
             <Route path="/dashboard/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
             <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+            <Route path="/dashboard/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
