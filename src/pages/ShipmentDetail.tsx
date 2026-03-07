@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Ship, Loader2, Radio, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,20 +50,12 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const CARRIERS = [
-  { value: "maersk", label: "Maersk" },
-  { value: "msc", label: "MSC" },
-  { value: "cmacgm", label: "CMA CGM" },
-  { value: "evergreen", label: "Evergreen" },
-];
+// CARRIERS list removed — now handled by CarrierRateSelector
 
 const ShipmentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedCarrier, setSelectedCarrier] = useState("");
-  const [bookingLoading, setBookingLoading] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -189,26 +181,7 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
-  const handleBooking = async () => {
-    if (!selectedCarrier) return;
-    setBookingLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("carrier-booking", {
-        body: { shipment_id: id, carrier: selectedCarrier },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast({ title: "Booking Sent", description: data.message });
-      setConfirmOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["shipment", id] });
-      queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
-      queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
-    } catch (err: any) {
-      toast({ title: "Booking Failed", description: err.message, variant: "destructive" });
-    } finally {
-      setBookingLoading(false);
-    }
-  };
+  // Booking is now handled by CarrierRateSelector
 
   if (isLoading) {
     return (
@@ -454,48 +427,14 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Carrier Booking */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Ship className="h-4 w-4 text-accent" />
-                Carrier Booking
-              </CardTitle>
-              <CardDescription>Send booking request (IFTMIN) to a shipping line</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
-                <SelectTrigger><SelectValue placeholder="Select carrier" /></SelectTrigger>
-                <SelectContent>
-                  {CARRIERS.map(c => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="electric" className="w-full" disabled={!selectedCarrier}>
-                    <Ship className="h-4 w-4 mr-1" />Send Booking Request
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Confirm Booking Request</DialogTitle>
-                    <DialogDescription>
-                      This will send an IFTMIN booking request to <strong>{CARRIERS.find(c => c.value === selectedCarrier)?.label}</strong> for shipment <strong>{shipment.shipment_ref}</strong>.
-                      The carrier will process this and respond with a booking confirmation.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
-                    <Button variant="electric" onClick={handleBooking} disabled={bookingLoading}>
-                      {bookingLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Confirm & Send
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
+          {/* Carrier Rate Selection & Booking */}
+          <CarrierRateSelector
+            shipmentId={id!}
+            shipmentRef={shipment.shipment_ref}
+            originPort={shipment.origin_port}
+            destinationPort={shipment.destination_port}
+            containerType={(containers && containers.length > 0) ? containers[0].container_type : null}
+          />
 
           {/* EDI Message Log */}
           <Card>
