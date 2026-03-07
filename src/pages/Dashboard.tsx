@@ -16,6 +16,7 @@ interface ShipmentRow {
   destination_port: string | null;
   status: string;
   created_at: string;
+  companies: { company_name: string } | null;
 }
 
 const statusColor: Record<string, string> = {
