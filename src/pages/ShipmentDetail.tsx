@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Ship, Loader2, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 const MILESTONES_ORDER = [
   "Booking Confirmed",
@@ -33,8 +38,19 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const CARRIERS = [
+  { value: "maersk", label: "Maersk" },
+  { value: "msc", label: "MSC" },
+  { value: "cmacgm", label: "CMA CGM" },
+  { value: "evergreen", label: "Evergreen" },
+];
+
 const ShipmentDetail = () => {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+  const [selectedCarrier, setSelectedCarrier] = useState("");
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["shipment", id],
@@ -99,6 +115,37 @@ const ShipmentDetail = () => {
     },
     enabled: !!id,
   });
+
+  const { data: ediMessages } = useQuery({
+    queryKey: ["edi_messages", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("edi_messages").select("*").eq("shipment_id", id!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const handleBooking = async () => {
+    if (!selectedCarrier) return;
+    setBookingLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("carrier-booking", {
+        body: { shipment_id: id, carrier: selectedCarrier },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Booking Sent", description: data.message });
+      setConfirmOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["shipment", id] });
+      queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
+      queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
+    } catch (err: any) {
+      toast({ title: "Booking Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setBookingLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -306,8 +353,89 @@ const ShipmentDetail = () => {
           )}
         </motion.div>
 
-        {/* Documents sidebar */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        {/* Sidebar */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
+          {/* Carrier Booking */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Ship className="h-4 w-4 text-accent" />
+                Carrier Booking
+              </CardTitle>
+              <CardDescription>Send booking request (IFTMIN) to a shipping line</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
+                <SelectTrigger><SelectValue placeholder="Select carrier" /></SelectTrigger>
+                <SelectContent>
+                  {CARRIERS.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="electric" className="w-full" disabled={!selectedCarrier}>
+                    <Ship className="h-4 w-4 mr-1" />Send Booking Request
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Booking Request</DialogTitle>
+                    <DialogDescription>
+                      This will send an IFTMIN booking request to <strong>{CARRIERS.find(c => c.value === selectedCarrier)?.label}</strong> for shipment <strong>{shipment.shipment_ref}</strong>.
+                      The carrier will process this and respond with a booking confirmation.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+                    <Button variant="electric" onClick={handleBooking} disabled={bookingLoading}>
+                      {bookingLoading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Confirm & Send
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+
+          {/* EDI Message Log */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Radio className="h-4 w-4 text-accent" />
+                EDI Messages
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {ediMessages && ediMessages.length > 0 ? (
+                <div className="space-y-3">
+                  {ediMessages.map((msg) => (
+                    <div key={msg.id} className="flex items-start justify-between py-2 border-b last:border-0">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px]">{msg.message_type}</Badge>
+                          <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
+                            {msg.direction === "inbound" ? "← IN" : "→ OUT"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{msg.carrier}</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline" className={`text-[10px] ${msg.status === "error" ? "border-destructive text-destructive" : ""}`}>
+                          {msg.status}
+                        </Badge>
+                        <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(msg.created_at), "MMM d, HH:mm")}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No EDI messages yet.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Documents */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
