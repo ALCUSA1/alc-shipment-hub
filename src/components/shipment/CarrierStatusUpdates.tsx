@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Satellite, ArrowDownLeft } from "lucide-react";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 const CARRIERS: Record<string, string> = {
@@ -45,8 +46,12 @@ export function CarrierStatusUpdates({ shipmentId }: CarrierStatusUpdatesProps) 
           table: "edi_messages",
           filter: `shipment_id=eq.${shipmentId}`,
         },
-        () => {
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["edi-status-updates", shipmentId] });
+          const carrier = CARRIERS[payload.new?.carrier] || payload.new?.carrier || "Carrier";
+          toast.info(`New update from ${carrier}`, {
+            description: "A new tracking status has been received.",
+          });
         }
       )
       .subscribe();
