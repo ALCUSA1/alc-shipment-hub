@@ -64,7 +64,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, user } = useAuth();
-  const { roles, isAdmin } = useUserRole();
+  const { roles } = useUserRole();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -130,14 +130,6 @@ export function AppSidebar() {
         })}
       </SidebarContent>
       <div className="mt-auto border-t border-sidebar-border p-3 space-y-1">
-        {isAdmin && (
-          <SidebarMenuButton onClick={() => navigate("/admin")}>
-            <div className="flex items-center gap-2 text-sidebar-primary text-sm cursor-pointer font-medium">
-              <Shield className="h-4 w-4" />
-              {!collapsed && <span>Admin Portal</span>}
-            </div>
-          </SidebarMenuButton>
-        )}
         <SidebarMenuButton onClick={handleLogout}>
           <div className="flex items-center gap-2 text-sidebar-foreground/60 hover:text-sidebar-foreground text-sm cursor-pointer">
             <LogOut className="h-4 w-4" />

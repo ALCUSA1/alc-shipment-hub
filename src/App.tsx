@@ -40,6 +40,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminFinancials from "./pages/admin/AdminFinancials";
 import AdminSystem from "./pages/admin/AdminSystem";
+import AdminLogin from "./pages/admin/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -82,7 +83,8 @@ const App = () => (
             <Route path="/dashboard/team" element={<RoleGate><Team /></RoleGate>} />
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
 
-            {/* Admin Portal — admin role only */}
+            {/* Admin Console — separate platform monitoring portal */}
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
             <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
             <Route path="/admin/activity" element={<AdminGate><AdminActivity /></AdminGate>} />
