@@ -247,8 +247,8 @@ export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: Shipmen
           {revenueFromQuote > 0 && (
             <StatementRow label="Accepted Quote" amount={fmt(revenueFromQuote)} indent />
           )}
-          {revenueEntries.map((e) => (
-            <StatementRow key={e.id} label={e.description} amount={fmt(e.amount)} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+           {revenueEntries.map((e) => (
+            <StatementRow key={e.id} label={e.description} amount={fmt(e.amount)} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
           ))}
           <StatementTotal label="Total Revenue" amount={fmt(totalRevenue)} />
 
@@ -260,7 +260,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: Shipmen
             <div key={group.label}>
               <p className="text-xs font-medium text-muted-foreground pl-4 pt-1">{group.label}</p>
               {group.items.map((e) => (
-                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
               ))}
             </div>
           ))}
@@ -281,7 +281,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: Shipmen
             <div key={group.label}>
               <p className="text-xs font-medium text-muted-foreground pl-4 pt-1">{group.label}</p>
               {group.items.map((e) => (
-                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={() => handleDelete(e.id)} deleting={deletingId === e.id} />
+                <StatementRow key={e.id} label={e.description} amount={`(${fmt(e.amount)})`} indent sub={e.vendor || undefined} onDelete={isEditable ? () => handleDelete(e.id) : undefined} deleting={deletingId === e.id} />
               ))}
             </div>
           ))}

@@ -448,6 +448,7 @@ const ShipmentDetail = () => {
           <ShipmentPnL
             shipmentId={id!}
             quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
+            shipmentStatus={shipment.status}
           />
         </motion.div>
 
