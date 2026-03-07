@@ -31,6 +31,27 @@ const statusColors: Record<string, string> = {
   inactive: "bg-muted text-muted-foreground",
 };
 
+type ExpiryAlert = { label: string; daysLeft: number; expired: boolean };
+
+function getExpiryAlerts(c: Company): ExpiryAlert[] {
+  const checks: { label: string; date: string | null }[] = [
+    { label: "FMC License", date: c.fmc_license_expiry },
+    { label: "Cargo Insurance", date: c.cargo_insurance_expiry },
+    { label: "General Liability", date: c.general_liability_expiry },
+    { label: "SAM Registration", date: c.sam_expiry },
+  ];
+  const today = new Date();
+  const alerts: ExpiryAlert[] = [];
+  for (const item of checks) {
+    if (!item.date) continue;
+    const days = differenceInDays(parseISO(item.date), today);
+    if (days <= 60) {
+      alerts.push({ label: item.label, daysLeft: days, expired: days < 0 });
+    }
+  }
+  return alerts.sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
 const emptyCompany = {
   company_name: "", trade_name: "", ein: "", duns_number: "", website: "", email: "", phone: "",
   address: "", city: "", state: "", zip: "", country: "US", industry: "", notes: "",
@@ -412,23 +433,58 @@ const CRM = () => {
                 <TableHead>Company</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>FMC License</TableHead>
+                <TableHead>Alerts</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(c => (
-                <TableRow key={c.id} className="cursor-pointer" onClick={() => openExisting(c)}>
-                  <TableCell>
-                    <div className="font-medium">{c.company_name}</div>
-                    {c.trade_name && <div className="text-xs text-muted-foreground">{c.trade_name}</div>}
-                  </TableCell>
-                  <TableCell className="text-sm">{c.email || "—"}</TableCell>
-                  <TableCell className="text-sm">{c.fmc_license_number || "—"}</TableCell>
-                  <TableCell><Badge className={statusColors[c.status] || ""} variant="outline">{c.status.replace("_", " ")}</Badge></TableCell>
-                  <TableCell><ChevronRight className="h-4 w-4 text-muted-foreground" /></TableCell>
-                </TableRow>
-              ))}
+              {filtered.map(c => {
+                const alerts = getExpiryAlerts(c);
+                const hasExpired = alerts.some(a => a.expired);
+                const hasWarning = alerts.length > 0 && !hasExpired;
+                return (
+                  <TableRow key={c.id} className="cursor-pointer" onClick={() => openExisting(c)}>
+                    <TableCell>
+                      <div className="font-medium">{c.company_name}</div>
+                      {c.trade_name && <div className="text-xs text-muted-foreground">{c.trade_name}</div>}
+                    </TableCell>
+                    <TableCell className="text-sm">{c.email || "—"}</TableCell>
+                    <TableCell className="text-sm">{c.fmc_license_number || "—"}</TableCell>
+                    <TableCell>
+                      {alerts.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-1.5">
+                              {hasExpired ? (
+                                <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
+                              ) : (
+                                <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+                              )}
+                              <span className={`text-xs font-medium ${hasExpired ? "text-destructive" : "text-yellow-600"}`}>
+                                {alerts.length} {alerts.length === 1 ? "alert" : "alerts"}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="left" className="max-w-xs">
+                            <ul className="space-y-1 text-xs">
+                              {alerts.map((a, i) => (
+                                <li key={i} className={a.expired ? "text-destructive font-medium" : ""}>
+                                  {a.label}: {a.expired ? `Expired ${Math.abs(a.daysLeft)}d ago` : `${a.daysLeft}d remaining`}
+                                </li>
+                              ))}
+                            </ul>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                    <TableCell><Badge className={statusColors[c.status] || ""} variant="outline">{c.status.replace("_", " ")}</Badge></TableCell>
+                    <TableCell><ChevronRight className="h-4 w-4 text-muted-foreground" /></TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Card>
