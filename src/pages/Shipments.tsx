@@ -48,8 +48,8 @@ const Shipments = () => (
             </thead>
             <tbody>
               {shipments.map((s) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors">
-                  <td className="p-4 font-mono font-medium">{s.id}</td>
+                <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => window.location.href = `/dashboard/shipments/${s.id}`}>
+                  <td className="p-4 font-mono font-medium text-accent hover:underline">{s.id}</td>
                   <td className="p-4 text-muted-foreground">{s.origin}</td>
                   <td className="p-4 text-muted-foreground">{s.destination}</td>
                   <td className="p-4 text-muted-foreground">{s.commodity}</td>
