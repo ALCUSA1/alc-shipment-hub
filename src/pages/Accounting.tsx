@@ -159,6 +159,7 @@ const Accounting = () => {
             <SelectItem value="all">All Shipments</SelectItem>
             <SelectItem value="profitable">Profitable</SelectItem>
             <SelectItem value="loss">At a Loss</SelectItem>
+            <SelectItem value="has_dd">Has D&D Costs</SelectItem>
           </SelectContent>
         </Select>
       </div>
