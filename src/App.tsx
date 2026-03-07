@@ -13,6 +13,7 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
 import NewShipment from "./pages/NewShipment";
+import ShipmentDetail from "./pages/ShipmentDetail";
 import Quotes from "./pages/Quotes";
 import Documents from "./pages/Documents";
 import Partners from "./pages/Partners";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/shipments" element={<Shipments />} />
           <Route path="/dashboard/shipments/new" element={<NewShipment />} />
+          <Route path="/dashboard/shipments/:id" element={<ShipmentDetail />} />
           <Route path="/dashboard/quotes" element={<Quotes />} />
           <Route path="/dashboard/documents" element={<Documents />} />
           <Route path="/dashboard/partners" element={<Partners />} />
