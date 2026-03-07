@@ -53,7 +53,6 @@ export function CarrierStatusUpdates({ shipmentId }: CarrierStatusUpdatesProps) 
             description: "A new tracking status has been received.",
           });
         }
-        }
       )
       .subscribe();
 
