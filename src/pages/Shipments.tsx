@@ -195,11 +195,21 @@ const Shipments = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left font-medium text-muted-foreground p-4">Reference</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Customer</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Route</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Type</th>
-                    <th className="text-left font-medium text-muted-foreground p-4">Status</th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_ref")}>
+                      <span className="inline-flex items-center">Reference<SortIcon col="shipment_ref" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("customer")}>
+                      <span className="inline-flex items-center">Customer<SortIcon col="customer" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("origin_port")}>
+                      <span className="inline-flex items-center">Route<SortIcon col="origin_port" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_type")}>
+                      <span className="inline-flex items-center">Type<SortIcon col="shipment_type" /></span>
+                    </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("status")}>
+                      <span className="inline-flex items-center">Status<SortIcon col="status" /></span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
