@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Company = Tables<"companies">;
+type CompanyOption = { id: string; company_name: string };
 
 const stepTitles = ["Shipment Overview", "Cargo Details", "Container Details", "Parties", "Quote Request"];
 
@@ -54,7 +54,7 @@ const NewShipment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [crmCompanies, setCrmCompanies] = useState<Company[]>([]);
+  const [crmCompanies, setCrmCompanies] = useState<CompanyOption[]>([]);
 
   useEffect(() => {
     if (!user) return;
