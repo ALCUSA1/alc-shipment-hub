@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,8 @@ interface CarrierStatusUpdatesProps {
 }
 
 export function CarrierStatusUpdates({ shipmentId }: CarrierStatusUpdatesProps) {
+  const queryClient = useQueryClient();
+
   const { data: updates = [] } = useQuery({
     queryKey: ["edi-status-updates", shipmentId],
     queryFn: async () => {
@@ -30,6 +33,28 @@ export function CarrierStatusUpdates({ shipmentId }: CarrierStatusUpdatesProps) 
       return data;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`edi-inbound-${shipmentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "edi_messages",
+          filter: `shipment_id=eq.${shipmentId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["edi-status-updates", shipmentId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [shipmentId, queryClient]);
 
   return (
     <Card>
