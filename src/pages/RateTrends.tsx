@@ -3,12 +3,17 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Minus, Ship } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { TrendingUp, TrendingDown, Minus, Ship, Bell, BellOff, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
+import { RateAlertDialog } from "@/components/rate-alerts/RateAlertDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 interface CarrierRate {
@@ -55,9 +60,12 @@ const CONTAINER_TYPES = [
 ];
 
 const RateTrends = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedRoute, setSelectedRoute] = useState<string>("all");
   const [selectedContainer, setSelectedContainer] = useState<string>("40hc");
   const [selectedCarrier, setSelectedCarrier] = useState<string>("all");
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
 
   const { data: allRates = [], isLoading } = useQuery({
     queryKey: ["rate-trends-all"],
@@ -70,6 +78,42 @@ const RateTrends = () => {
       return data as CarrierRate[];
     },
   });
+
+  // Fetch user's rate alerts
+  interface RateAlert {
+    id: string;
+    origin_port: string;
+    destination_port: string;
+    container_type: string;
+    carrier: string | null;
+    threshold_rate: number;
+    is_active: boolean;
+  }
+
+  const { data: rateAlerts = [] } = useQuery({
+    queryKey: ["rate-alerts", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rate_alerts")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as RateAlert[];
+    },
+    enabled: !!user,
+  });
+
+  const toggleAlert = async (alertId: string, isActive: boolean) => {
+    await supabase.from("rate_alerts").update({ is_active: !isActive }).eq("id", alertId);
+    queryClient.invalidateQueries({ queryKey: ["rate-alerts"] });
+  };
+
+  const deleteAlert = async (alertId: string) => {
+    await supabase.from("rate_alerts").delete().eq("id", alertId);
+    queryClient.invalidateQueries({ queryKey: ["rate-alerts"] });
+    toast({ title: "Alert deleted" });
+  };
 
   // Derive unique routes and carriers
   const routes = useMemo(() => {
@@ -168,11 +212,17 @@ const RateTrends = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Track carrier rate history across routes and container types
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track carrier rate history across routes and container types
+          </p>
+        </div>
+        <Button onClick={() => setAlertDialogOpen(true)} className="gap-2">
+          <Bell className="h-4 w-4" />
+          Set Rate Alert
+        </Button>
       </div>
 
       {/* Filters */}
@@ -337,6 +387,61 @@ const RateTrends = () => {
           </div>
         </>
       )}
+
+      {/* Rate Alerts Management */}
+      {rateAlerts.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4 text-accent" />
+              Your Rate Alerts
+            </CardTitle>
+            <CardDescription>
+              Manage your price drop notifications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {rateAlerts.map((alert) => (
+                <div key={alert.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={alert.is_active}
+                      onCheckedChange={() => toggleAlert(alert.id, alert.is_active)}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {alert.origin_port} → {alert.destination_port}
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {alert.container_type.toUpperCase()}
+                        </span>
+                        {alert.carrier && (
+                          <span className="ml-2 text-xs text-muted-foreground">• {alert.carrier}</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Alert when below ${alert.threshold_rate.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteAlert(alert.id)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <RateAlertDialog
+        open={alertDialogOpen}
+        onOpenChange={setAlertDialogOpen}
+        defaultOrigin={selectedRoute !== "all" ? selectedRoute.split("→")[0] : ""}
+        defaultDestination={selectedRoute !== "all" ? selectedRoute.split("→")[1] : ""}
+        defaultContainerType={selectedContainer !== "all" ? selectedContainer : "40hc"}
+        defaultCarrier={selectedCarrier !== "all" ? selectedCarrier : undefined}
+      />
     </DashboardLayout>
   );
 };

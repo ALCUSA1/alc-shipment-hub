@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Ship, Check, Loader2, Clock, ChevronDown, ChevronUp, AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Ship, Check, Loader2, Clock, ChevronDown, ChevronUp, AlertCircle, TrendingUp, TrendingDown, Minus, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { RateAlertDialog } from "@/components/rate-alerts/RateAlertDialog";
 import type { Json } from "@/integrations/supabase/types";
 
 interface Surcharge {
@@ -134,6 +135,7 @@ export function CarrierRateSelector({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
 
   const CONTAINER_TYPES = [
     { value: "20gp", label: "20' GP" },
@@ -439,6 +441,14 @@ export function CarrierRateSelector({
                   ? `Book with ${selectedRate.carrier} — $${getTotalRate(selectedRate).toLocaleString()}`
                   : "Select a rate to book"}
               </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setAlertDialogOpen(true)}
+              >
+                <Bell className="h-4 w-4 mr-1" />
+                Set Rate Alert
+              </Button>
             </div>
           )}
         </CardContent>
@@ -500,6 +510,14 @@ export function CarrierRateSelector({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RateAlertDialog
+        open={alertDialogOpen}
+        onOpenChange={setAlertDialogOpen}
+        defaultOrigin={originPort || ""}
+        defaultDestination={destinationPort || ""}
+        defaultContainerType={activeContainerType}
+      />
     </>
   );
 }
