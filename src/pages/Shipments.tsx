@@ -6,10 +6,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Plus, Search, X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const statusColor: Record<string, string> = {
   in_transit: "bg-accent/10 text-accent",
@@ -47,7 +59,28 @@ type SortDir = "asc" | "desc";
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (e: React.MouseEvent, shipmentId: string, ref: string) => {
+    e.stopPropagation();
+  };
+
+  const confirmDelete = async (shipmentId: string, ref: string) => {
+    setDeletingId(shipmentId);
+    try {
+      const { error } = await supabase.from("shipments").delete().eq("id", shipmentId);
+      if (error) throw error;
+      toast({ title: "Shipment deleted", description: `${ref} has been removed.` });
+      queryClient.invalidateQueries({ queryKey: ["shipments-list"] });
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -210,6 +243,7 @@ const Shipments = () => {
                     <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("status")}>
                       <span className="inline-flex items-center">Status<SortIcon col="status" /></span>
                     </th>
+                    <th className="p-4 w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,6 +259,36 @@ const Shipments = () => {
                           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
                             {formatStatus(s.status)}
                           </span>
+                        </td>
+                        <td className="p-4">
+                          {s.status === "draft" && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete draft shipment?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete <strong>{s.shipment_ref}</strong> and all associated data. This cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => confirmDelete(s.id, s.shipment_ref)}
+                                    disabled={deletingId === s.id}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {deletingId === s.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </td>
                       </tr>
                     );
