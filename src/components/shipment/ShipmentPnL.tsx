@@ -45,9 +45,13 @@ interface FinancialEntry {
 interface ShipmentPnLProps {
   shipmentId: string;
   quoteAmount?: number | null;
+  shipmentStatus?: string;
 }
 
-export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
+const COMPLETED_STATUSES = ["delivered", "completed", "cancelled"];
+
+export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: ShipmentPnLProps) {
+  const isEditable = !COMPLETED_STATUSES.includes(shipmentStatus || "");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -162,7 +166,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
           <DollarSign className="h-4 w-4 text-accent" />
           Profit & Loss Statement
         </CardTitle>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {isEditable && <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="electric" size="sm">
               <Plus className="h-4 w-4 mr-1" /> Add Entry
@@ -225,7 +229,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount }: ShipmentPnLProps) {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </CardHeader>
       <CardContent>
         {/* Summary Cards */}
