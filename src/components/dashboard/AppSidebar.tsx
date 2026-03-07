@@ -54,6 +54,7 @@ const navGroups = [
     label: "Settings",
     items: [
       { title: "Team", url: "/dashboard/team", icon: UsersRound },
+      { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
       { title: "Account", url: "/dashboard/account", icon: Settings },
     ],
   },
