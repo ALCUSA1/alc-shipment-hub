@@ -58,6 +58,321 @@ export type Database = {
           },
         ]
       }
+      carrier_rates: {
+        Row: {
+          base_rate: number
+          carrier: string
+          container_type: string
+          created_at: string
+          currency: string
+          destination_port: string
+          id: string
+          notes: string | null
+          origin_port: string
+          surcharges: Json
+          transit_days: number | null
+          updated_at: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          base_rate: number
+          carrier: string
+          container_type: string
+          created_at?: string
+          currency?: string
+          destination_port: string
+          id?: string
+          notes?: string | null
+          origin_port: string
+          surcharges?: Json
+          transit_days?: number | null
+          updated_at?: string
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          base_rate?: number
+          carrier?: string
+          container_type?: string
+          created_at?: string
+          currency?: string
+          destination_port?: string
+          id?: string
+          notes?: string | null
+          origin_port?: string
+          surcharges?: Json
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          address: string | null
+          billing_address: string | null
+          billing_email: string | null
+          cargo_insurance_expiry: string | null
+          cargo_insurance_policy: string | null
+          cargo_insurance_provider: string | null
+          city: string | null
+          company_name: string
+          country: string | null
+          created_at: string
+          credit_limit: number | null
+          credit_terms: string | null
+          duns_number: string | null
+          ein: string | null
+          email: string | null
+          fmc_license_expiry: string | null
+          fmc_license_number: string | null
+          fmc_license_status: string | null
+          general_liability_expiry: string | null
+          general_liability_policy: string | null
+          general_liability_provider: string | null
+          id: string
+          industry: string | null
+          notes: string | null
+          oti_bond_amount: number | null
+          oti_bond_number: string | null
+          oti_bond_surety: string | null
+          payment_terms_days: number | null
+          phone: string | null
+          sam_expiry: string | null
+          sam_registration: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["company_status"]
+          trade_name: string | null
+          updated_at: string
+          user_id: string
+          w9_on_file: boolean | null
+          website: string | null
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          billing_address?: string | null
+          billing_email?: string | null
+          cargo_insurance_expiry?: string | null
+          cargo_insurance_policy?: string | null
+          cargo_insurance_provider?: string | null
+          city?: string | null
+          company_name: string
+          country?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          credit_terms?: string | null
+          duns_number?: string | null
+          ein?: string | null
+          email?: string | null
+          fmc_license_expiry?: string | null
+          fmc_license_number?: string | null
+          fmc_license_status?: string | null
+          general_liability_expiry?: string | null
+          general_liability_policy?: string | null
+          general_liability_provider?: string | null
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          oti_bond_amount?: number | null
+          oti_bond_number?: string | null
+          oti_bond_surety?: string | null
+          payment_terms_days?: number | null
+          phone?: string | null
+          sam_expiry?: string | null
+          sam_registration?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["company_status"]
+          trade_name?: string | null
+          updated_at?: string
+          user_id: string
+          w9_on_file?: boolean | null
+          website?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          billing_address?: string | null
+          billing_email?: string | null
+          cargo_insurance_expiry?: string | null
+          cargo_insurance_policy?: string | null
+          cargo_insurance_provider?: string | null
+          city?: string | null
+          company_name?: string
+          country?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          credit_terms?: string | null
+          duns_number?: string | null
+          ein?: string | null
+          email?: string | null
+          fmc_license_expiry?: string | null
+          fmc_license_number?: string | null
+          fmc_license_status?: string | null
+          general_liability_expiry?: string | null
+          general_liability_policy?: string | null
+          general_liability_provider?: string | null
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          oti_bond_amount?: number | null
+          oti_bond_number?: string | null
+          oti_bond_surety?: string | null
+          payment_terms_days?: number | null
+          phone?: string | null
+          sam_expiry?: string | null
+          sam_registration?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["company_status"]
+          trade_name?: string | null
+          updated_at?: string
+          user_id?: string
+          w9_on_file?: boolean | null
+          website?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
+      company_activities: {
+        Row: {
+          activity_type: string
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_primary: boolean | null
+          notes: string | null
+          phone: string | null
+          role: string
+          title: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          title?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_documents: {
+        Row: {
+          company_id: string
+          created_at: string
+          doc_name: string
+          doc_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          doc_name: string
+          doc_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          doc_name?: string
+          doc_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       containers: {
         Row: {
           container_number: string | null
@@ -96,6 +411,142 @@ export type Database = {
           },
         ]
       }
+      customs_filings: {
+        Row: {
+          aes_citation: string | null
+          broker_email: string | null
+          broker_name: string | null
+          broker_ref: string | null
+          carrier_name: string | null
+          consignee_address: string | null
+          consignee_name: string | null
+          country_of_destination: string | null
+          created_at: string
+          export_date: string | null
+          exporter_ein: string | null
+          exporter_name: string | null
+          filing_type: string
+          hts_codes: Json | null
+          id: string
+          itn: string | null
+          mode_of_transport: string | null
+          notes: string | null
+          port_of_export: string | null
+          port_of_unlading: string | null
+          shipment_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          aes_citation?: string | null
+          broker_email?: string | null
+          broker_name?: string | null
+          broker_ref?: string | null
+          carrier_name?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          country_of_destination?: string | null
+          created_at?: string
+          export_date?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          filing_type?: string
+          hts_codes?: Json | null
+          id?: string
+          itn?: string | null
+          mode_of_transport?: string | null
+          notes?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          shipment_id: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          aes_citation?: string | null
+          broker_email?: string | null
+          broker_name?: string | null
+          broker_ref?: string | null
+          carrier_name?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          country_of_destination?: string | null
+          created_at?: string
+          export_date?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          filing_type?: string
+          hts_codes?: Json | null
+          id?: string
+          itn?: string | null
+          mode_of_transport?: string | null
+          notes?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          shipment_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_filings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customs_milestones: {
+        Row: {
+          created_at: string
+          event_date: string
+          filing_id: string
+          id: string
+          milestone: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_date?: string
+          filing_id: string
+          id?: string
+          milestone: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          filing_id?: string
+          id?: string
+          milestone?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_milestones_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "customs_filings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -130,6 +581,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edi_messages: {
+        Row: {
+          carrier: string
+          created_at: string
+          direction: string
+          error_message: string | null
+          id: string
+          message_ref: string | null
+          message_type: string
+          payload: Json
+          processed_at: string | null
+          shipment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carrier: string
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          id?: string
+          message_ref?: string | null
+          message_type: string
+          payload?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carrier?: string
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          id?: string
+          message_ref?: string | null
+          message_type?: string
+          payload?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_messages_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
@@ -348,6 +855,7 @@ export type Database = {
       shipments: {
         Row: {
           booking_ref: string | null
+          company_id: string | null
           created_at: string
           delivery_location: string | null
           destination_port: string | null
@@ -366,6 +874,7 @@ export type Database = {
         }
         Insert: {
           booking_ref?: string | null
+          company_id?: string | null
           created_at?: string
           delivery_location?: string | null
           destination_port?: string | null
@@ -384,6 +893,7 @@ export type Database = {
         }
         Update: {
           booking_ref?: string | null
+          company_id?: string | null
           created_at?: string
           delivery_location?: string | null
           destination_port?: string | null
@@ -400,7 +910,15 @@ export type Database = {
           vessel?: string | null
           voyage?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tracking_events: {
         Row: {
@@ -572,7 +1090,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      company_status:
+        | "prospect"
+        | "pending_compliance"
+        | "active"
+        | "suspended"
+        | "inactive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -699,6 +1222,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      company_status: [
+        "prospect",
+        "pending_compliance",
+        "active",
+        "suspended",
+        "inactive",
+      ],
+    },
   },
 } as const
