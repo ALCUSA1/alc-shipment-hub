@@ -547,6 +547,68 @@ export type Database = {
           },
         ]
       }
+      demurrage_charges: {
+        Row: {
+          carrier: string | null
+          charge_type: string
+          container_number: string | null
+          created_at: string
+          currency: string
+          daily_rate: number
+          end_date: string | null
+          free_days: number | null
+          id: string
+          notes: string | null
+          shipment_id: string
+          start_date: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          carrier?: string | null
+          charge_type?: string
+          container_number?: string | null
+          created_at?: string
+          currency?: string
+          daily_rate?: number
+          end_date?: string | null
+          free_days?: number | null
+          id?: string
+          notes?: string | null
+          shipment_id: string
+          start_date?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string | null
+          charge_type?: string
+          container_number?: string | null
+          created_at?: string
+          currency?: string
+          daily_rate?: number
+          end_date?: string | null
+          free_days?: number | null
+          id?: string
+          notes?: string | null
+          shipment_id?: string
+          start_date?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demurrage_charges_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
