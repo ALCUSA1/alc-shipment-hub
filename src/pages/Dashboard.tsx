@@ -16,6 +16,7 @@ interface ShipmentRow {
   destination_port: string | null;
   status: string;
   created_at: string;
+  companies: { company_name: string } | null;
 }
 
 const statusColor: Record<string, string> = {
@@ -71,7 +72,7 @@ const Dashboard = () => {
           .eq("status", "pending"),
         supabase
           .from("shipments")
-          .select("id, shipment_ref, origin_port, destination_port, status, created_at")
+          .select("id, shipment_ref, origin_port, destination_port, status, created_at, companies(company_name)")
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
@@ -159,6 +160,9 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-mono font-medium text-foreground">{s.shipment_ref}</span>
+                    {(s.companies as any)?.company_name && (
+                      <span className="text-sm text-accent font-medium">{(s.companies as any).company_name}</span>
+                    )}
                     <span className="text-sm text-muted-foreground">
                       {s.origin_port && s.destination_port
                         ? `${s.origin_port} → ${s.destination_port}`
