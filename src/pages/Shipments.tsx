@@ -23,6 +23,7 @@ const statusColor: Record<string, string> = {
 const Shipments = () => {
   const navigate = useNavigate();
   return (
+    <DashboardLayout>
     <div className="mb-8 flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
