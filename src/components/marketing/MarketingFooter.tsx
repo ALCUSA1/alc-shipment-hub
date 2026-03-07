@@ -1,5 +1,5 @@
-import { Ship } from "lucide-react";
 import { Link } from "react-router-dom";
+import alcLogo from "@/assets/alc-logo.png";
 
 export function MarketingFooter() {
   return (
@@ -8,8 +8,7 @@ export function MarketingFooter() {
         <div className="grid md:grid-cols-4 gap-10">
           <div>
             <div className="flex items-center gap-2 font-bold text-lg mb-4">
-              <Ship className="h-5 w-5 text-electric" />
-              ALC Shipper Portal
+              <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto brightness-0 invert" />
             </div>
             <p className="text-sm text-primary-foreground/60">
               The Shipper Logistics Workspace for modern exporters and importers.

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Ship, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import alcLogo from "@/assets/alc-logo.png";
 
 const navLinks = [
   { label: "Product", to: "/product" },
@@ -17,8 +18,7 @@ export function MarketingNav() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
         <Link to="/" className="flex items-center gap-2 font-bold text-lg text-foreground">
-          <Ship className="h-6 w-6 text-electric" />
-          ALC Shipper Portal
+          <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
