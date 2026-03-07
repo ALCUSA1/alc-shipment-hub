@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
 import HowItWorks from "./pages/HowItWorks";
@@ -28,24 +30,26 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/product" element={<Product />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/category" element={<Category />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/shipments" element={<Shipments />} />
-          <Route path="/dashboard/shipments/new" element={<NewShipment />} />
-          <Route path="/dashboard/shipments/:id" element={<ShipmentDetail />} />
-          <Route path="/dashboard/quotes" element={<Quotes />} />
-          <Route path="/dashboard/documents" element={<Documents />} />
-          <Route path="/dashboard/partners" element={<Partners />} />
-          <Route path="/dashboard/account" element={<Account />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/product" element={<Product />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/category" element={<Category />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
+            <Route path="/dashboard/quotes" element={<ProtectedRoute><Quotes /></ProtectedRoute>} />
+            <Route path="/dashboard/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+            <Route path="/dashboard/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
+            <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
