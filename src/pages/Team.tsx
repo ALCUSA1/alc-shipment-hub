@@ -98,6 +98,20 @@ const Team = () => {
     }
   };
 
+  const handleChangeRole = async (roleId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole as any })
+        .eq("id", roleId);
+      if (error) throw error;
+      toast({ title: "Role Updated", description: `Changed to ${ROLE_LABELS[newRole]}` });
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
   const handleRemoveRole = async (roleId: string) => {
     try {
       const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
