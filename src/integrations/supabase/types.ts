@@ -137,6 +137,62 @@ export type Database = {
           },
         ]
       }
+      edi_messages: {
+        Row: {
+          carrier: string
+          created_at: string
+          direction: string
+          error_message: string | null
+          id: string
+          message_ref: string | null
+          message_type: string
+          payload: Json
+          processed_at: string | null
+          shipment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carrier: string
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          id?: string
+          message_ref?: string | null
+          message_type: string
+          payload?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carrier?: string
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          id?: string
+          message_ref?: string | null
+          message_type?: string
+          payload?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edi_messages_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
