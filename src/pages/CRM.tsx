@@ -17,10 +17,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import {
-  Plus, Search, Building2, Shield, FileCheck, CreditCard, Loader2, ChevronRight, Users, X, AlertTriangle, AlertCircle,
+  Plus, Search, Building2, Shield, FileCheck, CreditCard, Loader2, ChevronRight, Users, X, AlertTriangle, AlertCircle, Package,
 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { differenceInDays, parseISO } from "date-fns";
+import { differenceInDays, parseISO, format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+
+type Shipment = Tables<"shipments">;
 
 type Company = Tables<"companies">;
 type Contact = Tables<"company_contacts">;
@@ -71,8 +74,10 @@ type CompanyForm = typeof emptyCompany & { id?: string };
 
 const CRM = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -98,9 +103,19 @@ const CRM = () => {
 
   useEffect(() => { fetchCompanies(); }, [user]);
 
+  const fetchShipments = async (companyId: string) => {
+    const { data } = await supabase.from("shipments").select("*").eq("company_id", companyId).order("created_at", { ascending: false });
+    setShipments(data || []);
+  };
+
   useEffect(() => {
-    if (selected?.id) fetchContacts(selected.id);
-    else setContacts([]);
+    if (selected?.id) {
+      fetchContacts(selected.id);
+      fetchShipments(selected.id);
+    } else {
+      setContacts([]);
+      setShipments([]);
+    }
   }, [selected?.id]);
 
   const openNew = () => { setSelected({ ...emptyCompany }); setDialogOpen(false); };
@@ -196,9 +211,10 @@ const CRM = () => {
         </div>
 
         <Tabs defaultValue="info" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-3xl">
             <TabsTrigger value="info" className="gap-1 text-xs"><Building2 className="h-3.5 w-3.5" />Info</TabsTrigger>
             <TabsTrigger value="contacts" className="gap-1 text-xs"><Users className="h-3.5 w-3.5" />Contacts</TabsTrigger>
+            <TabsTrigger value="shipments" className="gap-1 text-xs"><Package className="h-3.5 w-3.5" />Shipments</TabsTrigger>
             <TabsTrigger value="compliance" className="gap-1 text-xs"><Shield className="h-3.5 w-3.5" />Compliance</TabsTrigger>
             <TabsTrigger value="insurance" className="gap-1 text-xs"><FileCheck className="h-3.5 w-3.5" />Insurance</TabsTrigger>
             <TabsTrigger value="billing" className="gap-1 text-xs"><CreditCard className="h-3.5 w-3.5" />Billing</TabsTrigger>
@@ -399,6 +415,46 @@ const CRM = () => {
                   <Label>W-9 on file</Label>
                 </div>
                 <Button variant="electric" onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Save</Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* SHIPMENTS */}
+          <TabsContent value="shipments">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Shipment History</CardTitle>
+                <CardDescription>All shipments linked to this customer</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!selected.id ? (
+                  <p className="text-sm text-muted-foreground">Save the company first to view shipments.</p>
+                ) : shipments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No shipments linked to this customer yet.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Route</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {shipments.map(s => (
+                        <TableRow key={s.id} className="cursor-pointer" onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
+                          <TableCell className="font-medium">{s.shipment_ref}</TableCell>
+                          <TableCell className="capitalize">{s.shipment_type}</TableCell>
+                          <TableCell className="text-sm">{s.origin_port || "—"} → {s.destination_port || "—"}</TableCell>
+                          <TableCell><Badge variant="outline" className="capitalize">{s.status}</Badge></TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{format(new Date(s.created_at), "MMM d, yyyy")}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

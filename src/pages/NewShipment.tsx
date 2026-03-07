@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import type { Tables } from "@/integrations/supabase/types";
+
+type CompanyOption = { id: string; company_name: string };
 
 const stepTitles = ["Shipment Overview", "Cargo Details", "Container Details", "Parties", "Quote Request"];
 
@@ -19,6 +22,7 @@ interface ShipmentData {
   destinationPort: string;
   pickupLocation: string;
   deliveryLocation: string;
+  companyId: string;
 }
 
 interface CargoData {
@@ -50,9 +54,17 @@ const NewShipment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [crmCompanies, setCrmCompanies] = useState<CompanyOption[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("companies").select("id, company_name").eq("user_id", user.id).order("company_name").then(({ data }) => {
+      setCrmCompanies(data || []);
+    });
+  }, [user]);
 
   const [shipment, setShipment] = useState<ShipmentData>({
-    shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "",
+    shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "",
   });
   const [cargo, setCargo] = useState<CargoData>({
     commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
@@ -78,6 +90,7 @@ const NewShipment = () => {
           destination_port: shipment.destinationPort || null,
           pickup_location: shipment.pickupLocation || null,
           delivery_location: shipment.deliveryLocation || null,
+          company_id: shipment.companyId || null,
         })
         .select("id")
         .single();
@@ -182,16 +195,30 @@ const NewShipment = () => {
           <CardContent className="space-y-4">
             {step === 0 && (
               <>
-                <div>
-                  <Label>Shipment Type</Label>
-                  <Select value={shipment.shipmentType} onValueChange={(v) => setShipment({ ...shipment, shipmentType: v })}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="export">Export</SelectItem>
-                      <SelectItem value="import">Import</SelectItem>
-                      <SelectItem value="cross_trade">Cross Trade</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Shipment Type</Label>
+                    <Select value={shipment.shipmentType} onValueChange={(v) => setShipment({ ...shipment, shipmentType: v })}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="export">Export</SelectItem>
+                        <SelectItem value="import">Import</SelectItem>
+                        <SelectItem value="cross_trade">Cross Trade</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Customer (CRM)</Label>
+                    <Select value={shipment.companyId} onValueChange={(v) => setShipment({ ...shipment, companyId: v })}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">— None —</SelectItem>
+                        {crmCompanies.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Origin Port</Label><Input placeholder="e.g. Shanghai" className="mt-1" value={shipment.originPort} onChange={(e) => setShipment({ ...shipment, originPort: e.target.value })} /></div>
