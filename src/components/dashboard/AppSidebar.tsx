@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { canAccessRoute } from "@/lib/permissions";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
@@ -26,7 +27,7 @@ const items = [
   { title: "Documents", url: "/dashboard/documents", icon: FileText },
   { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
   { title: "Partners", url: "/dashboard/partners", icon: Users },
-  { title: "Team", url: "/dashboard/team", icon: UsersRound, adminOnly: true },
+  { title: "Team", url: "/dashboard/team", icon: UsersRound },
   { title: "Account", url: "/dashboard/account", icon: Settings },
 ];
 
@@ -34,7 +35,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { signOut, user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { roles } = useUserRole();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -58,7 +59,7 @@ export function AppSidebar() {
     navigate("/");
   };
 
-  const visibleItems = items.filter((item) => !(item as any).adminOnly || isAdmin);
+  const visibleItems = items.filter((item) => canAccessRoute(item.url, roles));
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RoleGate } from "@/components/RoleGate";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
 import HowItWorks from "./pages/HowItWorks";
@@ -50,15 +51,15 @@ const App = () => (
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
-            <Route path="/dashboard/quotes" element={<ProtectedRoute><Quotes /></ProtectedRoute>} />
+            <Route path="/dashboard/quotes" element={<RoleGate><Quotes /></RoleGate>} />
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-            <Route path="/dashboard/trucking" element={<ProtectedRoute><Trucking /></ProtectedRoute>} />
-            <Route path="/dashboard/warehouses" element={<ProtectedRoute><Warehouses /></ProtectedRoute>} />
+            <Route path="/dashboard/trucking" element={<RoleGate><Trucking /></RoleGate>} />
+            <Route path="/dashboard/warehouses" element={<RoleGate><Warehouses /></RoleGate>} />
             <Route path="/dashboard/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-            <Route path="/dashboard/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
-            <Route path="/dashboard/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
+            <Route path="/dashboard/crm" element={<RoleGate><CRM /></RoleGate>} />
+            <Route path="/dashboard/partners" element={<RoleGate><Partners /></RoleGate>} />
             <Route path="/dashboard/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-            <Route path="/dashboard/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+            <Route path="/dashboard/team" element={<RoleGate><Team /></RoleGate>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
