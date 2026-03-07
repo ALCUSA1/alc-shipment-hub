@@ -28,9 +28,9 @@ interface CarrierRate {
 
 function parseSurchargeTotal(surcharges: Json): number {
   if (!Array.isArray(surcharges)) return 0;
-  return surcharges.reduce((sum, s) => {
+  return surcharges.reduce((sum: number, s) => {
     if (typeof s === "object" && s !== null && "amount" in s) {
-      return sum + Number((s as Record<string, Json>).amount ?? 0);
+      return sum + Number((s as Record<string, unknown>).amount ?? 0);
     }
     return sum;
   }, 0);
