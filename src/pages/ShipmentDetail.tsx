@@ -307,6 +307,19 @@ const ShipmentDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* US Customs Filing */}
+          <CustomsFiling
+            shipmentId={shipment.id}
+            shipment={{
+              shipment_ref: shipment.shipment_ref,
+              origin_port: shipment.origin_port,
+              destination_port: shipment.destination_port,
+              vessel: shipment.vessel,
+              voyage: shipment.voyage,
+              etd: shipment.etd,
+            }}
+          />
         </motion.div>
 
         {/* Documents sidebar */}
