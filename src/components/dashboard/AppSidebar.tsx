@@ -23,6 +23,7 @@ const items = [
   { title: "Documents", url: "/dashboard/documents", icon: FileText },
   { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
   { title: "Partners", url: "/dashboard/partners", icon: Users },
+  { title: "Team", url: "/dashboard/team", icon: UsersRound },
   { title: "Account", url: "/dashboard/account", icon: Settings },
 ];
 
