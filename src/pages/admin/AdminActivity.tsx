@@ -1,12 +1,11 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Activity, Package, DollarSign, FileText, Truck } from "lucide-react";
+import { Activity, Package, DollarSign, FileText, Radio } from "lucide-react";
 
 const AdminActivity = () => {
   const { data: recentShipments, isLoading: loadingShipments } = useQuery({
@@ -61,170 +60,164 @@ const AdminActivity = () => {
     },
   });
 
-  const statusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      draft: "bg-secondary text-muted-foreground",
-      pending: "bg-yellow-100 text-yellow-700",
-      accepted: "bg-green-100 text-green-700",
-      converted: "bg-accent/10 text-accent",
-      in_transit: "bg-accent/10 text-accent",
-      delivered: "bg-green-100 text-green-700",
-      booked: "bg-blue-100 text-blue-700",
-      error: "bg-destructive/10 text-destructive",
-    };
-    return <Badge variant="secondary" className={`text-[10px] ${colors[status] || "bg-secondary text-muted-foreground"}`}>{status}</Badge>;
+  const statusColors: Record<string, string> = {
+    draft: "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)]",
+    pending: "bg-amber-500/15 text-amber-400",
+    accepted: "bg-emerald-500/15 text-emerald-400",
+    converted: "bg-blue-500/15 text-blue-400",
+    in_transit: "bg-blue-500/15 text-blue-400",
+    delivered: "bg-emerald-500/15 text-emerald-400",
+    booked: "bg-indigo-500/15 text-indigo-400",
+    error: "bg-red-500/15 text-red-400",
+    processed: "bg-emerald-500/15 text-emerald-400",
   };
+
+  const statusBadge = (status: string) => (
+    <Badge variant="secondary" className={`text-[10px] border-0 ${statusColors[status] || "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)]"}`}>
+      {status}
+    </Badge>
+  );
+
+  const TableSkeleton = () => <div className="p-6"><Skeleton className="h-48 w-full bg-[hsl(220,15%,15%)]" /></div>;
+
+  const tableHeaderClass = "text-left text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)] p-4";
+  const tableCellClass = "p-4";
+  const tableRowClass = "border-b border-[hsl(220,15%,12%)] last:border-0 hover:bg-[hsl(220,15%,12%)] transition-colors";
 
   return (
     <AdminLayout>
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <Activity className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-bold text-foreground">Activity Feed</h1>
+          <Activity className="h-5 w-5 text-amber-400" />
+          <h1 className="text-2xl font-bold text-white">Activity Feed</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Real-time log of all platform operations across all users</p>
+        <p className="text-sm text-[hsl(220,10%,50%)]">Real-time log of all platform operations across all users</p>
       </div>
 
       <Tabs defaultValue="shipments">
-        <TabsList>
-          <TabsTrigger value="shipments" className="gap-1"><Package className="h-3.5 w-3.5" /> Shipments</TabsTrigger>
-          <TabsTrigger value="quotes" className="gap-1"><DollarSign className="h-3.5 w-3.5" /> Quotes</TabsTrigger>
-          <TabsTrigger value="documents" className="gap-1"><FileText className="h-3.5 w-3.5" /> Documents</TabsTrigger>
-          <TabsTrigger value="edi" className="gap-1"><Truck className="h-3.5 w-3.5" /> EDI Messages</TabsTrigger>
+        <TabsList className="bg-[hsl(220,15%,12%)] border border-[hsl(220,15%,16%)]">
+          <TabsTrigger value="shipments" className="gap-1.5 data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]"><Package className="h-3.5 w-3.5" /> Shipments</TabsTrigger>
+          <TabsTrigger value="quotes" className="gap-1.5 data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]"><DollarSign className="h-3.5 w-3.5" /> Quotes</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-1.5 data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]"><FileText className="h-3.5 w-3.5" /> Documents</TabsTrigger>
+          <TabsTrigger value="edi" className="gap-1.5 data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]"><Radio className="h-3.5 w-3.5" /> EDI</TabsTrigger>
         </TabsList>
 
         <TabsContent value="shipments" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              {loadingShipments ? <div className="p-6"><Skeleton className="h-48 w-full" /></div> : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium text-muted-foreground p-4">Ref</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Customer</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Route</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Status</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Updated</th>
+          <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
+            {loadingShipments ? <TableSkeleton /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-[hsl(220,15%,15%)]">
+                    <th className={tableHeaderClass}>Ref</th>
+                    <th className={tableHeaderClass}>Customer</th>
+                    <th className={tableHeaderClass}>Route</th>
+                    <th className={tableHeaderClass}>Status</th>
+                    <th className={tableHeaderClass}>Updated</th>
+                  </tr></thead>
+                  <tbody>
+                    {(recentShipments || []).map((s: any) => (
+                      <tr key={s.id} className={tableRowClass}>
+                        <td className={`${tableCellClass} font-mono font-medium text-blue-400`}>{s.shipment_ref}</td>
+                        <td className={`${tableCellClass} text-white`}>{s.companies?.company_name || "—"}</td>
+                        <td className={`${tableCellClass} text-[hsl(220,10%,50%)]`}>{s.origin_port || "—"} → {s.destination_port || "—"}</td>
+                        <td className={tableCellClass}>{statusBadge(s.status)}</td>
+                        <td className={`${tableCellClass} text-xs text-[hsl(220,10%,40%)]`}>{format(new Date(s.updated_at), "MMM d, HH:mm")}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(recentShipments || []).map((s: any) => (
-                        <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50">
-                          <td className="p-4 font-mono font-medium text-accent">{s.shipment_ref}</td>
-                          <td className="p-4 text-foreground">{s.companies?.company_name || "—"}</td>
-                          <td className="p-4 text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</td>
-                          <td className="p-4">{statusBadge(s.status)}</td>
-                          <td className="p-4 text-xs text-muted-foreground">{format(new Date(s.updated_at), "MMM d, HH:mm")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="quotes" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              {loadingQuotes ? <div className="p-6"><Skeleton className="h-48 w-full" /></div> : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium text-muted-foreground p-4">Route</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Customer</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Carrier</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Price</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Status</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Updated</th>
+          <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
+            {loadingQuotes ? <TableSkeleton /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-[hsl(220,15%,15%)]">
+                    <th className={tableHeaderClass}>Route</th>
+                    <th className={tableHeaderClass}>Customer</th>
+                    <th className={tableHeaderClass}>Carrier</th>
+                    <th className={tableHeaderClass}>Price</th>
+                    <th className={tableHeaderClass}>Status</th>
+                    <th className={tableHeaderClass}>Updated</th>
+                  </tr></thead>
+                  <tbody>
+                    {(recentQuotes || []).map((q: any) => (
+                      <tr key={q.id} className={tableRowClass}>
+                        <td className={`${tableCellClass} text-white`}>{q.origin_port && q.destination_port ? `${q.origin_port} → ${q.destination_port}` : "—"}</td>
+                        <td className={`${tableCellClass} text-[hsl(220,10%,55%)]`}>{q.customer_name || "—"}</td>
+                        <td className={`${tableCellClass} text-[hsl(220,10%,55%)]`}>{q.carrier || "—"}</td>
+                        <td className={`${tableCellClass} font-medium text-white`}>{q.customer_price ? `$${q.customer_price.toLocaleString()}` : "—"}</td>
+                        <td className={tableCellClass}>{statusBadge(q.status)}</td>
+                        <td className={`${tableCellClass} text-xs text-[hsl(220,10%,40%)]`}>{format(new Date(q.updated_at), "MMM d, HH:mm")}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(recentQuotes || []).map((q: any) => (
-                        <tr key={q.id} className="border-b last:border-0 hover:bg-secondary/50">
-                          <td className="p-4 text-foreground">{q.origin_port && q.destination_port ? `${q.origin_port} → ${q.destination_port}` : "—"}</td>
-                          <td className="p-4 text-muted-foreground">{q.customer_name || "—"}</td>
-                          <td className="p-4 text-muted-foreground">{q.carrier || "—"}</td>
-                          <td className="p-4 font-medium text-foreground">{q.customer_price ? `$${q.customer_price.toLocaleString()}` : "—"}</td>
-                          <td className="p-4">{statusBadge(q.status)}</td>
-                          <td className="p-4 text-xs text-muted-foreground">{format(new Date(q.updated_at), "MMM d, HH:mm")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="documents" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              {loadingDocs ? <div className="p-6"><Skeleton className="h-48 w-full" /></div> : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium text-muted-foreground p-4">Document Type</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Status</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Updated</th>
+          <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
+            {loadingDocs ? <TableSkeleton /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-[hsl(220,15%,15%)]">
+                    <th className={tableHeaderClass}>Document Type</th>
+                    <th className={tableHeaderClass}>Status</th>
+                    <th className={tableHeaderClass}>Updated</th>
+                  </tr></thead>
+                  <tbody>
+                    {(recentDocuments || []).map((d: any) => (
+                      <tr key={d.id} className={tableRowClass}>
+                        <td className={`${tableCellClass} text-white`}>{d.doc_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</td>
+                        <td className={tableCellClass}>{statusBadge(d.status)}</td>
+                        <td className={`${tableCellClass} text-xs text-[hsl(220,10%,40%)]`}>{format(new Date(d.updated_at), "MMM d, HH:mm")}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(recentDocuments || []).map((d: any) => (
-                        <tr key={d.id} className="border-b last:border-0 hover:bg-secondary/50">
-                          <td className="p-4 text-foreground">{d.doc_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</td>
-                          <td className="p-4">{statusBadge(d.status)}</td>
-                          <td className="p-4 text-xs text-muted-foreground">{format(new Date(d.updated_at), "MMM d, HH:mm")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="edi" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              {loadingEdi ? <div className="p-6"><Skeleton className="h-48 w-full" /></div> : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium text-muted-foreground p-4">Type</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Carrier</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Direction</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Status</th>
-                        <th className="text-left font-medium text-muted-foreground p-4">Time</th>
+          <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
+            {loadingEdi ? <TableSkeleton /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-[hsl(220,15%,15%)]">
+                    <th className={tableHeaderClass}>Type</th>
+                    <th className={tableHeaderClass}>Carrier</th>
+                    <th className={tableHeaderClass}>Direction</th>
+                    <th className={tableHeaderClass}>Status</th>
+                    <th className={tableHeaderClass}>Time</th>
+                  </tr></thead>
+                  <tbody>
+                    {(recentEdi || []).map((e: any) => (
+                      <tr key={e.id} className={tableRowClass}>
+                        <td className={`${tableCellClass} font-mono text-white`}>{e.message_type}</td>
+                        <td className={`${tableCellClass} text-[hsl(220,10%,55%)]`}>{e.carrier}</td>
+                        <td className={tableCellClass}>
+                          <Badge variant="secondary" className={`text-[10px] border-0 ${e.direction === "inbound" ? "bg-blue-500/15 text-blue-400" : "bg-purple-500/15 text-purple-400"}`}>
+                            {e.direction === "inbound" ? "← IN" : "→ OUT"}
+                          </Badge>
+                        </td>
+                        <td className={tableCellClass}>{statusBadge(e.status)}</td>
+                        <td className={`${tableCellClass} text-xs text-[hsl(220,10%,40%)]`}>{format(new Date(e.created_at), "MMM d, HH:mm")}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(recentEdi || []).map((e: any) => (
-                        <tr key={e.id} className="border-b last:border-0 hover:bg-secondary/50">
-                          <td className="p-4 font-mono text-foreground">{e.message_type}</td>
-                          <td className="p-4 text-muted-foreground">{e.carrier}</td>
-                          <td className="p-4">
-                            <Badge variant={e.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
-                              {e.direction === "inbound" ? "← IN" : "→ OUT"}
-                            </Badge>
-                          </td>
-                          <td className="p-4">{statusBadge(e.status)}</td>
-                          <td className="p-4 text-xs text-muted-foreground">{format(new Date(e.created_at), "MMM d, HH:mm")}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </AdminLayout>
