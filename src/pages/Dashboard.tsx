@@ -160,6 +160,9 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-mono font-medium text-foreground">{s.shipment_ref}</span>
+                    {(s.companies as any)?.company_name && (
+                      <span className="text-sm text-accent font-medium">{(s.companies as any).company_name}</span>
+                    )}
                     <span className="text-sm text-muted-foreground">
                       {s.origin_port && s.destination_port
                         ? `${s.origin_port} → ${s.destination_port}`
