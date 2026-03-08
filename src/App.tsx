@@ -132,6 +132,10 @@ const App = () => (
             <Route path="/admin/team" element={<AdminGate><AdminTeam /></AdminGate>} />
             <Route path="/admin/notifications" element={<AdminGate><AdminNotifications /></AdminGate>} />
             <Route path="/admin/account" element={<AdminGate><AdminAccount /></AdminGate>} />
+            <Route path="/admin/sales-pipeline" element={<AdminGate><AdminSalesPipeline /></AdminGate>} />
+            <Route path="/admin/sales-analytics" element={<AdminGate><AdminSalesAnalytics /></AdminGate>} />
+            <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
+            <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
