@@ -350,6 +350,7 @@ const Quotes = () => {
                     <th className="text-left font-medium text-muted-foreground p-4">Customer Price</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Margin</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Status</th>
+                    <th className="text-left font-medium text-muted-foreground p-4">Payment</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Created</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Actions</th>
                   </tr>
