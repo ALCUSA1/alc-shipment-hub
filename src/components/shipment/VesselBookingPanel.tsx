@@ -363,6 +363,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Existing bookings */}
