@@ -143,15 +143,15 @@ const NewQuote = () => {
       const { data, error } = await supabase
         .from("carrier_rates")
         .select("*")
-        .eq("origin_port", originPort)
-        .eq("destination_port", destinationPort)
+        .ilike("origin_port", originPort)
+        .ilike("destination_port", destinationPort)
         .ilike("container_type", containerType)
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
       if (error) throw error;
       return data as CarrierRate[];
     },
-    enabled: !!(originPort && destinationPort && containerType && step >= 1),
+    enabled: !!(originPort && destinationPort && containerType),
   });
 
   const selectedRate = carrierRates.find((r) => r.id === selectedRateId) || null;
