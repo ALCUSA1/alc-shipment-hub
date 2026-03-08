@@ -389,16 +389,44 @@ const Quotes = () => {
                             {isExpired ? "expired" : q.status}
                           </Badge>
                         </td>
+                        <td className="p-4">
+                          {q.status === "booked" && q.payment_status ? (
+                            <Badge className={paymentStatusStyle[q.payment_status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                              {q.payment_status}
+                            </Badge>
+                          ) : "—"}
+                        </td>
                         <td className="p-4 text-muted-foreground">
                           {format(new Date(q.created_at), "MMM d, yyyy")}
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
+                            {/* Book & Pay Later for pending/accepted quotes */}
+                            {(q.status === "pending" || q.status === "accepted") && !isExpired && (
+                              <Button size="sm" variant="outline" onClick={() => handleBookQuote(q)}
+                                disabled={bookingId === q.id}>
+                                {bookingId === q.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ship className="h-3.5 w-3.5 mr-1" />}
+                                Book
+                              </Button>
+                            )}
                             {q.status === "accepted" && (
                               <Button size="sm" variant="electric" onClick={() => { setConvertDialogQuote(q); setCutoffs({ cy: "", si: "", vgm: "", doc: "" }); }}>
                                 <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
                                 Convert
                               </Button>
+                            )}
+                            {/* Payment actions for booked quotes */}
+                            {q.status === "booked" && q.payment_status === "unpaid" && (
+                              <>
+                                <Button size="sm" variant="electric" onClick={() => handleStripePayment(q)}>
+                                  <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                  Pay
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => handleMarkPaid(q.id)}>
+                                  <Check className="h-3.5 w-3.5 mr-1" />
+                                  Mark Paid
+                                </Button>
+                              </>
                             )}
                             {q.approval_token && q.status === "pending" && !isExpired && (
                               <Button size="sm" variant="outline"
