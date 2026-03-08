@@ -311,6 +311,11 @@ const ShipmentDetail = () => {
         </div>
       </div>
 
+      {/* Smart Next Action */}
+      <div className="mb-6">
+        <ShipmentNextAction shipmentId={id!} shipmentStatus={shipment.status} />
+      </div>
+
       {/* Milestone Timeline */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card className="mb-6">
