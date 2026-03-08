@@ -3,7 +3,7 @@ import { AdminFilterBar, FilterConfig } from "@/components/admin/AdminFilterBar"
 import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Target, Plus, ArrowRight, User, Mail, Phone, Building2, Star, MessageSquare } from "lucide-react";
+import { Target, Plus, ArrowRight, User, Mail, Phone, Building2, Star, MessageSquare, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
