@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   GitBranch, FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Database
+  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +34,15 @@ const navGroups = [
       { title: "Rate Trends", url: "/admin/rate-trends", icon: TrendingUp },
       { title: "CRM", url: "/admin/crm", icon: Building2 },
       { title: "Partners", url: "/admin/partners", icon: Handshake },
+    ],
+  },
+  {
+    label: "Sales & Marketing",
+    items: [
+      { title: "Sales Pipeline", url: "/admin/sales-pipeline", icon: Target },
+      { title: "Sales Analytics", url: "/admin/sales-analytics", icon: BarChart3 },
+      { title: "Email Campaigns", url: "/admin/campaigns", icon: Mail },
+      { title: "Materials Library", url: "/admin/materials", icon: FolderOpen },
     ],
   },
   {
