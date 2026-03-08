@@ -1,9 +1,12 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminFilterBar, FilterConfig } from "@/components/admin/AdminFilterBar";
+import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useCallback } from "react";
 
 const statusColors: Record<string, string> = {
   prospect: "bg-[hsl(220,10%,20%)] text-[hsl(220,10%,60%)] border-[hsl(220,15%,25%)]",
@@ -12,6 +15,12 @@ const statusColors: Record<string, string> = {
   suspended: "bg-red-500/10 text-red-400 border-red-500/20",
   inactive: "bg-[hsl(220,10%,15%)] text-[hsl(220,10%,40%)] border-[hsl(220,15%,20%)]",
 };
+
+const STATUSES = ["all", "prospect", "pending_compliance", "active", "suspended", "inactive"];
+
+const filters: FilterConfig[] = [
+  { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) })) },
+];
 
 const AdminCRM = () => {
   const { data: companies, isLoading } = useQuery({
@@ -27,10 +36,20 @@ const AdminCRM = () => {
     },
   });
 
+  const searchFields = useCallback((c: any) => [
+    c.company_name, c.email, c.city, c.state, c.fmc_license_number,
+  ], []);
+  const statusField = useCallback((c: any) => c.status, []);
+  const dateField = useCallback((c: any) => c.created_at, []);
+
+  const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
+    data: companies, searchFields, statusField, dateField,
+  });
+
   const counts = {
-    active: companies?.filter(c => c.status === "active").length || 0,
-    prospect: companies?.filter(c => c.status === "prospect").length || 0,
-    pending: companies?.filter(c => c.status === "pending_compliance").length || 0,
+    active: filtered.filter((c: any) => c.status === "active").length,
+    prospect: filtered.filter((c: any) => c.status === "prospect").length,
+    pending: filtered.filter((c: any) => c.status === "pending_compliance").length,
   };
 
   return (
@@ -56,6 +75,20 @@ const AdminCRM = () => {
         ))}
       </div>
 
+      <AdminFilterBar
+        searchPlaceholder="Search by company, email, location, FMC license…"
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={onFilterChange}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        showDateRange
+        resultCount={filtered.length}
+        resultLabel="companies"
+      />
+
       {isLoading ? <Skeleton className="h-64 w-full bg-[hsl(220,15%,15%)]" /> : (
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
           <table className="w-full text-sm">
@@ -69,7 +102,9 @@ const AdminCRM = () => {
               </tr>
             </thead>
             <tbody>
-              {companies?.map(c => (
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No companies match your filters</td></tr>
+              ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{c.company_name}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{[c.city, c.state, c.country].filter(Boolean).join(", ") || "—"}</td>
@@ -77,7 +112,7 @@ const AdminCRM = () => {
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.email || "—"}</td>
                   <td className="px-4 py-3 text-center">
                     <Badge variant="outline" className={`text-[10px] ${statusColors[c.status] || ""}`}>
-                      {c.status.replace("_", " ")}
+                      {c.status.replace(/_/g, " ")}
                     </Badge>
                   </td>
                 </tr>

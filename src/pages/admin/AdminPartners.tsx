@@ -1,8 +1,11 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminFilterBar } from "@/components/admin/AdminFilterBar";
+import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Handshake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCallback } from "react";
 
 const AdminPartners = () => {
   const { data: contacts, isLoading } = useQuery({
@@ -18,6 +21,14 @@ const AdminPartners = () => {
     },
   });
 
+  const searchFields = useCallback((c: any) => [
+    c.full_name, c.email, c.phone, c.role, (c.companies as any)?.company_name,
+  ], []);
+
+  const { search, setSearch, filtered } = useAdminFilters({
+    data: contacts, searchFields,
+  });
+
   return (
     <AdminLayout>
       <div className="mb-6">
@@ -27,6 +38,14 @@ const AdminPartners = () => {
         </div>
         <p className="text-sm text-[hsl(220,10%,50%)]">All company contacts across tenants</p>
       </div>
+
+      <AdminFilterBar
+        searchPlaceholder="Search by name, company, email, role…"
+        search={search}
+        onSearchChange={setSearch}
+        resultCount={filtered.length}
+        resultLabel="contacts"
+      />
 
       {isLoading ? <Skeleton className="h-64 w-full bg-[hsl(220,15%,15%)]" /> : (
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
@@ -41,7 +60,9 @@ const AdminPartners = () => {
               </tr>
             </thead>
             <tbody>
-              {contacts?.map(c => (
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No contacts match your search</td></tr>
+              ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{c.full_name}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{(c.companies as any)?.company_name || "—"}</td>
@@ -50,7 +71,6 @@ const AdminPartners = () => {
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.phone || "—"}</td>
                 </tr>
               ))}
-              {contacts?.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-xs text-[hsl(220,10%,40%)]">No contacts</td></tr>}
             </tbody>
           </table>
         </div>
