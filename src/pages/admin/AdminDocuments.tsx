@@ -1,10 +1,21 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminFilterBar, FilterConfig } from "@/components/admin/AdminFilterBar";
+import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { useCallback } from "react";
+
+const STATUSES = ["all", "pending", "approved", "rejected"];
+const DOC_TYPES = ["all", "bill_of_lading", "commercial_invoice", "packing_list", "certificate_of_origin", "customs_declaration", "insurance_certificate"];
+
+const filters: FilterConfig[] = [
+  { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1) })) },
+  { key: "docType", label: "Doc Type", options: DOC_TYPES.map(t => ({ value: t, label: t === "all" ? "All Types" : t.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) })) },
+];
 
 const AdminDocuments = () => {
   const { data: docs, isLoading } = useQuery({
@@ -20,6 +31,20 @@ const AdminDocuments = () => {
     },
   });
 
+  const searchFields = useCallback((d: any) => [
+    d.doc_type, (d.shipments as any)?.shipment_ref,
+  ], []);
+  const statusField = useCallback((d: any) => d.status, []);
+  const dateField = useCallback((d: any) => d.created_at, []);
+
+  const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
+    data: docs, searchFields, statusField, dateField,
+  });
+
+  const filtered = filterValues.docType && filterValues.docType !== "all"
+    ? preFiltered.filter((d: any) => d.doc_type === filterValues.docType)
+    : preFiltered;
+
   return (
     <AdminLayout>
       <div className="mb-6">
@@ -32,9 +57,9 @@ const AdminDocuments = () => {
 
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Total", value: docs?.length || 0, color: "text-white" },
-          { label: "Pending", value: docs?.filter(d => d.status === "pending").length || 0, color: "text-amber-400" },
-          { label: "Approved", value: docs?.filter(d => d.status === "approved").length || 0, color: "text-emerald-400" },
+          { label: "Total", value: filtered.length, color: "text-white" },
+          { label: "Pending", value: filtered.filter((d: any) => d.status === "pending").length, color: "text-amber-400" },
+          { label: "Approved", value: filtered.filter((d: any) => d.status === "approved").length, color: "text-emerald-400" },
         ].map(m => (
           <div key={m.label} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">{m.label}</p>
@@ -42,6 +67,20 @@ const AdminDocuments = () => {
           </div>
         ))}
       </div>
+
+      <AdminFilterBar
+        searchPlaceholder="Search by document type, shipment ref…"
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={onFilterChange}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        showDateRange
+        resultCount={filtered.length}
+        resultLabel="documents"
+      />
 
       {isLoading ? <Skeleton className="h-64 w-full bg-[hsl(220,15%,15%)]" /> : (
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
@@ -55,15 +94,16 @@ const AdminDocuments = () => {
               </tr>
             </thead>
             <tbody>
-              {docs?.map(d => (
+              {filtered.length === 0 ? (
+                <tr><td colSpan={4} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No documents match your filters</td></tr>
+              ) : filtered.map((d: any) => (
                 <tr key={d.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{(d.shipments as any)?.shipment_ref || "—"}</td>
-                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{d.doc_type}</td>
+                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{d.doc_type.replace(/_/g, " ")}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{format(new Date(d.created_at), "MMM d, yyyy")}</td>
                   <td className="px-4 py-3 text-center"><Badge variant="outline" className="text-[10px]">{d.status}</Badge></td>
                 </tr>
               ))}
-              {docs?.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-xs text-[hsl(220,10%,40%)]">No documents</td></tr>}
             </tbody>
           </table>
         </div>

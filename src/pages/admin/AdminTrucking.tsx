@@ -1,9 +1,18 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminFilterBar, FilterConfig } from "@/components/admin/AdminFilterBar";
+import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useCallback } from "react";
+
+const STATUSES = ["all", "scheduled", "in_progress", "completed", "cancelled"];
+
+const filters: FilterConfig[] = [
+  { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) })) },
+];
 
 const AdminTrucking = () => {
   const { data: pickups, isLoading } = useQuery({
@@ -13,16 +22,27 @@ const AdminTrucking = () => {
         .from("truck_pickups")
         .select("*, shipments(shipment_ref, user_id)")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (error) throw error;
       return data || [];
     },
   });
 
+  const searchFields = useCallback((p: any) => [
+    p.pickup_location, p.delivery_location, p.driver_name, p.truck_plate,
+    (p.shipments as any)?.shipment_ref,
+  ], []);
+  const statusField = useCallback((p: any) => p.status, []);
+  const dateField = useCallback((p: any) => p.pickup_date || p.created_at, []);
+
+  const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
+    data: pickups, searchFields, statusField, dateField,
+  });
+
   const statusCounts = {
-    scheduled: pickups?.filter(p => p.status === "scheduled").length || 0,
-    in_progress: pickups?.filter(p => p.status === "in_progress").length || 0,
-    completed: pickups?.filter(p => p.status === "completed").length || 0,
+    scheduled: filtered.filter((p: any) => p.status === "scheduled").length,
+    in_progress: filtered.filter((p: any) => p.status === "in_progress").length,
+    completed: filtered.filter((p: any) => p.status === "completed").length,
   };
 
   return (
@@ -48,6 +68,20 @@ const AdminTrucking = () => {
         ))}
       </div>
 
+      <AdminFilterBar
+        searchPlaceholder="Search by location, driver, truck plate, shipment…"
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={onFilterChange}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        showDateRange
+        resultCount={filtered.length}
+        resultLabel="pickups"
+      />
+
       {isLoading ? <Skeleton className="h-64 w-full bg-[hsl(220,15%,15%)]" /> : (
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
           <table className="w-full text-sm">
@@ -62,21 +96,18 @@ const AdminTrucking = () => {
               </tr>
             </thead>
             <tbody>
-              {pickups?.map((p) => (
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No pickups match your filters</td></tr>
+              ) : filtered.map((p: any) => (
                 <tr key={p.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{(p.shipments as any)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)] truncate max-w-[150px]">{p.pickup_location || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)] truncate max-w-[150px]">{p.delivery_location || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{p.driver_name || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{p.pickup_date || "—"}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Badge variant="outline" className="text-[10px]">{p.status}</Badge>
-                  </td>
+                  <td className="px-4 py-3 text-center"><Badge variant="outline" className="text-[10px]">{p.status}</Badge></td>
                 </tr>
               ))}
-              {pickups?.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-[hsl(220,10%,40%)]">No truck pickups found</td></tr>
-              )}
             </tbody>
           </table>
         </div>
