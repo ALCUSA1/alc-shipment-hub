@@ -104,13 +104,28 @@ const App = () => (
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
-            <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
-            <Route path="/admin/activity" element={<AdminGate><AdminActivity /></AdminGate>} />
-            <Route path="/admin/financials" element={<AdminGate><AdminFinancials /></AdminGate>} />
-            <Route path="/admin/system" element={<AdminGate><AdminSystem /></AdminGate>} />
+            <Route path="/admin/pipeline" element={<AdminGate><AdminPipeline /></AdminGate>} />
+            <Route path="/admin/quotes" element={<AdminGate><AdminQuotes /></AdminGate>} />
             <Route path="/admin/shipments" element={<AdminGate><AdminShipments /></AdminGate>} />
             <Route path="/admin/shipments/:id" element={<AdminGate><AdminShipmentDetail /></AdminGate>} />
+            <Route path="/admin/trucking" element={<AdminGate><AdminTrucking /></AdminGate>} />
+            <Route path="/admin/warehouses" element={<AdminGate><AdminWarehouses /></AdminGate>} />
+            <Route path="/admin/documents" element={<AdminGate><AdminDocuments /></AdminGate>} />
+            <Route path="/admin/accounting" element={<AdminGate><AdminAccounting /></AdminGate>} />
+            <Route path="/admin/rate-trends" element={<AdminGate><AdminRateTrends /></AdminGate>} />
+            <Route path="/admin/crm" element={<AdminGate><AdminCRM /></AdminGate>} />
+            <Route path="/admin/partners" element={<AdminGate><AdminPartners /></AdminGate>} />
+            <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
             <Route path="/admin/customers" element={<AdminGate><AdminCustomerLookup /></AdminGate>} />
+            <Route path="/admin/activity" element={<AdminGate><AdminActivity /></AdminGate>} />
+            <Route path="/admin/financials" element={<AdminGate><AdminFinancials /></AdminGate>} />
+            <Route path="/admin/compliance" element={<AdminGate><AdminCompliance /></AdminGate>} />
+            <Route path="/admin/api-health" element={<AdminGate><AdminApiHealth /></AdminGate>} />
+            <Route path="/admin/system" element={<AdminGate><AdminSystem /></AdminGate>} />
+            <Route path="/admin/data" element={<AdminGate><AdminDataExplorer /></AdminGate>} />
+            <Route path="/admin/team" element={<AdminGate><AdminTeam /></AdminGate>} />
+            <Route path="/admin/notifications" element={<AdminGate><AdminNotifications /></AdminGate>} />
+            <Route path="/admin/account" element={<AdminGate><AdminAccount /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
