@@ -83,7 +83,119 @@ const Quotes = () => {
     enabled: !!user,
   });
 
-  const copyApprovalLink = (token: string) => {
+  const [bookingId, setBookingId] = useState<string | null>(null);
+
+  const handleBookQuote = async (quote: QuoteRow) => {
+    if (!user) return;
+    setBookingId(quote.id);
+
+    try {
+      // 1. Create shipment
+      const { data: shipment, error: shipErr } = await supabase
+        .from("shipments")
+        .insert({
+          user_id: user.id,
+          shipment_ref: "PENDING",
+          shipment_type: "export",
+          origin_port: quote.origin_port,
+          destination_port: quote.destination_port,
+          company_id: quote.company_id,
+          converted_from_quote_id: quote.id,
+          status: "booked",
+        })
+        .select("id")
+        .single();
+
+      if (shipErr) throw shipErr;
+
+      // 2. Update quote
+      await supabase.from("quotes").update({
+        status: "booked",
+        shipment_id: shipment.id,
+        payment_status: "unpaid",
+      } as any).eq("id", quote.id);
+
+      // 3. Container
+      if (quote.container_type) {
+        await supabase.from("containers").insert({
+          shipment_id: shipment.id,
+          container_type: quote.container_type,
+          quantity: 1,
+        });
+      }
+
+      // 4. Financials
+      if (quote.customer_price) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Freight revenue — ${quote.carrier}`,
+          entry_type: "revenue",
+          category: "freight",
+          amount: quote.customer_price,
+          vendor: quote.customer_name || null,
+        });
+      }
+      if (quote.carrier_cost) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Carrier cost — ${quote.carrier}`,
+          entry_type: "cost",
+          category: "freight",
+          amount: quote.carrier_cost,
+          vendor: quote.carrier || null,
+        });
+      }
+
+      // 5. Document checklist
+      const requiredDocs = [
+        "bill_of_lading", "commercial_invoice", "packing_list",
+        "shipper_letter_of_instruction", "dock_receipt",
+        "certificate_of_origin", "insurance_certificate", "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          doc_type: docType,
+          status: "pending",
+        }))
+      );
+
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast({ title: "Booking Created", description: "Shipment booked. Payment pending — documents release upon payment." });
+      navigate(`/dashboard/shipments/${shipment.id}`);
+    } catch (err: any) {
+      toast({ title: "Booking failed", description: err.message, variant: "destructive" });
+    } finally {
+      setBookingId(null);
+    }
+  };
+
+  const handleMarkPaid = async (quoteId: string) => {
+    try {
+      await supabase.from("quotes").update({ payment_status: "paid" } as any).eq("id", quoteId);
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast({ title: "Payment recorded", description: "Quote marked as paid. Documents can now be released." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleStripePayment = async (quote: QuoteRow) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { quote_id: quote.id, amount: quote.customer_price, currency: quote.currency || "USD" },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment error", description: err.message, variant: "destructive" });
+    }
+  };
     const url = `${window.location.origin}/quote/approve?token=${token}`;
     navigator.clipboard.writeText(url);
     setCopiedToken(token);
