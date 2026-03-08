@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
+import { TruckingPanel } from "@/components/shipment/TruckingPanel";
+import { WarehousePanel } from "@/components/shipment/WarehousePanel";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
@@ -434,6 +436,12 @@ const ShipmentDetail = () => {
 
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
+
+          {/* Trucking */}
+          <TruckingPanel shipmentId={id!} />
+
+          {/* Warehouse Operations */}
+          <WarehousePanel shipmentId={id!} />
 
           {/* Profit & Loss */}
           <ShipmentPnL

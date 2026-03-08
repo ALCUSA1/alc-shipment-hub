@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
+import { TruckingPanel } from "@/components/shipment/TruckingPanel";
+import { WarehousePanel } from "@/components/shipment/WarehousePanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -304,6 +306,12 @@ const AdminShipmentDetail = () => {
 
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
+
+          {/* Trucking */}
+          <TruckingPanel shipmentId={id!} />
+
+          {/* Warehouse Operations */}
+          <WarehousePanel shipmentId={id!} />
 
           {/* Containers */}
           {(containers || []).length > 0 && (
