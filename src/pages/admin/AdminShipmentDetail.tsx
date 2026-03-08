@@ -298,6 +298,9 @@ const AdminShipmentDetail = () => {
             </div>
           </div>
 
+          {/* Vessel Bookings */}
+          <VesselBookingPanel shipmentId={id!} variant="admin" />
+
           {/* Containers */}
           {(containers || []).length > 0 && (
             <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6">
