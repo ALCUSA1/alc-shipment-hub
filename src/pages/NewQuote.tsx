@@ -124,7 +124,17 @@ const NewQuote = () => {
     enabled: !!user,
   });
 
-  // Fetch carrier rates for route
+  // Fetch ports for dropdowns
+  const { data: ports = [] } = useQuery({
+    queryKey: ["ports-list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch carrier rates for route (case-insensitive container_type match)
   const { data: carrierRates = [], isLoading: ratesLoading } = useQuery({
     queryKey: ["quote-rates", originPort, destinationPort, containerType],
     queryFn: async () => {
@@ -134,7 +144,7 @@ const NewQuote = () => {
         .select("*")
         .eq("origin_port", originPort)
         .eq("destination_port", destinationPort)
-        .eq("container_type", containerType)
+        .ilike("container_type", containerType)
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
       if (error) throw error;
