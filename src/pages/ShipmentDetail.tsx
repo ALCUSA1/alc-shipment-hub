@@ -322,7 +322,7 @@ const ShipmentDetail = () => {
           <CardContent>
             <div className="relative">
               <div className="absolute top-4 left-4 right-4 h-0.5 bg-border hidden md:block" />
-              <div className="absolute top-4 left-4 h-0.5 bg-accent hidden md:block" style={{
+              <div className="absolute top-4 left-4 h-0.5 bg-emerald-500 hidden md:block" style={{
                 width: currentMilestoneIndex >= 0
                   ? `${(currentMilestoneIndex / (milestones.length - 1)) * 100}%`
                   : '0%',
