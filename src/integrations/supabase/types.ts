@@ -118,6 +118,7 @@ export type Database = {
       cargo: {
         Row: {
           commodity: string | null
+          country_of_origin: string | null
           created_at: string
           gross_weight: number | null
           hs_code: string | null
@@ -125,10 +126,13 @@ export type Database = {
           num_packages: number | null
           package_type: string | null
           shipment_id: string
+          total_value: number | null
+          unit_value: number | null
           volume: number | null
         }
         Insert: {
           commodity?: string | null
+          country_of_origin?: string | null
           created_at?: string
           gross_weight?: number | null
           hs_code?: string | null
@@ -136,10 +140,13 @@ export type Database = {
           num_packages?: number | null
           package_type?: string | null
           shipment_id: string
+          total_value?: number | null
+          unit_value?: number | null
           volume?: number | null
         }
         Update: {
           commodity?: string | null
+          country_of_origin?: string | null
           created_at?: string
           gross_weight?: number | null
           hs_code?: string | null
@@ -147,6 +154,8 @@ export type Database = {
           num_packages?: number | null
           package_type?: string | null
           shipment_id?: string
+          total_value?: number | null
+          unit_value?: number | null
           volume?: number | null
         }
         Relationships: [
@@ -1567,6 +1576,7 @@ export type Database = {
           eta: string | null
           etd: string | null
           id: string
+          incoterms: string | null
           origin_port: string | null
           pickup_location: string | null
           shipment_ref: string
@@ -1591,6 +1601,7 @@ export type Database = {
           eta?: string | null
           etd?: string | null
           id?: string
+          incoterms?: string | null
           origin_port?: string | null
           pickup_location?: string | null
           shipment_ref: string
@@ -1615,6 +1626,7 @@ export type Database = {
           eta?: string | null
           etd?: string | null
           id?: string
+          incoterms?: string | null
           origin_port?: string | null
           pickup_location?: string | null
           shipment_ref?: string
