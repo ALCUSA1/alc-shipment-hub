@@ -40,6 +40,8 @@ const AdminSalesPipeline = () => {
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newLead, setNewLead] = useState({ full_name: "", email: "", phone: "", company_name: "", source: "manual", notes: "" });
+  const [convertLead, setConvertLead] = useState<any>(null);
+  const [convertData, setConvertData] = useState({ company_name: "", email: "", phone: "", status: "prospect" as string });
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["admin-leads"],
@@ -65,16 +67,75 @@ const AdminSalesPipeline = () => {
   });
 
   const updateStage = useMutation({
-    mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
+    mutationFn: async ({ id, stage, lead }: { id: string; stage: string; lead?: any }) => {
       const update: any = { stage };
-      if (stage === "won") update.converted_at = new Date().toISOString();
+      if (stage === "won") {
+        update.converted_at = new Date().toISOString();
+      }
       const { error } = await supabase.from("leads").update(update).eq("id", id);
       if (error) throw error;
+      // If won and not yet converted, open the conversion dialog
+      if (stage === "won" && lead && !lead.converted_company_id) {
+        setConvertLead(lead);
+        setConvertData({
+          company_name: lead.company_name || lead.full_name,
+          email: lead.email || "",
+          phone: lead.phone || "",
+          status: "prospect",
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
       toast.success("Stage updated");
     },
+  });
+
+  const convertToCompany = useMutation({
+    mutationFn: async () => {
+      if (!convertLead || !user) return;
+      // Create the company
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .insert({
+          company_name: convertData.company_name,
+          email: convertData.email || null,
+          phone: convertData.phone || null,
+          status: convertData.status as any,
+          user_id: user.id,
+        })
+        .select("id")
+        .single();
+      if (companyError) throw companyError;
+
+      // Create a primary contact from the lead
+      const { error: contactError } = await supabase
+        .from("company_contacts")
+        .insert({
+          company_id: company.id,
+          full_name: convertLead.full_name,
+          email: convertLead.email || null,
+          phone: convertLead.phone || null,
+          role: "general",
+          is_primary: true,
+        });
+      if (contactError) throw contactError;
+
+      // Link the lead to the company
+      const { error: linkError } = await supabase
+        .from("leads")
+        .update({ converted_company_id: company.id, converted_at: new Date().toISOString() })
+        .eq("id", convertLead.id);
+      if (linkError) throw linkError;
+
+      return company.id;
+    },
+    onSuccess: (companyId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-leads"] });
+      setConvertLead(null);
+      toast.success("Lead converted to company successfully!");
+    },
+    onError: (err: any) => toast.error(err.message || "Conversion failed"),
   });
 
   const searchFields = useCallback((l: any) => [l.full_name, l.email, l.company_name, l.phone], []);
