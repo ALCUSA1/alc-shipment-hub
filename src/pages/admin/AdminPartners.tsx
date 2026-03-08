@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Handshake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 const AdminPartners = () => {
   const { data: contacts, isLoading } = useQuery({
