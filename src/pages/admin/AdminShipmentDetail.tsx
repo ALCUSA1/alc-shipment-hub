@@ -307,6 +307,12 @@ const AdminShipmentDetail = () => {
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
 
+          {/* Trucking */}
+          <TruckingPanel shipmentId={id!} />
+
+          {/* Warehouse Operations */}
+          <WarehousePanel shipmentId={id!} />
+
           {/* Containers */}
           {(containers || []).length > 0 && (
             <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6">
