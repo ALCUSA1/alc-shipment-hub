@@ -10,6 +10,7 @@ import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { ShipmentNextAction } from "@/components/shipment/ShipmentNextAction";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -310,6 +311,11 @@ const ShipmentDetail = () => {
         </div>
       </div>
 
+      {/* Smart Next Action */}
+      <div className="mb-6">
+        <ShipmentNextAction shipmentId={id!} shipmentStatus={shipment.status} />
+      </div>
+
       {/* Milestone Timeline */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card className="mb-6">
@@ -440,16 +446,22 @@ const ShipmentDetail = () => {
           />
 
           {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && <VesselBookingPanel shipmentId={id!} variant="shipper" />}
+          {!isDelivered && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" /></div>}
 
           {/* Customs / AES Filing */}
-          <CustomsFilingPanel shipmentId={id!} />
+          <div data-guide="customs">
+            <CustomsFilingPanel shipmentId={id!} />
+          </div>
 
           {/* Trucking */}
-          <TruckingPanel shipmentId={id!} />
+          <div data-guide="trucking">
+            <TruckingPanel shipmentId={id!} />
+          </div>
 
           {/* Warehouse Operations */}
-          <WarehousePanel shipmentId={id!} />
+          <div data-guide="warehouse">
+            <WarehousePanel shipmentId={id!} />
+          </div>
 
           {/* Profit & Loss */}
           <ShipmentPnL
@@ -550,7 +562,9 @@ const ShipmentDetail = () => {
           </Card>
 
           {/* Document Checklist */}
-          <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
+          <div data-guide="documents">
+            <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
+          </div>
         </motion.div>
       </div>
     </DashboardLayout>
