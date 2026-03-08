@@ -16,6 +16,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { LeadActivityPanel } from "@/components/admin/LeadActivityPanel";
 
 const STAGES = ["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"];
 const SOURCES = ["manual", "referral", "website", "event", "cold_outreach", "partner"];
