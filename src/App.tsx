@@ -43,6 +43,7 @@ import AdminSystem from "./pages/admin/AdminSystem";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminShipments from "./pages/admin/AdminShipments";
 import AdminShipmentDetail from "./pages/admin/AdminShipmentDetail";
+import AdminCustomerLookup from "./pages/admin/AdminCustomerLookup";
 
 const queryClient = new QueryClient();
 
