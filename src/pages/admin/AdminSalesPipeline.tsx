@@ -273,6 +273,56 @@ const AdminSalesPipeline = () => {
           </table>
         </div>
       )}
+
+      {/* Conversion Dialog */}
+      <Dialog open={!!convertLead} onOpenChange={(open) => { if (!open) setConvertLead(null); }}>
+        <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,18%)] text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+              Convert Lead to Company
+            </DialogTitle>
+          </DialogHeader>
+          {convertLead && (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-[hsl(220,15%,18%)] bg-[hsl(220,15%,12%)] p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)] mb-1">Converting Lead</p>
+                <p className="text-sm text-white font-medium">{convertLead.full_name}</p>
+                {convertLead.email && <p className="text-xs text-[hsl(220,10%,50%)]">{convertLead.email}</p>}
+              </div>
+              <div>
+                <Label className="text-xs text-[hsl(220,10%,50%)]">Company Name *</Label>
+                <Input className="bg-[hsl(220,15%,12%)] border-[hsl(220,15%,18%)] text-white" value={convertData.company_name} onChange={e => setConvertData(p => ({ ...p, company_name: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-[hsl(220,10%,50%)]">Email</Label>
+                  <Input className="bg-[hsl(220,15%,12%)] border-[hsl(220,15%,18%)] text-white" value={convertData.email} onChange={e => setConvertData(p => ({ ...p, email: e.target.value }))} />
+                </div>
+                <div>
+                  <Label className="text-xs text-[hsl(220,10%,50%)]">Phone</Label>
+                  <Input className="bg-[hsl(220,15%,12%)] border-[hsl(220,15%,18%)] text-white" value={convertData.phone} onChange={e => setConvertData(p => ({ ...p, phone: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-[hsl(220,10%,50%)]">Initial Status</Label>
+                <Select value={convertData.status} onValueChange={v => setConvertData(p => ({ ...p, status: v }))}>
+                  <SelectTrigger className="bg-[hsl(220,15%,12%)] border-[hsl(220,15%,18%)] text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prospect">Prospect</SelectItem>
+                    <SelectItem value="pending_compliance">Pending Compliance</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-[10px] text-[hsl(220,10%,40%)]">A primary contact will be created from the lead's details. The lead will be linked to the new company.</p>
+              <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white" disabled={!convertData.company_name || convertToCompany.isPending} onClick={() => convertToCompany.mutate()}>
+                {convertToCompany.isPending ? "Converting…" : "Create Company & Convert"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
