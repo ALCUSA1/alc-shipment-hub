@@ -264,25 +264,11 @@ const NewQuote = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Origin Port</Label>
-                    <Select value={originPort} onValueChange={setOriginPort}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select origin port" /></SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {ports.map((p) => (
-                          <SelectItem key={p.code} value={p.code}>{p.name} ({p.code})</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <PortSelector ports={ports} value={originPort} onValueChange={setOriginPort} placeholder="Search origin port..." />
                   </div>
                   <div>
                     <Label>Destination Port</Label>
-                    <Select value={destinationPort} onValueChange={setDestinationPort}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select destination port" /></SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {ports.map((p) => (
-                          <SelectItem key={p.code} value={p.code}>{p.name} ({p.code})</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <PortSelector ports={ports} value={destinationPort} onValueChange={setDestinationPort} placeholder="Search destination port..." />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
