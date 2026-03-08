@@ -1231,6 +1231,7 @@ export type Database = {
           margin_value: number | null
           notes: string | null
           origin_port: string | null
+          payment_status: string
           shipment_id: string
           status: string
           transit_days: number | null
@@ -1258,6 +1259,7 @@ export type Database = {
           margin_value?: number | null
           notes?: string | null
           origin_port?: string | null
+          payment_status?: string
           shipment_id: string
           status?: string
           transit_days?: number | null
@@ -1285,6 +1287,7 @@ export type Database = {
           margin_value?: number | null
           notes?: string | null
           origin_port?: string | null
+          payment_status?: string
           shipment_id?: string
           status?: string
           transit_days?: number | null
