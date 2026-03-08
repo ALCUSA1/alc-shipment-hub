@@ -751,6 +751,172 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          body: string | null
+          click_count: number
+          created_at: string
+          created_by: string
+          id: string
+          metadata: Json | null
+          name: string
+          open_count: number
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          subject: string | null
+          tags: string[] | null
+          target_count: number
+          target_segment: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          click_count?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          metadata?: Json | null
+          name: string
+          open_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string | null
+          tags?: string[] | null
+          target_count?: number
+          target_segment?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          click_count?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+          open_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string | null
+          tags?: string[] | null
+          target_count?: number
+          target_segment?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          company_name: string | null
+          converted_at: string | null
+          converted_company_id: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          phone: string | null
+          score: number
+          source: string
+          stage: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          company_name?: string | null
+          converted_at?: string | null
+          converted_company_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          phone?: string | null
+          score?: number
+          source?: string
+          stage?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          company_name?: string | null
+          converted_at?: string | null
+          converted_company_id?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          phone?: string | null
+          score?: number
+          source?: string
+          stage?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_company_id_fkey"
+            columns: ["converted_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -940,6 +1106,51 @@ export type Database = {
           role?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      promotional_materials: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          download_count: number
+          file_type: string
+          file_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          tags: string[] | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_type?: string
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_type?: string
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by?: string
         }
         Relationships: []
       }
