@@ -244,6 +244,9 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Workflow Action Banners */}
+      <DashboardActionBanners />
+
       {/* Metric Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((s) => (

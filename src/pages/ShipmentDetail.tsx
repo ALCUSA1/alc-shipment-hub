@@ -562,7 +562,9 @@ const ShipmentDetail = () => {
           </Card>
 
           {/* Document Checklist */}
-          <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
+          <div data-guide="documents">
+            <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
+          </div>
         </motion.div>
       </div>
     </DashboardLayout>
