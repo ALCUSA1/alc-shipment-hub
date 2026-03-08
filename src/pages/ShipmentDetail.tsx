@@ -260,9 +260,16 @@ const ShipmentDetail = () => {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-foreground">{shipment.shipment_ref}</h1>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[shipment.status] || "bg-secondary text-muted-foreground"}`}>
-                {formatStatus(shipment.status)}
-              </span>
+              {isDelivered ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
+                  <Check className="h-3.5 w-3.5" />
+                  Delivered
+                </span>
+              ) : (
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[shipment.status] || "bg-secondary text-muted-foreground"}`}>
+                  {formatStatus(shipment.status)}
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
