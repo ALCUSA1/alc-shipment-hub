@@ -1,14 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { WizardShell } from "@/components/wizard/WizardShell";
+import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
+import { PartiesStep, type PartiesData, emptyParty } from "@/components/wizard/steps/PartiesStep";
+import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
+import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PortSelector } from "@/components/shipment/PortSelector";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, Check, Loader2, DollarSign, Ship, TrendingUp, Copy, ExternalLink } from "lucide-react";
+import { Check, Loader2, Ship, ArrowRight, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,17 +25,9 @@ import type { Json } from "@/integrations/supabase/types";
 type CompanyOption = { id: string; company_name: string; status: string; fmc_license_expiry: string | null; cargo_insurance_expiry: string | null; general_liability_expiry: string | null };
 
 interface CarrierRate {
-  id: string;
-  carrier: string;
-  origin_port: string;
-  destination_port: string;
-  container_type: string;
-  base_rate: number;
-  currency: string;
-  transit_days: number | null;
-  valid_from: string;
-  valid_until: string;
-  surcharges: Json;
+  id: string; carrier: string; origin_port: string; destination_port: string;
+  container_type: string; base_rate: number; currency: string; transit_days: number | null;
+  valid_from: string; valid_until: string; surcharges: Json;
 }
 
 function parseSurchargeTotal(surcharges: Json): number {
@@ -44,50 +41,30 @@ function parseSurchargeTotal(surcharges: Json): number {
   return total;
 }
 
-function getTotalRate(rate: CarrierRate) {
-  return rate.base_rate + parseSurchargeTotal(rate.surcharges);
-}
+function getTotalRate(rate: CarrierRate) { return rate.base_rate + parseSurchargeTotal(rate.surcharges); }
 
-const STEPS = ["Route & Customer", "Select Carrier Rate", "Set Your Margin", "Review & Send"];
-
-const CONTAINER_TYPES = [
-  { value: "20gp", label: "20' GP" },
-  { value: "40gp", label: "40' GP" },
-  { value: "40hc", label: "40' HC" },
-];
-
-interface ComplianceIssue {
-  field: string;
-  message: string;
-  severity: "error" | "warning";
-}
+interface ComplianceIssue { field: string; message: string; severity: "error" | "warning"; }
 
 function checkCompliance(company: CompanyOption | undefined): ComplianceIssue[] {
   if (!company) return [];
   const issues: ComplianceIssue[] = [];
   const now = new Date();
-  const warningDays = 60;
-
   if (company.status !== "active") {
     issues.push({ field: "Status", message: `Customer status is "${company.status}" — must be "active"`, severity: "error" });
   }
-
-  const checkExpiry = (label: string, dateStr: string | null) => {
-    if (!dateStr) return;
-    const expiry = new Date(dateStr);
-    if (expiry < now) {
-      issues.push({ field: label, message: `Expired on ${format(expiry, "MMM d, yyyy")}`, severity: "error" });
-    } else if (expiry < addDays(now, warningDays)) {
-      issues.push({ field: label, message: `Expires ${format(expiry, "MMM d, yyyy")}`, severity: "warning" });
-    }
+  const check = (label: string, d: string | null) => {
+    if (!d) return;
+    const exp = new Date(d);
+    if (exp < now) issues.push({ field: label, message: `Expired on ${format(exp, "MMM d, yyyy")}`, severity: "error" });
+    else if (exp < addDays(now, 60)) issues.push({ field: label, message: `Expires ${format(exp, "MMM d, yyyy")}`, severity: "warning" });
   };
-
-  checkExpiry("FMC License", company.fmc_license_expiry);
-  checkExpiry("Cargo Insurance", company.cargo_insurance_expiry);
-  checkExpiry("General Liability", company.general_liability_expiry);
-
+  check("FMC License", company.fmc_license_expiry);
+  check("Cargo Insurance", company.cargo_insurance_expiry);
+  check("General Liability", company.general_liability_expiry);
   return issues;
 }
+
+const STEPS = ["Overview", "Trade Parties", "Cargo & Container", "Compliance", "Select Rate", "Set Margin", "Review & Send"];
 
 const NewQuote = () => {
   const [step, setStep] = useState(0);
@@ -95,37 +72,42 @@ const NewQuote = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Step 1: Route & Customer
-  const [originPort, setOriginPort] = useState("");
-  const [destinationPort, setDestinationPort] = useState("");
-  const [containerType, setContainerType] = useState("40hc");
-  const [companyId, setCompanyId] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [validDays, setValidDays] = useState("7");
+  // Shared data steps
+  const [overview, setOverview] = useState<OverviewData>({
+    shipmentType: "export", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "", incoterms: "",
+  });
+  const [partiesData, setPartiesData] = useState<PartiesData>({
+    shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
+    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+  });
+  const [cargoData, setCargoData] = useState<CargoData>({
+    commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
+    unitValue: "", totalValue: "", countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
+  });
+  const [complianceData, setComplianceData] = useState<ComplianceData>({
+    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
+    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+  });
 
-  // Step 2: Selected rate
+  // Quote-specific
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
-
-  // Step 3: Margin
   const [marginType, setMarginType] = useState<"flat" | "percent">("flat");
   const [marginValue, setMarginValue] = useState("");
+  const [validDays, setValidDays] = useState("7");
+  const [customerEmail, setCustomerEmail] = useState("");
 
-  // Fetch companies
+  // Queries
   const { data: companies = [] } = useQuery({
     queryKey: ["quote-companies", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
+      const { data } = await supabase.from("companies")
         .select("id, company_name, status, fmc_license_expiry, cargo_insurance_expiry, general_liability_expiry")
-        .eq("user_id", user!.id)
-        .order("company_name");
+        .eq("user_id", user!.id).order("company_name");
       return (data || []) as CompanyOption[];
     },
     enabled: !!user,
   });
 
-  // Fetch ports for dropdowns
   const { data: ports = [] } = useQuery({
     queryKey: ["ports-list"],
     queryFn: async () => {
@@ -135,101 +117,119 @@ const NewQuote = () => {
     enabled: !!user,
   });
 
-  // Fetch carrier rates for route (case-insensitive container_type match)
   const { data: carrierRates = [], isLoading: ratesLoading } = useQuery({
-    queryKey: ["quote-rates", originPort, destinationPort, containerType],
+    queryKey: ["quote-rates", overview.originPort, overview.destinationPort, cargoData.containerType],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
-      const { data, error } = await supabase
-        .from("carrier_rates")
-        .select("*")
-        .ilike("origin_port", originPort)
-        .ilike("destination_port", destinationPort)
-        .ilike("container_type", containerType)
-        .gte("valid_until", today)
-        .order("base_rate", { ascending: true });
+      const { data, error } = await supabase.from("carrier_rates").select("*")
+        .ilike("origin_port", overview.originPort)
+        .ilike("destination_port", overview.destinationPort)
+        .ilike("container_type", cargoData.containerType)
+        .gte("valid_until", today).order("base_rate", { ascending: true });
       if (error) throw error;
       return data as CarrierRate[];
     },
-    enabled: !!(originPort && destinationPort && containerType),
+    enabled: !!(overview.originPort && overview.destinationPort && cargoData.containerType),
   });
 
   const selectedRate = carrierRates.find((r) => r.id === selectedRateId) || null;
   const carrierCost = selectedRate ? getTotalRate(selectedRate) : 0;
-  const marginAmount = marginType === "flat"
-    ? parseFloat(marginValue) || 0
-    : carrierCost * ((parseFloat(marginValue) || 0) / 100);
+  const marginAmount = marginType === "flat" ? parseFloat(marginValue) || 0 : carrierCost * ((parseFloat(marginValue) || 0) / 100);
   const customerPrice = carrierCost + marginAmount;
 
-  const selectedCompany = companies.find((c) => c.id === companyId);
+  const selectedCompany = companies.find((c) => c.id === overview.companyId);
   const complianceIssues = checkCompliance(selectedCompany);
   const hasBlockingIssues = complianceIssues.some((i) => i.severity === "error");
-
-  // Auto-fill customer name from selected company
-  useEffect(() => {
-    if (selectedCompany && !customerName) {
-      setCustomerName(selectedCompany.company_name);
-    }
-  }, [selectedCompany]);
-
-  const [bookingMode, setBookingMode] = useState(false);
-
-  const createQuoteData = () => ({
-    user_id: user!.id,
-    shipment_id: null as any,
-    carrier_rate_id: selectedRate!.id,
-    carrier_cost: carrierCost,
-    margin_type: marginType,
-    margin_value: parseFloat(marginValue) || 0,
-    customer_price: customerPrice,
-    amount: customerPrice,
-    currency: selectedRate!.currency,
-    origin_port: originPort,
-    destination_port: destinationPort,
-    container_type: containerType,
-    carrier: selectedRate!.carrier,
-    transit_days: selectedRate!.transit_days,
-    valid_until: format(addDays(new Date(), parseInt(validDays) || 7), "yyyy-MM-dd"),
-    customer_email: customerEmail || null,
-    customer_name: customerName || null,
-    company_id: companyId && companyId !== "none" ? companyId : null,
-  });
 
   const handleSubmit = async () => {
     if (!user || !selectedRate) return;
     setSubmitting(true);
-
     try {
-      // Create a placeholder shipment first (quotes require shipment_id)
-      const { data: shipment, error: shipErr } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          shipment_ref: "PENDING",
-          shipment_type: "export",
-          origin_port: originPort,
-          destination_port: destinationPort,
-          company_id: companyId && companyId !== "none" ? companyId : null,
-          status: "draft",
-        })
-        .select("id")
-        .single();
+      const customerName = partiesData.shipper.companyName || selectedCompany?.company_name || "";
 
+      // Create shipment
+      const { data: shipment, error: shipErr } = await supabase.from("shipments").insert({
+        user_id: user.id, shipment_ref: "PENDING", shipment_type: overview.shipmentType || "export",
+        origin_port: overview.originPort, destination_port: overview.destinationPort,
+        pickup_location: overview.pickupLocation || null, delivery_location: overview.deliveryLocation || null,
+        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
+        incoterms: overview.incoterms || null, status: "draft",
+      }).select("id").single();
       if (shipErr) throw shipErr;
 
-      const { data: quote, error } = await supabase
-        .from("quotes")
-        .insert({ ...createQuoteData(), shipment_id: shipment.id, status: "pending" })
-        .select("id, approval_token")
-        .single();
+      // Create quote
+      const { data: quote, error: quoteErr } = await supabase.from("quotes").insert({
+        user_id: user.id, shipment_id: shipment.id,
+        carrier_rate_id: selectedRate.id, carrier_cost: carrierCost,
+        margin_type: marginType, margin_value: parseFloat(marginValue) || 0,
+        customer_price: customerPrice, amount: customerPrice,
+        currency: selectedRate.currency, origin_port: overview.originPort,
+        destination_port: overview.destinationPort, container_type: cargoData.containerType,
+        carrier: selectedRate.carrier, transit_days: selectedRate.transit_days,
+        valid_until: format(addDays(new Date(), parseInt(validDays) || 7), "yyyy-MM-dd"),
+        customer_email: customerEmail || partiesData.consignee.email || null,
+        customer_name: customerName || null,
+        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
+        status: "pending",
+      }).select("id").single();
+      if (quoteErr) throw quoteErr;
 
-      if (error) throw error;
+      // Create cargo
+      if (cargoData.commodity || cargoData.hsCode) {
+        await supabase.from("cargo").insert({
+          shipment_id: shipment.id, commodity: cargoData.commodity || null,
+          hs_code: cargoData.hsCode || null, num_packages: cargoData.numPackages ? parseInt(cargoData.numPackages) : null,
+          package_type: cargoData.packageType || null, gross_weight: cargoData.grossWeight ? parseFloat(cargoData.grossWeight) : null,
+          volume: cargoData.volume ? parseFloat(cargoData.volume) : null,
+          unit_value: cargoData.unitValue ? parseFloat(cargoData.unitValue) : null,
+          total_value: cargoData.totalValue ? parseFloat(cargoData.totalValue) : null,
+          country_of_origin: cargoData.countryOfOrigin || null,
+        });
+      }
 
-      toast({
-        title: "Quote Created",
-        description: `Quote for $${customerPrice.toLocaleString()} sent. Margin: $${marginAmount.toLocaleString()}.`,
-      });
+      // Create container
+      if (cargoData.containerType) {
+        await supabase.from("containers").insert({
+          shipment_id: shipment.id, container_type: cargoData.containerType,
+          quantity: cargoData.containerQuantity ? parseInt(cargoData.containerQuantity) : 1,
+        });
+      }
 
+      // Create parties
+      const partyMap: [keyof PartiesData, string][] = [
+        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
+        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      ];
+      const partyEntries = partyMap
+        .filter(([key]) => partiesData[key].companyName)
+        .map(([key, role]) => ({
+          role, company_name: partiesData[key].companyName, contact_name: partiesData[key].contactName || null,
+          address: partiesData[key].address || null, email: partiesData[key].email || null,
+          phone: partiesData[key].phone || null, shipment_id: shipment.id,
+        }));
+      if (partyEntries.length > 0) await supabase.from("shipment_parties").insert(partyEntries);
+
+      // Customs filing
+      if (complianceData.exporterName || complianceData.exporterEin) {
+        await supabase.from("customs_filings").insert({
+          shipment_id: shipment.id, user_id: user.id,
+          exporter_name: complianceData.exporterName || null, exporter_ein: complianceData.exporterEin || null,
+          aes_citation: complianceData.aesType || null, consignee_name: partiesData.consignee.companyName || null,
+          consignee_address: partiesData.consignee.address || null,
+          port_of_export: overview.originPort || null, port_of_unlading: overview.destinationPort || null,
+        });
+      }
+
+      // Document checklist
+      const requiredDocs = [
+        "bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction",
+        "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({ shipment_id: shipment.id, user_id: user.id, doc_type: docType, status: "pending" }))
+      );
+
+      toast({ title: "Quote Created", description: `Quote for $${customerPrice.toLocaleString()} created with full trade documentation.` });
       navigate("/dashboard/quotes");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -241,90 +241,95 @@ const NewQuote = () => {
   const handleBookAndPayLater = async () => {
     if (!user || !selectedRate) return;
     setSubmitting(true);
-
     try {
-      // 1. Create shipment first (quotes require shipment_id)
-      const { data: shipment, error: shipErr } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          shipment_ref: "PENDING",
-          shipment_type: "export",
-          origin_port: originPort,
-          destination_port: destinationPort,
-          company_id: companyId && companyId !== "none" ? companyId : null,
-          status: "booked",
-        })
-        .select("id")
-        .single();
+      const customerName = partiesData.shipper.companyName || selectedCompany?.company_name || "";
 
+      const { data: shipment, error: shipErr } = await supabase.from("shipments").insert({
+        user_id: user.id, shipment_ref: "PENDING", shipment_type: overview.shipmentType || "export",
+        origin_port: overview.originPort, destination_port: overview.destinationPort,
+        pickup_location: overview.pickupLocation || null, delivery_location: overview.deliveryLocation || null,
+        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
+        incoterms: overview.incoterms || null, status: "booked",
+      }).select("id").single();
       if (shipErr) throw shipErr;
 
-      // 2. Create quote linked to shipment
-      const { data: quote, error: quoteErr } = await supabase
-        .from("quotes")
-        .insert({ ...createQuoteData(), shipment_id: shipment.id, status: "booked", payment_status: "unpaid" } as any)
-        .select("id")
-        .single();
-
+      const { data: quote, error: quoteErr } = await supabase.from("quotes").insert({
+        user_id: user.id, shipment_id: shipment.id,
+        carrier_rate_id: selectedRate.id, carrier_cost: carrierCost,
+        margin_type: marginType, margin_value: parseFloat(marginValue) || 0,
+        customer_price: customerPrice, amount: customerPrice,
+        currency: selectedRate.currency, origin_port: overview.originPort,
+        destination_port: overview.destinationPort, container_type: cargoData.containerType,
+        carrier: selectedRate.carrier, transit_days: selectedRate.transit_days,
+        valid_until: format(addDays(new Date(), parseInt(validDays) || 7), "yyyy-MM-dd"),
+        customer_email: customerEmail || partiesData.consignee.email || null,
+        customer_name: customerName || null,
+        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
+        status: "booked", payment_status: "unpaid",
+      } as any).select("id").single();
       if (quoteErr) throw quoteErr;
 
-      // 3. Link quote back to shipment
       await supabase.from("shipments").update({ converted_from_quote_id: quote.id }).eq("id", shipment.id);
 
-      // 4. Create container
-      if (containerType) {
-        await supabase.from("containers").insert({
-          shipment_id: shipment.id,
-          container_type: containerType,
-          quantity: 1,
+      // Container, cargo, parties, customs, docs, financials
+      if (cargoData.containerType) {
+        await supabase.from("containers").insert({ shipment_id: shipment.id, container_type: cargoData.containerType, quantity: cargoData.containerQuantity ? parseInt(cargoData.containerQuantity) : 1 });
+      }
+      if (cargoData.commodity || cargoData.hsCode) {
+        await supabase.from("cargo").insert({
+          shipment_id: shipment.id, commodity: cargoData.commodity || null, hs_code: cargoData.hsCode || null,
+          num_packages: cargoData.numPackages ? parseInt(cargoData.numPackages) : null,
+          package_type: cargoData.packageType || null, gross_weight: cargoData.grossWeight ? parseFloat(cargoData.grossWeight) : null,
+          volume: cargoData.volume ? parseFloat(cargoData.volume) : null,
+          unit_value: cargoData.unitValue ? parseFloat(cargoData.unitValue) : null,
+          total_value: cargoData.totalValue ? parseFloat(cargoData.totalValue) : null,
+          country_of_origin: cargoData.countryOfOrigin || null,
         });
       }
 
-      // 5. Create financials
+      const partyMap: [keyof PartiesData, string][] = [
+        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
+        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      ];
+      const entries = partyMap.filter(([k]) => partiesData[k].companyName).map(([k, r]) => ({
+        role: r, company_name: partiesData[k].companyName, contact_name: partiesData[k].contactName || null,
+        address: partiesData[k].address || null, email: partiesData[k].email || null,
+        phone: partiesData[k].phone || null, shipment_id: shipment.id,
+      }));
+      if (entries.length > 0) await supabase.from("shipment_parties").insert(entries);
+
+      if (complianceData.exporterName || complianceData.exporterEin) {
+        await supabase.from("customs_filings").insert({
+          shipment_id: shipment.id, user_id: user.id,
+          exporter_name: complianceData.exporterName || null, exporter_ein: complianceData.exporterEin || null,
+          aes_citation: complianceData.aesType || null, consignee_name: partiesData.consignee.companyName || null,
+          consignee_address: partiesData.consignee.address || null,
+          port_of_export: overview.originPort || null, port_of_unlading: overview.destinationPort || null,
+        });
+      }
+
       if (customerPrice) {
         await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          description: `Freight revenue — ${selectedRate.carrier}`,
-          entry_type: "revenue",
-          category: "freight",
-          amount: customerPrice,
-          vendor: customerName || null,
+          shipment_id: shipment.id, user_id: user.id, description: `Freight revenue — ${selectedRate.carrier}`,
+          entry_type: "revenue", category: "freight", amount: customerPrice, vendor: customerName || null,
         });
       }
       if (carrierCost) {
         await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          description: `Carrier cost — ${selectedRate.carrier}`,
-          entry_type: "cost",
-          category: "freight",
-          amount: carrierCost,
-          vendor: selectedRate.carrier || null,
+          shipment_id: shipment.id, user_id: user.id, description: `Carrier cost — ${selectedRate.carrier}`,
+          entry_type: "cost", category: "freight", amount: carrierCost, vendor: selectedRate.carrier || null,
         });
       }
 
-      // 6. Auto-generate document checklist
       const requiredDocs = [
-        "bill_of_lading", "commercial_invoice", "packing_list",
-        "shipper_letter_of_instruction", "dock_receipt",
-        "certificate_of_origin", "insurance_certificate", "aes_filing",
+        "bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction",
+        "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing",
       ];
       await supabase.from("documents").insert(
-        requiredDocs.map((docType) => ({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          doc_type: docType,
-          status: "pending",
-        }))
+        requiredDocs.map((d) => ({ shipment_id: shipment.id, user_id: user.id, doc_type: d, status: "pending" }))
       );
 
-      toast({
-        title: "Booking Created",
-        description: `Shipment booked for $${customerPrice.toLocaleString()}. Payment pending — documents will release upon payment.`,
-      });
-
+      toast({ title: "Booking Created", description: `Shipment booked for $${customerPrice.toLocaleString()} with full documentation.` });
       navigate(`/dashboard/shipments/${shipment.id}`);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -334,311 +339,189 @@ const NewQuote = () => {
   };
 
   const canProceed = () => {
-    if (step === 0) return originPort && destinationPort && containerType;
-    if (step === 1) return !!selectedRateId;
-    if (step === 2) return parseFloat(marginValue) >= 0;
+    if (step === 0) return !!(overview.originPort && overview.destinationPort);
+    if (step === 4) return !!selectedRateId;
+    if (step === 5) return parseFloat(marginValue) >= 0;
     return true;
   };
 
-  const next = () => {
-    if (step < 3) setStep(step + 1);
-    else handleSubmit();
+  const renderStep = () => {
+    switch (step) {
+      case 0: return (
+        <>
+          <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />
+          {/* Quote-specific fields */}
+          <Separator />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Quote Valid For (days)</Label>
+              <Input type="number" className="mt-1" value={validDays} onChange={(e) => setValidDays(e.target.value)} />
+            </div>
+            <div>
+              <Label>Customer Email (optional)</Label>
+              <Input placeholder="customer@company.com" className="mt-1" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
+            </div>
+          </div>
+          {selectedCompany && complianceIssues.length > 0 && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-destructive">⚠️ Compliance Issues</h4>
+              {complianceIssues.map((issue, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <Badge variant={issue.severity === "error" ? "destructive" : "secondary"} className="text-[10px]">
+                    {issue.severity === "error" ? "BLOCK" : "WARN"}
+                  </Badge>
+                  <span className="font-medium text-foreground">{issue.field}:</span>
+                  <span className="text-muted-foreground">{issue.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      );
+      case 1: return <PartiesStep data={partiesData} onChange={setPartiesData} />;
+      case 2: return <CargoStep data={cargoData} onChange={setCargoData} />;
+      case 3: return <ComplianceStep data={complianceData} onChange={setComplianceData} />;
+      case 4: return (
+        <>
+          {ratesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-secondary animate-pulse rounded-lg" />)}
+            </div>
+          ) : carrierRates.length === 0 ? (
+            <div className="text-center py-8">
+              <Ship className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No carrier rates found for {overview.originPort} → {overview.destinationPort}.</p>
+              <p className="text-xs text-muted-foreground mt-1">Check port codes or add rates in Rate Trends.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {carrierRates.map((rate) => {
+                const total = getTotalRate(rate);
+                const isSelected = selectedRateId === rate.id;
+                return (
+                  <div key={rate.id} onClick={() => setSelectedRateId(rate.id)}
+                    className={`rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                      isSelected ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
+                    }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isSelected ? "border-accent bg-accent" : "border-muted-foreground/30"
+                        }`}>
+                          {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-sm text-foreground">{rate.carrier}</span>
+                          {rate.transit_days && <span className="text-xs text-muted-foreground ml-2">{rate.transit_days} days transit</span>}
+                          <p className="text-xs text-muted-foreground">Valid until {format(new Date(rate.valid_until), "MMM d, yyyy")}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-foreground">${total.toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">Your cost (all-in)</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      );
+      case 5: return selectedRate ? (
+        <>
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Carrier Cost ({selectedRate.carrier})</span>
+              <span className="font-mono font-semibold text-foreground">${carrierCost.toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Margin Type</Label>
+              <Select value={marginType} onValueChange={(v) => setMarginType(v as "flat" | "percent")}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="flat">Flat Amount ($)</SelectItem>
+                  <SelectItem value="percent">Percentage (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{marginType === "flat" ? "Markup Amount ($)" : "Markup Percentage (%)"}</Label>
+              <Input type="number" className="mt-1" placeholder={marginType === "flat" ? "e.g. 500" : "e.g. 15"}
+                value={marginValue} onChange={(e) => setMarginValue(e.target.value)} />
+            </div>
+          </div>
+          <Separator />
+          <div className="rounded-lg border-2 border-accent bg-accent/5 p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Your Cost</span>
+              <span className="font-mono text-foreground">${carrierCost.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Your Margin</span>
+              <span className="font-mono text-green-600">+${marginAmount.toLocaleString()}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between text-base font-bold">
+              <span className="text-foreground">Customer Price</span>
+              <span className="font-mono text-foreground">${customerPrice.toLocaleString()}</span>
+            </div>
+          </div>
+        </>
+      ) : null;
+      case 6: return (
+        <div className="space-y-4">
+          <ReviewStep overview={overview} parties={partiesData} cargo={cargoData} compliance={complianceData} companies={companies} />
+          {selectedRate && (
+            <div className="rounded-lg border-2 border-accent bg-accent/5 p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-foreground">Pricing</h4>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Carrier ({selectedRate.carrier})</span>
+                <span className="font-mono text-foreground">${carrierCost.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Margin</span>
+                <span className="font-mono text-green-600">+${marginAmount.toLocaleString()}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between text-base font-bold">
+                <span className="text-foreground">Customer Price</span>
+                <span className="font-mono text-foreground">${customerPrice.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+      default: return null;
+    }
   };
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Create Quote</h1>
-        <p className="text-sm text-muted-foreground mb-8">Build a customer quote with carrier rates and your margin.</p>
-
-        {/* Stepper */}
-        <div className="flex items-center gap-1 mb-8">
-          {STEPS.map((title, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
-                i < step ? "bg-accent text-accent-foreground" :
-                i === step ? "bg-accent text-accent-foreground" :
-                "bg-secondary text-muted-foreground"
-              }`}>
-                {i < step ? <Check className="h-4 w-4" /> : i + 1}
-              </div>
-              <span className={`text-xs text-center hidden sm:block ${i <= step ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {title}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{STEPS[step]}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {step === 0 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Origin Port</Label>
-                    <PortSelector ports={ports} value={originPort} onValueChange={setOriginPort} placeholder="Search origin port..." />
-                  </div>
-                  <div>
-                    <Label>Destination Port</Label>
-                    <PortSelector ports={ports} value={destinationPort} onValueChange={setDestinationPort} placeholder="Search destination port..." />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Container Type</Label>
-                    <Select value={containerType} onValueChange={setContainerType}>
-                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {CONTAINER_TYPES.map((ct) => (
-                          <SelectItem key={ct.value} value={ct.value}>{ct.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Quote Valid For (days)</Label>
-                    <Input type="number" className="mt-1" value={validDays}
-                      onChange={(e) => setValidDays(e.target.value)} />
-                  </div>
-                </div>
-                <Separator />
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Customer (CRM)</Label>
-                    <Select value={companyId} onValueChange={setCompanyId}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">— Walk-in —</SelectItem>
-                        {companies.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Customer Email (optional)</Label>
-                    <Input placeholder="customer@company.com" className="mt-1" value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)} />
-                  </div>
-                </div>
-                <div>
-                  <Label>Customer Name</Label>
-                  <Input placeholder="Company or contact name" className="mt-1" value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)} />
-                </div>
-
-                {/* Compliance Gate */}
-                {selectedCompany && complianceIssues.length > 0 && (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
-                    <h4 className="text-sm font-semibold text-destructive flex items-center gap-2">
-                      ⚠️ Compliance Issues
-                    </h4>
-                    {complianceIssues.map((issue, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs">
-                        <Badge variant={issue.severity === "error" ? "destructive" : "secondary"} className="text-[10px]">
-                          {issue.severity === "error" ? "BLOCK" : "WARN"}
-                        </Badge>
-                        <span className="font-medium text-foreground">{issue.field}:</span>
-                        <span className="text-muted-foreground">{issue.message}</span>
-                      </div>
-                    ))}
-                    {hasBlockingIssues && (
-                      <p className="text-xs text-destructive font-medium mt-2">
-                        Resolve blocking issues before proceeding. Update the customer's compliance data in CRM.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-
-            {step === 1 && (
-              <>
-                {ratesLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-20 bg-secondary animate-pulse rounded-lg" />
-                    ))}
-                  </div>
-                ) : carrierRates.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Ship className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground">No carrier rates found for {originPort} → {destinationPort}.</p>
-                    <p className="text-xs text-muted-foreground mt-1">Check port codes or add rates in Rate Trends.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {carrierRates.map((rate) => {
-                      const total = getTotalRate(rate);
-                      const isSelected = selectedRateId === rate.id;
-                      return (
-                        <div
-                          key={rate.id}
-                          onClick={() => setSelectedRateId(rate.id)}
-                          className={`rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                            isSelected ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                isSelected ? "border-accent bg-accent" : "border-muted-foreground/30"
-                              }`}>
-                                {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
-                              </div>
-                              <div>
-                                <span className="font-semibold text-sm text-foreground">{rate.carrier}</span>
-                                {rate.transit_days && (
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    {rate.transit_days} days transit
-                                  </span>
-                                )}
-                                <p className="text-xs text-muted-foreground">
-                                  Valid until {format(new Date(rate.valid_until), "MMM d, yyyy")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-lg font-bold text-foreground">${total.toLocaleString()}</p>
-                              <p className="text-[10px] text-muted-foreground">Your cost (all-in)</p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            )}
-
-            {step === 2 && selectedRate && (
-              <>
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Carrier Cost ({selectedRate.carrier})</span>
-                    <span className="font-mono font-semibold text-foreground">${carrierCost.toLocaleString()}</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Margin Type</Label>
-                    <Select value={marginType} onValueChange={(v) => setMarginType(v as "flat" | "percent")}>
-                      <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="flat">Flat Amount ($)</SelectItem>
-                        <SelectItem value="percent">Percentage (%)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>{marginType === "flat" ? "Markup Amount ($)" : "Markup Percentage (%)"}</Label>
-                    <Input type="number" className="mt-1" placeholder={marginType === "flat" ? "e.g. 500" : "e.g. 15"}
-                      value={marginValue} onChange={(e) => setMarginValue(e.target.value)} />
-                  </div>
-                </div>
-                <Separator />
-                <div className="rounded-lg border-2 border-accent bg-accent/5 p-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Your Cost</span>
-                    <span className="font-mono text-foreground">${carrierCost.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Your Margin</span>
-                    <span className="font-mono text-green-600">+${marginAmount.toLocaleString()}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-base font-bold">
-                    <span className="text-foreground">Customer Price</span>
-                    <span className="font-mono text-foreground">${customerPrice.toLocaleString()}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    The customer will only see the all-in price of ${customerPrice.toLocaleString()}.
-                    Your margin of ${marginAmount.toLocaleString()} ({((marginAmount / carrierCost) * 100).toFixed(1)}%) stays private.
-                  </p>
-                </div>
-              </>
-            )}
-
-            {step === 3 && selectedRate && (
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground">Quote Summary</h4>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Route</span>
-                      <span className="text-foreground font-medium">{originPort} → {destinationPort}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Container</span>
-                      <span className="text-foreground font-medium">{containerType.toUpperCase()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Carrier</span>
-                      <span className="text-foreground font-medium">{selectedRate.carrier}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Transit</span>
-                      <span className="text-foreground font-medium">{selectedRate.transit_days || "—"} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Customer</span>
-                      <span className="text-foreground font-medium">{customerName || "Walk-in"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valid Until</span>
-                      <span className="text-foreground font-medium">
-                        {format(addDays(new Date(), parseInt(validDays) || 7), "MMM d, yyyy")}
-                      </span>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-base font-bold">
-                    <span className="text-foreground">Customer Price</span>
-                    <span className="font-mono text-foreground">${customerPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Your margin</span>
-                    <span className="text-green-600 font-medium">+${marginAmount.toLocaleString()} ({((marginAmount / carrierCost) * 100).toFixed(1)}%)</span>
-                  </div>
-                </div>
-
-                {hasBlockingIssues && (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                    <p className="text-xs text-destructive font-medium">
-                      ⚠️ This customer has compliance issues that must be resolved before converting to a shipment.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-between mt-6">
-          <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : navigate("/dashboard/quotes")} >
-            <ArrowLeft className="mr-2 h-4 w-4" /> {step === 0 ? "Cancel" : "Previous"}
+      <WizardShell
+        title="Create Quote"
+        subtitle="Build a comprehensive quote with full trade details, carrier rates, and your margin."
+        steps={STEPS}
+        currentStep={step}
+        onNext={() => step < 6 ? setStep(step + 1) : handleSubmit()}
+        onPrev={() => setStep(step - 1)}
+        onCancel={() => navigate("/dashboard/quotes")}
+        canProceed={canProceed() && !(step === 0 && hasBlockingIssues)}
+        submitting={submitting}
+        isLastStep={step === 6}
+        submitLabel="Create Quote"
+        extraButtons={step === 6 ? (
+          <Button variant="outline" onClick={handleBookAndPayLater} disabled={submitting || hasBlockingIssues}>
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Ship className="mr-2 h-4 w-4" />
+            Book & Pay Later
           </Button>
-          <div className="flex gap-2">
-            {step === 3 && (
-              <Button variant="outline" onClick={handleBookAndPayLater}
-                disabled={submitting || hasBlockingIssues}>
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Ship className="mr-2 h-4 w-4" />
-                Book & Pay Later
-              </Button>
-            )}
-            <Button variant="electric" onClick={next}
-              disabled={!canProceed() || submitting || (step === 0 && hasBlockingIssues)}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {step === 3 ? "Create Quote" : "Next"}
-              {step < 3 && <ArrowRight className="ml-2 h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </div>
+        ) : undefined}
+      >
+        {renderStep()}
+      </WizardShell>
     </DashboardLayout>
   );
 };
