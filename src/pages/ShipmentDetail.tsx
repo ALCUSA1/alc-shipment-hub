@@ -446,7 +446,7 @@ const ShipmentDetail = () => {
           />
 
           {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && <VesselBookingPanel shipmentId={id!} variant="shipper" />}
+          {!isDelivered && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" /></div>}
 
           {/* Customs / AES Filing */}
           <div data-guide="customs">
