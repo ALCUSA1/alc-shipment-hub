@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check } from "lucide-react";
+import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
@@ -40,6 +40,7 @@ interface QuoteRow {
   approved_at: string | null;
   company_id: string | null;
   converted_from_quote_id?: string | null;
+  payment_status?: string;
   shipments?: { shipment_ref: string; origin_port: string | null; destination_port: string | null } | null;
 }
 
@@ -50,6 +51,13 @@ const statusStyle: Record<string, string> = {
   declined: "bg-destructive/10 text-destructive",
   expired: "bg-secondary text-muted-foreground",
   converted: "bg-accent/10 text-accent",
+  booked: "bg-blue-100 text-blue-700",
+};
+
+const paymentStatusStyle: Record<string, string> = {
+  unpaid: "bg-orange-100 text-orange-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  paid: "bg-green-100 text-green-700",
 };
 
 const Quotes = () => {
@@ -74,6 +82,120 @@ const Quotes = () => {
     },
     enabled: !!user,
   });
+
+  const [bookingId, setBookingId] = useState<string | null>(null);
+
+  const handleBookQuote = async (quote: QuoteRow) => {
+    if (!user) return;
+    setBookingId(quote.id);
+
+    try {
+      // 1. Create shipment
+      const { data: shipment, error: shipErr } = await supabase
+        .from("shipments")
+        .insert({
+          user_id: user.id,
+          shipment_ref: "PENDING",
+          shipment_type: "export",
+          origin_port: quote.origin_port,
+          destination_port: quote.destination_port,
+          company_id: quote.company_id,
+          converted_from_quote_id: quote.id,
+          status: "booked",
+        })
+        .select("id")
+        .single();
+
+      if (shipErr) throw shipErr;
+
+      // 2. Update quote
+      await supabase.from("quotes").update({
+        status: "booked",
+        shipment_id: shipment.id,
+        payment_status: "unpaid",
+      } as any).eq("id", quote.id);
+
+      // 3. Container
+      if (quote.container_type) {
+        await supabase.from("containers").insert({
+          shipment_id: shipment.id,
+          container_type: quote.container_type,
+          quantity: 1,
+        });
+      }
+
+      // 4. Financials
+      if (quote.customer_price) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Freight revenue — ${quote.carrier}`,
+          entry_type: "revenue",
+          category: "freight",
+          amount: quote.customer_price,
+          vendor: quote.customer_name || null,
+        });
+      }
+      if (quote.carrier_cost) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Carrier cost — ${quote.carrier}`,
+          entry_type: "cost",
+          category: "freight",
+          amount: quote.carrier_cost,
+          vendor: quote.carrier || null,
+        });
+      }
+
+      // 5. Document checklist
+      const requiredDocs = [
+        "bill_of_lading", "commercial_invoice", "packing_list",
+        "shipper_letter_of_instruction", "dock_receipt",
+        "certificate_of_origin", "insurance_certificate", "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          doc_type: docType,
+          status: "pending",
+        }))
+      );
+
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast({ title: "Booking Created", description: "Shipment booked. Payment pending — documents release upon payment." });
+      navigate(`/dashboard/shipments/${shipment.id}`);
+    } catch (err: any) {
+      toast({ title: "Booking failed", description: err.message, variant: "destructive" });
+    } finally {
+      setBookingId(null);
+    }
+  };
+
+  const handleMarkPaid = async (quoteId: string) => {
+    try {
+      await supabase.from("quotes").update({ payment_status: "paid" } as any).eq("id", quoteId);
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast({ title: "Payment recorded", description: "Quote marked as paid. Documents can now be released." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleStripePayment = async (quote: QuoteRow) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { quote_id: quote.id, amount: quote.customer_price, currency: quote.currency || "USD" },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment error", description: err.message, variant: "destructive" });
+    }
+  };
 
   const copyApprovalLink = (token: string) => {
     const url = `${window.location.origin}/quote/approve?token=${token}`;
@@ -228,6 +350,7 @@ const Quotes = () => {
                     <th className="text-left font-medium text-muted-foreground p-4">Customer Price</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Margin</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Status</th>
+                    <th className="text-left font-medium text-muted-foreground p-4">Payment</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Created</th>
                     <th className="text-left font-medium text-muted-foreground p-4">Actions</th>
                   </tr>
@@ -266,16 +389,44 @@ const Quotes = () => {
                             {isExpired ? "expired" : q.status}
                           </Badge>
                         </td>
+                        <td className="p-4">
+                          {q.status === "booked" && q.payment_status ? (
+                            <Badge className={paymentStatusStyle[q.payment_status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                              {q.payment_status}
+                            </Badge>
+                          ) : "—"}
+                        </td>
                         <td className="p-4 text-muted-foreground">
                           {format(new Date(q.created_at), "MMM d, yyyy")}
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
+                            {/* Book & Pay Later for pending/accepted quotes */}
+                            {(q.status === "pending" || q.status === "accepted") && !isExpired && (
+                              <Button size="sm" variant="outline" onClick={() => handleBookQuote(q)}
+                                disabled={bookingId === q.id}>
+                                {bookingId === q.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ship className="h-3.5 w-3.5 mr-1" />}
+                                Book
+                              </Button>
+                            )}
                             {q.status === "accepted" && (
                               <Button size="sm" variant="electric" onClick={() => { setConvertDialogQuote(q); setCutoffs({ cy: "", si: "", vgm: "", doc: "" }); }}>
                                 <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
                                 Convert
                               </Button>
+                            )}
+                            {/* Payment actions for booked quotes */}
+                            {q.status === "booked" && q.payment_status === "unpaid" && (
+                              <>
+                                <Button size="sm" variant="electric" onClick={() => handleStripePayment(q)}>
+                                  <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                  Pay
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => handleMarkPaid(q.id)}>
+                                  <Check className="h-3.5 w-3.5 mr-1" />
+                                  Mark Paid
+                                </Button>
+                              </>
                             )}
                             {q.approval_token && q.status === "pending" && !isExpired && (
                               <Button size="sm" variant="outline"
