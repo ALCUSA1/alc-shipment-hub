@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Handshake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 const AdminPartners = () => {
   const { data: contacts, isLoading } = useQuery({
@@ -65,7 +66,7 @@ const AdminPartners = () => {
               ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{c.full_name}</td>
-                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{(c.companies as any)?.company_name || "—"}</td>
+                  <td className="px-4 py-3 text-xs">{(c.companies as any)?.company_name ? <Link to={`/admin/crm/${c.company_id}`} className="text-indigo-400 hover:text-indigo-300">{(c.companies as any).company_name}</Link> : "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.role}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.email || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.phone || "—"}</td>

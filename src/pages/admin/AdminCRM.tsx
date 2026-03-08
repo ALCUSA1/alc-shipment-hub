@@ -7,6 +7,7 @@ import { Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 const statusColors: Record<string, string> = {
   prospect: "bg-[hsl(220,10%,20%)] text-[hsl(220,10%,60%)] border-[hsl(220,15%,25%)]",
@@ -106,7 +107,7 @@ const AdminCRM = () => {
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No companies match your filters</td></tr>
               ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{c.company_name}</td>
+                  <td className="px-4 py-3 text-xs font-medium"><Link to={`/admin/crm/${c.id}`} className="text-indigo-400 hover:text-indigo-300">{c.company_name}</Link></td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{[c.city, c.state, c.country].filter(Boolean).join(", ") || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{c.fmc_license_number || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.email || "—"}</td>
