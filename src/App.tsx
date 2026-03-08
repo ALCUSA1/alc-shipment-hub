@@ -44,6 +44,21 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminShipments from "./pages/admin/AdminShipments";
 import AdminShipmentDetail from "./pages/admin/AdminShipmentDetail";
 import AdminCustomerLookup from "./pages/admin/AdminCustomerLookup";
+import AdminPipeline from "./pages/admin/AdminPipeline";
+import AdminQuotes from "./pages/admin/AdminQuotes";
+import AdminTrucking from "./pages/admin/AdminTrucking";
+import AdminWarehouses from "./pages/admin/AdminWarehouses";
+import AdminDocuments from "./pages/admin/AdminDocuments";
+import AdminAccounting from "./pages/admin/AdminAccounting";
+import AdminRateTrends from "./pages/admin/AdminRateTrends";
+import AdminCRM from "./pages/admin/AdminCRM";
+import AdminPartners from "./pages/admin/AdminPartners";
+import AdminTeam from "./pages/admin/AdminTeam";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminAccount from "./pages/admin/AdminAccount";
+import AdminCompliance from "./pages/admin/AdminCompliance";
+import AdminApiHealth from "./pages/admin/AdminApiHealth";
+import AdminDataExplorer from "./pages/admin/AdminDataExplorer";
 
 const queryClient = new QueryClient();
 
