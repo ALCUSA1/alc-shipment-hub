@@ -16,6 +16,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { LeadActivityPanel } from "@/components/admin/LeadActivityPanel";
 
 const STAGES = ["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"];
 const SOURCES = ["manual", "referral", "website", "event", "cold_outreach", "partner"];
@@ -42,6 +43,7 @@ const AdminSalesPipeline = () => {
   const [newLead, setNewLead] = useState({ full_name: "", email: "", phone: "", company_name: "", source: "manual", notes: "" });
   const [convertLead, setConvertLead] = useState<any>(null);
   const [convertData, setConvertData] = useState({ company_name: "", email: "", phone: "", status: "prospect" as string });
+  const [activityLead, setActivityLead] = useState<any>(null);
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["admin-leads"],
@@ -238,7 +240,7 @@ const AdminSalesPipeline = () => {
               ) : finalFiltered.map((l: any) => (
                 <tr key={l.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3">
-                    <div className="text-xs font-medium text-white">{l.full_name}</div>
+                    <div className="text-xs font-medium text-white cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => setActivityLead(l)}>{l.full_name}</div>
                     <div className="flex items-center gap-3 mt-0.5">
                       {l.email && <span className="text-[10px] text-[hsl(220,10%,45%)] flex items-center gap-1"><Mail className="h-2.5 w-2.5" />{l.email}</span>}
                       {l.phone && <span className="text-[10px] text-[hsl(220,10%,45%)] flex items-center gap-1"><Phone className="h-2.5 w-2.5" />{l.phone}</span>}
@@ -261,11 +263,16 @@ const AdminSalesPipeline = () => {
                   </td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,45%)]">{new Date(l.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-center">
-                    {l.converted_company_id ? (
-                      <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1"><CheckCircle2 className="h-3 w-3" /> View Company</Link>
-                    ) : l.stage === "won" ? (
-                      <button onClick={() => { setConvertLead(l); setConvertData({ company_name: l.company_name || l.full_name, email: l.email || "", phone: l.phone || "", status: "prospect" }); }} className="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Convert →</button>
-                    ) : null}
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => setActivityLead(l)} className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5" title="Activities">
+                        <MessageSquare className="h-3 w-3" />
+                      </button>
+                      {l.converted_company_id ? (
+                        <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Company</Link>
+                      ) : l.stage === "won" ? (
+                        <button onClick={() => { setConvertLead(l); setConvertData({ company_name: l.company_name || l.full_name, email: l.email || "", phone: l.phone || "", status: "prospect" }); }} className="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Convert →</button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -323,6 +330,7 @@ const AdminSalesPipeline = () => {
           )}
         </DialogContent>
       </Dialog>
+      <LeadActivityPanel lead={activityLead} open={!!activityLead} onOpenChange={(open) => { if (!open) setActivityLead(null); }} />
     </AdminLayout>
   );
 };
