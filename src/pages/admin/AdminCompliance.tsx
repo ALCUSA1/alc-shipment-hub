@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { differenceInDays, parseISO } from "date-fns";
+
 
 const AdminCompliance = () => {
   const { data: companies, isLoading } = useQuery({
