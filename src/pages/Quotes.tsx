@@ -186,7 +186,13 @@ const Quotes = () => {
   const handleStripePayment = async (quote: QuoteRow) => {
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { quote_id: quote.id, amount: quote.customer_price, currency: quote.currency || "USD" },
+        body: {
+          quote_id: quote.id,
+          shipment_id: quote.shipment_id,
+          amount: quote.customer_price,
+          currency: quote.currency || "USD",
+          carrier: quote.carrier,
+        },
       });
       if (error) throw error;
       if (data?.url) {

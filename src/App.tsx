@@ -64,6 +64,7 @@ import AdminSalesPipeline from "./pages/admin/AdminSalesPipeline";
 import AdminSalesAnalytics from "./pages/admin/AdminSalesAnalytics";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminMaterials from "./pages/admin/AdminMaterials";
+import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +137,7 @@ const App = () => (
             <Route path="/admin/sales-analytics" element={<AdminGate><AdminSalesAnalytics /></AdminGate>} />
             <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
+            <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

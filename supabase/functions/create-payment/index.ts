@@ -25,12 +25,49 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { quote_id, shipment_id, amount, currency = "USD", shipment_ref } = await req.json();
+    const { quote_id, shipment_id, amount, currency = "USD", shipment_ref, carrier } = await req.json();
     if (!amount || amount <= 0) throw new Error("Invalid amount");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Load platform settings
+    const { data: settings } = await supabaseAdmin
+      .from("platform_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    const feeType = settings?.platform_fee_type || "percent";
+    const feeValue = settings?.platform_fee_value || 5;
+    const connectEnabled = settings?.stripe_connect_enabled || false;
+
+    // Calculate platform fee
+    const platformFee = feeType === "percent"
+      ? Math.round(amount * (feeValue / 100) * 100) / 100
+      : Math.min(feeValue, amount);
+    const carrierAmount = amount - platformFee;
+
+    // Look up carrier's Stripe Connect account
+    let carrierStripeAccountId: string | null = null;
+    if (connectEnabled && carrier) {
+      const { data: carrierProfile } = await supabaseAdmin
+        .from("carrier_payment_profiles")
+        .select("stripe_account_id, payment_method, is_active")
+        .eq("carrier_name", carrier)
+        .eq("is_active", true)
+        .single();
+
+      if (carrierProfile?.stripe_account_id && carrierProfile.payment_method === "stripe_connect") {
+        carrierStripeAccountId = carrierProfile.stripe_account_id;
+      }
+    }
 
     // Find or create Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -42,17 +79,31 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Create checkout session with both card and ACH
-    const session = await stripe.checkout.sessions.create({
+    // Build payment method types based on currency
+    const paymentMethodTypes: string[] = ["card"];
+    const currLower = currency.toLowerCase();
+    if (currLower === "usd") {
+      paymentMethodTypes.push("us_bank_account");
+    }
+    if (currLower === "eur") {
+      paymentMethodTypes.push("sepa_debit");
+    }
+
+    // Build checkout session options
+    const sessionParams: any = {
       customer: customerId,
-      payment_method_types: ["card", "us_bank_account"],
+      payment_method_types: paymentMethodTypes,
       line_items: [
         {
           price_data: {
-            currency: currency.toLowerCase(),
+            currency: currLower,
             product_data: {
               name: `Freight Payment${shipment_ref ? ` — ${shipment_ref}` : ""}`,
-              description: quote_id ? `Quote payment for shipment ${shipment_ref || ""}` : "Shipment payment",
+              description: [
+                carrier ? `Carrier: ${carrier}` : null,
+                `Platform fee: $${platformFee.toLocaleString()}`,
+                `Carrier settlement: $${carrierAmount.toLocaleString()}`,
+              ].filter(Boolean).join(" | "),
             },
             unit_amount: Math.round(amount * 100),
           },
@@ -66,15 +117,25 @@ serve(async (req) => {
         quote_id: quote_id || "",
         shipment_id: shipment_id || "",
         user_id: user.id,
+        carrier: carrier || "",
+        platform_fee: platformFee.toString(),
+        carrier_amount: carrierAmount.toString(),
       },
-    });
+    };
+
+    // If carrier has Stripe Connect account, use destination charge
+    if (carrierStripeAccountId) {
+      sessionParams.payment_intent_data = {
+        application_fee_amount: Math.round(platformFee * 100),
+        transfer_data: {
+          destination: carrierStripeAccountId,
+        },
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     // Record payment in DB
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
     await supabaseAdmin.from("payments").insert({
       quote_id: quote_id || null,
       shipment_id: shipment_id || null,
@@ -84,6 +145,10 @@ serve(async (req) => {
       currency: currency.toUpperCase(),
       status: "pending",
       payment_method: "stripe_checkout",
+      platform_fee: platformFee,
+      carrier_amount: carrierAmount,
+      carrier_settlement_status: carrierStripeAccountId ? "auto_pending" : "manual_pending",
+      carrier_name: carrier || null,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

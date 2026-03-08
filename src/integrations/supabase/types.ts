@@ -159,6 +159,57 @@ export type Database = {
           },
         ]
       }
+      carrier_payment_profiles: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          bank_name: string | null
+          carrier_name: string
+          created_at: string
+          iban: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          payment_method: string
+          routing_number: string | null
+          stripe_account_id: string | null
+          swift_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          carrier_name: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          payment_method?: string
+          routing_number?: string | null
+          stripe_account_id?: string | null
+          swift_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          carrier_name?: string
+          created_at?: string
+          iban?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          payment_method?: string
+          routing_number?: string | null
+          stripe_account_id?: string | null
+          swift_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       carrier_rates: {
         Row: {
           base_rate: number
@@ -1048,43 +1099,58 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          carrier_amount: number | null
+          carrier_name: string | null
+          carrier_settlement_status: string | null
           created_at: string
           currency: string
           id: string
           payment_method: string | null
+          platform_fee: number | null
           quote_id: string | null
           shipment_id: string | null
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          stripe_transfer_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           amount: number
+          carrier_amount?: number | null
+          carrier_name?: string | null
+          carrier_settlement_status?: string | null
           created_at?: string
           currency?: string
           id?: string
           payment_method?: string | null
+          platform_fee?: number | null
           quote_id?: string | null
           shipment_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_transfer_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           amount?: number
+          carrier_amount?: number | null
+          carrier_name?: string | null
+          carrier_settlement_status?: string | null
           created_at?: string
           currency?: string
           id?: string
           payment_method?: string | null
+          platform_fee?: number | null
           quote_id?: string | null
           shipment_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_transfer_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1104,6 +1170,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          created_at: string
+          id: string
+          platform_fee_type: string
+          platform_fee_value: number
+          stripe_connect_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform_fee_type?: string
+          platform_fee_value?: number
+          stripe_connect_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform_fee_type?: string
+          platform_fee_value?: number
+          stripe_connect_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       ports: {
         Row: {
