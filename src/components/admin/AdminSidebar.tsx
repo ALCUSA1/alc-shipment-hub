@@ -37,6 +37,15 @@ const navGroups = [
     ],
   },
   {
+    label: "Sales & Marketing",
+    items: [
+      { title: "Sales Pipeline", url: "/admin/sales-pipeline", icon: Target },
+      { title: "Sales Analytics", url: "/admin/sales-analytics", icon: BarChart3 },
+      { title: "Email Campaigns", url: "/admin/campaigns", icon: Mail },
+      { title: "Materials Library", url: "/admin/materials", icon: FolderOpen },
+    ],
+  },
+  {
     label: "Platform",
     items: [
       { title: "Users & Roles", url: "/admin/users", icon: Users },
