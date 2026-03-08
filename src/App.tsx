@@ -64,6 +64,7 @@ import AdminSalesPipeline from "./pages/admin/AdminSalesPipeline";
 import AdminSalesAnalytics from "./pages/admin/AdminSalesAnalytics";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminMaterials from "./pages/admin/AdminMaterials";
+import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 
 const queryClient = new QueryClient();
 
