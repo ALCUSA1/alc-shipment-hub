@@ -200,9 +200,26 @@ const NewQuote = () => {
     setSubmitting(true);
 
     try {
+      // Create a placeholder shipment first (quotes require shipment_id)
+      const { data: shipment, error: shipErr } = await supabase
+        .from("shipments")
+        .insert({
+          user_id: user.id,
+          shipment_ref: "PENDING",
+          shipment_type: "export",
+          origin_port: originPort,
+          destination_port: destinationPort,
+          company_id: companyId && companyId !== "none" ? companyId : null,
+          status: "draft",
+        })
+        .select("id")
+        .single();
+
+      if (shipErr) throw shipErr;
+
       const { data: quote, error } = await supabase
         .from("quotes")
-        .insert({ ...createQuoteData(), status: "pending" })
+        .insert({ ...createQuoteData(), shipment_id: shipment.id, status: "pending" })
         .select("id, approval_token")
         .single();
 
@@ -226,16 +243,7 @@ const NewQuote = () => {
     setSubmitting(true);
 
     try {
-      // 1. Create quote with "booked" status and unpaid payment
-      const { data: quote, error: quoteErr } = await supabase
-        .from("quotes")
-        .insert({ ...createQuoteData(), status: "booked", payment_status: "unpaid" } as any)
-        .select("id")
-        .single();
-
-      if (quoteErr) throw quoteErr;
-
-      // 2. Create shipment linked to this quote
+      // 1. Create shipment first (quotes require shipment_id)
       const { data: shipment, error: shipErr } = await supabase
         .from("shipments")
         .insert({
@@ -245,7 +253,6 @@ const NewQuote = () => {
           origin_port: originPort,
           destination_port: destinationPort,
           company_id: companyId && companyId !== "none" ? companyId : null,
-          converted_from_quote_id: quote.id,
           status: "booked",
         })
         .select("id")
@@ -253,8 +260,17 @@ const NewQuote = () => {
 
       if (shipErr) throw shipErr;
 
-      // 3. Link shipment to quote
-      await supabase.from("quotes").update({ shipment_id: shipment.id }).eq("id", quote.id);
+      // 2. Create quote linked to shipment
+      const { data: quote, error: quoteErr } = await supabase
+        .from("quotes")
+        .insert({ ...createQuoteData(), shipment_id: shipment.id, status: "booked", payment_status: "unpaid" } as any)
+        .select("id")
+        .single();
+
+      if (quoteErr) throw quoteErr;
+
+      // 3. Link quote back to shipment
+      await supabase.from("shipments").update({ converted_from_quote_id: quote.id }).eq("id", shipment.id);
 
       // 4. Create container
       if (containerType) {
