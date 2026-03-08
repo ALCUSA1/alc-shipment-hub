@@ -302,7 +302,7 @@ const AdminShipmentDetail = () => {
           </div>
 
           {/* Vessel Bookings */}
-          <VesselBookingPanel shipmentId={id!} variant="admin" />
+          <VesselBookingPanel shipmentId={id!} variant="admin" bookingRef={shipment?.booking_ref} />
 
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
