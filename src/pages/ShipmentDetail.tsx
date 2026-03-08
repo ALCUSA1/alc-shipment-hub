@@ -461,42 +461,63 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Shipping Line Schedule */}
-          <VoyageDatesEditor
-            shipmentId={id!}
-            etd={shipment.etd}
-            eta={shipment.eta}
-            vessel={shipment.vessel}
-            voyage={shipment.voyage}
-          />
+          {/* Shipping Line Schedule - read-only view for delivered */}
+          {isDelivered ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Ship className="h-4 w-4 text-accent" />
+                  Voyage Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <InfoRow label="Vessel" value={shipment.vessel || "—"} />
+                <InfoRow label="Voyage" value={shipment.voyage || "—"} />
+                <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"} />
+                <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "—"} />
+              </CardContent>
+            </Card>
+          ) : (
+            <VoyageDatesEditor
+              shipmentId={id!}
+              etd={shipment.etd}
+              eta={shipment.eta}
+              vessel={shipment.vessel}
+              voyage={shipment.voyage}
+            />
+          )}
 
-          {/* Cutoff Deadlines */}
-          <CutoffTracker
-            shipmentId={id!}
-            etd={shipment.etd}
-            cutoffs={{
-              cy_cutoff: (shipment as any).cy_cutoff,
-              si_cutoff: (shipment as any).si_cutoff,
-              vgm_cutoff: (shipment as any).vgm_cutoff,
-              doc_cutoff: (shipment as any).doc_cutoff,
-            }}
-          />
+          {/* Cutoff Deadlines - hide for delivered */}
+          {!isDelivered && (
+            <CutoffTracker
+              shipmentId={id!}
+              etd={shipment.etd}
+              cutoffs={{
+                cy_cutoff: (shipment as any).cy_cutoff,
+                si_cutoff: (shipment as any).si_cutoff,
+                vgm_cutoff: (shipment as any).vgm_cutoff,
+                doc_cutoff: (shipment as any).doc_cutoff,
+              }}
+            />
+          )}
 
-          {/* Carrier Rate Selection & Booking */}
-          <CarrierRateSelector
-            shipmentId={id!}
-            shipmentRef={shipment.shipment_ref}
-            originPort={shipment.origin_port}
-            destinationPort={shipment.destination_port}
-            containerType={(containers && containers.length > 0) ? containers[0].container_type : null}
-          />
+          {/* Carrier Rate Selection & Booking - hide for delivered */}
+          {!isDelivered && (
+            <CarrierRateSelector
+              shipmentId={id!}
+              shipmentRef={shipment.shipment_ref}
+              originPort={shipment.origin_port}
+              destinationPort={shipment.destination_port}
+              containerType={(containers && containers.length > 0) ? containers[0].container_type : null}
+            />
+          )}
 
-          {/* EDI Message Log */}
+          {/* Carrier Communications (formerly EDI Messages) */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Radio className="h-4 w-4 text-accent" />
-                EDI Messages
+                Carrier Communications
               </CardTitle>
             </CardHeader>
             <CardContent>
