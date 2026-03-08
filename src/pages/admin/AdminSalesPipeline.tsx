@@ -240,7 +240,7 @@ const AdminSalesPipeline = () => {
               ) : finalFiltered.map((l: any) => (
                 <tr key={l.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3">
-                    <div className="text-xs font-medium text-white">{l.full_name}</div>
+                    <div className="text-xs font-medium text-white cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => setActivityLead(l)}>{l.full_name}</div>
                     <div className="flex items-center gap-3 mt-0.5">
                       {l.email && <span className="text-[10px] text-[hsl(220,10%,45%)] flex items-center gap-1"><Mail className="h-2.5 w-2.5" />{l.email}</span>}
                       {l.phone && <span className="text-[10px] text-[hsl(220,10%,45%)] flex items-center gap-1"><Phone className="h-2.5 w-2.5" />{l.phone}</span>}
