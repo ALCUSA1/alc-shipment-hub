@@ -387,7 +387,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBo
                           </span>
                         )}
                       </div>
-                    )))}
+                    ))}
                   </div>
                 )}
 
