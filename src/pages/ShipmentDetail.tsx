@@ -428,6 +428,9 @@ const ShipmentDetail = () => {
             shipmentStatus={shipment.status}
           />
 
+          {/* Vessel Bookings */}
+          <VesselBookingPanel shipmentId={id!} variant="shipper" />
+
           {/* Profit & Loss */}
           <ShipmentPnL
             shipmentId={id!}
