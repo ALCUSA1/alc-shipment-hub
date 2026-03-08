@@ -95,6 +95,7 @@ const App = () => (
             <Route path="/admin/system" element={<AdminGate><AdminSystem /></AdminGate>} />
             <Route path="/admin/shipments" element={<AdminGate><AdminShipments /></AdminGate>} />
             <Route path="/admin/shipments/:id" element={<AdminGate><AdminShipmentDetail /></AdminGate>} />
+            <Route path="/admin/customers" element={<AdminGate><AdminCustomerLookup /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

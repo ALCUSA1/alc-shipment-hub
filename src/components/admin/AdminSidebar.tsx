@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard, end: true },
   { title: "Shipments", url: "/admin/shipments", icon: Package },
+  { title: "Customer Lookup", url: "/admin/customers", icon: Search },
   { title: "Users & Roles", url: "/admin/users", icon: Users },
   { title: "Activity Feed", url: "/admin/activity", icon: Activity },
   { title: "Financials", url: "/admin/financials", icon: DollarSign },
