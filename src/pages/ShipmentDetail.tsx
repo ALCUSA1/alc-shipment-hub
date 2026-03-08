@@ -343,11 +343,11 @@ const ShipmentDetail = () => {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 mb-3 transition-all ${
                         isCompleted
                           ? isActive
-                            ? "bg-accent text-accent-foreground ring-4 ring-accent/20"
-                            : "bg-accent text-accent-foreground"
+                            ? "bg-emerald-500 text-white ring-4 ring-emerald-500/25 shadow-lg shadow-emerald-500/20"
+                            : "bg-emerald-500 text-white shadow-sm"
                           : "bg-secondary border-2 border-border text-muted-foreground"
                       }`}>
-                        {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+                        {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : <Circle className="h-3 w-3" />}
                       </div>
                       <p className={`text-xs font-medium leading-tight mb-1 ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
                         {milestone.label}
