@@ -137,6 +137,7 @@ const App = () => (
             <Route path="/admin/sales-analytics" element={<AdminGate><AdminSalesAnalytics /></AdminGate>} />
             <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
+            <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

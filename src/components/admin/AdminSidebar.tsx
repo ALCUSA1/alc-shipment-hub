@@ -31,6 +31,7 @@ const navGroups = [
     label: "Finance & Sales",
     items: [
       { title: "Accounting", url: "/admin/accounting", icon: DollarSign },
+      { title: "Payment Settings", url: "/admin/payment-settings", icon: CreditCard },
       { title: "Rate Trends", url: "/admin/rate-trends", icon: TrendingUp },
       { title: "CRM", url: "/admin/crm", icon: Building2 },
       { title: "Partners", url: "/admin/partners", icon: Handshake },
