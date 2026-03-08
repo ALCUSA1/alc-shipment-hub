@@ -47,7 +47,7 @@ const emptyLeg = (order: number, type: string = "main") => ({
   notes: "",
 });
 
-export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBookingPanelProps) {
+export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef }: VesselBookingPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
