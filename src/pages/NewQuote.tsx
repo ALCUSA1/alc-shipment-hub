@@ -172,6 +172,29 @@ const NewQuote = () => {
     }
   }, [selectedCompany]);
 
+  const [bookingMode, setBookingMode] = useState(false);
+
+  const createQuoteData = () => ({
+    user_id: user!.id,
+    shipment_id: null as any,
+    carrier_rate_id: selectedRate!.id,
+    carrier_cost: carrierCost,
+    margin_type: marginType,
+    margin_value: parseFloat(marginValue) || 0,
+    customer_price: customerPrice,
+    amount: customerPrice,
+    currency: selectedRate!.currency,
+    origin_port: originPort,
+    destination_port: destinationPort,
+    container_type: containerType,
+    carrier: selectedRate!.carrier,
+    transit_days: selectedRate!.transit_days,
+    valid_until: format(addDays(new Date(), parseInt(validDays) || 7), "yyyy-MM-dd"),
+    customer_email: customerEmail || null,
+    customer_name: customerName || null,
+    company_id: companyId && companyId !== "none" ? companyId : null,
+  });
+
   const handleSubmit = async () => {
     if (!user || !selectedRate) return;
     setSubmitting(true);
@@ -179,27 +202,7 @@ const NewQuote = () => {
     try {
       const { data: quote, error } = await supabase
         .from("quotes")
-        .insert({
-          user_id: user.id,
-          shipment_id: null as any, // Will be linked when converted
-          status: "pending",
-          carrier_rate_id: selectedRate.id,
-          carrier_cost: carrierCost,
-          margin_type: marginType,
-          margin_value: parseFloat(marginValue) || 0,
-          customer_price: customerPrice,
-          amount: customerPrice,
-          currency: selectedRate.currency,
-          origin_port: originPort,
-          destination_port: destinationPort,
-          container_type: containerType,
-          carrier: selectedRate.carrier,
-          transit_days: selectedRate.transit_days,
-          valid_until: format(addDays(new Date(), parseInt(validDays) || 7), "yyyy-MM-dd"),
-          customer_email: customerEmail || null,
-          customer_name: customerName || null,
-          company_id: companyId && companyId !== "none" ? companyId : null,
-        })
+        .insert({ ...createQuoteData(), status: "pending" })
         .select("id, approval_token")
         .single();
 
@@ -211,6 +214,102 @@ const NewQuote = () => {
       });
 
       navigate("/dashboard/quotes");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBookAndPayLater = async () => {
+    if (!user || !selectedRate) return;
+    setSubmitting(true);
+
+    try {
+      // 1. Create quote with "booked" status and unpaid payment
+      const { data: quote, error: quoteErr } = await supabase
+        .from("quotes")
+        .insert({ ...createQuoteData(), status: "booked", payment_status: "unpaid" } as any)
+        .select("id")
+        .single();
+
+      if (quoteErr) throw quoteErr;
+
+      // 2. Create shipment linked to this quote
+      const { data: shipment, error: shipErr } = await supabase
+        .from("shipments")
+        .insert({
+          user_id: user.id,
+          shipment_ref: "PENDING",
+          shipment_type: "export",
+          origin_port: originPort,
+          destination_port: destinationPort,
+          company_id: companyId && companyId !== "none" ? companyId : null,
+          converted_from_quote_id: quote.id,
+          status: "booked",
+        })
+        .select("id")
+        .single();
+
+      if (shipErr) throw shipErr;
+
+      // 3. Link shipment to quote
+      await supabase.from("quotes").update({ shipment_id: shipment.id }).eq("id", quote.id);
+
+      // 4. Create container
+      if (containerType) {
+        await supabase.from("containers").insert({
+          shipment_id: shipment.id,
+          container_type: containerType,
+          quantity: 1,
+        });
+      }
+
+      // 5. Create financials
+      if (customerPrice) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Freight revenue — ${selectedRate.carrier}`,
+          entry_type: "revenue",
+          category: "freight",
+          amount: customerPrice,
+          vendor: customerName || null,
+        });
+      }
+      if (carrierCost) {
+        await supabase.from("shipment_financials").insert({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          description: `Carrier cost — ${selectedRate.carrier}`,
+          entry_type: "cost",
+          category: "freight",
+          amount: carrierCost,
+          vendor: selectedRate.carrier || null,
+        });
+      }
+
+      // 6. Auto-generate document checklist
+      const requiredDocs = [
+        "bill_of_lading", "commercial_invoice", "packing_list",
+        "shipper_letter_of_instruction", "dock_receipt",
+        "certificate_of_origin", "insurance_certificate", "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({
+          shipment_id: shipment.id,
+          user_id: user.id,
+          doc_type: docType,
+          status: "pending",
+        }))
+      );
+
+      toast({
+        title: "Booking Created",
+        description: `Shipment booked for $${customerPrice.toLocaleString()}. Payment pending — documents will release upon payment.`,
+      });
+
+      navigate(`/dashboard/shipments/${shipment.id}`);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
