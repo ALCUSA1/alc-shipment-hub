@@ -449,13 +449,19 @@ const ShipmentDetail = () => {
           {!isDelivered && <VesselBookingPanel shipmentId={id!} variant="shipper" />}
 
           {/* Customs / AES Filing */}
-          <CustomsFilingPanel shipmentId={id!} />
+          <div data-guide="customs">
+            <CustomsFilingPanel shipmentId={id!} />
+          </div>
 
           {/* Trucking */}
-          <TruckingPanel shipmentId={id!} />
+          <div data-guide="trucking">
+            <TruckingPanel shipmentId={id!} />
+          </div>
 
           {/* Warehouse Operations */}
-          <WarehousePanel shipmentId={id!} />
+          <div data-guide="warehouse">
+            <WarehousePanel shipmentId={id!} />
+          </div>
 
           {/* Profit & Loss */}
           <ShipmentPnL
