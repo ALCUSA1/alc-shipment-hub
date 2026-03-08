@@ -183,6 +183,26 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
     onError: (err: any) => toast.error(err.message || "EDI submission failed"),
   });
 
+  const syncFromE2Open = useMutation({
+    mutationFn: async (mode: string = "all") => {
+      const { data, error } = await supabase.functions.invoke("e2open-sync", {
+        body: { shipment_id: shipmentId, mode, booking_ref: bookingRef },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["vessel-bookings", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["containers", shipmentId] });
+      const synced = data?.synced?.join(", ") || "data";
+      toast.success(`Synced from e2open: ${synced}`);
+    },
+    onError: (err: any) => toast.error(err.message || "e2open sync failed"),
+  });
+
   const updateLeg = (index: number, field: string, value: string) => {
     setLegs(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
   };
