@@ -51,6 +51,13 @@ const statusStyle: Record<string, string> = {
   declined: "bg-destructive/10 text-destructive",
   expired: "bg-secondary text-muted-foreground",
   converted: "bg-accent/10 text-accent",
+  booked: "bg-blue-100 text-blue-700",
+};
+
+const paymentStatusStyle: Record<string, string> = {
+  unpaid: "bg-orange-100 text-orange-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  paid: "bg-green-100 text-green-700",
 };
 
 const Quotes = () => {
