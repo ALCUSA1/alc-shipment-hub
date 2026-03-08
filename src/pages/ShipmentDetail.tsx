@@ -439,8 +439,8 @@ const ShipmentDetail = () => {
             shipmentStatus={shipment.status}
           />
 
-          {/* Vessel Bookings */}
-          <VesselBookingPanel shipmentId={id!} variant="shipper" />
+          {/* Vessel Bookings - read-only for delivered */}
+          {!isDelivered && <VesselBookingPanel shipmentId={id!} variant="shipper" />}
 
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
