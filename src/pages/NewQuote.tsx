@@ -200,9 +200,26 @@ const NewQuote = () => {
     setSubmitting(true);
 
     try {
+      // Create a placeholder shipment first (quotes require shipment_id)
+      const { data: shipment, error: shipErr } = await supabase
+        .from("shipments")
+        .insert({
+          user_id: user.id,
+          shipment_ref: "PENDING",
+          shipment_type: "export",
+          origin_port: originPort,
+          destination_port: destinationPort,
+          company_id: companyId && companyId !== "none" ? companyId : null,
+          status: "draft",
+        })
+        .select("id")
+        .single();
+
+      if (shipErr) throw shipErr;
+
       const { data: quote, error } = await supabase
         .from("quotes")
-        .insert({ ...createQuoteData(), status: "pending" })
+        .insert({ ...createQuoteData(), shipment_id: shipment.id, status: "pending" })
         .select("id, approval_token")
         .single();
 
