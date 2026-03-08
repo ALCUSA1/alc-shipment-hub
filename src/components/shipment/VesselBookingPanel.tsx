@@ -11,12 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Ship, Plus, Anchor, ArrowRight, Trash2, Send, MapPin, Calendar, Hash
+  Ship, Plus, Anchor, ArrowRight, Trash2, Send, MapPin, Calendar, Hash, RefreshCw, Loader2
 } from "lucide-react";
 
 interface VesselBookingPanelProps {
   shipmentId: string;
   variant?: "shipper" | "admin";
+  bookingRef?: string | null;
 }
 
 const CARRIERS = ["Maersk", "MSC", "CMA CGM", "Evergreen", "Hapag-Lloyd", "COSCO", "ONE", "Yang Ming", "ZIM", "HMM"];
@@ -46,7 +47,7 @@ const emptyLeg = (order: number, type: string = "main") => ({
   notes: "",
 });
 
-export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBookingPanelProps) {
+export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef }: VesselBookingPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -182,6 +183,26 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBo
     onError: (err: any) => toast.error(err.message || "EDI submission failed"),
   });
 
+  const syncFromE2Open = useMutation({
+    mutationFn: async (mode: string = "all") => {
+      const { data, error } = await supabase.functions.invoke("e2open-sync", {
+        body: { shipment_id: shipmentId, mode, booking_ref: bookingRef },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["vessel-bookings", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["containers", shipmentId] });
+      const synced = data?.synced?.join(", ") || "data";
+      toast.success(`Synced from e2open: ${synced}`);
+    },
+    onError: (err: any) => toast.error(err.message || "e2open sync failed"),
+  });
+
   const updateLeg = (index: number, field: string, value: string) => {
     setLegs(prev => prev.map((l, i) => i === index ? { ...l, [field]: value } : l));
   };
@@ -206,15 +227,30 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBo
             </Badge>
           )}
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className={isAdmin
-              ? "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white text-xs"
-              : "text-xs"
-            } variant={isAdmin ? "default" : "electric"}>
-              <Plus className="h-3 w-3 mr-1" /> New Booking
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className={`text-xs ${isAdmin ? "border-[hsl(220,15%,20%)] text-[hsl(220,10%,50%)] hover:text-white" : ""}`}
+            disabled={syncFromE2Open.isPending}
+            onClick={() => syncFromE2Open.mutate("all")}
+          >
+            {syncFromE2Open.isPending ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3 mr-1" />
+            )}
+            Sync from e2open
+          </Button>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className={isAdmin
+                ? "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white text-xs"
+                : "text-xs"
+              } variant={isAdmin ? "default" : "electric"}>
+                <Plus className="h-3 w-3 mr-1" /> New Booking
+              </Button>
+            </DialogTrigger>
           <DialogContent className={`${isAdmin ? "bg-[hsl(220,18%,10%)] border-[hsl(220,15%,18%)] text-white" : ""} max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <DialogHeader>
               <DialogTitle className={isAdmin ? "text-white" : ""}>Create Vessel Booking</DialogTitle>
@@ -327,6 +363,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper" }: VesselBo
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Existing bookings */}
