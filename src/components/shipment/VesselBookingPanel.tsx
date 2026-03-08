@@ -17,6 +17,7 @@ import {
 interface VesselBookingPanelProps {
   shipmentId: string;
   variant?: "shipper" | "admin";
+  bookingRef?: string | null;
 }
 
 const CARRIERS = ["Maersk", "MSC", "CMA CGM", "Evergreen", "Hapag-Lloyd", "COSCO", "ONE", "Yang Ming", "ZIM", "HMM"];
