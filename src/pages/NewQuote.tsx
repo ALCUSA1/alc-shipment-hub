@@ -605,12 +605,22 @@ const NewQuote = () => {
           <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : navigate("/dashboard/quotes")} >
             <ArrowLeft className="mr-2 h-4 w-4" /> {step === 0 ? "Cancel" : "Previous"}
           </Button>
-          <Button variant="electric" onClick={next}
-            disabled={!canProceed() || submitting || (step === 0 && hasBlockingIssues)}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {step === 3 ? "Create Quote" : "Next"}
-            {step < 3 && <ArrowRight className="ml-2 h-4 w-4" />}
-          </Button>
+          <div className="flex gap-2">
+            {step === 3 && (
+              <Button variant="outline" onClick={handleBookAndPayLater}
+                disabled={submitting || hasBlockingIssues}>
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Ship className="mr-2 h-4 w-4" />
+                Book & Pay Later
+              </Button>
+            )}
+            <Button variant="electric" onClick={next}
+              disabled={!canProceed() || submitting || (step === 0 && hasBlockingIssues)}>
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {step === 3 ? "Create Quote" : "Next"}
+              {step < 3 && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </div>
     </DashboardLayout>
