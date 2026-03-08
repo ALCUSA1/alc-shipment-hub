@@ -7,6 +7,7 @@ import { ShieldCheck, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 const STATUSES = ["all", "prospect", "pending_compliance", "active", "suspended", "inactive"];
 
