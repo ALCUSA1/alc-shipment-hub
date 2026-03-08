@@ -40,6 +40,7 @@ interface QuoteRow {
   approved_at: string | null;
   company_id: string | null;
   converted_from_quote_id?: string | null;
+  payment_status?: string;
   shipments?: { shipment_ref: string; origin_port: string | null; destination_port: string | null } | null;
 }
 
