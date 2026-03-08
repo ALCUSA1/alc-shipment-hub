@@ -1,53 +1,18 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PortSelector } from "@/components/shipment/PortSelector";
-import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { WizardShell } from "@/components/wizard/WizardShell";
+import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
+import { PartiesStep, type PartiesData, emptyParty } from "@/components/wizard/steps/PartiesStep";
+import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
+import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
-type CompanyOption = { id: string; company_name: string };
-
-const stepTitles = ["Shipment Overview", "Cargo Details", "Container Details", "Parties", "Review & Submit"];
-
-interface ShipmentData {
-  shipmentType: string;
-  originPort: string;
-  destinationPort: string;
-  pickupLocation: string;
-  deliveryLocation: string;
-  companyId: string;
-}
-
-interface CargoData {
-  commodity: string;
-  hsCode: string;
-  numPackages: string;
-  packageType: string;
-  grossWeight: string;
-  volume: string;
-}
-
-interface ContainerData {
-  containerType: string;
-  quantity: string;
-}
-
-interface PartiesData {
-  shipper: string;
-  consignee: string;
-  notifyParty: string;
-  forwarder: string;
-  truckingCompany: string;
-  warehouse: string;
-}
+const STEPS = ["Overview", "Trade Parties", "Cargo & Container", "Compliance & Insurance", "Review & Submit"];
 
 const NewShipment = () => {
   const [step, setStep] = useState(0);
@@ -55,14 +20,15 @@ const NewShipment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [crmCompanies, setCrmCompanies] = useState<CompanyOption[]>([]);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("companies").select("id, company_name").eq("user_id", user.id).order("company_name").then(({ data }) => {
-      setCrmCompanies(data || []);
-    });
-  }, [user]);
+  const { data: companies = [] } = useQuery({
+    queryKey: ["wizard-companies", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, company_name").eq("user_id", user!.id).order("company_name");
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   const { data: ports = [] } = useQuery({
     queryKey: ["ports"],
@@ -72,15 +38,23 @@ const NewShipment = () => {
     },
   });
 
-  const [shipment, setShipment] = useState<ShipmentData>({
-    shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "",
+  const [overview, setOverview] = useState<OverviewData>({
+    shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "", incoterms: "",
   });
+
+  const [parties, setParties] = useState<PartiesData>({
+    shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
+    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+  });
+
   const [cargo, setCargo] = useState<CargoData>({
     commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
+    unitValue: "", totalValue: "", countryOfOrigin: "", containerType: "", containerQuantity: "",
   });
-  const [container, setContainer] = useState<ContainerData>({ containerType: "", quantity: "" });
-  const [parties, setParties] = useState<PartiesData>({
-    shipper: "", consignee: "", notifyParty: "", forwarder: "", truckingCompany: "", warehouse: "",
+
+  const [compliance, setCompliance] = useState<ComplianceData>({
+    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
+    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
   });
 
   const handleSubmit = async () => {
@@ -94,12 +68,13 @@ const NewShipment = () => {
         .insert({
           user_id: user.id,
           shipment_ref: "PENDING",
-          shipment_type: shipment.shipmentType || "export",
-          origin_port: shipment.originPort || null,
-          destination_port: shipment.destinationPort || null,
-          pickup_location: shipment.pickupLocation || null,
-          delivery_location: shipment.deliveryLocation || null,
-          company_id: shipment.companyId && shipment.companyId !== "none" ? shipment.companyId : null,
+          shipment_type: overview.shipmentType || "export",
+          origin_port: overview.originPort || null,
+          destination_port: overview.destinationPort || null,
+          pickup_location: overview.pickupLocation || null,
+          delivery_location: overview.deliveryLocation || null,
+          company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
+          incoterms: overview.incoterms || null,
         })
         .select("id")
         .single();
@@ -107,9 +82,9 @@ const NewShipment = () => {
       if (shipErr) throw shipErr;
       const shipmentId = shipmentRow.id;
 
-      // 2. Create cargo (if any data provided)
+      // 2. Create cargo
       if (cargo.commodity || cargo.hsCode || cargo.numPackages) {
-        const { error: cargoErr } = await supabase.from("cargo").insert({
+        await supabase.from("cargo").insert({
           shipment_id: shipmentId,
           commodity: cargo.commodity || null,
           hs_code: cargo.hsCode || null,
@@ -117,37 +92,63 @@ const NewShipment = () => {
           package_type: cargo.packageType || null,
           gross_weight: cargo.grossWeight ? parseFloat(cargo.grossWeight) : null,
           volume: cargo.volume ? parseFloat(cargo.volume) : null,
+          unit_value: cargo.unitValue ? parseFloat(cargo.unitValue) : null,
+          total_value: cargo.totalValue ? parseFloat(cargo.totalValue) : null,
+          country_of_origin: cargo.countryOfOrigin || null,
         });
-        if (cargoErr) throw cargoErr;
       }
 
-      // 3. Create container (if type selected)
-      if (container.containerType) {
-        const { error: contErr } = await supabase.from("containers").insert({
+      // 3. Create container
+      if (cargo.containerType) {
+        await supabase.from("containers").insert({
           shipment_id: shipmentId,
-          container_type: container.containerType,
-          quantity: container.quantity ? parseInt(container.quantity) : 1,
+          container_type: cargo.containerType,
+          quantity: cargo.containerQuantity ? parseInt(cargo.containerQuantity) : 1,
         });
-        if (contErr) throw contErr;
       }
 
-      // 4. Create parties
-      const partyEntries: { role: string; company_name: string }[] = [];
-      if (parties.shipper) partyEntries.push({ role: "shipper", company_name: parties.shipper });
-      if (parties.consignee) partyEntries.push({ role: "consignee", company_name: parties.consignee });
-      if (parties.notifyParty) partyEntries.push({ role: "notify_party", company_name: parties.notifyParty });
-      if (parties.forwarder) partyEntries.push({ role: "forwarder", company_name: parties.forwarder });
-      if (parties.truckingCompany) partyEntries.push({ role: "trucking", company_name: parties.truckingCompany });
-      if (parties.warehouse) partyEntries.push({ role: "warehouse", company_name: parties.warehouse });
+      // 4. Create parties (with full details)
+      const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
+      const partyMap: [keyof PartiesData, string][] = [
+        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
+        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      ];
 
+      for (const [key, role] of partyMap) {
+        const p = parties[key];
+        if (p.companyName) {
+          partyEntries.push({
+            role,
+            company_name: p.companyName,
+            contact_name: p.contactName || null,
+            address: p.address || null,
+            email: p.email || null,
+            phone: p.phone || null,
+            shipment_id: shipmentId,
+          });
+        }
+      }
       if (partyEntries.length > 0) {
-        const { error: partyErr } = await supabase.from("shipment_parties").insert(
-          partyEntries.map((p) => ({ ...p, shipment_id: shipmentId }))
-        );
-        if (partyErr) throw partyErr;
+        await supabase.from("shipment_parties").insert(partyEntries);
       }
 
-      // 5. Auto-generate document checklist
+      // 5. Create customs filing (if compliance data provided)
+      if (compliance.exporterName || compliance.exporterEin) {
+        await supabase.from("customs_filings").insert({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          exporter_name: compliance.exporterName || null,
+          exporter_ein: compliance.exporterEin || null,
+          aes_citation: compliance.aesType || null,
+          consignee_name: parties.consignee.companyName || null,
+          consignee_address: parties.consignee.address || null,
+          country_of_destination: overview.destinationPort || null,
+          port_of_export: overview.originPort || null,
+          port_of_unlading: overview.destinationPort || null,
+        });
+      }
+
+      // 6. Auto-generate document checklist
       const requiredDocs = [
         "bill_of_lading", "commercial_invoice", "packing_list",
         "shipper_letter_of_instruction", "dock_receipt",
@@ -162,18 +163,18 @@ const NewShipment = () => {
         }))
       );
 
-      // 6. Create a pending quote linked to shipment
+      // 7. Create a pending quote linked to shipment
       await supabase.from("quotes").insert({
         shipment_id: shipmentId,
         user_id: user.id,
         status: "pending",
-        origin_port: shipment.originPort || null,
-        destination_port: shipment.destinationPort || null,
-        container_type: container.containerType || null,
-        company_id: shipment.companyId && shipment.companyId !== "none" ? shipment.companyId : null,
+        origin_port: overview.originPort || null,
+        destination_port: overview.destinationPort || null,
+        container_type: cargo.containerType || null,
+        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
       });
 
-      toast({ title: "Shipment created", description: "Your shipment has been created with document checklist and quote request." });
+      toast({ title: "Shipment created", description: "Your shipment has been created with all trade documents initialized." });
       navigate(`/dashboard/shipments/${shipmentId}`);
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
@@ -182,193 +183,34 @@ const NewShipment = () => {
     }
   };
 
-  const next = () => {
-    if (step < 4) {
-      setStep(step + 1);
-    } else {
-      handleSubmit();
+  const renderStep = () => {
+    switch (step) {
+      case 0: return <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />;
+      case 1: return <PartiesStep data={parties} onChange={setParties} />;
+      case 2: return <CargoStep data={cargo} onChange={setCargo} />;
+      case 3: return <ComplianceStep data={compliance} onChange={setCompliance} />;
+      case 4: return <ReviewStep overview={overview} parties={parties} cargo={cargo} compliance={compliance} companies={companies} />;
+      default: return null;
     }
   };
-  const prev = () => step > 0 && setStep(step - 1);
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Create New Shipment</h1>
-        <p className="text-sm text-muted-foreground mb-8">Complete the steps below to create your shipment.</p>
-
-        {/* Stepper */}
-        <div className="flex items-center gap-1 mb-8">
-          {stepTitles.map((title, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
-                i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
-              }`}>
-                {i < step ? <Check className="h-4 w-4" /> : i + 1}
-              </div>
-              <span className={`text-xs text-center hidden sm:block ${i <= step ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {title}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{stepTitles[step]}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {step === 0 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Shipment Type</Label>
-                    <Select value={shipment.shipmentType} onValueChange={(v) => setShipment({ ...shipment, shipmentType: v })}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="export">Export</SelectItem>
-                        <SelectItem value="import">Import</SelectItem>
-                        <SelectItem value="cross_trade">Cross Trade</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Customer (CRM)</Label>
-                    <Select value={shipment.companyId} onValueChange={(v) => setShipment({ ...shipment, companyId: v })}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">— None —</SelectItem>
-                        {crmCompanies.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Origin Port</Label>
-                    <div className="mt-1">
-                      <PortSelector ports={ports} value={shipment.originPort} onValueChange={(v) => setShipment({ ...shipment, originPort: v })} placeholder="Select origin port" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Destination Port</Label>
-                    <div className="mt-1">
-                      <PortSelector ports={ports} value={shipment.destinationPort} onValueChange={(v) => setShipment({ ...shipment, destinationPort: v })} placeholder="Select destination port" />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Pickup Location</Label><Input placeholder="Full address" className="mt-1" value={shipment.pickupLocation} onChange={(e) => setShipment({ ...shipment, pickupLocation: e.target.value })} /></div>
-                  <div><Label>Delivery Location</Label><Input placeholder="Full address" className="mt-1" value={shipment.deliveryLocation} onChange={(e) => setShipment({ ...shipment, deliveryLocation: e.target.value })} /></div>
-                </div>
-              </>
-            )}
-            {step === 1 && (
-              <>
-                <div><Label>Commodity Description</Label><Input placeholder="e.g. Consumer Electronics" className="mt-1" value={cargo.commodity} onChange={(e) => setCargo({ ...cargo, commodity: e.target.value })} /></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>HS Code</Label><Input placeholder="e.g. 8471.30" className="mt-1" value={cargo.hsCode} onChange={(e) => setCargo({ ...cargo, hsCode: e.target.value })} /></div>
-                  <div><Label>Number of Packages</Label><Input type="number" placeholder="e.g. 150" className="mt-1" value={cargo.numPackages} onChange={(e) => setCargo({ ...cargo, numPackages: e.target.value })} /></div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div><Label>Package Type</Label>
-                    <Select value={cargo.packageType} onValueChange={(v) => setCargo({ ...cargo, packageType: v })}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
-                      <SelectContent><SelectItem value="carton">Carton</SelectItem><SelectItem value="pallet">Pallet</SelectItem><SelectItem value="crate">Crate</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Gross Weight (kg)</Label><Input type="number" placeholder="e.g. 5000" className="mt-1" value={cargo.grossWeight} onChange={(e) => setCargo({ ...cargo, grossWeight: e.target.value })} /></div>
-                  <div><Label>Volume (CBM)</Label><Input type="number" placeholder="e.g. 25" className="mt-1" value={cargo.volume} onChange={(e) => setCargo({ ...cargo, volume: e.target.value })} /></div>
-                </div>
-              </>
-            )}
-            {step === 2 && (
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Container Type</Label>
-                  <Select value={container.containerType} onValueChange={(v) => setContainer({ ...container, containerType: v })}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="20gp">20' GP</SelectItem>
-                      <SelectItem value="40gp">40' GP</SelectItem>
-                      <SelectItem value="40hc">40' HC</SelectItem>
-                      <SelectItem value="45hc">45' HC</SelectItem>
-                      <SelectItem value="20rf">20' Reefer</SelectItem>
-                      <SelectItem value="40rf">40' Reefer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div><Label>Container Quantity</Label><Input type="number" placeholder="e.g. 2" className="mt-1" value={container.quantity} onChange={(e) => setContainer({ ...container, quantity: e.target.value })} /></div>
-              </div>
-            )}
-            {step === 3 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Shipper</Label><Input placeholder="Company name" className="mt-1" value={parties.shipper} onChange={(e) => setParties({ ...parties, shipper: e.target.value })} /></div>
-                  <div><Label>Consignee</Label><Input placeholder="Company name" className="mt-1" value={parties.consignee} onChange={(e) => setParties({ ...parties, consignee: e.target.value })} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Notify Party</Label><Input placeholder="Company name" className="mt-1" value={parties.notifyParty} onChange={(e) => setParties({ ...parties, notifyParty: e.target.value })} /></div>
-                  <div><Label>Forwarder</Label><Input placeholder="Company name" className="mt-1" value={parties.forwarder} onChange={(e) => setParties({ ...parties, forwarder: e.target.value })} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Trucking Company</Label><Input placeholder="Company name" className="mt-1" value={parties.truckingCompany} onChange={(e) => setParties({ ...parties, truckingCompany: e.target.value })} /></div>
-                  <div><Label>Warehouse</Label><Input placeholder="Warehouse name" className="mt-1" value={parties.warehouse} onChange={(e) => setParties({ ...parties, warehouse: e.target.value })} /></div>
-                </div>
-              </>
-            )}
-            {step === 4 && (
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type</span>
-                    <span className="font-medium text-foreground">{shipment.shipmentType || "Export"}</span>
-                  </div>
-                  {shipment.originPort && shipment.destinationPort && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Route</span>
-                      <span className="font-medium text-foreground">{shipment.originPort} → {shipment.destinationPort}</span>
-                    </div>
-                  )}
-                  {container.containerType && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Container</span>
-                      <span className="font-medium text-foreground">{container.containerType.toUpperCase()} × {container.quantity || 1}</span>
-                    </div>
-                  )}
-                  {cargo.commodity && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Commodity</span>
-                      <span className="font-medium text-foreground">{cargo.commodity}</span>
-                    </div>
-                  )}
-                  {crmCompanies.find(c => c.id === shipment.companyId) && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Customer</span>
-                      <span className="font-medium text-foreground">{crmCompanies.find(c => c.id === shipment.companyId)?.company_name}</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  A document checklist (8 required documents) will be auto-generated for this shipment.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-between mt-6">
-          <Button variant="outline" onClick={prev} disabled={step === 0}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          <Button variant="electric" onClick={next} disabled={submitting}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {step === 4 ? "Create Shipment" : "Next"}
-            {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
-          </Button>
-        </div>
-      </div>
+      <WizardShell
+        title="Create New Shipment"
+        subtitle="Provide comprehensive details to auto-generate all 8 trade documents."
+        steps={STEPS}
+        currentStep={step}
+        onNext={() => step < 4 ? setStep(step + 1) : handleSubmit()}
+        onPrev={() => setStep(step - 1)}
+        onCancel={() => navigate("/dashboard/shipments")}
+        canProceed={true}
+        submitting={submitting}
+        isLastStep={step === 4}
+        submitLabel="Create Shipment"
+      >
+        {renderStep()}
+      </WizardShell>
     </DashboardLayout>
   );
 };
