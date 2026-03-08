@@ -196,6 +196,8 @@ const Quotes = () => {
       toast({ title: "Payment error", description: err.message, variant: "destructive" });
     }
   };
+
+  const copyApprovalLink = (token: string) => {
     const url = `${window.location.origin}/quote/approve?token=${token}`;
     navigator.clipboard.writeText(url);
     setCopiedToken(token);
