@@ -227,15 +227,30 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
             </Badge>
           )}
         </div>
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className={isAdmin
-              ? "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white text-xs"
-              : "text-xs"
-            } variant={isAdmin ? "default" : "electric"}>
-              <Plus className="h-3 w-3 mr-1" /> New Booking
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className={`text-xs ${isAdmin ? "border-[hsl(220,15%,20%)] text-[hsl(220,10%,50%)] hover:text-white" : ""}`}
+            disabled={syncFromE2Open.isPending}
+            onClick={() => syncFromE2Open.mutate("all")}
+          >
+            {syncFromE2Open.isPending ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3 mr-1" />
+            )}
+            Sync from e2open
+          </Button>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className={isAdmin
+                ? "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white text-xs"
+                : "text-xs"
+              } variant={isAdmin ? "default" : "electric"}>
+                <Plus className="h-3 w-3 mr-1" /> New Booking
+              </Button>
+            </DialogTrigger>
           <DialogContent className={`${isAdmin ? "bg-[hsl(220,18%,10%)] border-[hsl(220,15%,18%)] text-white" : ""} max-w-2xl max-h-[90vh] overflow-y-auto`}>
             <DialogHeader>
               <DialogTitle className={isAdmin ? "text-white" : ""}>Create Vessel Booking</DialogTitle>
