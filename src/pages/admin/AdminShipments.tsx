@@ -1,20 +1,14 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminFilterBar, FilterConfig } from "@/components/admin/AdminFilterBar";
+import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Search, Package, ArrowRight, Filter, Eye } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Package, ArrowRight, Eye } from "lucide-react";
+import { useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const STATUSES = ["all", "draft", "booked", "in_transit", "arrived", "delivered", "cancelled"];
 
@@ -28,10 +22,11 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-500/15 text-red-400",
 };
 
-const AdminShipments = () => {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+const filters: FilterConfig[] = [
+  { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) })) },
+];
 
+const AdminShipments = () => {
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["admin-all-shipments"],
     queryFn: async () => {
@@ -62,23 +57,17 @@ const AdminShipments = () => {
     return map;
   }, [profiles]);
 
-  const filtered = useMemo(() => {
-    let list = shipments || [];
-    if (statusFilter !== "all") list = list.filter(s => s.status === statusFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(s =>
-        s.shipment_ref?.toLowerCase().includes(q) ||
-        s.origin_port?.toLowerCase().includes(q) ||
-        s.destination_port?.toLowerCase().includes(q) ||
-        s.vessel?.toLowerCase().includes(q) ||
-        profileMap[s.user_id]?.name.toLowerCase().includes(q) ||
-        profileMap[s.user_id]?.company.toLowerCase().includes(q) ||
-        (s as any).companies?.company_name?.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [shipments, search, statusFilter, profileMap]);
+  const searchFields = useCallback((s: any) => [
+    s.shipment_ref, s.origin_port, s.destination_port, s.vessel,
+    profileMap[s.user_id]?.name, profileMap[s.user_id]?.company,
+    (s as any).companies?.company_name,
+  ], [profileMap]);
+  const statusField = useCallback((s: any) => s.status, []);
+  const dateField = useCallback((s: any) => s.created_at, []);
+
+  const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
+    data: shipments, searchFields, statusField, dateField,
+  });
 
   return (
     <AdminLayout>
@@ -90,47 +79,27 @@ const AdminShipments = () => {
         <p className="text-sm text-[hsl(220,10%,50%)]">Search, view, and manage any customer's shipments</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(220,10%,35%)]" />
-          <Input
-            placeholder="Search by ref, port, vessel, customer…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-[hsl(220,18%,10%)] border-[hsl(220,15%,16%)] text-white placeholder:text-[hsl(220,10%,35%)] focus-visible:ring-blue-500/50 h-10"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-[hsl(220,10%,40%)]" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px] bg-[hsl(220,18%,10%)] border-[hsl(220,15%,16%)] text-white h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,16%)]">
-              {STATUSES.map(s => (
-                <SelectItem key={s} value={s} className="text-white focus:bg-[hsl(220,15%,18%)] focus:text-white">
-                  {s === "all" ? "All Statuses" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <AdminFilterBar
+        searchPlaceholder="Search by ref, port, vessel, customer…"
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        filterValues={filterValues}
+        onFilterChange={onFilterChange}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        showDateRange
+        resultCount={filtered.length}
+        resultLabel="shipments"
+      />
 
-      {/* Count */}
-      <p className="text-xs text-[hsl(220,10%,40%)] mb-3">
-        {filtered.length} shipment{filtered.length !== 1 ? "s" : ""} found
-      </p>
-
-      {/* Table */}
       <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-full bg-[hsl(220,15%,15%)]" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-[hsl(220,10%,35%)] text-center py-12">No shipments match your search.</p>
+          <p className="text-sm text-[hsl(220,10%,35%)] text-center py-12">No shipments match your filters.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
