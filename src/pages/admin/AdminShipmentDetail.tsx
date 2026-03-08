@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -296,6 +297,9 @@ const AdminShipmentDetail = () => {
               <Field label="Delivery Location" value={shipment.delivery_location || ""} field="delivery_location" />
             </div>
           </div>
+
+          {/* Vessel Bookings */}
+          <VesselBookingPanel shipmentId={id!} variant="admin" />
 
           {/* Containers */}
           {(containers || []).length > 0 && (

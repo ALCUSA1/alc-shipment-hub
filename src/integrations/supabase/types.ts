@@ -59,6 +59,62 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_legs: {
+        Row: {
+          booking_id: string
+          created_at: string
+          destination_port: string | null
+          eta: string | null
+          etd: string | null
+          id: string
+          leg_order: number
+          leg_type: string
+          notes: string | null
+          origin_port: string | null
+          transshipment_port: string | null
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          destination_port?: string | null
+          eta?: string | null
+          etd?: string | null
+          id?: string
+          leg_order?: number
+          leg_type?: string
+          notes?: string | null
+          origin_port?: string | null
+          transshipment_port?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          destination_port?: string | null
+          eta?: string | null
+          etd?: string | null
+          id?: string
+          leg_order?: number
+          leg_type?: string
+          notes?: string | null
+          origin_port?: string | null
+          transshipment_port?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_legs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "vessel_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cargo: {
         Row: {
           commodity: string | null
@@ -1612,6 +1668,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vessel_bookings: {
+        Row: {
+          booking_number: string | null
+          carrier: string | null
+          container_count: number | null
+          container_type: string | null
+          created_at: string
+          created_by: string
+          edi_message_id: string | null
+          edi_submitted: boolean
+          id: string
+          notes: string | null
+          shipment_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_number?: string | null
+          carrier?: string | null
+          container_count?: number | null
+          container_type?: string | null
+          created_at?: string
+          created_by: string
+          edi_message_id?: string | null
+          edi_submitted?: boolean
+          id?: string
+          notes?: string | null
+          shipment_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_number?: string | null
+          carrier?: string | null
+          container_count?: number | null
+          container_type?: string | null
+          created_at?: string
+          created_by?: string
+          edi_message_id?: string | null
+          edi_submitted?: boolean
+          id?: string
+          notes?: string | null
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessel_bookings_edi_message_id_fkey"
+            columns: ["edi_message_id"]
+            isOneToOne: false
+            referencedRelation: "edi_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_bookings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       warehouse_operations: {
         Row: {

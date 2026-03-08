@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
@@ -426,6 +427,9 @@ const ShipmentDetail = () => {
             shipmentId={id!}
             shipmentStatus={shipment.status}
           />
+
+          {/* Vessel Bookings */}
+          <VesselBookingPanel shipmentId={id!} variant="shipper" />
 
           {/* Profit & Loss */}
           <ShipmentPnL
