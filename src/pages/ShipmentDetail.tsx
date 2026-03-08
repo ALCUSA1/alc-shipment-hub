@@ -244,6 +244,7 @@ const ShipmentDetail = () => {
 
   const firstCargo = cargo?.[0];
   const companyName = (shipment as any).companies?.company_name as string | undefined;
+  const isDelivered = shipment.status === "delivered" || shipment.status === "completed";
 
   return (
     <DashboardLayout>
