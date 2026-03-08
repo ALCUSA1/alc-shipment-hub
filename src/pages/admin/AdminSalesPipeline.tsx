@@ -43,6 +43,7 @@ const AdminSalesPipeline = () => {
   const [newLead, setNewLead] = useState({ full_name: "", email: "", phone: "", company_name: "", source: "manual", notes: "" });
   const [convertLead, setConvertLead] = useState<any>(null);
   const [convertData, setConvertData] = useState({ company_name: "", email: "", phone: "", status: "prospect" as string });
+  const [activityLead, setActivityLead] = useState<any>(null);
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["admin-leads"],
