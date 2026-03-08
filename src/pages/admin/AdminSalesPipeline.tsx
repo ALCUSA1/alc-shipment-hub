@@ -254,7 +254,7 @@ const AdminSalesPipeline = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Select value={l.stage} onValueChange={stage => updateStage.mutate({ id: l.id, stage })}>
+                    <Select value={l.stage} onValueChange={stage => updateStage.mutate({ id: l.id, stage, lead: l })}>
                       <SelectTrigger className={`h-7 text-[10px] border ${stageColors[l.stage]} bg-transparent w-28`}><SelectValue /></SelectTrigger>
                       <SelectContent>{STAGES.map(s => <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}</SelectContent>
                     </Select>
@@ -262,9 +262,9 @@ const AdminSalesPipeline = () => {
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,45%)]">{new Date(l.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-center">
                     {l.converted_company_id ? (
-                      <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300">View Company →</Link>
+                      <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1"><CheckCircle2 className="h-3 w-3" /> View Company</Link>
                     ) : l.stage === "won" ? (
-                      <span className="text-[10px] text-amber-400">Ready to convert</span>
+                      <button onClick={() => { setConvertLead(l); setConvertData({ company_name: l.company_name || l.full_name, email: l.email || "", phone: l.phone || "", status: "prospect" }); }} className="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Convert →</button>
                     ) : null}
                   </td>
                 </tr>
