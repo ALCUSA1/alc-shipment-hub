@@ -150,7 +150,7 @@ const AdminCompliance = () => {
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No companies match your filters</td></tr>
               ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{c.company_name}</td>
+                  <td className="px-4 py-3 text-xs font-medium"><Link to={`/admin/crm/${c.id}`} className="text-indigo-400 hover:text-indigo-300">{c.company_name}</Link></td>
                   <td className="px-4 py-3 text-center"><ComplianceDot value={c.fmc_license_number} /></td>
                   <td className="px-4 py-3 text-center"><ComplianceDot value={c.oti_bond_number} /></td>
                   <td className="px-4 py-3 text-center"><ComplianceDot value={c.cargo_insurance_provider} date={c.cargo_insurance_expiry} /></td>

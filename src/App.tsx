@@ -115,6 +115,7 @@ const App = () => (
             <Route path="/admin/accounting" element={<AdminGate><AdminAccounting /></AdminGate>} />
             <Route path="/admin/rate-trends" element={<AdminGate><AdminRateTrends /></AdminGate>} />
             <Route path="/admin/crm" element={<AdminGate><AdminCRM /></AdminGate>} />
+            <Route path="/admin/crm/:id" element={<AdminGate><AdminCompanyDetail /></AdminGate>} />
             <Route path="/admin/partners" element={<AdminGate><AdminPartners /></AdminGate>} />
             <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
             <Route path="/admin/customers" element={<AdminGate><AdminCustomerLookup /></AdminGate>} />
