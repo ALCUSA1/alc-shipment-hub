@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
+import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -300,6 +301,9 @@ const AdminShipmentDetail = () => {
 
           {/* Vessel Bookings */}
           <VesselBookingPanel shipmentId={id!} variant="admin" />
+
+          {/* Customs / AES Filing */}
+          <CustomsFilingPanel shipmentId={id!} />
 
           {/* Containers */}
           {(containers || []).length > 0 && (
