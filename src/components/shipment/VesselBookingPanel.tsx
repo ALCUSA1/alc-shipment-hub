@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
-  Ship, Plus, Anchor, ArrowRight, Trash2, Send, MapPin, Calendar, Hash
+  Ship, Plus, Anchor, ArrowRight, Trash2, Send, MapPin, Calendar, Hash, RefreshCw, Loader2
 } from "lucide-react";
 
 interface VesselBookingPanelProps {
