@@ -263,11 +263,16 @@ const AdminSalesPipeline = () => {
                   </td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,45%)]">{new Date(l.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-center">
-                    {l.converted_company_id ? (
-                      <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1"><CheckCircle2 className="h-3 w-3" /> View Company</Link>
-                    ) : l.stage === "won" ? (
-                      <button onClick={() => { setConvertLead(l); setConvertData({ company_name: l.company_name || l.full_name, email: l.email || "", phone: l.phone || "", status: "prospect" }); }} className="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Convert →</button>
-                    ) : null}
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => setActivityLead(l)} className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5" title="Activities">
+                        <MessageSquare className="h-3 w-3" />
+                      </button>
+                      {l.converted_company_id ? (
+                        <Link to={`/admin/crm/${l.converted_company_id}`} className="text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Company</Link>
+                      ) : l.stage === "won" ? (
+                        <button onClick={() => { setConvertLead(l); setConvertData({ company_name: l.company_name || l.full_name, email: l.email || "", phone: l.phone || "", status: "prospect" }); }} className="text-[10px] text-amber-400 hover:text-amber-300 font-medium">Convert →</button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
