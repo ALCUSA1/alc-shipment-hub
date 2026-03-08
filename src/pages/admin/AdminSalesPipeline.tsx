@@ -325,6 +325,7 @@ const AdminSalesPipeline = () => {
           )}
         </DialogContent>
       </Dialog>
+      <LeadActivityPanel lead={activityLead} open={!!activityLead} onOpenChange={(open) => { if (!open) setActivityLead(null); }} />
     </AdminLayout>
   );
 };
