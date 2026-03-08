@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminAlertsBell } from "./AdminAlertsBell";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -25,18 +26,19 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 relative z-10">
-        <header className="h-14 flex items-center gap-3 px-6 border-b border-[hsl(220,15%,13%)] bg-[hsl(220,20%,7%)]/80 backdrop-blur-sm sticky top-0 z-30">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 rounded-lg hover:bg-[hsl(220,15%,15%)] text-[hsl(220,10%,50%)] hover:text-white transition-colors"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2">
+        <header className="h-14 flex items-center justify-between px-6 border-b border-[hsl(220,15%,13%)] bg-[hsl(220,20%,7%)]/80 backdrop-blur-sm sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1.5 rounded-lg hover:bg-[hsl(220,15%,15%)] text-[hsl(220,10%,50%)] hover:text-white transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <span className="text-[10px] font-bold uppercase tracking-widest text-red-400 bg-red-400/10 px-2 py-0.5 rounded">
               Admin
             </span>
           </div>
+          <AdminAlertsBell />
         </header>
 
         <main className="flex-1 p-6 overflow-auto">
