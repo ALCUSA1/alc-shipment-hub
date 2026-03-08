@@ -59,6 +59,7 @@ import AdminAccount from "./pages/admin/AdminAccount";
 import AdminCompliance from "./pages/admin/AdminCompliance";
 import AdminApiHealth from "./pages/admin/AdminApiHealth";
 import AdminDataExplorer from "./pages/admin/AdminDataExplorer";
+import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail";
 
 const queryClient = new QueryClient();
 
