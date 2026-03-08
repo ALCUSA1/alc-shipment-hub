@@ -64,6 +64,14 @@ const NewShipment = () => {
     });
   }, [user]);
 
+  const { data: ports = [] } = useQuery({
+    queryKey: ["ports"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      return data || [];
+    },
+  });
+
   const [shipment, setShipment] = useState<ShipmentData>({
     shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "",
   });
