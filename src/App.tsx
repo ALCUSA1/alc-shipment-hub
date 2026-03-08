@@ -60,6 +60,10 @@ import AdminCompliance from "./pages/admin/AdminCompliance";
 import AdminApiHealth from "./pages/admin/AdminApiHealth";
 import AdminDataExplorer from "./pages/admin/AdminDataExplorer";
 import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail";
+import AdminSalesPipeline from "./pages/admin/AdminSalesPipeline";
+import AdminSalesAnalytics from "./pages/admin/AdminSalesAnalytics";
+import AdminCampaigns from "./pages/admin/AdminCampaigns";
+import AdminMaterials from "./pages/admin/AdminMaterials";
 
 const queryClient = new QueryClient();
 
