@@ -246,8 +246,18 @@ const NewShipment = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <PortSelector label="Origin Port" value={shipment.originPort} onChange={(v) => setShipment({ ...shipment, originPort: v })} />
-                  <PortSelector label="Destination Port" value={shipment.destinationPort} onChange={(v) => setShipment({ ...shipment, destinationPort: v })} />
+                  <div>
+                    <Label>Origin Port</Label>
+                    <div className="mt-1">
+                      <PortSelector ports={ports} value={shipment.originPort} onValueChange={(v) => setShipment({ ...shipment, originPort: v })} placeholder="Select origin port" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Destination Port</Label>
+                    <div className="mt-1">
+                      <PortSelector ports={ports} value={shipment.destinationPort} onValueChange={(v) => setShipment({ ...shipment, destinationPort: v })} placeholder="Select destination port" />
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Pickup Location</Label><Input placeholder="Full address" className="mt-1" value={shipment.pickupLocation} onChange={(e) => setShipment({ ...shipment, pickupLocation: e.target.value })} /></div>
