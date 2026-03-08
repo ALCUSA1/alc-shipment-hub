@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PortSelector } from "@/components/shipment/PortSelector";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import type { Tables } from "@/integrations/supabase/types";
 
 type CompanyOption = { id: string; company_name: string };
 
-const stepTitles = ["Shipment Overview", "Cargo Details", "Container Details", "Parties", "Quote Request"];
+const stepTitles = ["Shipment Overview", "Cargo Details", "Container Details", "Parties", "Review & Submit"];
 
 interface ShipmentData {
   shipmentType: string;
@@ -84,7 +84,7 @@ const NewShipment = () => {
         .from("shipments")
         .insert({
           user_id: user.id,
-          shipment_ref: "PENDING", // trigger will overwrite
+          shipment_ref: "PENDING",
           shipment_type: shipment.shipmentType || "export",
           origin_port: shipment.originPort || null,
           destination_port: shipment.destinationPort || null,
@@ -138,15 +138,33 @@ const NewShipment = () => {
         if (partyErr) throw partyErr;
       }
 
-      // 5. Create a pending quote request
-      const { error: quoteErr } = await supabase.from("quotes").insert({
+      // 5. Auto-generate document checklist
+      const requiredDocs = [
+        "bill_of_lading", "commercial_invoice", "packing_list",
+        "shipper_letter_of_instruction", "dock_receipt",
+        "certificate_of_origin", "insurance_certificate", "aes_filing",
+      ];
+      await supabase.from("documents").insert(
+        requiredDocs.map((docType) => ({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          doc_type: docType,
+          status: "pending",
+        }))
+      );
+
+      // 6. Create a pending quote linked to shipment
+      await supabase.from("quotes").insert({
         shipment_id: shipmentId,
         user_id: user.id,
         status: "pending",
+        origin_port: shipment.originPort || null,
+        destination_port: shipment.destinationPort || null,
+        container_type: container.containerType || null,
+        company_id: shipment.companyId && shipment.companyId !== "none" ? shipment.companyId : null,
       });
-      if (quoteErr) throw quoteErr;
 
-      toast({ title: "Shipment created", description: "Your shipment and quote request have been submitted." });
+      toast({ title: "Shipment created", description: "Your shipment has been created with document checklist and quote request." });
       navigate(`/dashboard/shipments/${shipmentId}`);
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
@@ -175,9 +193,7 @@ const NewShipment = () => {
           {stepTitles.map((title, i) => (
             <div key={i} className="flex-1 flex flex-col items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
-                i < step ? "bg-accent text-accent-foreground" :
-                i === step ? "bg-accent text-accent-foreground" :
-                "bg-secondary text-muted-foreground"
+                i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
               }`}>
                 {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
@@ -221,8 +237,8 @@ const NewShipment = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Origin Port</Label><Input placeholder="e.g. Shanghai" className="mt-1" value={shipment.originPort} onChange={(e) => setShipment({ ...shipment, originPort: e.target.value })} /></div>
-                  <div><Label>Destination Port</Label><Input placeholder="e.g. Los Angeles" className="mt-1" value={shipment.destinationPort} onChange={(e) => setShipment({ ...shipment, destinationPort: e.target.value })} /></div>
+                  <PortSelector label="Origin Port" value={shipment.originPort} onChange={(v) => setShipment({ ...shipment, originPort: v })} />
+                  <PortSelector label="Destination Port" value={shipment.destinationPort} onChange={(v) => setShipment({ ...shipment, destinationPort: v })} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Pickup Location</Label><Input placeholder="Full address" className="mt-1" value={shipment.pickupLocation} onChange={(e) => setShipment({ ...shipment, pickupLocation: e.target.value })} /></div>
@@ -250,17 +266,22 @@ const NewShipment = () => {
               </>
             )}
             {step === 2 && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Container Type</Label>
-                    <Select value={container.containerType} onValueChange={(v) => setContainer({ ...container, containerType: v })}>
-                      <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
-                      <SelectContent><SelectItem value="20gp">20' GP</SelectItem><SelectItem value="40gp">40' GP</SelectItem><SelectItem value="40hc">40' HC</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div><Label>Container Quantity</Label><Input type="number" placeholder="e.g. 2" className="mt-1" value={container.quantity} onChange={(e) => setContainer({ ...container, quantity: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label>Container Type</Label>
+                  <Select value={container.containerType} onValueChange={(v) => setContainer({ ...container, containerType: v })}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="20gp">20' GP</SelectItem>
+                      <SelectItem value="40gp">40' GP</SelectItem>
+                      <SelectItem value="40hc">40' HC</SelectItem>
+                      <SelectItem value="45hc">45' HC</SelectItem>
+                      <SelectItem value="20rf">20' Reefer</SelectItem>
+                      <SelectItem value="40rf">40' Reefer</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </>
+                <div><Label>Container Quantity</Label><Input type="number" placeholder="e.g. 2" className="mt-1" value={container.quantity} onChange={(e) => setContainer({ ...container, quantity: e.target.value })} /></div>
+              </div>
             )}
             {step === 3 && (
               <>
@@ -279,13 +300,39 @@ const NewShipment = () => {
               </>
             )}
             {step === 4 && (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                  <Check className="h-8 w-8 text-accent" />
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type</span>
+                    <span className="font-medium text-foreground">{shipment.shipmentType || "Export"}</span>
+                  </div>
+                  {shipment.originPort && shipment.destinationPort && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Route</span>
+                      <span className="font-medium text-foreground">{shipment.originPort} → {shipment.destinationPort}</span>
+                    </div>
+                  )}
+                  {container.containerType && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Container</span>
+                      <span className="font-medium text-foreground">{container.containerType.toUpperCase()} × {container.quantity || 1}</span>
+                    </div>
+                  )}
+                  {cargo.commodity && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Commodity</span>
+                      <span className="font-medium text-foreground">{cargo.commodity}</span>
+                    </div>
+                  )}
+                  {crmCompanies.find(c => c.id === shipment.companyId) && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Customer</span>
+                      <span className="font-medium text-foreground">{crmCompanies.find(c => c.id === shipment.companyId)?.company_name}</span>
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">Ready to submit</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  Review your shipment details and submit a quote request. Documents will be generated automatically once the shipment is approved.
+                <p className="text-xs text-muted-foreground text-center">
+                  A document checklist (8 required documents) will be auto-generated for this shipment.
                 </p>
               </div>
             )}
@@ -298,7 +345,7 @@ const NewShipment = () => {
           </Button>
           <Button variant="electric" onClick={next} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {step === 4 ? "Submit Shipment" : "Next"}
+            {step === 4 ? "Create Shipment" : "Next"}
             {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </div>
