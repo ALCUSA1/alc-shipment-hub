@@ -7,6 +7,7 @@ import { Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
 
 const statusColors: Record<string, string> = {
   prospect: "bg-[hsl(220,10%,20%)] text-[hsl(220,10%,60%)] border-[hsl(220,15%,25%)]",
