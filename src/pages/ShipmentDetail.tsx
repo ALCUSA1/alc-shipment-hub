@@ -437,6 +437,12 @@ const ShipmentDetail = () => {
           {/* Customs / AES Filing */}
           <CustomsFilingPanel shipmentId={id!} />
 
+          {/* Trucking */}
+          <TruckingPanel shipmentId={id!} />
+
+          {/* Warehouse Operations */}
+          <WarehousePanel shipmentId={id!} />
+
           {/* Profit & Loss */}
           <ShipmentPnL
             shipmentId={id!}
