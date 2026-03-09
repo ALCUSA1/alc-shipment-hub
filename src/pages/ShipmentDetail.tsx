@@ -72,6 +72,7 @@ const ShipmentDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [showDocGen, setShowDocGen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
