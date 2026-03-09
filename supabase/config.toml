@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.generate-documents]
 verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.track-shipment]
+verify_jwt = false

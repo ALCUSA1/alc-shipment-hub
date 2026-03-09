@@ -574,6 +574,18 @@ const ShipmentDetail = () => {
             />
           )}
 
+          {/* Live Tracking */}
+          <LiveTrackingPanel
+            shipmentId={id!}
+            mode={isAirShipment ? "air" : "ocean"}
+            bookingRef={shipment.booking_ref}
+            vessel={shipment.vessel}
+            voyage={shipment.voyage}
+            airline={(shipment as any).airline}
+            flightNumber={(shipment as any).flight_number}
+            mawbNumber={(shipment as any).mawb_number}
+          />
+
           {/* Carrier Communications (formerly EDI Messages) */}
           <Card>
             <CardHeader>
