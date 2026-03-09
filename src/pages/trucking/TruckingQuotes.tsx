@@ -142,6 +142,23 @@ const TruckingQuotes = () => {
           )}
         </CardContent>
       </Card>
+
+      {assignQuote && (
+        <AssignDriverDialog
+          open={!!assignQuote}
+          onOpenChange={(open) => !open && setAssignQuote(null)}
+          quoteId={assignQuote.id}
+          shipmentId={assignQuote.shipment_id}
+          pickupAddress={
+            (assignQuote.shipments as any)?.pickup_location ||
+            (assignQuote.shipments as any)?.origin_port
+          }
+          deliveryAddress={
+            (assignQuote.shipments as any)?.delivery_location ||
+            (assignQuote.shipments as any)?.destination_port
+          }
+        />
+      )}
     </TruckingLayout>
   );
 };
