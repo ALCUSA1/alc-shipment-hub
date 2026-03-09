@@ -18,6 +18,7 @@ const TruckingLogin = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Only redirect if user has trucker role
   const { roles, isLoading: rolesLoading } = useUserRole();
