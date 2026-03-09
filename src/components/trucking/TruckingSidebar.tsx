@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, FileText, User, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, FileText, User, LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import alcLogo from "@/assets/alc-logo.png";
