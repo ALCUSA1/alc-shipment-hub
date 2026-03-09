@@ -422,11 +422,10 @@ const NewShipment = () => {
         }).then());
       }
 
-      const requiredDocs = [
-        "bill_of_lading", "commercial_invoice", "packing_list",
-        "shipper_letter_of_instruction", "dock_receipt",
-        "certificate_of_origin", "insurance_certificate", "aes_filing",
-      ];
+      const isAirMode = b.mode === "air";
+      const requiredDocs = isAirMode
+        ? ["mawb", "hawb", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "known_shipper_declaration", "aes_filing"]
+        : ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing"];
       inserts.push(supabase.from("documents").insert(
         requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
       ).then());
