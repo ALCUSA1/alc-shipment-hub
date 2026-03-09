@@ -502,7 +502,7 @@ const NewShipment = () => {
                 }
               }}
             />
-            <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
+            <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} mode={ds.basics.mode} />
             <CargoSection
               cargoLines={ds.cargoLines} containers={ds.containers}
               onCargoChange={(c) => setDs(prev => ({ ...prev, cargoLines: c }))}
