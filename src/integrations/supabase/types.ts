@@ -1990,6 +1990,48 @@ export type Database = {
           },
         ]
       }
+      signup_requests: {
+        Row: {
+          company_name: string | null
+          company_type: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          rejection_reason: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          company_type?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          requested_role: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          company_type?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          requested_role?: Database["public"]["Enums"]["app_role"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tracking_events: {
         Row: {
           created_at: string

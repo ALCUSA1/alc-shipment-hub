@@ -41,6 +41,8 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PendingApprovalsPanel from "@/components/admin/PendingApprovalsPanel";
 
 type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status";
 
@@ -180,6 +182,21 @@ const AdminUsers = () => {
         </Button>
       </div>
 
+      <Tabs defaultValue="users" className="space-y-4">
+        <TabsList className="bg-[hsl(220,18%,10%)] border border-[hsl(220,15%,13%)]">
+          <TabsTrigger value="users" className="data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]">
+            All Users
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="data-[state=active]:bg-[hsl(220,15%,18%)] data-[state=active]:text-white text-[hsl(220,10%,45%)]">
+            Pending Approvals
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending">
+          <PendingApprovalsPanel />
+        </TabsContent>
+
+        <TabsContent value="users">
       <div className="mb-4">
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(220,10%,40%)]" />
@@ -334,8 +351,9 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* Add Role Dialog */}
       <Dialog open={addRoleOpen} onOpenChange={setAddRoleOpen}>
         <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-sm">
           <DialogHeader>
