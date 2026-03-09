@@ -45,10 +45,19 @@ export function ShipmentNextAction({ shipmentId, shipmentStatus }: Props) {
     enabled: !!shipmentId,
   });
 
-  const { data: warehouseOps } = useQuery({
-    queryKey: ["warehouse_ops_guide", shipmentId],
+  const { data: warehouseOrders } = useQuery({
+    queryKey: ["warehouse_orders_guide", shipmentId],
     queryFn: async () => {
-      const { data } = await supabase.from("warehouse_operations").select("id, status").eq("shipment_id", shipmentId);
+      const { data } = await supabase.from("warehouse_orders").select("id, status").eq("shipment_id", shipmentId);
+      return data || [];
+    },
+    enabled: !!shipmentId,
+  });
+
+  const { data: driverAssignments } = useQuery({
+    queryKey: ["driver_assignments_guide", shipmentId],
+    queryFn: async () => {
+      const { data } = await supabase.from("driver_assignments").select("id, status").eq("shipment_id", shipmentId);
       return data || [];
     },
     enabled: !!shipmentId,
@@ -86,9 +95,10 @@ export function ShipmentNextAction({ shipmentId, shipmentStatus }: Props) {
   }
 
   // Determine completed steps
-  const docsReady = (documents || []).filter(d => d.status === "uploaded" || d.status === "verified").length >= 3;
-  const truckingDone = (truckPickups || []).some(t => t.status === "completed" || t.status === "dispatched" || t.status === "in_transit");
-  const warehouseDone = (warehouseOps || []).some(w => w.status === "completed" || w.status === "released");
+  const docsReady = (documents || []).filter(d => d.status === "uploaded" || d.status === "verified" || d.status === "completed").length >= 3;
+  const truckingDone = (truckPickups || []).some(t => t.status === "completed" || t.status === "dispatched" || t.status === "in_transit")
+    || (driverAssignments || []).some(d => d.status === "completed" || d.status === "en_route" || d.status === "delivered");
+  const warehouseDone = (warehouseOrders || []).some(w => w.status === "completed" || w.status === "confirmed");
   const vesselDone = (vesselBookings || []).some(v => v.status === "confirmed" || v.status === "completed");
   const customsDone = (customsFilings || []).some(c => c.status === "approved" || c.status === "submitted" || c.status === "filed");
   const paymentDone = (payments || []).some(p => p.status === "completed" || p.status === "succeeded");
@@ -112,11 +122,9 @@ export function ShipmentNextAction({ shipmentId, shipmentStatus }: Props) {
 
   const handleClick = () => {
     if (nextStep.scrollTo) {
-      // Scroll to the relevant panel on the page
       const el = document.querySelector(`[data-guide="${nextStep.scrollTo}"]`);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Brief highlight
         el.classList.add("ring-2", "ring-accent", "ring-offset-2");
         setTimeout(() => el.classList.remove("ring-2", "ring-accent", "ring-offset-2"), 2000);
       }
@@ -125,35 +133,52 @@ export function ShipmentNextAction({ shipmentId, shipmentStatus }: Props) {
 
   const Icon = nextStep.icon;
 
+  // Show context banners for cross-portal updates
+  const warehouseReceived = (warehouseOrders || []).some(w => w.status === "confirmed");
+  const driverEnRoute = (driverAssignments || []).some(d => d.status === "en_route");
+
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.3 }}
-      >
-        <button
-          onClick={handleClick}
-          className="w-full text-left group"
+    <div className="space-y-3">
+      {/* Cross-portal status banners */}
+      {warehouseReceived && (
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-sm">
+          <Warehouse className="h-4 w-4" />
+          <span className="font-medium">Warehouse has confirmed cargo receipt</span>
+        </div>
+      )}
+      {driverEnRoute && (
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 text-sm">
+          <Truck className="h-4 w-4" />
+          <span className="font-medium">Driver is en route to pickup</span>
+        </div>
+      )}
+
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
         >
-          <div className="flex items-center gap-4 px-5 py-4 rounded-xl border border-accent/20 bg-accent/5 hover:bg-accent/10 hover:border-accent/40 transition-all">
-            <div className="h-10 w-10 rounded-lg bg-accent/15 flex items-center justify-center shrink-0 group-hover:bg-accent/25 transition-colors">
-              <Icon className="h-5 w-5 text-accent" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">
-                  Next Step · {completedCount}/{totalSteps}
-                </span>
+          <button onClick={handleClick} className="w-full text-left group">
+            <div className="flex items-center gap-4 px-5 py-4 rounded-xl border border-accent/20 bg-accent/5 hover:bg-accent/10 hover:border-accent/40 transition-all">
+              <div className="h-10 w-10 rounded-lg bg-accent/15 flex items-center justify-center shrink-0 group-hover:bg-accent/25 transition-colors">
+                <Icon className="h-5 w-5 text-accent" />
               </div>
-              <p className="text-sm font-semibold text-foreground">{nextStep.label}</p>
-              <p className="text-xs text-muted-foreground">{nextStep.description}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">
+                    Next Step · {completedCount}/{totalSteps}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-foreground">{nextStep.label}</p>
+                <p className="text-xs text-muted-foreground">{nextStep.description}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-accent shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <ArrowRight className="h-4 w-4 text-accent shrink-0 group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </button>
-      </motion.div>
-    </AnimatePresence>
+          </button>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }

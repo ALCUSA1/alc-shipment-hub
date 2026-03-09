@@ -261,34 +261,40 @@ const Shipments = () => {
                           </span>
                         </td>
                         <td className="p-4">
-                          {s.status === "draft" && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete draft shipment?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will permanently delete <strong>{s.shipment_ref}</strong> and all associated data. This cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => confirmDelete(s.id, s.shipment_ref)}
-                                    disabled={deletingId === s.id}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    {deletingId === s.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-accent" title="Clone shipment"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/shipments/new?clone=${s.id}`); }}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            {s.status === "draft" && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete draft shipment?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete <strong>{s.shipment_ref}</strong> and all associated data. This cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => confirmDelete(s.id, s.shipment_ref)}
+                                      disabled={deletingId === s.id}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      {deletingId === s.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
