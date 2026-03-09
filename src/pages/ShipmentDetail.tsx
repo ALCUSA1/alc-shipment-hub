@@ -480,7 +480,16 @@ const ShipmentDetail = () => {
           />
 
           {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {!isDelivered && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {!isDelivered && isAirShipment && (
+            <AirBookingPanel
+              shipmentId={id!}
+              airline={(shipment as any).airline}
+              flightNumber={(shipment as any).flight_number}
+              mawbNumber={(shipment as any).mawb_number}
+              bookingRef={shipment.booking_ref}
+            />
+          )}
 
           {/* Customs / AES Filing */}
           <div data-guide="customs">
