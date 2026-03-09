@@ -6,9 +6,15 @@ import { CTASection } from "@/components/marketing/CTASection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Product = () => (
   <MarketingLayout>
+    <SEO
+      title="Product — Shipment Coordination Workspace"
+      description="One platform to coordinate freight, trucking, warehouses, documents, and shipment tracking across all logistics parties."
+      canonical="https://alcshipper.com/product"
+    />
     <section className="section-padding bg-gray-light">
       <div className="container-narrow text-center">
         <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">Product</p>
