@@ -113,7 +113,7 @@ const TruckingQuotes = () => {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end gap-1">
                     <p className="font-semibold text-foreground flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
                       {Number(quote.price).toLocaleString()}
@@ -121,6 +121,20 @@ const TruckingQuotes = () => {
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(quote.created_at), "MMM d, yyyy")}
                     </p>
+                    {quote.status === "accepted" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs mt-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAssignQuote(quote);
+                        }}
+                      >
+                        <UserPlus className="h-3 w-3 mr-1" /> Assign Driver
+                      </Button>
+                    )}
                   </div>
                 </Link>
               ))}
