@@ -228,6 +228,8 @@ const ShipmentDetail = () => {
     (trackingEvents || []).map((e) => [e.milestone, e])
   );
 
+  const isAirShipment = shipment.mode === "air";
+  const MILESTONES_ORDER = isAirShipment ? AIR_MILESTONES : OCEAN_MILESTONES;
   const milestones = MILESTONES_ORDER.map((label) => {
     const event = completedMilestones.get(label);
     return {
