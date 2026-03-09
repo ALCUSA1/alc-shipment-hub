@@ -150,6 +150,9 @@ const NewShipment = () => {
           countryOfOrigin: c.country_of_origin || "",
           dangerousGoods: c.dangerous_goods,
           specialInstructions: c.special_instructions || "",
+          pieces: (c as any).pieces?.toString() || "",
+          chargeableWeight: (c as any).chargeable_weight?.toString() || "",
+          rateClass: (c as any).rate_class || "",
         })),
         containers: (containerRes.data || []).map(c => ({
           id: crypto.randomUUID(),
