@@ -622,6 +622,15 @@ const ShipmentDetail = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Document Generator Dialog */}
+      <DocumentGenerator
+        shipmentId={id!}
+        shipmentRef={shipment.shipment_ref}
+        mode={isAirShipment ? "air" : "ocean"}
+        open={showDocGen}
+        onOpenChange={setShowDocGen}
+      />
     </DashboardLayout>
   );
 };
