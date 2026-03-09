@@ -78,7 +78,7 @@ const NewQuote = () => {
   });
   const [partiesData, setPartiesData] = useState<PartiesData>({
     shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
-    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+    notifyPartySameAsConsignee: false, truckingCompany: "", pickupWarehouse: emptyParty(),
   });
   const [cargoData, setCargoData] = useState<CargoData>({
     commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
