@@ -281,6 +281,7 @@ const ShipmentDetail = () => {
             </div>
             <p className="text-sm text-muted-foreground">
               {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
+              {isAirShipment && shipment.mawb_number && <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded mr-2">MAWB: {shipment.mawb_number}</span>}
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
