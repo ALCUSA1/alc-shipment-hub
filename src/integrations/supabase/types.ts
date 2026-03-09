@@ -537,6 +537,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "company_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       company_contacts: {
@@ -582,6 +589,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -632,6 +646,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -685,6 +706,65 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      conversation_participants: {
+        Row: {
+          company_name: string | null
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       customs_filings: {
         Row: {
@@ -1262,6 +1342,51 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leads_converted_company_id_fkey"
+            columns: ["converted_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachments: Json | null
+          content: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_name: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_name?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_preferences: {
@@ -1641,6 +1766,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
           {
@@ -2220,6 +2352,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shipments_converted_from_quote_id_fkey"
             columns: ["converted_from_quote_id"]
             isOneToOne: false
@@ -2760,7 +2899,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      company_directory: {
+        Row: {
+          city: string | null
+          company_name: string | null
+          company_type: string | null
+          country: string | null
+          id: string | null
+          industry: string | null
+          state: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          company_name?: string | null
+          company_type?: string | null
+          country?: string | null
+          id?: string | null
+          industry?: string | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          company_name?: string | null
+          company_type?: string | null
+          country?: string | null
+          id?: string | null
+          industry?: string | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_roles: {
