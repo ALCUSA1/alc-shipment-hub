@@ -103,13 +103,24 @@ const NewShipment = () => {
   // Readiness
   const readiness = useMemo(() => computeReadiness(ds), [ds]);
 
+  // Section filled indicators for nav
+  const sectionFilled = useMemo(() => ({
+    basics: !!(ds.basics.originPort && ds.basics.destinationPort),
+    parties: !!(ds.parties.shipper.companyName && ds.parties.consignee.companyName),
+    routing: !!(ds.routing.portOfLoading || ds.routing.motherVessel),
+    cargo: !!(ds.cargoLines[0]?.commodity || ds.containers[0]?.containerType),
+    commercial: !!(ds.commercial.invoiceNumber || ds.commercial.totalShipmentValue),
+    execution: !!(ds.execution.pickupLocation || ds.execution.warehouseLocation),
+    compliance: !!(ds.compliance.exporterName || ds.compliance.insuranceProvider),
+  }), [ds]);
+
   // Section navigation
   const handleNavigate = useCallback((id: string) => {
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  // Intersection observer for active section tracking
+  // Intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -128,7 +139,7 @@ const NewShipment = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Updaters
+  // Sync basics ports → routing
   const updateBasics = useCallback((b: ShipmentDataset["basics"]) => {
     setDs(prev => ({
       ...prev,
@@ -141,6 +152,8 @@ const NewShipment = () => {
     }));
   }, []);
 
+  const isExport = ds.basics.shipmentType === "export" || ds.basics.shipmentType === "cross_trade";
+
   // ── Submit ──
   const handleSubmit = async () => {
     if (!user) return;
@@ -152,7 +165,6 @@ const NewShipment = () => {
       const ex = ds.execution;
       const comp = ds.compliance;
 
-      // 1. Shipment
       const { data: row, error: err } = await supabase.from("shipments").insert({
         user_id: user.id,
         shipment_ref: "PENDING",
@@ -167,7 +179,6 @@ const NewShipment = () => {
         customer_reference: b.customerReference || null,
         quote_reference: b.quoteReference || null,
         company_id: b.companyId || null,
-        // Routing
         vessel: r.motherVessel || null,
         voyage: r.motherVoyage || null,
         feeder_vessel: r.feederVessel || null,
@@ -181,7 +192,6 @@ const NewShipment = () => {
         booking_terms: r.bookingTerms || null,
         freight_terms: r.freightTerms || null,
         final_destination: r.finalDestination || null,
-        // Commercial
         invoice_number: com.invoiceNumber || null,
         invoice_date: com.invoiceDate || null,
         invoice_currency: com.currency || "USD",
@@ -189,7 +199,6 @@ const NewShipment = () => {
         insurance_value: com.insuranceValue ? parseFloat(com.insuranceValue) : null,
         declared_value: com.declaredValue ? parseFloat(com.declaredValue) : null,
         payment_terms: com.paymentTerms || null,
-        // Execution
         pickup_location: ex.pickupLocation || null,
         delivery_location: ex.deliveryLocation || null,
         warehouse_location: ex.warehouseLocation || null,
@@ -203,13 +212,10 @@ const NewShipment = () => {
       if (err) throw err;
       const shipmentId = row.id;
 
-      // 2. Cargo lines
       const cargoInserts = ds.cargoLines.filter(c => c.commodity || c.hsCode).map(c => ({
         shipment_id: shipmentId,
-        commodity: c.commodity || null,
-        hs_code: c.hsCode || null,
-        hts_code: c.htsCode || null,
-        schedule_b: c.scheduleBCode || null,
+        commodity: c.commodity || null, hs_code: c.hsCode || null,
+        hts_code: c.htsCode || null, schedule_b: c.scheduleBCode || null,
         marks_and_numbers: c.marksAndNumbers || null,
         num_packages: c.numPackages ? parseInt(c.numPackages) : null,
         package_type: c.packageType || null,
@@ -222,10 +228,8 @@ const NewShipment = () => {
         special_instructions: c.specialInstructions || null,
       }));
 
-      // 3. Containers
       const containerInserts = ds.containers.filter(c => c.containerType).map(c => ({
-        shipment_id: shipmentId,
-        container_type: c.containerType,
+        shipment_id: shipmentId, container_type: c.containerType,
         container_number: c.containerNumber || null,
         quantity: c.quantity ? parseInt(c.quantity) : 1,
         seal_number: c.sealNumber || null,
@@ -234,95 +238,68 @@ const NewShipment = () => {
         oog_dimensions: c.oogDimensions || null,
       }));
 
-      // 4. Parties
-      const partyRoles: { key: keyof ShipmentDataset["parties"]; role: string }[] = [
-        { key: "shipper", role: "shipper" },
-        { key: "consignee", role: "consignee" },
-        { key: "forwarder", role: "forwarder" },
-        { key: "customsBroker", role: "customs_broker" },
-        { key: "truckingPartner", role: "trucking" },
-        { key: "warehousePartner", role: "warehouse" },
-      ];
       const notifyData = ds.parties.notifyPartySameAsConsignee ? ds.parties.consignee : ds.parties.notifyParty;
       const bookingData = ds.parties.bookingPartySameAsShipper ? ds.parties.shipper : ds.parties.bookingParty;
       const billingData = ds.parties.billingPartySameAsShipper ? ds.parties.shipper : ds.parties.billingParty;
 
-      const allParties = [
-        ...partyRoles.map(({ key, role }) => ({ party: ds.parties[key] as any, role })),
+      const partyMap = [
+        { party: ds.parties.shipper, role: "shipper" },
+        { party: ds.parties.consignee, role: "consignee" },
         { party: notifyData, role: "notify_party" },
         { party: bookingData, role: "booking_party" },
         { party: billingData, role: "billing_party" },
+        { party: ds.parties.forwarder, role: "forwarder" },
+        { party: ds.parties.customsBroker, role: "customs_broker" },
+        { party: ds.parties.truckingPartner, role: "trucking" },
+        { party: ds.parties.warehousePartner, role: "warehouse" },
       ];
 
-      const partyInserts = allParties
+      const partyInserts = partyMap
         .filter(({ party }) => party?.companyName)
         .map(({ party, role }) => ({
-          shipment_id: shipmentId,
-          role,
-          company_name: party.companyName,
-          contact_name: party.contactName || null,
-          address: party.address || null,
-          city: party.city || null,
-          state: party.state || null,
-          postal_code: party.postalCode || null,
-          country: party.country || null,
-          email: party.email || null,
-          phone: party.phone || null,
+          shipment_id: shipmentId, role, company_name: party.companyName,
+          contact_name: party.contactName || null, address: party.address || null,
+          city: party.city || null, state: party.state || null,
+          postal_code: party.postalCode || null, country: party.country || null,
+          email: party.email || null, phone: party.phone || null,
           tax_id: party.taxId || null,
         }));
 
-      // 5. Charges
       const chargeInserts = ds.charges.filter(c => c.description && c.amount).map(c => ({
-        shipment_id: shipmentId,
-        description: c.description,
-        charge_type: c.chargeType,
-        amount: parseFloat(c.amount),
-        currency: c.currency,
-        who_pays: c.whoPays,
-        notes: c.notes || null,
+        shipment_id: shipmentId, description: c.description,
+        charge_type: c.chargeType, amount: parseFloat(c.amount),
+        currency: c.currency, who_pays: c.whoPays, notes: c.notes || null,
       }));
 
-      // 6. Execute parallel inserts
       const inserts: PromiseLike<any>[] = [];
       if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts).then());
       if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts).then());
       if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts).then());
       if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts).then());
 
-      // Customs filing
       if (comp.exporterName || comp.exporterEin) {
         inserts.push(supabase.from("customs_filings").insert({
-          shipment_id: shipmentId,
-          user_id: user.id,
-          exporter_name: comp.exporterName || null,
-          exporter_ein: comp.exporterEin || null,
-          aes_citation: comp.aesType || null,
-          itn: comp.itn || null,
+          shipment_id: shipmentId, user_id: user.id,
+          exporter_name: comp.exporterName || null, exporter_ein: comp.exporterEin || null,
+          aes_citation: comp.aesType || null, itn: comp.itn || null,
           consignee_name: ds.parties.consignee.companyName || null,
           consignee_address: ds.parties.consignee.address || null,
           country_of_destination: comp.countryOfUltimateDestination || null,
-          port_of_export: r.portOfLoading || null,
-          port_of_unlading: r.portOfDischarge || null,
+          port_of_export: r.portOfLoading || null, port_of_unlading: r.portOfDischarge || null,
         }).then());
       }
 
-      // Documents checklist
       const requiredDocs = [
         "bill_of_lading", "commercial_invoice", "packing_list",
         "shipper_letter_of_instruction", "dock_receipt",
         "certificate_of_origin", "insurance_certificate", "aes_filing",
       ];
       inserts.push(supabase.from("documents").insert(
-        requiredDocs.map(docType => ({
-          shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending",
-        }))
+        requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
       ).then());
 
-      // Quote
       inserts.push(supabase.from("quotes").insert({
-        shipment_id: shipmentId,
-        user_id: user.id,
-        status: "pending",
+        shipment_id: shipmentId, user_id: user.id, status: "pending",
         origin_port: r.portOfLoading || b.originPort || null,
         destination_port: r.portOfDischarge || b.destinationPort || null,
         container_type: ds.containers[0]?.containerType || null,
@@ -330,7 +307,6 @@ const NewShipment = () => {
       }).then());
 
       await Promise.all(inserts);
-
       toast({ title: "Shipment created", description: "All trade documents and records initialized." });
       navigate(`/dashboard/shipments/${shipmentId}`);
     } catch (err: any) {
@@ -342,76 +318,47 @@ const NewShipment = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1440px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/shipments")}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Create New Shipment</h1>
-                <p className="text-xs text-muted-foreground">Enter data once — powers all documents, filings, and operations.</p>
-              </div>
+      <div className="max-w-[1400px] mx-auto px-1">
+        {/* Sticky header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => navigate("/dashboard/shipments")}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground tracking-tight">New Shipment</h1>
+              <p className="text-[11px] text-muted-foreground">Enter once — generates all documents automatically.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/shipments")}>Cancel</Button>
-            <Button variant="electric" size="sm" onClick={handleSubmit} disabled={submitting}>
-              {submitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              <Save className="h-4 w-4 mr-1" />
-              Create Shipment
-            </Button>
-          </div>
+          <Button variant="electric" size="sm" onClick={handleSubmit} disabled={submitting} className="rounded-lg px-5">
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+            Create Shipment
+          </Button>
         </div>
 
-        {/* 3-column layout: nav | content | readiness */}
-        <div className="flex gap-6">
-          {/* Left nav */}
-          <SectionNav activeSection={activeSection} onNavigate={handleNavigate} />
+        {/* 3-column */}
+        <div className="flex gap-8">
+          <SectionNav activeSection={activeSection} onNavigate={handleNavigate} sectionFilled={sectionFilled} />
 
-          {/* Main content — 7 sections */}
-          <main className="flex-1 min-w-0 space-y-10 pb-20">
+          <main className="flex-1 min-w-0 space-y-12 pb-24">
             <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
-
-            <div className="border-t border-border" />
-
             <PartiesSection data={ds.parties} onChange={(p) => setDs(prev => ({ ...prev, parties: p }))} autoFilledShipper={autoFilledShipper} />
-
-            <div className="border-t border-border" />
-
             <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
-
-            <div className="border-t border-border" />
-
             <CargoSection
-              cargoLines={ds.cargoLines}
-              containers={ds.containers}
+              cargoLines={ds.cargoLines} containers={ds.containers}
               onCargoChange={(c) => setDs(prev => ({ ...prev, cargoLines: c }))}
               onContainerChange={(c) => setDs(prev => ({ ...prev, containers: c }))}
             />
-
-            <div className="border-t border-border" />
-
             <CommercialSection
-              data={ds.commercial}
-              charges={ds.charges}
+              data={ds.commercial} charges={ds.charges}
               onChange={(c) => setDs(prev => ({ ...prev, commercial: c }))}
               onChargesChange={(c) => setDs(prev => ({ ...prev, charges: c }))}
             />
-
-            <div className="border-t border-border" />
-
             <ExecutionSection data={ds.execution} onChange={(e) => setDs(prev => ({ ...prev, execution: e }))} />
-
-            <div className="border-t border-border" />
-
-            <ComplianceSection data={ds.compliance} onChange={(c) => setDs(prev => ({ ...prev, compliance: c }))} autoFilled={autoFilledCompliance} />
+            <ComplianceSection data={ds.compliance} onChange={(c) => setDs(prev => ({ ...prev, compliance: c }))} autoFilled={autoFilledCompliance} isExport={isExport} />
           </main>
 
-          {/* Right sidebar — readiness */}
-          <div className="w-72 shrink-0 hidden xl:block">
+          <div className="w-64 shrink-0 hidden xl:block">
             <ReadinessPanel items={readiness} />
           </div>
         </div>
