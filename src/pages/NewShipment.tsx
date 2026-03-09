@@ -341,6 +341,22 @@ const NewShipment = () => {
         destuffing_required: ex.destuffingRequired,
         storage_notes: ex.storageNotes || null,
         handling_notes: ex.handlingNotes || null,
+        // Air-specific fields
+        ...(isAirMode ? {
+          airline: r.airline || null,
+          flight_number: r.flightNumber || null,
+          mawb_number: r.mawbNumber || null,
+          hawb_number: r.hawbNumber || null,
+          airport_of_departure: r.airportOfDeparture || b.originPort || null,
+          airport_of_destination: r.airportOfDestination || b.destinationPort || null,
+          aircraft_type: r.aircraftType || null,
+          routing_and_destination: r.routingAndDestination || null,
+          handling_information: r.handlingInformation || null,
+          accounting_information: r.accountingInformation || null,
+          sci: r.sci || null,
+          declared_value_for_carriage: r.declaredValueForCarriage ? parseFloat(r.declaredValueForCarriage) : null,
+          declared_value_for_customs: r.declaredValueForCustoms ? parseFloat(r.declaredValueForCustoms) : null,
+        } : {}),
       }).select("id").single();
 
       if (err) throw err;
