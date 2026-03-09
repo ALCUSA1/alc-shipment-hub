@@ -2,9 +2,15 @@ import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
 import { CTASection } from "@/components/marketing/CTASection";
+import { SEO } from "@/components/SEO";
 
 const Features = () => (
   <MarketingLayout>
+    <SEO
+      title="Features — Freight, Trucking & Warehouse Tools"
+      description="Freight coordination, trucking dispatch, warehouse handling, and live shipment tracking — all in one platform."
+      canonical="https://alcshipper.com/features"
+    />
     <section className="section-padding bg-gray-light">
       <div className="container-narrow text-center">
         <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">Features</p>
