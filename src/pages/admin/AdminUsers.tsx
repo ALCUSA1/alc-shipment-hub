@@ -52,6 +52,11 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
   const [addRoleUserId, setAddRoleUserId] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["admin-profiles"],
