@@ -93,6 +93,32 @@ export function DashboardActionBanners() {
     enabled: !!user,
   });
 
+  const { data: unpaidCharges } = useQuery({
+    queryKey: ["guide-unpaid-charges"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shipment_charges")
+        .select("id, amount, currency")
+        .eq("payment_status", "unpaid")
+        .eq("who_pays", "shipper");
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: unpaidAmendments } = useQuery({
+    queryKey: ["guide-unpaid-amendments"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shipment_amendments")
+        .select("id")
+        .eq("carrier_fee_required", true)
+        .eq("payment_status", "unpaid");
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   const banners: ActionBanner[] = [];
 
   const draftCount = (activeShipments || []).filter(s => s.status === "draft").length;
