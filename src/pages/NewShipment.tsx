@@ -282,13 +282,14 @@ const NewShipment = () => {
       const ex = ds.execution;
       const comp = ds.compliance;
 
+      const isAirMode = b.mode === "air";
       const { data: row, error: err } = await supabase.from("shipments").insert({
         user_id: user.id,
         shipment_ref: "PENDING",
         shipment_type: b.shipmentType || "export",
         mode: b.mode || "ocean",
-        origin_port: r.portOfLoading || b.originPort || null,
-        destination_port: r.portOfDischarge || b.destinationPort || null,
+        origin_port: isAirMode ? (r.airportOfDeparture || b.originPort || null) : (r.portOfLoading || b.originPort || null),
+        destination_port: isAirMode ? (r.airportOfDestination || b.destinationPort || null) : (r.portOfDischarge || b.destinationPort || null),
         place_of_receipt: b.placeOfReceipt || null,
         place_of_delivery: b.placeOfDelivery || null,
         incoterms: b.incoterms || null,
