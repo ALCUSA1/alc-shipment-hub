@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileEdit, Plus, AlertTriangle, DollarSign, Loader2 } from "lucide-react";
+import { FileEdit, Plus, AlertTriangle, DollarSign, Loader2, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -43,6 +43,7 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     amendment_type: "bl_correction",
     description: "",
@@ -92,6 +93,32 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
     }
   };
 
+  const handlePayAmendment = async (amendment: any) => {
+    setPayingId(amendment.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: {
+          shipment_id: shipmentId,
+          amount: amendment.carrier_fee_amount,
+          currency: amendment.carrier_fee_currency || "USD",
+          metadata: {
+            amendment_id: amendment.id,
+            amendment_type: amendment.amendment_type,
+            description: `Amendment fee: ${amendment.description}`,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   const getTypeLabel = (t: string) => AMENDMENT_TYPES.find(a => a.value === t)?.label || t;
 
   return (
@@ -132,10 +159,29 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
                   </div>
                   <p className="text-xs text-foreground">{a.description}</p>
                   {a.carrier_fee_required && (
-                    <div className="flex items-center gap-1 text-[11px] text-orange-700">
-                      <DollarSign className="h-3 w-3" />
-                      Carrier fee: ${a.carrier_fee_amount} {a.carrier_fee_currency}
-                      {a.payment_required_before_change && <span className="ml-1">· Payment required first</span>}
+                    <div className="flex items-center justify-between text-[11px] text-orange-700">
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" />
+                        Carrier fee: ${a.carrier_fee_amount} {a.carrier_fee_currency}
+                        {a.payment_required_before_change && <span className="ml-1">· Payment required first</span>}
+                        {a.payment_status === "paid" && <Badge className="bg-green-100 text-green-700 text-[9px] ml-1">Paid</Badge>}
+                      </div>
+                      {a.carrier_fee_required && a.payment_status !== "paid" && a.carrier_fee_amount > 0 && (
+                        <Button
+                          variant="electric"
+                          size="sm"
+                          className="h-6 text-[10px] px-2"
+                          onClick={() => handlePayAmendment(a)}
+                          disabled={payingId === a.id}
+                        >
+                          {payingId === a.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <CreditCard className="h-3 w-3 mr-1" />
+                          )}
+                          Pay Fee
+                        </Button>
+                      )}
                     </div>
                   )}
                   {a.notes && <p className="text-[10px] text-muted-foreground italic">{a.notes}</p>}

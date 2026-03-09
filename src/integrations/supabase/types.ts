@@ -1681,6 +1681,8 @@ export type Database = {
           description: string
           id: string
           notes: string | null
+          payment_id: string | null
+          payment_status: string
           shipment_id: string
           who_pays: string | null
         }
@@ -1692,6 +1694,8 @@ export type Database = {
           description: string
           id?: string
           notes?: string | null
+          payment_id?: string | null
+          payment_status?: string
           shipment_id: string
           who_pays?: string | null
         }
@@ -1703,10 +1707,19 @@ export type Database = {
           description?: string
           id?: string
           notes?: string | null
+          payment_id?: string | null
+          payment_status?: string
           shipment_id?: string
           who_pays?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_charges_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_charges_shipment_id_fkey"
             columns: ["shipment_id"]

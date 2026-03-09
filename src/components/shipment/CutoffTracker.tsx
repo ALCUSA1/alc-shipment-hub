@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Timer, AlertTriangle, CheckCircle2, Pencil, Zap, X, Save, Loader2 } from "lucide-react";
+import { Timer, AlertTriangle, CheckCircle2, Pencil, Zap, X, Save, Loader2, RefreshCw } from "lucide-react";
 import { differenceInHours, differenceInDays, format, isPast, subDays, setHours, setMinutes } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -61,6 +61,7 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [draft, setDraft] = useState({
     cy_cutoff: toLocalDatetime(cutoffs.cy_cutoff),
     si_cutoff: toLocalDatetime(cutoffs.si_cutoff),
@@ -69,6 +70,26 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
   });
 
   const hasCutoffs = Object.values(cutoffs).some((v) => v !== null);
+
+  const handleSyncFromCarrier = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-cutoffs", {
+        body: { shipment_id: shipmentId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
+        toast({ title: "Cutoffs synced", description: data.message });
+      } else {
+        toast({ title: "Sync unavailable", description: data?.message || "Carrier API not configured for this shipment.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Sync failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleQuickSet = () => {
     if (!etd) {
@@ -138,6 +159,10 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
           <div className="flex items-center gap-1">
             {!editing && (
               <>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleSyncFromCarrier} disabled={syncing}>
+                  {syncing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                  Sync
+                </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleQuickSet}>
                   <Zap className="h-3 w-3 mr-1" />
                   Quick Set

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck } from "lucide-react";
+import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck, Receipt } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ActionBanner {
@@ -88,6 +88,32 @@ export function DashboardActionBanners() {
         .from("driver_assignments")
         .select("id, status")
         .in("status", ["en_route", "assigned"]);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: unpaidCharges } = useQuery({
+    queryKey: ["guide-unpaid-charges"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shipment_charges")
+        .select("id, amount, currency")
+        .eq("payment_status", "unpaid")
+        .eq("who_pays", "shipper");
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: unpaidAmendments } = useQuery({
+    queryKey: ["guide-unpaid-amendments"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("shipment_amendments")
+        .select("id")
+        .eq("carrier_fee_required", true)
+        .eq("payment_status", "unpaid");
       return data || [];
     },
     enabled: !!user,
@@ -183,6 +209,21 @@ export function DashboardActionBanners() {
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-700",
       iconColor: "text-indigo-600",
+    });
+  }
+
+  const chargeCount = (unpaidCharges || []).length + (unpaidAmendments || []).length;
+  if (chargeCount > 0) {
+    banners.push({
+      key: "unpaid-charges",
+      label: `${chargeCount} charge${chargeCount > 1 ? "s" : ""} require payment`,
+      count: chargeCount,
+      icon: Receipt,
+      link: "/dashboard/shipments",
+      borderColor: "border-red-200",
+      bgColor: "bg-red-50",
+      textColor: "text-red-700",
+      iconColor: "text-red-600",
     });
   }
 
