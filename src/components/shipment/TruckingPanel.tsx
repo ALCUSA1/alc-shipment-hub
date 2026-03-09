@@ -63,7 +63,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trucking_quotes")
-        .select("id, status, bid_amount, carrier_company_id")
+        .select("id, status, price, company_name")
         .eq("shipment_id", shipmentId)
         .order("created_at", { ascending: false });
       if (error) return [];
