@@ -10,6 +10,7 @@ import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
 import { AmendmentPanel } from "@/components/shipment/AmendmentPanel";
+import { ShipmentChargesPanel } from "@/components/shipment/ShipmentChargesPanel";
 import { DetentionTimeline } from "@/components/shipment/DetentionTimeline";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
