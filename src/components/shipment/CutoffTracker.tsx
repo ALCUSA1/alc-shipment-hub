@@ -159,6 +159,10 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
           <div className="flex items-center gap-1">
             {!editing && (
               <>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleSyncFromCarrier} disabled={syncing}>
+                  {syncing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                  Sync
+                </Button>
                 <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleQuickSet}>
                   <Zap className="h-3 w-3 mr-1" />
                   Quick Set

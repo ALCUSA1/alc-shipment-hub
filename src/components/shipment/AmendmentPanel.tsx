@@ -159,10 +159,29 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
                   </div>
                   <p className="text-xs text-foreground">{a.description}</p>
                   {a.carrier_fee_required && (
-                    <div className="flex items-center gap-1 text-[11px] text-orange-700">
-                      <DollarSign className="h-3 w-3" />
-                      Carrier fee: ${a.carrier_fee_amount} {a.carrier_fee_currency}
-                      {a.payment_required_before_change && <span className="ml-1">· Payment required first</span>}
+                    <div className="flex items-center justify-between text-[11px] text-orange-700">
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-3 w-3" />
+                        Carrier fee: ${a.carrier_fee_amount} {a.carrier_fee_currency}
+                        {a.payment_required_before_change && <span className="ml-1">· Payment required first</span>}
+                        {a.payment_status === "paid" && <Badge className="bg-green-100 text-green-700 text-[9px] ml-1">Paid</Badge>}
+                      </div>
+                      {a.carrier_fee_required && a.payment_status !== "paid" && a.carrier_fee_amount > 0 && (
+                        <Button
+                          variant="electric"
+                          size="sm"
+                          className="h-6 text-[10px] px-2"
+                          onClick={() => handlePayAmendment(a)}
+                          disabled={payingId === a.id}
+                        >
+                          {payingId === a.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <CreditCard className="h-3 w-3 mr-1" />
+                          )}
+                          Pay Fee
+                        </Button>
+                      )}
                     </div>
                   )}
                   {a.notes && <p className="text-[10px] text-muted-foreground italic">{a.notes}</p>}

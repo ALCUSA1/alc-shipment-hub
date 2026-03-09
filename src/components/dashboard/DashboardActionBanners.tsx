@@ -212,6 +212,21 @@ export function DashboardActionBanners() {
     });
   }
 
+  const chargeCount = (unpaidCharges || []).length + (unpaidAmendments || []).length;
+  if (chargeCount > 0) {
+    banners.push({
+      key: "unpaid-charges",
+      label: `${chargeCount} charge${chargeCount > 1 ? "s" : ""} require payment`,
+      count: chargeCount,
+      icon: Receipt,
+      link: "/dashboard/shipments",
+      borderColor: "border-red-200",
+      bgColor: "bg-red-50",
+      textColor: "text-red-700",
+      iconColor: "text-red-600",
+    });
+  }
+
   if (banners.length === 0) return null;
 
   return (

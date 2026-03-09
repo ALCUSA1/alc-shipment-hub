@@ -58,6 +58,22 @@ serve(async (req) => {
         .eq("id", session.metadata.quote_id);
     }
 
+    // If paid and has an amendment_id, update amendment payment status
+    if (newStatus === "completed" && session.metadata?.amendment_id) {
+      await supabaseAdmin
+        .from("shipment_amendments")
+        .update({ payment_status: "paid", status: "requested" })
+        .eq("id", session.metadata.amendment_id);
+    }
+
+    // If paid and has a charge_id, update charge payment status
+    if (newStatus === "completed" && session.metadata?.charge_id) {
+      await supabaseAdmin
+        .from("shipment_charges")
+        .update({ payment_status: "paid" })
+        .eq("id", session.metadata.charge_id);
+    }
+
     // Auto-generate Seaway Bill document when payment is completed
     if (newStatus === "completed") {
       const shipmentId = session.metadata?.shipment_id;

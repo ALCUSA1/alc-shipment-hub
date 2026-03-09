@@ -580,6 +580,9 @@ const ShipmentDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Charges & Fees */}
+          <ShipmentChargesPanel shipmentId={id!} />
+
           {/* Payment Status */}
           <PaymentStatusCard shipmentId={id!} />
 
