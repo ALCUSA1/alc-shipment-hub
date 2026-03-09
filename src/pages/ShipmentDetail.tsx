@@ -10,6 +10,7 @@ import { TruckingPanel } from "@/components/shipment/TruckingPanel";
 import { WarehousePanel } from "@/components/shipment/WarehousePanel";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
+import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
@@ -572,6 +573,18 @@ const ShipmentDetail = () => {
               containerType={(containers && containers.length > 0) ? containers[0].container_type : null}
             />
           )}
+
+          {/* Live Tracking */}
+          <LiveTrackingPanel
+            shipmentId={id!}
+            mode={isAirShipment ? "air" : "ocean"}
+            bookingRef={shipment.booking_ref}
+            vessel={shipment.vessel}
+            voyage={shipment.voyage}
+            airline={(shipment as any).airline}
+            flightNumber={(shipment as any).flight_number}
+            mawbNumber={(shipment as any).mawb_number}
+          />
 
           {/* Carrier Communications (formerly EDI Messages) */}
           <Card>
