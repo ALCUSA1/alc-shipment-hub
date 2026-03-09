@@ -1,21 +1,31 @@
-import { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { WizardShell } from "@/components/wizard/WizardShell";
-import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
-import { PartiesStep, type PartiesData, emptyParty } from "@/components/wizard/steps/PartiesStep";
-import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
-import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { Loader2, ArrowLeft, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
-const STEPS = ["Overview", "Trade Parties", "Cargo & Container", "Compliance & Insurance", "Review & Submit"];
+import { SectionNav } from "@/components/workspace/SectionNav";
+import { ReadinessPanel } from "@/components/workspace/ReadinessPanel";
+import { BasicsSection } from "@/components/workspace/sections/BasicsSection";
+import { PartiesSection } from "@/components/workspace/sections/PartiesSection";
+import { RoutingSection } from "@/components/workspace/sections/RoutingSection";
+import { CargoSection } from "@/components/workspace/sections/CargoSection";
+import { CommercialSection } from "@/components/workspace/sections/CommercialSection";
+import { ExecutionSection } from "@/components/workspace/sections/ExecutionSection";
+import { ComplianceSection } from "@/components/workspace/sections/ComplianceSection";
+import {
+  createEmptyDataset, computeReadiness, type ShipmentDataset,
+} from "@/lib/shipment-dataset";
+
+const SECTION_IDS = ["basics", "parties", "routing", "cargo", "commercial", "execution", "compliance"];
 
 const NewShipment = () => {
-  const [step, setStep] = useState(0);
+  const [ds, setDs] = useState<ShipmentDataset>(createEmptyDataset);
+  const [activeSection, setActiveSection] = useState("basics");
   const [submitting, setSubmitting] = useState(false);
   const [autoFilledShipper, setAutoFilledShipper] = useState(false);
   const [autoFilledCompliance, setAutoFilledCompliance] = useState(false);
@@ -23,13 +33,13 @@ const NewShipment = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch all CRM companies (all types)
-  const { data: allCompanies = [] } = useQuery({
-    queryKey: ["wizard-all-companies", user?.id],
+  // Queries
+  const { data: companies = [] } = useQuery({
+    queryKey: ["wizard-companies", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, company_type, address, city, state, country, email, phone")
+        .select("id, company_name, company_type, address, city, state, country, email, phone, ein, cargo_insurance_provider, cargo_insurance_policy")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -37,10 +47,7 @@ const NewShipment = () => {
     enabled: !!user,
   });
 
-  // Customer-type companies for the overview dropdown
-  const companies = allCompanies.filter(
-    (c) => c.company_type === "customer" || !c.company_type
-  );
+  const customerCompanies = companies.filter(c => c.company_type === "customer" || !c.company_type);
 
   const { data: ports = [] } = useQuery({
     queryKey: ["ports"],
@@ -50,9 +57,8 @@ const NewShipment = () => {
     },
   });
 
-  // Fetch user profile + primary company for auto-fill
   const { data: profileCompany } = useQuery({
-    queryKey: ["wizard-profile-company", user?.id],
+    queryKey: ["wizard-profile", user?.id],
     queryFn: async () => {
       const [profileRes, companyRes] = await Promise.all([
         supabase.from("profiles").select("full_name, company_name").eq("user_id", user!.id).maybeSingle(),
@@ -63,230 +69,269 @@ const NewShipment = () => {
     enabled: !!user,
   });
 
-  const [overview, setOverview] = useState<OverviewData>({
-    shipmentType: "", originPort: "", destinationPort: "", pickupLocation: "", deliveryLocation: "", companyId: "", incoterms: "",
-  });
-
-  const [parties, setParties] = useState<PartiesData>({
-    shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
-    notifyPartySameAsConsignee: false, truckingCompany: "", pickupWarehouse: emptyParty(),
-  });
-
-  const [cargo, setCargo] = useState<CargoData>({
-    commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
-    unitValue: "", totalValue: "", countryOfOrigin: "", containerType: "", containerQuantity: "",
-  });
-
-  const [compliance, setCompliance] = useState<ComplianceData>({
-    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
-    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
-  });
-
-  // Auto-fill shipper from profile/company
+  // Auto-fill shipper + compliance from profile
   useEffect(() => {
     if (!profileCompany?.company) return;
     const c = profileCompany.company;
     const p = profileCompany.profile;
-
-    // Only auto-fill if shipper is still empty
-    if (!parties.shipper.companyName) {
-      const addr = [c.address, c.city, c.state, c.zip, c.country].filter(Boolean).join(", ");
-      setParties((prev) => ({
+    if (!ds.parties.shipper.companyName) {
+      setDs(prev => ({
         ...prev,
-        shipper: {
-          companyName: c.company_name || p?.company_name || "",
-          contactName: p?.full_name || "",
-          address: addr,
-          email: c.email || "",
-          phone: c.phone || "",
+        parties: {
+          ...prev.parties,
+          shipper: {
+            companyName: c.company_name || p?.company_name || "",
+            contactName: p?.full_name || "",
+            address: c.address || "", city: c.city || "", state: c.state || "",
+            postalCode: c.zip || "", country: c.country || "",
+            email: c.email || "", phone: c.phone || "", taxId: c.ein || "",
+          },
+        },
+        compliance: {
+          ...prev.compliance,
+          exporterName: c.company_name || "",
+          exporterEin: c.ein || "",
+          insuranceProvider: c.cargo_insurance_provider || "",
+          insurancePolicy: c.cargo_insurance_policy || "",
         },
       }));
       setAutoFilledShipper(true);
-    }
-
-    // Auto-fill compliance
-    if (!compliance.exporterName) {
-      setCompliance((prev) => ({
-        ...prev,
-        exporterName: c.company_name || "",
-        exporterEin: c.ein || "",
-        insuranceProvider: c.cargo_insurance_provider || "",
-        insurancePolicy: c.cargo_insurance_policy || "",
-      }));
       setAutoFilledCompliance(true);
     }
   }, [profileCompany]);
 
-  // Auto-save new consignee to CRM after submit
-  const autoSaveConsigneeToCrm = async (consignee: typeof parties.consignee) => {
-    if (!consignee.companyName || !user) return;
-    // Check if already exists
-    const { data: existing } = await supabase
-      .from("companies")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("company_name", consignee.companyName)
-      .eq("company_type", "consignee")
-      .maybeSingle();
-    if (existing) return;
+  // Readiness
+  const readiness = useMemo(() => computeReadiness(ds), [ds]);
 
-    await supabase.from("companies").insert({
-      user_id: user.id,
-      company_name: consignee.companyName,
-      company_type: "consignee",
-      email: consignee.email || null,
-      phone: consignee.phone || null,
-      address: consignee.address || null,
+  // Section navigation
+  const handleNavigate = useCallback((id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  // Intersection observer for active section tracking
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-20% 0px -70% 0px" }
+    );
+    SECTION_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
     });
-  };
+    return () => observer.disconnect();
+  }, []);
 
-  // Auto-save trucking company to CRM
-  const autoSaveTruckingToCrm = async (truckingName: string) => {
-    if (!truckingName || !user) return;
-    const { data: existing } = await supabase
-      .from("companies")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("company_name", truckingName)
-      .eq("company_type", "trucking")
-      .maybeSingle();
-    if (existing) return;
+  // Updaters
+  const updateBasics = useCallback((b: ShipmentDataset["basics"]) => {
+    setDs(prev => ({
+      ...prev,
+      basics: b,
+      routing: {
+        ...prev.routing,
+        portOfLoading: b.originPort || prev.routing.portOfLoading,
+        portOfDischarge: b.destinationPort || prev.routing.portOfDischarge,
+      },
+    }));
+  }, []);
 
-    await supabase.from("companies").insert({
-      user_id: user.id,
-      company_name: truckingName,
-      company_type: "trucking",
-    });
-  };
-
+  // ── Submit ──
   const handleSubmit = async () => {
     if (!user) return;
     setSubmitting(true);
-
     try {
-      // 1. Create shipment
-      const { data: shipmentRow, error: shipErr } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          shipment_ref: "PENDING",
-          shipment_type: overview.shipmentType || "export",
-          origin_port: overview.originPort || null,
-          destination_port: overview.destinationPort || null,
-          pickup_location: overview.pickupLocation || null,
-          delivery_location: overview.deliveryLocation || null,
-          company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
-          incoterms: overview.incoterms || null,
-        })
-        .select("id")
-        .single();
+      const b = ds.basics;
+      const r = ds.routing;
+      const com = ds.commercial;
+      const ex = ds.execution;
+      const comp = ds.compliance;
 
-      if (shipErr) throw shipErr;
-      const shipmentId = shipmentRow.id;
+      // 1. Shipment
+      const { data: row, error: err } = await supabase.from("shipments").insert({
+        user_id: user.id,
+        shipment_ref: "PENDING",
+        shipment_type: b.shipmentType || "export",
+        mode: b.mode || "ocean",
+        origin_port: r.portOfLoading || b.originPort || null,
+        destination_port: r.portOfDischarge || b.destinationPort || null,
+        place_of_receipt: b.placeOfReceipt || null,
+        place_of_delivery: b.placeOfDelivery || null,
+        incoterms: b.incoterms || null,
+        requested_ship_date: b.requestedShipDate || null,
+        customer_reference: b.customerReference || null,
+        quote_reference: b.quoteReference || null,
+        company_id: b.companyId || null,
+        // Routing
+        vessel: r.motherVessel || null,
+        voyage: r.motherVoyage || null,
+        feeder_vessel: r.feederVessel || null,
+        feeder_voyage: r.feederVoyage || null,
+        etd: r.etd || null,
+        eta: r.eta || null,
+        transshipment_port_1: r.transshipmentPort1 || null,
+        transshipment_port_2: r.transshipmentPort2 || null,
+        carrier: r.carrier || null,
+        booking_ref: r.bookingRef || null,
+        booking_terms: r.bookingTerms || null,
+        freight_terms: r.freightTerms || null,
+        final_destination: r.finalDestination || null,
+        // Commercial
+        invoice_number: com.invoiceNumber || null,
+        invoice_date: com.invoiceDate || null,
+        invoice_currency: com.currency || "USD",
+        total_shipment_value: com.totalShipmentValue ? parseFloat(com.totalShipmentValue) : null,
+        insurance_value: com.insuranceValue ? parseFloat(com.insuranceValue) : null,
+        declared_value: com.declaredValue ? parseFloat(com.declaredValue) : null,
+        payment_terms: com.paymentTerms || null,
+        // Execution
+        pickup_location: ex.pickupLocation || null,
+        delivery_location: ex.deliveryLocation || null,
+        warehouse_location: ex.warehouseLocation || null,
+        cargo_arrival_date: ex.cargoArrivalDate || null,
+        warehouse_receipt_number: ex.warehouseReceiptNumber || null,
+        destuffing_required: ex.destuffingRequired,
+        storage_notes: ex.storageNotes || null,
+        handling_notes: ex.handlingNotes || null,
+      }).select("id").single();
 
-      // 2. Create cargo
-      if (cargo.commodity || cargo.hsCode || cargo.numPackages) {
-        await supabase.from("cargo").insert({
-          shipment_id: shipmentId,
-          commodity: cargo.commodity || null,
-          hs_code: cargo.hsCode || null,
-          num_packages: cargo.numPackages ? parseInt(cargo.numPackages) : null,
-          package_type: cargo.packageType || null,
-          gross_weight: cargo.grossWeight ? parseFloat(cargo.grossWeight) : null,
-          volume: cargo.volume ? parseFloat(cargo.volume) : null,
-          unit_value: cargo.unitValue ? parseFloat(cargo.unitValue) : null,
-          total_value: cargo.totalValue ? parseFloat(cargo.totalValue) : null,
-          country_of_origin: cargo.countryOfOrigin || null,
-        });
-      }
+      if (err) throw err;
+      const shipmentId = row.id;
 
-      // 3. Create container
-      if (cargo.containerType) {
-        await supabase.from("containers").insert({
-          shipment_id: shipmentId,
-          container_type: cargo.containerType,
-          quantity: cargo.containerQuantity ? parseInt(cargo.containerQuantity) : 1,
-        });
-      }
+      // 2. Cargo lines
+      const cargoInserts = ds.cargoLines.filter(c => c.commodity || c.hsCode).map(c => ({
+        shipment_id: shipmentId,
+        commodity: c.commodity || null,
+        hs_code: c.hsCode || null,
+        hts_code: c.htsCode || null,
+        schedule_b: c.scheduleBCode || null,
+        marks_and_numbers: c.marksAndNumbers || null,
+        num_packages: c.numPackages ? parseInt(c.numPackages) : null,
+        package_type: c.packageType || null,
+        gross_weight: c.grossWeight ? parseFloat(c.grossWeight) : null,
+        net_weight: c.netWeight ? parseFloat(c.netWeight) : null,
+        volume: c.volume ? parseFloat(c.volume) : null,
+        dimensions: c.dimensions || null,
+        country_of_origin: c.countryOfOrigin || null,
+        dangerous_goods: c.dangerousGoods,
+        special_instructions: c.specialInstructions || null,
+      }));
 
-      // 4. Create parties
-      const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
-      
-      const coreParties: { data: typeof parties.shipper; role: string }[] = [
-        { data: parties.shipper, role: "shipper" },
-        { data: parties.consignee, role: "consignee" },
-        { data: parties.notifyPartySameAsConsignee ? parties.consignee : parties.notifyParty, role: "notify_party" },
-        { data: parties.pickupWarehouse, role: "warehouse" },
+      // 3. Containers
+      const containerInserts = ds.containers.filter(c => c.containerType).map(c => ({
+        shipment_id: shipmentId,
+        container_type: c.containerType,
+        container_number: c.containerNumber || null,
+        quantity: c.quantity ? parseInt(c.quantity) : 1,
+        seal_number: c.sealNumber || null,
+        vgm: c.vgm ? parseFloat(c.vgm) : null,
+        reefer_temp: c.reeferTemp || null,
+        oog_dimensions: c.oogDimensions || null,
+      }));
+
+      // 4. Parties
+      const partyRoles: { key: keyof ShipmentDataset["parties"]; role: string }[] = [
+        { key: "shipper", role: "shipper" },
+        { key: "consignee", role: "consignee" },
+        { key: "forwarder", role: "forwarder" },
+        { key: "customsBroker", role: "customs_broker" },
+        { key: "truckingPartner", role: "trucking" },
+        { key: "warehousePartner", role: "warehouse" },
+      ];
+      const notifyData = ds.parties.notifyPartySameAsConsignee ? ds.parties.consignee : ds.parties.notifyParty;
+      const bookingData = ds.parties.bookingPartySameAsShipper ? ds.parties.shipper : ds.parties.bookingParty;
+      const billingData = ds.parties.billingPartySameAsShipper ? ds.parties.shipper : ds.parties.billingParty;
+
+      const allParties = [
+        ...partyRoles.map(({ key, role }) => ({ party: ds.parties[key] as any, role })),
+        { party: notifyData, role: "notify_party" },
+        { party: bookingData, role: "booking_party" },
+        { party: billingData, role: "billing_party" },
       ];
 
-      for (const { data: p, role } of coreParties) {
-        if (p.companyName) {
-          partyEntries.push({
-            role, company_name: p.companyName, contact_name: p.contactName || null,
-            address: p.address || null, email: p.email || null, phone: p.phone || null,
-            shipment_id: shipmentId,
-          });
-        }
-      }
+      const partyInserts = allParties
+        .filter(({ party }) => party?.companyName)
+        .map(({ party, role }) => ({
+          shipment_id: shipmentId,
+          role,
+          company_name: party.companyName,
+          contact_name: party.contactName || null,
+          address: party.address || null,
+          city: party.city || null,
+          state: party.state || null,
+          postal_code: party.postalCode || null,
+          country: party.country || null,
+          email: party.email || null,
+          phone: party.phone || null,
+          tax_id: party.taxId || null,
+        }));
 
-      if (parties.truckingCompany) {
-        partyEntries.push({
-          role: "trucking", company_name: parties.truckingCompany, contact_name: null,
-          address: null, email: null, phone: null, shipment_id: shipmentId,
-        });
-      }
+      // 5. Charges
+      const chargeInserts = ds.charges.filter(c => c.description && c.amount).map(c => ({
+        shipment_id: shipmentId,
+        description: c.description,
+        charge_type: c.chargeType,
+        amount: parseFloat(c.amount),
+        currency: c.currency,
+        who_pays: c.whoPays,
+        notes: c.notes || null,
+      }));
 
-      if (partyEntries.length > 0) {
-        await supabase.from("shipment_parties").insert(partyEntries);
-      }
+      // 6. Execute parallel inserts
+      const inserts: Promise<any>[] = [];
+      if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts));
+      if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts));
+      if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts));
+      if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts));
 
-      // 5. Create customs filing
-      if (compliance.exporterName || compliance.exporterEin) {
-        await supabase.from("customs_filings").insert({
+      // Customs filing
+      if (comp.exporterName || comp.exporterEin) {
+        inserts.push(supabase.from("customs_filings").insert({
           shipment_id: shipmentId,
           user_id: user.id,
-          exporter_name: compliance.exporterName || null,
-          exporter_ein: compliance.exporterEin || null,
-          aes_citation: compliance.aesType || null,
-          consignee_name: parties.consignee.companyName || null,
-          consignee_address: parties.consignee.address || null,
-          country_of_destination: overview.destinationPort || null,
-          port_of_export: overview.originPort || null,
-          port_of_unlading: overview.destinationPort || null,
-        });
+          exporter_name: comp.exporterName || null,
+          exporter_ein: comp.exporterEin || null,
+          aes_citation: comp.aesType || null,
+          itn: comp.itn || null,
+          consignee_name: ds.parties.consignee.companyName || null,
+          consignee_address: ds.parties.consignee.address || null,
+          country_of_destination: comp.countryOfUltimateDestination || null,
+          port_of_export: r.portOfLoading || null,
+          port_of_unlading: r.portOfDischarge || null,
+        }));
       }
 
-      // 6. Auto-generate document checklist
+      // Documents checklist
       const requiredDocs = [
         "bill_of_lading", "commercial_invoice", "packing_list",
         "shipper_letter_of_instruction", "dock_receipt",
         "certificate_of_origin", "insurance_certificate", "aes_filing",
       ];
-      await supabase.from("documents").insert(
-        requiredDocs.map((docType) => ({
-          shipment_id: shipmentId,
-          user_id: user.id,
-          doc_type: docType,
-          status: "pending",
+      inserts.push(supabase.from("documents").insert(
+        requiredDocs.map(docType => ({
+          shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending",
         }))
-      );
+      ));
 
-      // 7. Create a pending quote
-      await supabase.from("quotes").insert({
+      // Quote
+      inserts.push(supabase.from("quotes").insert({
         shipment_id: shipmentId,
         user_id: user.id,
         status: "pending",
-        origin_port: overview.originPort || null,
-        destination_port: overview.destinationPort || null,
-        container_type: cargo.containerType || null,
-        company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
-      });
+        origin_port: r.portOfLoading || b.originPort || null,
+        destination_port: r.portOfDischarge || b.destinationPort || null,
+        container_type: ds.containers[0]?.containerType || null,
+        company_id: b.companyId || null,
+      }));
 
-      // 8. Auto-save consignee & trucking to CRM (fire-and-forget)
-      autoSaveConsigneeToCrm(parties.consignee);
-      autoSaveTruckingToCrm(parties.truckingCompany);
+      await Promise.all(inserts);
 
-      toast({ title: "Shipment created", description: "Your shipment has been created with all trade documents initialized." });
+      toast({ title: "Shipment created", description: "All trade documents and records initialized." });
       navigate(`/dashboard/shipments/${shipmentId}`);
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
@@ -295,34 +340,82 @@ const NewShipment = () => {
     }
   };
 
-  const renderStep = () => {
-    switch (step) {
-      case 0: return <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />;
-      case 1: return <PartiesStep data={parties} onChange={setParties} crmCompanies={allCompanies} autoFilledShipper={autoFilledShipper} />;
-      case 2: return <CargoStep data={cargo} onChange={setCargo} />;
-      case 3: return <ComplianceStep data={compliance} onChange={setCompliance} autoFilled={autoFilledCompliance} />;
-      case 4: return <ReviewStep overview={overview} parties={parties} cargo={cargo} compliance={compliance} companies={companies} />;
-      default: return null;
-    }
-  };
-
   return (
     <DashboardLayout>
-      <WizardShell
-        title="Create New Shipment"
-        subtitle="Provide comprehensive details to auto-generate all 8 trade documents."
-        steps={STEPS}
-        currentStep={step}
-        onNext={() => step < 4 ? setStep(step + 1) : handleSubmit()}
-        onPrev={() => setStep(step - 1)}
-        onCancel={() => navigate("/dashboard/shipments")}
-        canProceed={true}
-        submitting={submitting}
-        isLastStep={step === 4}
-        submitLabel="Create Shipment"
-      >
-        {renderStep()}
-      </WizardShell>
+      <div className="max-w-[1440px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/shipments")}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Create New Shipment</h1>
+                <p className="text-xs text-muted-foreground">Enter data once — powers all documents, filings, and operations.</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/shipments")}>Cancel</Button>
+            <Button variant="electric" size="sm" onClick={handleSubmit} disabled={submitting}>
+              {submitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              <Save className="h-4 w-4 mr-1" />
+              Create Shipment
+            </Button>
+          </div>
+        </div>
+
+        {/* 3-column layout: nav | content | readiness */}
+        <div className="flex gap-6">
+          {/* Left nav */}
+          <SectionNav activeSection={activeSection} onNavigate={handleNavigate} />
+
+          {/* Main content — 7 sections */}
+          <main className="flex-1 min-w-0 space-y-10 pb-20">
+            <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
+
+            <div className="border-t border-border" />
+
+            <PartiesSection data={ds.parties} onChange={(p) => setDs(prev => ({ ...prev, parties: p }))} autoFilledShipper={autoFilledShipper} />
+
+            <div className="border-t border-border" />
+
+            <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
+
+            <div className="border-t border-border" />
+
+            <CargoSection
+              cargoLines={ds.cargoLines}
+              containers={ds.containers}
+              onCargoChange={(c) => setDs(prev => ({ ...prev, cargoLines: c }))}
+              onContainerChange={(c) => setDs(prev => ({ ...prev, containers: c }))}
+            />
+
+            <div className="border-t border-border" />
+
+            <CommercialSection
+              data={ds.commercial}
+              charges={ds.charges}
+              onChange={(c) => setDs(prev => ({ ...prev, commercial: c }))}
+              onChargesChange={(c) => setDs(prev => ({ ...prev, charges: c }))}
+            />
+
+            <div className="border-t border-border" />
+
+            <ExecutionSection data={ds.execution} onChange={(e) => setDs(prev => ({ ...prev, execution: e }))} />
+
+            <div className="border-t border-border" />
+
+            <ComplianceSection data={ds.compliance} onChange={(c) => setDs(prev => ({ ...prev, compliance: c }))} autoFilled={autoFilledCompliance} />
+          </main>
+
+          {/* Right sidebar — readiness */}
+          <div className="w-72 shrink-0 hidden xl:block">
+            <ReadinessPanel items={readiness} />
+          </div>
+        </div>
+      </div>
     </DashboardLayout>
   );
 };
