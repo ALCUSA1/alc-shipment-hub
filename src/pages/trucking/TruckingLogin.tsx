@@ -85,7 +85,31 @@ const TruckingLogin = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      setError("Enter your email first, then click Forgot password");
+                      return;
+                    }
+                    setError("");
+                    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (resetErr) {
+                      setError(resetErr.message);
+                    } else {
+                      setError("");
+                      setForgotSent(true);
+                    }
+                  }}
+                  className="text-xs text-accent hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
