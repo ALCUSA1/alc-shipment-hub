@@ -40,23 +40,30 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    let userId: string;
+    // Check if user already exists
+    const { data: listData, error: listError } = await adminClient.auth.admin.listUsers();
+    if (listError) throw listError;
+    const existing = listData.users.find((u) => u.email === email);
 
-    // Try to invite — if user already exists, look them up instead
+    if (existing) {
+      // User exists — just assign the role
+      const { error: roleError } = await adminClient
+        .from("user_roles")
+        .upsert({ user_id: existing.id, role }, { onConflict: "user_id,role" });
+      if (roleError) throw roleError;
+
+      return new Response(
+        JSON.stringify({ message: `Assigned ${role} role to existing user ${email}`, user_id: existing.id }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // New user — send invite email
     const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
       data: { full_name: full_name || "" },
     });
-
-    if (inviteError) {
-      // User already registered — look up by email
-      const { data: listData, error: listError } = await adminClient.auth.admin.listUsers();
-      if (listError) throw listError;
-      const existing = listData.users.find((u) => u.email === email);
-      if (!existing) throw new Error("User not found and invite failed: " + inviteError.message);
-      userId = existing.id;
-    } else {
-      userId = inviteData.user.id;
-    }
+    if (inviteError) throw inviteError;
+    const userId = inviteData.user.id;
 
     // Assign role (upsert to avoid duplicate errors)
     const { error: roleError } = await adminClient
@@ -64,9 +71,8 @@ Deno.serve(async (req) => {
       .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
     if (roleError) throw roleError;
 
-    const action = inviteError ? "Assigned role to existing user" : "Invited";
     return new Response(
-      JSON.stringify({ message: `${action} ${email} as ${role}`, user_id: userId }),
+      JSON.stringify({ message: `Invited ${email} as ${role}`, user_id: userId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
