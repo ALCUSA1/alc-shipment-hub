@@ -2,7 +2,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
+import { CrmCompanySelector } from "@/components/shared/CrmCompanySelector";
+import { Zap } from "lucide-react";
 
 export interface PartyInfo {
   companyName: string;
@@ -23,18 +26,39 @@ export interface PartiesData {
 
 export const emptyParty = (): PartyInfo => ({ companyName: "", contactName: "", address: "", email: "", phone: "" });
 
+interface CrmCompany {
+  id: string;
+  company_name: string;
+  company_type: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  email?: string | null;
+  phone?: string | null;
+}
+
 interface PartiesStepProps {
   data: PartiesData;
   onChange: (data: PartiesData) => void;
+  crmCompanies?: CrmCompany[];
+  autoFilledShipper?: boolean;
 }
 
-function PartyCard({ label, party, onChange, description }: { label: string; party: PartyInfo; onChange: (p: PartyInfo) => void; description?: string }) {
+function PartyCard({ label, party, onChange, description, autoFilled }: { label: string; party: PartyInfo; onChange: (p: PartyInfo) => void; description?: string; autoFilled?: boolean }) {
   const set = (field: keyof PartyInfo, val: string) => onChange({ ...party, [field]: val });
   return (
     <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-      <div>
-        <h4 className="text-sm font-semibold text-foreground">{label}</h4>
-        {description && <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>}
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-semibold text-foreground">{label}</h4>
+          {description && <p className="text-[10px] text-muted-foreground mt-0.5">{description}</p>}
+        </div>
+        {autoFilled && (
+          <Badge variant="outline" className="text-[9px] gap-1 text-accent border-accent/30">
+            <Zap className="h-2.5 w-2.5" /> Auto-filled
+          </Badge>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -64,7 +88,14 @@ function PartyCard({ label, party, onChange, description }: { label: string; par
   );
 }
 
-export function PartiesStep({ data, onChange }: PartiesStepProps) {
+export function PartiesStep({ data, onChange, crmCompanies = [], autoFilledShipper }: PartiesStepProps) {
+  const [consigneeMode, setConsigneeMode] = useState<"crm" | "manual">(
+    data.consignee.companyName ? "manual" : "crm"
+  );
+  const [truckingMode, setTruckingMode] = useState<"crm" | "manual">(
+    data.truckingCompany ? "manual" : "crm"
+  );
+
   const setParty = (key: keyof Pick<PartiesData, 'shipper' | 'consignee' | 'notifyParty' | 'pickupWarehouse'>, party: PartyInfo) =>
     onChange({ ...data, [key]: party });
 
@@ -83,6 +114,38 @@ export function PartiesStep({ data, onChange }: PartiesStepProps) {
     });
   };
 
+  const handleConsigneeCrmSelect = (company: CrmCompany | null) => {
+    if (!company) {
+      setParty("consignee", emptyParty());
+      return;
+    }
+    const addr = [company.address, company.city, company.state, company.country].filter(Boolean).join(", ");
+    setParty("consignee", {
+      companyName: company.company_name,
+      contactName: "",
+      address: addr,
+      email: company.email || "",
+      phone: company.phone || "",
+    });
+    setConsigneeMode("manual");
+  };
+
+  const handleTruckingCrmSelect = (company: CrmCompany | null) => {
+    if (!company) {
+      onChange({ ...data, truckingCompany: "" });
+      return;
+    }
+    onChange({ ...data, truckingCompany: company.company_name });
+    setTruckingMode("manual");
+  };
+
+  const consigneeCompanies = crmCompanies.filter(
+    (c) => c.company_type === "consignee" || c.company_type === "customer"
+  );
+  const truckingCompanies = crmCompanies.filter(
+    (c) => c.company_type === "trucking" || c.company_type === "customer"
+  );
+
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
@@ -96,13 +159,30 @@ export function PartiesStep({ data, onChange }: PartiesStepProps) {
           description="The party shipping the goods"
           party={data.shipper} 
           onChange={(p) => setParty("shipper", p)} 
+          autoFilled={autoFilledShipper}
         />
-        <PartyCard 
-          label="Consignee / Buyer" 
-          description="The party receiving the goods"
-          party={data.consignee} 
-          onChange={(p) => setParty("consignee", p)} 
-        />
+        <div className="space-y-2">
+          {crmCompanies.length > 0 && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Select from CRM</Label>
+              <div className="mt-1">
+                <CrmCompanySelector
+                  companies={crmCompanies}
+                  companyType="consignee"
+                  onSelect={handleConsigneeCrmSelect}
+                  onCreateNew={() => setConsigneeMode("manual")}
+                  label="Select consignee from CRM..."
+                />
+              </div>
+            </div>
+          )}
+          <PartyCard 
+            label="Consignee / Buyer" 
+            description="The party receiving the goods"
+            party={data.consignee} 
+            onChange={(p) => setParty("consignee", p)} 
+          />
+        </div>
       </div>
 
       {/* Notify Party with toggle */}
@@ -139,12 +219,26 @@ export function PartiesStep({ data, onChange }: PartiesStepProps) {
 
       <Separator />
 
-      {/* Trucking - simplified */}
+      {/* Trucking - with CRM selector */}
       <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
         <div>
           <h4 className="text-sm font-semibold text-foreground">Trucking Company (Optional)</h4>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Enter a trucking company name to request a rate quote</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Select from CRM or enter manually</p>
         </div>
+        {crmCompanies.length > 0 && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Select from CRM</Label>
+            <div className="mt-1">
+              <CrmCompanySelector
+                companies={crmCompanies}
+                companyType="trucking"
+                onSelect={handleTruckingCrmSelect}
+                onCreateNew={() => setTruckingMode("manual")}
+                label="Select trucking company..."
+              />
+            </div>
+          </div>
+        )}
         <div>
           <Label className="text-xs">Company Name</Label>
           <Input 
