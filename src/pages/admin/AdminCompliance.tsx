@@ -33,7 +33,11 @@ const AdminCompliance = () => {
   const { data: customs } = useQuery({
     queryKey: ["admin-customs-filings"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("customs_filings").select("id, filing_type, status, shipment_id").limit(200);
+      const { data, error } = await supabase
+        .from("customs_filings")
+        .select("id, filing_type, status, shipment_id, exporter_name, itn, created_at, submitted_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return data || [];
     },
