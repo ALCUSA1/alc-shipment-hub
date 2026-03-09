@@ -54,6 +54,8 @@ import Pipeline from "./pages/Pipeline";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import PendingApproval from "./pages/PendingApproval";
+import Analytics from "./pages/Analytics";
+import CustomerPortal from "./pages/CustomerPortal";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
