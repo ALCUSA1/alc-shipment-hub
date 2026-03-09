@@ -395,6 +395,60 @@ const AdminUsers = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Invite User Dialog */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Full Name</label>
+              <Input
+                placeholder="John Doe"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Email *</label>
+              <Input
+                placeholder="user@example.com"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Role *</label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
+                  <SelectValue placeholder="Select a role…" />
+                </SelectTrigger>
+                <SelectContent className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
+                  {ALL_ROLES.map((r) => (
+                    <SelectItem key={r} value={r} className="focus:bg-[hsl(220,15%,18%)]">
+                      {r === "trucker" ? "Trucker (Carrier Portal)" : r.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={handleInvite}
+              disabled={!inviteEmail || !inviteRole || inviting}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              {inviting ? "Sending Invite…" : "Send Invite"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
