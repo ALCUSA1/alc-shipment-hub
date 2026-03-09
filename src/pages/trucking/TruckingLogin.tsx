@@ -16,6 +16,7 @@ const TruckingLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -25,11 +26,12 @@ const TruckingLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      setError(error.message);
     } else {
       navigate("/trucking");
     }
@@ -58,6 +60,12 @@ const TruckingLogin = () => {
 
           <h1 className="text-2xl font-bold text-foreground mb-2">Carrier Login</h1>
           <p className="text-sm text-muted-foreground mb-8">Sign in to view available orders</p>
+
+          {error && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
