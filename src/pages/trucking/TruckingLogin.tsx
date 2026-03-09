@@ -61,6 +61,12 @@ const TruckingLogin = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">Carrier Login</h1>
           <p className="text-sm text-muted-foreground mb-8">Sign in to view available orders</p>
 
+          {error && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
