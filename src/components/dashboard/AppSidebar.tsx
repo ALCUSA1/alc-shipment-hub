@@ -28,6 +28,7 @@ const navGroups = [
     label: "Overview",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
       { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
       { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
       { title: "Portal", url: "/dashboard/portal", icon: Globe },
