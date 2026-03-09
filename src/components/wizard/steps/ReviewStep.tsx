@@ -62,7 +62,9 @@ export function ReviewStep({ overview, parties, cargo, compliance, companies }: 
           <h4 className="text-sm font-semibold text-foreground">Trade Parties</h4>
           <Row label="Shipper" value={parties.shipper.companyName} />
           <Row label="Consignee" value={parties.consignee.companyName} />
-          <Row label="Notify Party" value={parties.notifyParty.companyName} />
+          <Row label="Notify Party" value={parties.notifyPartySameAsConsignee ? `Same as Consignee` : parties.notifyParty.companyName} />
+          <Row label="Pickup Warehouse" value={parties.pickupWarehouse?.companyName} />
+          <Row label="Trucking Company" value={typeof parties.truckingCompany === 'string' ? parties.truckingCompany : undefined} />
         </div>
       )}
 
