@@ -8,6 +8,8 @@ import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
+import { AmendmentPanel } from "@/components/shipment/AmendmentPanel";
+import { DetentionTimeline } from "@/components/shipment/DetentionTimeline";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ShipmentNextAction } from "@/components/shipment/ShipmentNextAction";
