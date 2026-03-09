@@ -93,6 +93,32 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
     }
   };
 
+  const handlePayAmendment = async (amendment: any) => {
+    setPayingId(amendment.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: {
+          shipment_id: shipmentId,
+          amount: amendment.carrier_fee_amount,
+          currency: amendment.carrier_fee_currency || "USD",
+          metadata: {
+            amendment_id: amendment.id,
+            amendment_type: amendment.amendment_type,
+            description: `Amendment fee: ${amendment.description}`,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   const getTypeLabel = (t: string) => AMENDMENT_TYPES.find(a => a.value === t)?.label || t;
 
   return (
