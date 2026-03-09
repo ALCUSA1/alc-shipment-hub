@@ -23,6 +23,7 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   dock_receipt: "Dock Receipt",
   insurance_certificate: "Insurance Certificate",
   aes_filing: "AES Filing / ITN",
+  seaway_bill: "Seaway Bill (SWB)",
 };
 
 export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps) {

@@ -58,6 +58,30 @@ serve(async (req) => {
         .eq("id", session.metadata.quote_id);
     }
 
+    // Auto-generate Seaway Bill document when payment is completed
+    if (newStatus === "completed") {
+      const shipmentId = session.metadata?.shipment_id;
+      const userId = user.id;
+      if (shipmentId) {
+        // Check if SWB already exists for this shipment
+        const { data: existing } = await supabaseAdmin
+          .from("documents")
+          .select("id")
+          .eq("shipment_id", shipmentId)
+          .eq("doc_type", "seaway_bill")
+          .maybeSingle();
+
+        if (!existing) {
+          await supabaseAdmin.from("documents").insert({
+            shipment_id: shipmentId,
+            user_id: userId,
+            doc_type: "seaway_bill",
+            status: "pending",
+          });
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         status: newStatus,
