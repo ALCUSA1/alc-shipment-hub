@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut,
-  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Bell
+  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Bell, BarChart3, Globe
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +29,8 @@ const navGroups = [
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
+      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+      { title: "Portal", url: "/dashboard/portal", icon: Globe },
     ],
   },
   {

@@ -1125,6 +1125,39 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_rates: {
+        Row: {
+          base_currency: string
+          created_at: string
+          effective_date: string
+          id: string
+          rate: number
+          source: string
+          target_currency: string
+          updated_at: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          rate: number
+          source?: string
+          target_currency: string
+          updated_at?: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          rate?: number
+          source?: string
+          target_currency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_type: string

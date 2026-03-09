@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { BulkOperationsPanel } from "@/components/shipment/BulkOperationsPanel";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -177,6 +178,11 @@ const Shipments = () => {
         <Button variant="electric" asChild>
           <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
         </Button>
+      </div>
+
+      {/* Bulk Operations */}
+      <div className="mb-6">
+        <BulkOperationsPanel shipments={shipments || []} />
       </div>
 
       {/* Filters */}
