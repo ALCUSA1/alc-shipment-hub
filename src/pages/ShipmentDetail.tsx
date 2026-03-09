@@ -317,7 +317,7 @@ const ShipmentDetail = () => {
               <Copy className="mr-2 h-4 w-4" />
               Clone
             </Button>
-            <Button variant="electric" size="sm">
+            <Button variant="electric" size="sm" onClick={() => setShowDocGen(true)}>
               <FileText className="mr-2 h-4 w-4" />
               Generate Documents
             </Button>
