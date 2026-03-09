@@ -283,7 +283,7 @@ const NewShipment = () => {
       }));
 
       // 6. Execute parallel inserts
-      const inserts: Promise<any>[] = [];
+      const inserts: PromiseLike<any>[] = [];
       if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts).then());
       if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts).then());
       if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts).then());
