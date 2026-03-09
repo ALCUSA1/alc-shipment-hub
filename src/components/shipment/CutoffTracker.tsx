@@ -71,6 +71,26 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
 
   const hasCutoffs = Object.values(cutoffs).some((v) => v !== null);
 
+  const handleSyncFromCarrier = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-cutoffs", {
+        body: { shipment_id: shipmentId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
+        toast({ title: "Cutoffs synced", description: data.message });
+      } else {
+        toast({ title: "Sync unavailable", description: data?.message || "Carrier API not configured for this shipment.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Sync failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleQuickSet = () => {
     if (!etd) {
       toast({ title: "ETD required", description: "Set an ETD on the shipment first to auto-calculate cutoffs.", variant: "destructive" });
