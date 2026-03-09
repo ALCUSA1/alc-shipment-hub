@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { BulkOperationsPanel } from "@/components/shipment/BulkOperationsPanel";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
