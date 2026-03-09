@@ -299,6 +299,7 @@ export type Database = {
           cargo_insurance_expiry: string | null
           cargo_insurance_policy: string | null
           cargo_insurance_provider: string | null
+          chassis_capable: boolean | null
           city: string | null
           company_name: string
           company_type: string
@@ -306,6 +307,8 @@ export type Database = {
           created_at: string
           credit_limit: number | null
           credit_terms: string | null
+          dispatcher_name: string | null
+          dispatcher_phone: string | null
           duns_number: string | null
           ein: string | null
           email: string | null
@@ -315,16 +318,22 @@ export type Database = {
           general_liability_expiry: string | null
           general_liability_policy: string | null
           general_liability_provider: string | null
+          hazmat_capable: boolean | null
           id: string
           industry: string | null
+          internal_rating: number | null
           notes: string | null
           oti_bond_amount: number | null
           oti_bond_number: string | null
           oti_bond_surety: string | null
           payment_terms_days: number | null
           phone: string | null
+          port_coverage: string[] | null
+          preferred_partner: boolean | null
+          reefer_capable: boolean | null
           sam_expiry: string | null
           sam_registration: string | null
+          service_area: string | null
           state: string | null
           status: Database["public"]["Enums"]["company_status"]
           trade_name: string | null
@@ -341,6 +350,7 @@ export type Database = {
           cargo_insurance_expiry?: string | null
           cargo_insurance_policy?: string | null
           cargo_insurance_provider?: string | null
+          chassis_capable?: boolean | null
           city?: string | null
           company_name: string
           company_type?: string
@@ -348,6 +358,8 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           credit_terms?: string | null
+          dispatcher_name?: string | null
+          dispatcher_phone?: string | null
           duns_number?: string | null
           ein?: string | null
           email?: string | null
@@ -357,16 +369,22 @@ export type Database = {
           general_liability_expiry?: string | null
           general_liability_policy?: string | null
           general_liability_provider?: string | null
+          hazmat_capable?: boolean | null
           id?: string
           industry?: string | null
+          internal_rating?: number | null
           notes?: string | null
           oti_bond_amount?: number | null
           oti_bond_number?: string | null
           oti_bond_surety?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          port_coverage?: string[] | null
+          preferred_partner?: boolean | null
+          reefer_capable?: boolean | null
           sam_expiry?: string | null
           sam_registration?: string | null
+          service_area?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["company_status"]
           trade_name?: string | null
@@ -383,6 +401,7 @@ export type Database = {
           cargo_insurance_expiry?: string | null
           cargo_insurance_policy?: string | null
           cargo_insurance_provider?: string | null
+          chassis_capable?: boolean | null
           city?: string | null
           company_name?: string
           company_type?: string
@@ -390,6 +409,8 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           credit_terms?: string | null
+          dispatcher_name?: string | null
+          dispatcher_phone?: string | null
           duns_number?: string | null
           ein?: string | null
           email?: string | null
@@ -399,16 +420,22 @@ export type Database = {
           general_liability_expiry?: string | null
           general_liability_policy?: string | null
           general_liability_provider?: string | null
+          hazmat_capable?: boolean | null
           id?: string
           industry?: string | null
+          internal_rating?: number | null
           notes?: string | null
           oti_bond_amount?: number | null
           oti_bond_number?: string | null
           oti_bond_surety?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          port_coverage?: string[] | null
+          preferred_partner?: boolean | null
+          reefer_capable?: boolean | null
           sam_expiry?: string | null
           sam_registration?: string | null
+          service_area?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["company_status"]
           trade_name?: string | null
@@ -1496,6 +1523,71 @@ export type Database = {
         }
         Relationships: []
       }
+      shipment_amendments: {
+        Row: {
+          amendment_type: string
+          approved_at: string | null
+          approved_by: string | null
+          carrier_fee_amount: number | null
+          carrier_fee_currency: string | null
+          carrier_fee_required: boolean | null
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          payment_required_before_change: boolean | null
+          payment_status: string | null
+          shipment_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amendment_type?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_fee_amount?: number | null
+          carrier_fee_currency?: string | null
+          carrier_fee_required?: boolean | null
+          created_at?: string
+          description: string
+          id?: string
+          notes?: string | null
+          payment_required_before_change?: boolean | null
+          payment_status?: string | null
+          shipment_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amendment_type?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_fee_amount?: number | null
+          carrier_fee_currency?: string | null
+          carrier_fee_required?: boolean | null
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          payment_required_before_change?: boolean | null
+          payment_status?: string | null
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_amendments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_charges: {
         Row: {
           amount: number
@@ -1672,7 +1764,17 @@ export type Database = {
           customer_reference: string | null
           cy_cutoff: string | null
           declared_value: number | null
+          delivery_city: string | null
+          delivery_contact_name: string | null
+          delivery_contact_phone: string | null
+          delivery_country: string | null
+          delivery_instructions: string | null
+          delivery_lat: number | null
+          delivery_lng: number | null
           delivery_location: string | null
+          delivery_postal_code: string | null
+          delivery_state: string | null
+          delivery_validated: boolean | null
           destination_port: string | null
           destuffing_required: boolean | null
           doc_cutoff: string | null
@@ -1692,7 +1794,17 @@ export type Database = {
           mode: string
           origin_port: string | null
           payment_terms: string | null
+          pickup_city: string | null
+          pickup_contact_name: string | null
+          pickup_contact_phone: string | null
+          pickup_country: string | null
+          pickup_instructions: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
           pickup_location: string | null
+          pickup_postal_code: string | null
+          pickup_state: string | null
+          pickup_validated: boolean | null
           place_of_delivery: string | null
           place_of_receipt: string | null
           quote_reference: string | null
@@ -1726,7 +1838,17 @@ export type Database = {
           customer_reference?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
+          delivery_city?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          delivery_country?: string | null
+          delivery_instructions?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           delivery_location?: string | null
+          delivery_postal_code?: string | null
+          delivery_state?: string | null
+          delivery_validated?: boolean | null
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
@@ -1746,7 +1868,17 @@ export type Database = {
           mode?: string
           origin_port?: string | null
           payment_terms?: string | null
+          pickup_city?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
+          pickup_country?: string | null
+          pickup_instructions?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           pickup_location?: string | null
+          pickup_postal_code?: string | null
+          pickup_state?: string | null
+          pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null
@@ -1780,7 +1912,17 @@ export type Database = {
           customer_reference?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
+          delivery_city?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          delivery_country?: string | null
+          delivery_instructions?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           delivery_location?: string | null
+          delivery_postal_code?: string | null
+          delivery_state?: string | null
+          delivery_validated?: boolean | null
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
@@ -1800,7 +1942,17 @@ export type Database = {
           mode?: string
           origin_port?: string | null
           payment_terms?: string | null
+          pickup_city?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
+          pickup_country?: string | null
+          pickup_instructions?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           pickup_location?: string | null
+          pickup_postal_code?: string | null
+          pickup_state?: string | null
+          pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null

@@ -2,7 +2,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Truck, Warehouse } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Truck, Warehouse, MapPin, CheckCircle2 } from "lucide-react";
+import { AddressAutocomplete, type StructuredAddress } from "@/components/shared/AddressAutocomplete";
 import type { ShipmentDataset } from "@/lib/shipment-dataset";
 
 interface Props {
@@ -12,6 +14,30 @@ interface Props {
 
 export function ExecutionSection({ data, onChange }: Props) {
   const set = (f: keyof typeof data, v: any) => onChange({ ...data, [f]: v });
+
+  const handlePickupAddress = (addr: StructuredAddress) => {
+    onChange({
+      ...data,
+      pickupLocation: addr.formatted,
+      pickupCity: addr.city,
+      pickupState: addr.state,
+      pickupPostalCode: addr.postalCode,
+      pickupCountry: addr.country,
+      pickupValidated: true,
+    });
+  };
+
+  const handleDeliveryAddress = (addr: StructuredAddress) => {
+    onChange({
+      ...data,
+      deliveryLocation: addr.formatted,
+      deliveryCity: addr.city,
+      deliveryState: addr.state,
+      deliveryPostalCode: addr.postalCode,
+      deliveryCountry: addr.country,
+      deliveryValidated: true,
+    });
+  };
 
   return (
     <section id="execution" className="scroll-mt-8">
@@ -29,8 +55,50 @@ export function ExecutionSection({ data, onChange }: Props) {
           </div>
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-[10px] text-muted-foreground">Pickup Location</Label><Input className="mt-1 h-9 text-sm" value={data.pickupLocation} onChange={(e) => set("pickupLocation", e.target.value)} placeholder="Address or facility" /></div>
-              <div><Label className="text-[10px] text-muted-foreground">Delivery Location</Label><Input className="mt-1 h-9 text-sm" value={data.deliveryLocation} onChange={(e) => set("deliveryLocation", e.target.value)} placeholder="Port or CFS" /></div>
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Label className="text-[10px] text-muted-foreground">Pickup Location</Label>
+                  {data.pickupValidated && (
+                    <Badge variant="outline" className="text-[8px] gap-0.5 text-green-600 border-green-200 py-0 h-3.5">
+                      <CheckCircle2 className="h-2 w-2" /> Verified
+                    </Badge>
+                  )}
+                </div>
+                <AddressAutocomplete
+                  value={data.pickupLocation}
+                  onChange={(v) => { set("pickupLocation", v); if (data.pickupValidated) set("pickupValidated", false); }}
+                  onAddressSelect={handlePickupAddress}
+                  placeholder="Search pickup address..."
+                  className="h-9 text-sm"
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Label className="text-[10px] text-muted-foreground">Delivery Location</Label>
+                  {data.deliveryValidated && (
+                    <Badge variant="outline" className="text-[8px] gap-0.5 text-green-600 border-green-200 py-0 h-3.5">
+                      <CheckCircle2 className="h-2 w-2" /> Verified
+                    </Badge>
+                  )}
+                </div>
+                <AddressAutocomplete
+                  value={data.deliveryLocation}
+                  onChange={(v) => { set("deliveryLocation", v); if (data.deliveryValidated) set("deliveryValidated", false); }}
+                  onAddressSelect={handleDeliveryAddress}
+                  placeholder="Search delivery address..."
+                  className="h-9 text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label className="text-[10px] text-muted-foreground">Contact Name</Label><Input className="mt-1 h-8 text-xs" value={data.pickupContactName} onChange={(e) => set("pickupContactName", e.target.value)} placeholder="Pickup contact" /></div>
+                <div><Label className="text-[10px] text-muted-foreground">Contact Phone</Label><Input className="mt-1 h-8 text-xs" value={data.pickupContactPhone} onChange={(e) => set("pickupContactPhone", e.target.value)} placeholder="+1..." /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label className="text-[10px] text-muted-foreground">Contact Name</Label><Input className="mt-1 h-8 text-xs" value={data.deliveryContactName} onChange={(e) => set("deliveryContactName", e.target.value)} placeholder="Delivery contact" /></div>
+                <div><Label className="text-[10px] text-muted-foreground">Contact Phone</Label><Input className="mt-1 h-8 text-xs" value={data.deliveryContactPhone} onChange={(e) => set("deliveryContactPhone", e.target.value)} placeholder="+1..." /></div>
+              </div>
             </div>
             <div className="grid grid-cols-4 gap-3">
               <div><Label className="text-[10px] text-muted-foreground">Pickup Date</Label><Input type="date" className="mt-1 h-8 text-xs" value={data.pickupDate} onChange={(e) => set("pickupDate", e.target.value)} /></div>
@@ -42,7 +110,10 @@ export function ExecutionSection({ data, onChange }: Props) {
               <div><Label className="text-[10px] text-muted-foreground">Truck Ref</Label><Input className="mt-1 h-8 text-xs" value={data.truckRef} onChange={(e) => set("truckRef", e.target.value)} /></div>
               <div><Label className="text-[10px] text-muted-foreground">Chassis Ref</Label><Input className="mt-1 h-8 text-xs" value={data.chassisRef} onChange={(e) => set("chassisRef", e.target.value)} /></div>
             </div>
-            <div><Label className="text-[10px] text-muted-foreground">Dispatch Notes</Label><Textarea className="mt-1 text-xs" rows={2} value={data.dispatchNotes} onChange={(e) => set("dispatchNotes", e.target.value)} placeholder="Gate codes, appointments..." /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label className="text-[10px] text-muted-foreground">Pickup Instructions</Label><Textarea className="mt-1 text-xs" rows={2} value={data.pickupInstructions} onChange={(e) => set("pickupInstructions", e.target.value)} placeholder="Gate codes, appointments..." /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Delivery Instructions</Label><Textarea className="mt-1 text-xs" rows={2} value={data.deliveryInstructions} onChange={(e) => set("deliveryInstructions", e.target.value)} placeholder="Delivery notes..." /></div>
+            </div>
           </div>
         </div>
 

@@ -39,7 +39,7 @@ const NewShipment = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, company_type, address, city, state, country, email, phone, ein, cargo_insurance_provider, cargo_insurance_policy")
+        .select("id, company_name, company_type, address, city, state, country, email, phone, ein, zip, cargo_insurance_provider, cargo_insurance_policy")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -200,7 +200,23 @@ const NewShipment = () => {
         declared_value: com.declaredValue ? parseFloat(com.declaredValue) : null,
         payment_terms: com.paymentTerms || null,
         pickup_location: ex.pickupLocation || null,
+        pickup_city: ex.pickupCity || null,
+        pickup_state: ex.pickupState || null,
+        pickup_postal_code: ex.pickupPostalCode || null,
+        pickup_country: ex.pickupCountry || null,
+        pickup_contact_name: ex.pickupContactName || null,
+        pickup_contact_phone: ex.pickupContactPhone || null,
+        pickup_instructions: ex.pickupInstructions || null,
+        pickup_validated: ex.pickupValidated,
         delivery_location: ex.deliveryLocation || null,
+        delivery_city: ex.deliveryCity || null,
+        delivery_state: ex.deliveryState || null,
+        delivery_postal_code: ex.deliveryPostalCode || null,
+        delivery_country: ex.deliveryCountry || null,
+        delivery_contact_name: ex.deliveryContactName || null,
+        delivery_contact_phone: ex.deliveryContactPhone || null,
+        delivery_instructions: ex.deliveryInstructions || null,
+        delivery_validated: ex.deliveryValidated,
         warehouse_location: ex.warehouseLocation || null,
         cargo_arrival_date: ex.cargoArrivalDate || null,
         warehouse_receipt_number: ex.warehouseReceiptNumber || null,
@@ -342,7 +358,33 @@ const NewShipment = () => {
 
           <main className="flex-1 min-w-0 space-y-12 pb-24">
             <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
-            <PartiesSection data={ds.parties} onChange={(p) => setDs(prev => ({ ...prev, parties: p }))} autoFilledShipper={autoFilledShipper} />
+            <PartiesSection
+              data={ds.parties}
+              onChange={(p) => setDs(prev => ({ ...prev, parties: p }))}
+              autoFilledShipper={autoFilledShipper}
+              companies={companies}
+              onSaveToCrm={async (party, type) => {
+                if (!user || !party.companyName) return;
+                try {
+                  await supabase.from("companies").insert({
+                    user_id: user.id,
+                    company_name: party.companyName,
+                    company_type: type === "truckingPartner" ? "trucking" : "consignee",
+                    address: party.address || null,
+                    city: party.city || null,
+                    state: party.state || null,
+                    zip: party.postalCode || null,
+                    country: party.country || null,
+                    email: party.email || null,
+                    phone: party.phone || null,
+                    ein: party.taxId || null,
+                  });
+                  toast({ title: "Saved to CRM", description: `${party.companyName} added as ${type === "truckingPartner" ? "trucking partner" : "consignee"}.` });
+                } catch (err: any) {
+                  toast({ title: "Save failed", description: err.message, variant: "destructive" });
+                }
+              }}
+            />
             <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
             <CargoSection
               cargoLines={ds.cargoLines} containers={ds.containers}

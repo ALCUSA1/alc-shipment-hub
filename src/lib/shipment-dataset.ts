@@ -123,14 +123,29 @@ export interface ShipmentDataset {
   // Section 6: Execution
   execution: {
     pickupLocation: string;
+    pickupCity: string;
+    pickupState: string;
+    pickupPostalCode: string;
+    pickupCountry: string;
+    pickupValidated: boolean;
+    pickupContactName: string;
+    pickupContactPhone: string;
+    pickupInstructions: string;
     pickupDate: string;
     pickupTime: string;
     deliveryLocation: string;
+    deliveryCity: string;
+    deliveryState: string;
+    deliveryPostalCode: string;
+    deliveryCountry: string;
+    deliveryValidated: boolean;
+    deliveryContactName: string;
+    deliveryContactPhone: string;
+    deliveryInstructions: string;
     driverName: string;
     driverPhone: string;
     truckRef: string;
     chassisRef: string;
-    dispatchNotes: string;
     warehouseLocation: string;
     cargoArrivalDate: string;
     warehouseReceiptNumber: string;
@@ -204,9 +219,12 @@ export function createEmptyDataset(): ShipmentDataset {
     },
     charges: [],
     execution: {
-      pickupLocation: "", pickupDate: "", pickupTime: "",
-      deliveryLocation: "", driverName: "", driverPhone: "",
-      truckRef: "", chassisRef: "", dispatchNotes: "",
+      pickupLocation: "", pickupCity: "", pickupState: "", pickupPostalCode: "", pickupCountry: "",
+      pickupValidated: false, pickupContactName: "", pickupContactPhone: "", pickupInstructions: "",
+      pickupDate: "", pickupTime: "",
+      deliveryLocation: "", deliveryCity: "", deliveryState: "", deliveryPostalCode: "", deliveryCountry: "",
+      deliveryValidated: false, deliveryContactName: "", deliveryContactPhone: "", deliveryInstructions: "",
+      driverName: "", driverPhone: "", truckRef: "", chassisRef: "",
       warehouseLocation: "", cargoArrivalDate: "", warehouseReceiptNumber: "",
       destuffingRequired: false, storageNotes: "", handlingNotes: "",
     },
