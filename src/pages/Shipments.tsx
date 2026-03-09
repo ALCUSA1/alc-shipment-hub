@@ -180,6 +180,11 @@ const Shipments = () => {
         </Button>
       </div>
 
+      {/* Bulk Operations */}
+      <div className="mb-6">
+        <BulkOperationsPanel shipments={shipments || []} />
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
