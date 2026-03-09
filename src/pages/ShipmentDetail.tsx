@@ -394,13 +394,25 @@ const ShipmentDetail = () => {
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
                 <InfoRow label="Shipment Type" value={formatStatus(shipment.shipment_type)} />
+                <InfoRow label="Mode" value={isAirShipment ? "Air" : "Ocean"} />
                 <InfoRow label="Status" value={formatStatus(shipment.status)} />
-                <InfoRow label="Origin Port" value={shipment.origin_port || "—"} />
-                <InfoRow label="Destination Port" value={shipment.destination_port || "—"} />
+                <InfoRow label={isAirShipment ? "Airport of Origin" : "Origin Port"} value={shipment.origin_port || "—"} />
+                <InfoRow label={isAirShipment ? "Airport of Dest." : "Destination Port"} value={shipment.destination_port || "—"} />
                 <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
                 <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
-                <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
-                <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
+                {isAirShipment ? (
+                  <>
+                    <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
+                    <InfoRow label="Flight" value={(shipment as any).flight_number || "TBD"} />
+                    <InfoRow label="MAWB" value={(shipment as any).mawb_number || "TBD"} />
+                    <InfoRow label="HAWB" value={(shipment as any).hawb_number || "—"} />
+                  </>
+                ) : (
+                  <>
+                    <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
+                    <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
+                  </>
+                )}
                 <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
                 <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
                 <InfoRow label="Booking Ref" value={shipment.booking_ref || "—"} />
