@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Timer, AlertTriangle, CheckCircle2, Pencil, Zap, X, Save, Loader2 } from "lucide-react";
+import { Timer, AlertTriangle, CheckCircle2, Pencil, Zap, X, Save, Loader2, RefreshCw } from "lucide-react";
 import { differenceInHours, differenceInDays, format, isPast, subDays, setHours, setMinutes } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
