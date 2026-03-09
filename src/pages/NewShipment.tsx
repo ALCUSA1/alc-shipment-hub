@@ -507,6 +507,7 @@ const NewShipment = () => {
               cargoLines={ds.cargoLines} containers={ds.containers}
               onCargoChange={(c) => setDs(prev => ({ ...prev, cargoLines: c }))}
               onContainerChange={(c) => setDs(prev => ({ ...prev, containers: c }))}
+              mode={ds.basics.mode}
             />
             <CommercialSection
               data={ds.commercial} charges={ds.charges}
