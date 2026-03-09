@@ -24,6 +24,12 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   insurance_certificate: "Insurance Certificate",
   aes_filing: "AES Filing / ITN",
   seaway_bill: "Seaway Bill (SWB)",
+  // Air-specific
+  mawb: "Master Air Waybill (MAWB)",
+  hawb: "House Air Waybill (HAWB)",
+  known_shipper_declaration: "Known Shipper Declaration",
+  dg_declaration_air: "Shipper's DG Declaration (IATA)",
+  cargo_manifest: "Cargo Manifest",
 };
 
 export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps) {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, Anchor, Clock } from "lucide-react";
+import { Check, ChevronsUpDown, Anchor, Clock, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -19,31 +19,36 @@ interface PortSelectorProps {
   value: string;
   onValueChange: (code: string) => void;
   placeholder?: string;
+  mode?: "ocean" | "air";
 }
 
-export function PortSelector({ ports, value, onValueChange, placeholder = "Select port..." }: PortSelectorProps) {
+export function PortSelector({ ports, value, onValueChange, placeholder = "Select port...", mode = "ocean" }: PortSelectorProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const isAir = mode === "air";
 
   const selectedPort = ports.find((p) => p.code === value);
 
   // Fetch recently used ports from user's shipments
   const { data: recentPorts = [] } = useQuery({
-    queryKey: ["recent-ports", user?.id],
+    queryKey: ["recent-ports", user?.id, mode],
     queryFn: async () => {
       const { data } = await supabase
         .from("shipments")
-        .select("origin_port, destination_port")
+        .select("origin_port, destination_port, airport_of_departure, airport_of_destination")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
       if (!data) return [];
       const codes = new Set<string>();
       data.forEach(s => {
+        if (isAir) {
+          if ((s as any).airport_of_departure) codes.add((s as any).airport_of_departure);
+          if ((s as any).airport_of_destination) codes.add((s as any).airport_of_destination);
+        }
         if (s.origin_port) codes.add(s.origin_port);
         if (s.destination_port) codes.add(s.destination_port);
       });
-      // Return first 5 unique port codes that exist in ports list
       return Array.from(codes)
         .map(code => ports.find(p => p.code === code))
         .filter(Boolean)
@@ -51,6 +56,11 @@ export function PortSelector({ ports, value, onValueChange, placeholder = "Selec
     },
     enabled: !!user && ports.length > 0,
   });
+
+  const IconComponent = isAir ? Plane : Anchor;
+  const searchLabel = isAir ? "Search airport name or IATA code..." : "Search port name or code...";
+  const emptyLabel = isAir ? "No airport found." : "No port found.";
+  const allLabel = isAir ? "All Airports" : "All Ports";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -71,11 +81,10 @@ export function PortSelector({ ports, value, onValueChange, placeholder = "Selec
       </PopoverTrigger>
       <PopoverContent className="w-[320px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search port name or code..." />
+          <CommandInput placeholder={searchLabel} />
           <CommandList>
-            <CommandEmpty>No port found.</CommandEmpty>
+            <CommandEmpty>{emptyLabel}</CommandEmpty>
 
-            {/* Recently Used Ports */}
             {recentPorts.length > 0 && (
               <CommandGroup heading="Recently Used">
                 {recentPorts.map((port) => (
@@ -96,7 +105,7 @@ export function PortSelector({ ports, value, onValueChange, placeholder = "Selec
               </CommandGroup>
             )}
 
-            <CommandGroup heading="All Ports">
+            <CommandGroup heading={allLabel}>
               {ports.map((port) => (
                 <CommandItem
                   key={port.code}
@@ -107,7 +116,7 @@ export function PortSelector({ ports, value, onValueChange, placeholder = "Selec
                   }}
                 >
                   <Check className={cn("mr-2 h-4 w-4", value === port.code ? "opacity-100" : "opacity-0")} />
-                  <Anchor className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                  <IconComponent className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span className="truncate">{port.name}</span>
                   <span className="ml-auto text-xs text-muted-foreground">{port.code}</span>
                 </CommandItem>

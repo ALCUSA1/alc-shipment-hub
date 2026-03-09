@@ -150,6 +150,9 @@ const NewShipment = () => {
           countryOfOrigin: c.country_of_origin || "",
           dangerousGoods: c.dangerous_goods,
           specialInstructions: c.special_instructions || "",
+          pieces: (c as any).pieces?.toString() || "",
+          chargeableWeight: (c as any).chargeable_weight?.toString() || "",
+          rateClass: (c as any).rate_class || "",
         })),
         containers: (containerRes.data || []).map(c => ({
           id: crypto.randomUUID(),
@@ -279,13 +282,14 @@ const NewShipment = () => {
       const ex = ds.execution;
       const comp = ds.compliance;
 
+      const isAirMode = b.mode === "air";
       const { data: row, error: err } = await supabase.from("shipments").insert({
         user_id: user.id,
         shipment_ref: "PENDING",
         shipment_type: b.shipmentType || "export",
         mode: b.mode || "ocean",
-        origin_port: r.portOfLoading || b.originPort || null,
-        destination_port: r.portOfDischarge || b.destinationPort || null,
+        origin_port: isAirMode ? (r.airportOfDeparture || b.originPort || null) : (r.portOfLoading || b.originPort || null),
+        destination_port: isAirMode ? (r.airportOfDestination || b.destinationPort || null) : (r.portOfDischarge || b.destinationPort || null),
         place_of_receipt: b.placeOfReceipt || null,
         place_of_delivery: b.placeOfDelivery || null,
         incoterms: b.incoterms || null,
@@ -337,6 +341,22 @@ const NewShipment = () => {
         destuffing_required: ex.destuffingRequired,
         storage_notes: ex.storageNotes || null,
         handling_notes: ex.handlingNotes || null,
+        // Air-specific fields
+        ...(isAirMode ? {
+          airline: r.airline || null,
+          flight_number: r.flightNumber || null,
+          mawb_number: r.mawbNumber || null,
+          hawb_number: r.hawbNumber || null,
+          airport_of_departure: r.airportOfDeparture || b.originPort || null,
+          airport_of_destination: r.airportOfDestination || b.destinationPort || null,
+          aircraft_type: r.aircraftType || null,
+          routing_and_destination: r.routingAndDestination || null,
+          handling_information: r.handlingInformation || null,
+          accounting_information: r.accountingInformation || null,
+          sci: r.sci || null,
+          declared_value_for_carriage: r.declaredValueForCarriage ? parseFloat(r.declaredValueForCarriage) : null,
+          declared_value_for_customs: r.declaredValueForCustoms ? parseFloat(r.declaredValueForCustoms) : null,
+        } : {}),
       }).select("id").single();
 
       if (err) throw err;
@@ -419,11 +439,9 @@ const NewShipment = () => {
         }).then());
       }
 
-      const requiredDocs = [
-        "bill_of_lading", "commercial_invoice", "packing_list",
-        "shipper_letter_of_instruction", "dock_receipt",
-        "certificate_of_origin", "insurance_certificate", "aes_filing",
-      ];
+      const requiredDocs = isAirMode
+        ? ["mawb", "hawb", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "known_shipper_declaration", "aes_filing"]
+        : ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing"];
       inserts.push(supabase.from("documents").insert(
         requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
       ).then());
@@ -499,11 +517,12 @@ const NewShipment = () => {
                 }
               }}
             />
-            <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
+            <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} mode={ds.basics.mode} />
             <CargoSection
               cargoLines={ds.cargoLines} containers={ds.containers}
               onCargoChange={(c) => setDs(prev => ({ ...prev, cargoLines: c }))}
               onContainerChange={(c) => setDs(prev => ({ ...prev, containers: c }))}
+              mode={ds.basics.mode}
             />
             <CommercialSection
               data={ds.commercial} charges={ds.charges}

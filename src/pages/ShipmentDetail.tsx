@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
+import { AirBookingPanel } from "@/components/shipment/AirBookingPanel";
+import { AirlineRateSelector } from "@/components/shipment/AirlineRateSelector";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { TruckingPanel } from "@/components/shipment/TruckingPanel";
 import { WarehousePanel } from "@/components/shipment/WarehousePanel";
@@ -40,15 +42,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
-const MILESTONES_ORDER = [
-  "Booking Confirmed",
-  "Cargo Received",
-  "Container Loaded",
-  "Vessel Departed",
-  "In Transit",
-  "Port Arrival",
-  "Customs Clearance",
-  "Delivered",
+const OCEAN_MILESTONES = [
+  "Booking Confirmed", "Cargo Received", "Container Loaded",
+  "Vessel Departed", "In Transit", "Port Arrival", "Customs Clearance", "Delivered",
+];
+
+const AIR_MILESTONES = [
+  "Booking Confirmed", "Cargo Received at Origin", "Security Screening",
+  "Flight Departed", "In Transit", "Arrived at Destination", "Customs Clearance", "Delivered",
 ];
 
 const statusColor: Record<string, string> = {
@@ -227,6 +228,8 @@ const ShipmentDetail = () => {
     (trackingEvents || []).map((e) => [e.milestone, e])
   );
 
+  const isAirShipment = shipment.mode === "air";
+  const MILESTONES_ORDER = isAirShipment ? AIR_MILESTONES : OCEAN_MILESTONES;
   const milestones = MILESTONES_ORDER.map((label) => {
     const event = completedMilestones.get(label);
     return {
@@ -278,6 +281,7 @@ const ShipmentDetail = () => {
             </div>
             <p className="text-sm text-muted-foreground">
               {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
+              {isAirShipment && shipment.mawb_number && <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded mr-2">MAWB: {shipment.mawb_number}</span>}
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
@@ -390,13 +394,25 @@ const ShipmentDetail = () => {
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
                 <InfoRow label="Shipment Type" value={formatStatus(shipment.shipment_type)} />
+                <InfoRow label="Mode" value={isAirShipment ? "Air" : "Ocean"} />
                 <InfoRow label="Status" value={formatStatus(shipment.status)} />
-                <InfoRow label="Origin Port" value={shipment.origin_port || "—"} />
-                <InfoRow label="Destination Port" value={shipment.destination_port || "—"} />
+                <InfoRow label={isAirShipment ? "Airport of Origin" : "Origin Port"} value={shipment.origin_port || "—"} />
+                <InfoRow label={isAirShipment ? "Airport of Dest." : "Destination Port"} value={shipment.destination_port || "—"} />
                 <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
                 <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
-                <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
-                <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
+                {isAirShipment ? (
+                  <>
+                    <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
+                    <InfoRow label="Flight" value={(shipment as any).flight_number || "TBD"} />
+                    <InfoRow label="MAWB" value={(shipment as any).mawb_number || "TBD"} />
+                    <InfoRow label="HAWB" value={(shipment as any).hawb_number || "—"} />
+                  </>
+                ) : (
+                  <>
+                    <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
+                    <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
+                  </>
+                )}
                 <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
                 <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
                 <InfoRow label="Booking Ref" value={shipment.booking_ref || "—"} />
@@ -447,16 +463,15 @@ const ShipmentDetail = () => {
             </Card>
           )}
 
-          {/* Demurrage & Detention */}
-          <DemurrageTracker
-            shipmentId={id!}
-            shipmentStatus={shipment.status}
-          />
+          {/* Demurrage & Detention (Ocean only) */}
+          {!isAirShipment && (
+            <DemurrageTracker shipmentId={id!} shipmentStatus={shipment.status} />
+          )}
 
-          {/* Detention Timeline */}
-          <DetentionTimeline
-            eta={shipment.eta}
-          />
+          {/* Detention Timeline (Ocean only) */}
+          {!isAirShipment && (
+            <DetentionTimeline eta={shipment.eta} />
+          )}
 
           {/* Amendments & Corrections */}
           <AmendmentPanel
@@ -465,7 +480,16 @@ const ShipmentDetail = () => {
           />
 
           {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {!isDelivered && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {!isDelivered && isAirShipment && (
+            <AirBookingPanel
+              shipmentId={id!}
+              airline={(shipment as any).airline}
+              flightNumber={(shipment as any).flight_number}
+              mawbNumber={(shipment as any).mawb_number}
+              bookingRef={shipment.booking_ref}
+            />
+          )}
 
           {/* Customs / AES Filing */}
           <div data-guide="customs">
@@ -533,7 +557,7 @@ const ShipmentDetail = () => {
           )}
 
           {/* Carrier Rate Selection & Booking - hide for delivered */}
-          {!isDelivered && (
+          {!isDelivered && !isAirShipment && (
             <CarrierRateSelector
               shipmentId={id!}
               shipmentRef={shipment.shipment_ref}

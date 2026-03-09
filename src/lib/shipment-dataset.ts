@@ -34,6 +34,10 @@ export interface CargoLine {
   countryOfOrigin: string;
   dangerousGoods: boolean;
   specialInstructions: string;
+  // Air-specific
+  pieces: string;
+  chargeableWeight: string;
+  rateClass: string;
 }
 
 export interface ContainerLine {
@@ -105,6 +109,20 @@ export interface ShipmentDataset {
     bookingRef: string;
     bookingTerms: string;
     freightTerms: string;
+    // Air-specific routing
+    airline: string;
+    flightNumber: string;
+    mawbNumber: string;
+    hawbNumber: string;
+    airportOfDeparture: string;
+    airportOfDestination: string;
+    handlingInformation: string;
+    routingAndDestination: string;
+    aircraftType: string;
+    accountingInformation: string;
+    sci: string;
+    declaredValueForCarriage: string;
+    declaredValueForCustoms: string;
   };
   // Section 4: Cargo
   cargoLines: CargoLine[];
@@ -176,6 +194,7 @@ export const emptyCargoLine = (): CargoLine => ({
   marksAndNumbers: "", numPackages: "", packageType: "",
   grossWeight: "", netWeight: "", volume: "", dimensions: "",
   countryOfOrigin: "", dangerousGoods: false, specialInstructions: "",
+  pieces: "", chargeableWeight: "", rateClass: "",
 });
 
 export const emptyContainerLine = (): ContainerLine => ({
@@ -210,6 +229,11 @@ export function createEmptyDataset(): ShipmentDataset {
       feederVessel: "", feederVoyage: "", motherVessel: "", motherVoyage: "",
       etd: "", eta: "", transshipmentPort1: "", transshipmentPort2: "",
       carrier: "", bookingRef: "", bookingTerms: "", freightTerms: "prepaid",
+      airline: "", flightNumber: "", mawbNumber: "", hawbNumber: "",
+      airportOfDeparture: "", airportOfDestination: "",
+      handlingInformation: "", routingAndDestination: "", aircraftType: "",
+      accountingInformation: "", sci: "",
+      declaredValueForCarriage: "", declaredValueForCustoms: "",
     },
     cargoLines: [emptyCargoLine()],
     containers: [emptyContainerLine()],
@@ -257,6 +281,8 @@ function checkFields(data: Record<string, any>, fields: { key: string; label: st
 }
 
 export function computeReadiness(ds: ShipmentDataset): DocReadiness[] {
+  const isAir = ds.basics.mode === "air";
+
   const flat: Record<string, any> = {
     ...ds.basics, ...ds.routing, ...ds.commercial, ...ds.compliance, ...ds.execution,
     shipperName: ds.parties.shipper.companyName,
@@ -273,8 +299,106 @@ export function computeReadiness(ds: ShipmentDataset): DocReadiness[] {
     countryOfOrigin: ds.cargoLines[0]?.countryOfOrigin,
     marksAndNumbers: ds.cargoLines[0]?.marksAndNumbers,
     containerType: ds.containers[0]?.containerType,
+    pieces: ds.cargoLines[0]?.pieces,
+    chargeableWeight: ds.cargoLines[0]?.chargeableWeight,
   };
 
+  if (isAir) {
+    return [
+      {
+        label: "HAWB",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper name" },
+          { key: "shipperAddress", label: "Shipper address" },
+          { key: "consigneeName", label: "Consignee name" },
+          { key: "consigneeAddress", label: "Consignee address" },
+          { key: "airportOfDeparture", label: "Airport of departure" },
+          { key: "airportOfDestination", label: "Airport of destination" },
+          { key: "airline", label: "Airline" },
+          { key: "flightNumber", label: "Flight number" },
+          { key: "commodity", label: "Commodity" },
+          { key: "pieces", label: "Pieces" },
+          { key: "grossWeight", label: "Gross weight" },
+          { key: "chargeableWeight", label: "Chargeable weight" },
+          { key: "freightTerms", label: "Freight terms (prepaid/collect)" },
+        ]),
+      },
+      {
+        label: "MAWB",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper name" },
+          { key: "consigneeName", label: "Consignee name" },
+          { key: "airportOfDeparture", label: "Airport of departure" },
+          { key: "airportOfDestination", label: "Airport of destination" },
+          { key: "airline", label: "Airline" },
+          { key: "mawbNumber", label: "MAWB number" },
+          { key: "flightNumber", label: "Flight/Date" },
+          { key: "grossWeight", label: "Gross weight" },
+          { key: "chargeableWeight", label: "Chargeable weight" },
+        ]),
+      },
+      {
+        label: "Commercial Invoice",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper / seller" },
+          { key: "consigneeName", label: "Consignee / buyer" },
+          { key: "invoiceNumber", label: "Invoice number" },
+          { key: "invoiceDate", label: "Invoice date" },
+          { key: "commodity", label: "Commodity" },
+          { key: "totalShipmentValue", label: "Total value" },
+          { key: "currency", label: "Currency" },
+          { key: "incoterms", label: "Incoterms" },
+          { key: "countryOfOrigin", label: "Country of origin" },
+        ]),
+      },
+      {
+        label: "Packing List",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper" },
+          { key: "consigneeName", label: "Consignee" },
+          { key: "commodity", label: "Commodity" },
+          { key: "pieces", label: "Pieces" },
+          { key: "grossWeight", label: "Gross weight" },
+          { key: "marksAndNumbers", label: "Marks & numbers" },
+        ]),
+      },
+      {
+        label: "SLI",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper name" },
+          { key: "consigneeName", label: "Consignee" },
+          { key: "airportOfDeparture", label: "Airport of departure" },
+          { key: "airportOfDestination", label: "Airport of destination" },
+          { key: "commodity", label: "Commodity" },
+          { key: "grossWeight", label: "Gross weight" },
+          { key: "airline", label: "Airline" },
+        ]),
+      },
+      {
+        label: "Known Shipper Declaration",
+        ...checkFields(flat, [
+          { key: "shipperName", label: "Shipper name" },
+          { key: "shipperAddress", label: "Shipper address" },
+          { key: "exporterEin", label: "Shipper EIN/Tax ID" },
+        ]),
+      },
+      {
+        label: "AES / ITN",
+        ...checkFields(flat, [
+          { key: "exporterName", label: "USPPI name" },
+          { key: "exporterEin", label: "USPPI EIN" },
+          { key: "consigneeName", label: "Ultimate consignee" },
+          { key: "hsCode", label: "HS / Schedule B code" },
+          { key: "countryOfOrigin", label: "Country of origin" },
+          { key: "totalShipmentValue", label: "Value" },
+          { key: "airportOfDeparture", label: "Port of export" },
+          { key: "airportOfDestination", label: "Port of unlading" },
+        ]),
+      },
+    ];
+  }
+
+  // Ocean mode (existing)
   return [
     {
       label: "Draft B/L",
