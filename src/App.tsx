@@ -146,6 +146,14 @@ const App = () => (
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
+            {/* Trucking Company Portal */}
+            <Route path="/trucking/login" element={<TruckingLogin />} />
+            <Route path="/trucking" element={<TruckingGate><TruckingDashboard /></TruckingGate>} />
+            <Route path="/trucking/orders" element={<TruckingGate><TruckingOrders /></TruckingGate>} />
+            <Route path="/trucking/orders/:id" element={<TruckingGate><TruckingOrderDetail /></TruckingGate>} />
+            <Route path="/trucking/quotes" element={<TruckingGate><TruckingQuotes /></TruckingGate>} />
+            <Route path="/trucking/account" element={<TruckingGate><TruckingAccount /></TruckingGate>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
