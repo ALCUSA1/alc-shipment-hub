@@ -15,6 +15,7 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
   "/dashboard/team":        ["admin"],
   "/admin":                 ["admin"],
   "/driver":                ["driver"],
+  "/warehouse":             ["warehouse"],
 };
 
 /**

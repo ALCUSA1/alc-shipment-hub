@@ -12,6 +12,7 @@ export async function getPostLoginRoute(userId: string): Promise<string> {
   if (roleList.includes("admin")) return "/admin";
   if (roleList.includes("driver")) return "/driver";
   if (roleList.includes("trucker")) return "/trucking";
+  if (roleList.includes("warehouse")) return "/warehouse";
   if (roleList.length > 0) return "/dashboard";
 
   // No roles — check signup request status

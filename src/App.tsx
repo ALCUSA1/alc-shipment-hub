@@ -173,6 +173,15 @@ const App = () => (
             <Route path="/driver/job/:id" element={<DriverGate><DriverAssignmentDetail /></DriverGate>} />
             <Route path="/driver/account" element={<DriverGate><DriverAccount /></DriverGate>} />
 
+            {/* Warehouse Portal */}
+            <Route path="/warehouse" element={<WarehouseGate><WarehouseDashboard /></WarehouseGate>} />
+            <Route path="/warehouse/inbound" element={<WarehouseGate><WarehouseInbound /></WarehouseGate>} />
+            <Route path="/warehouse/inventory" element={<WarehouseGate><WarehouseInventory /></WarehouseGate>} />
+            <Route path="/warehouse/releases" element={<WarehouseGate><WarehouseReleases /></WarehouseGate>} />
+            <Route path="/warehouse/billing" element={<WarehouseGate><WarehouseBilling /></WarehouseGate>} />
+            <Route path="/warehouse/facility" element={<WarehouseGate><WarehouseFacility /></WarehouseGate>} />
+            <Route path="/warehouse/account" element={<WarehouseGate><WarehouseAccount /></WarehouseGate>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
