@@ -43,6 +43,7 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     amendment_type: "bl_correction",
     description: "",
