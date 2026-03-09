@@ -123,14 +123,29 @@ export interface ShipmentDataset {
   // Section 6: Execution
   execution: {
     pickupLocation: string;
+    pickupCity: string;
+    pickupState: string;
+    pickupPostalCode: string;
+    pickupCountry: string;
+    pickupValidated: boolean;
+    pickupContactName: string;
+    pickupContactPhone: string;
+    pickupInstructions: string;
     pickupDate: string;
     pickupTime: string;
     deliveryLocation: string;
+    deliveryCity: string;
+    deliveryState: string;
+    deliveryPostalCode: string;
+    deliveryCountry: string;
+    deliveryValidated: boolean;
+    deliveryContactName: string;
+    deliveryContactPhone: string;
+    deliveryInstructions: string;
     driverName: string;
     driverPhone: string;
     truckRef: string;
     chassisRef: string;
-    dispatchNotes: string;
     warehouseLocation: string;
     cargoArrivalDate: string;
     warehouseReceiptNumber: string;
