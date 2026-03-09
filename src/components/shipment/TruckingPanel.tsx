@@ -85,10 +85,10 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
 
       const { error } = await supabase.from("trucking_quotes").insert({
         shipment_id: shipmentId,
-        user_id: user.id,
+        trucker_user_id: user.id,
+        price: 0,
         status: "available",
-        pickup_location: shipment?.pickup_location || shipment?.origin_port || null,
-        delivery_location: shipment?.delivery_location || shipment?.destination_port || null,
+        notes: `Pickup: ${shipment?.pickup_location || shipment?.origin_port || "TBD"} → Delivery: ${shipment?.delivery_location || shipment?.destination_port || "TBD"}`,
       });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
