@@ -71,9 +71,8 @@ Deno.serve(async (req) => {
       .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
     if (roleError) throw roleError;
 
-    const action = inviteError ? "Assigned role to existing user" : "Invited";
     return new Response(
-      JSON.stringify({ message: `${action} ${email} as ${role}`, user_id: userId }),
+      JSON.stringify({ message: `Invited ${email} as ${role}`, user_id: userId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
