@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { TruckingLayout } from "@/components/trucking/TruckingLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { FileText, Calendar, DollarSign, Truck } from "lucide-react";
+import { FileText, Calendar, DollarSign, Truck, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AssignDriverDialog } from "@/components/trucking/AssignDriverDialog";
 
 const statusStyles: Record<string, string> = {
   submitted: "bg-blue-100 text-blue-700",
