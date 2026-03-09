@@ -174,8 +174,8 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
                 {tq.status.replace(/_/g, " ")}
               </Badge>
             </div>
-            {tq.bid_amount && (
-              <p className="text-xs text-muted-foreground">Bid: ${tq.bid_amount.toLocaleString()}</p>
+            {tq.price > 0 && (
+              <p className="text-xs text-muted-foreground">Price: ${tq.price.toLocaleString()}</p>
             )}
           </div>
         ))}
