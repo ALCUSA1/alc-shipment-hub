@@ -280,6 +280,7 @@ export type Database = {
           cargo_insurance_provider: string | null
           city: string | null
           company_name: string
+          company_type: string
           country: string | null
           created_at: string
           credit_limit: number | null
@@ -321,6 +322,7 @@ export type Database = {
           cargo_insurance_provider?: string | null
           city?: string | null
           company_name: string
+          company_type?: string
           country?: string | null
           created_at?: string
           credit_limit?: number | null
@@ -362,6 +364,7 @@ export type Database = {
           cargo_insurance_provider?: string | null
           city?: string | null
           company_name?: string
+          company_type?: string
           country?: string | null
           created_at?: string
           credit_limit?: number | null
