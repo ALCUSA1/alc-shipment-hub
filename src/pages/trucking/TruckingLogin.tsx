@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import alcLogo from "@/assets/alc-logo.png";
 import { Truck } from "lucide-react";
 
@@ -18,11 +19,14 @@ const TruckingLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Only redirect if user has trucker role
+  const { roles, isLoading: rolesLoading } = useUserRole();
+  
   useEffect(() => {
-    if (user) {
+    if (user && !rolesLoading && roles.includes("trucker" as any)) {
       navigate("/trucking");
     }
-  }, [user, navigate]);
+  }, [user, roles, rolesLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
