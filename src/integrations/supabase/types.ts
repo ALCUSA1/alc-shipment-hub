@@ -117,6 +117,7 @@ export type Database = {
       }
       cargo: {
         Row: {
+          chargeable_weight: number | null
           commodity: string | null
           country_of_origin: string | null
           created_at: string
@@ -130,6 +131,8 @@ export type Database = {
           net_weight: number | null
           num_packages: number | null
           package_type: string | null
+          pieces: number | null
+          rate_class: string | null
           schedule_b: string | null
           shipment_id: string
           special_instructions: string | null
@@ -138,6 +141,7 @@ export type Database = {
           volume: number | null
         }
         Insert: {
+          chargeable_weight?: number | null
           commodity?: string | null
           country_of_origin?: string | null
           created_at?: string
@@ -151,6 +155,8 @@ export type Database = {
           net_weight?: number | null
           num_packages?: number | null
           package_type?: string | null
+          pieces?: number | null
+          rate_class?: string | null
           schedule_b?: string | null
           shipment_id: string
           special_instructions?: string | null
@@ -159,6 +165,7 @@ export type Database = {
           volume?: number | null
         }
         Update: {
+          chargeable_weight?: number | null
           commodity?: string | null
           country_of_origin?: string | null
           created_at?: string
@@ -172,6 +179,8 @@ export type Database = {
           net_weight?: number | null
           num_packages?: number | null
           package_type?: string | null
+          pieces?: number | null
+          rate_class?: string | null
           schedule_b?: string | null
           shipment_id?: string
           special_instructions?: string | null
@@ -249,6 +258,7 @@ export type Database = {
           currency: string
           destination_port: string
           id: string
+          mode: string
           notes: string | null
           origin_port: string
           surcharges: Json
@@ -265,6 +275,7 @@ export type Database = {
           currency?: string
           destination_port: string
           id?: string
+          mode?: string
           notes?: string | null
           origin_port: string
           surcharges?: Json
@@ -281,6 +292,7 @@ export type Database = {
           currency?: string
           destination_port?: string
           id?: string
+          mode?: string
           notes?: string | null
           origin_port?: string
           surcharges?: Json
@@ -1849,18 +1861,27 @@ export type Database = {
       }
       shipments: {
         Row: {
+          accounting_information: string | null
+          aircraft_type: string | null
+          airline: string | null
+          airport_of_departure: string | null
+          airport_of_destination: string | null
           booking_ref: string | null
           booking_terms: string | null
           cargo_arrival_date: string | null
           carrier: string | null
           carrier_submission_mode: string | null
           carrier_submission_status: string | null
+          chargeable_weight: number | null
+          commodity_item_number: string | null
           company_id: string | null
           converted_from_quote_id: string | null
           created_at: string
           customer_reference: string | null
           cy_cutoff: string | null
           declared_value: number | null
+          declared_value_for_carriage: number | null
+          declared_value_for_customs: number | null
           delivery_city: string | null
           delivery_contact_name: string | null
           delivery_contact_phone: string | null
@@ -1880,15 +1901,22 @@ export type Database = {
           feeder_vessel: string | null
           feeder_voyage: string | null
           final_destination: string | null
+          flight_number: string | null
           freight_terms: string | null
+          handling_information: string | null
           handling_notes: string | null
+          hawb_number: string | null
+          iata_code_destination: string | null
+          iata_code_origin: string | null
           id: string
           incoterms: string | null
           insurance_value: number | null
           invoice_currency: string | null
           invoice_date: string | null
           invoice_number: string | null
+          mawb_number: string | null
           mode: string
+          nature_and_quantity: string | null
           origin_port: string | null
           payment_terms: string | null
           pickup_city: string | null
@@ -1905,7 +1933,10 @@ export type Database = {
           place_of_delivery: string | null
           place_of_receipt: string | null
           quote_reference: string | null
+          rate_class: string | null
           requested_ship_date: string | null
+          routing_and_destination: string | null
+          sci: string | null
           shipment_ref: string
           shipment_type: string
           si_cutoff: string | null
@@ -1923,18 +1954,27 @@ export type Database = {
           warehouse_receipt_number: string | null
         }
         Insert: {
+          accounting_information?: string | null
+          aircraft_type?: string | null
+          airline?: string | null
+          airport_of_departure?: string | null
+          airport_of_destination?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
           cargo_arrival_date?: string | null
           carrier?: string | null
           carrier_submission_mode?: string | null
           carrier_submission_status?: string | null
+          chargeable_weight?: number | null
+          commodity_item_number?: string | null
           company_id?: string | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
+          declared_value_for_carriage?: number | null
+          declared_value_for_customs?: number | null
           delivery_city?: string | null
           delivery_contact_name?: string | null
           delivery_contact_phone?: string | null
@@ -1954,15 +1994,22 @@ export type Database = {
           feeder_vessel?: string | null
           feeder_voyage?: string | null
           final_destination?: string | null
+          flight_number?: string | null
           freight_terms?: string | null
+          handling_information?: string | null
           handling_notes?: string | null
+          hawb_number?: string | null
+          iata_code_destination?: string | null
+          iata_code_origin?: string | null
           id?: string
           incoterms?: string | null
           insurance_value?: number | null
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          mawb_number?: string | null
           mode?: string
+          nature_and_quantity?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null
@@ -1979,7 +2026,10 @@ export type Database = {
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null
+          rate_class?: string | null
           requested_ship_date?: string | null
+          routing_and_destination?: string | null
+          sci?: string | null
           shipment_ref: string
           shipment_type?: string
           si_cutoff?: string | null
@@ -1997,18 +2047,27 @@ export type Database = {
           warehouse_receipt_number?: string | null
         }
         Update: {
+          accounting_information?: string | null
+          aircraft_type?: string | null
+          airline?: string | null
+          airport_of_departure?: string | null
+          airport_of_destination?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
           cargo_arrival_date?: string | null
           carrier?: string | null
           carrier_submission_mode?: string | null
           carrier_submission_status?: string | null
+          chargeable_weight?: number | null
+          commodity_item_number?: string | null
           company_id?: string | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
+          declared_value_for_carriage?: number | null
+          declared_value_for_customs?: number | null
           delivery_city?: string | null
           delivery_contact_name?: string | null
           delivery_contact_phone?: string | null
@@ -2028,15 +2087,22 @@ export type Database = {
           feeder_vessel?: string | null
           feeder_voyage?: string | null
           final_destination?: string | null
+          flight_number?: string | null
           freight_terms?: string | null
+          handling_information?: string | null
           handling_notes?: string | null
+          hawb_number?: string | null
+          iata_code_destination?: string | null
+          iata_code_origin?: string | null
           id?: string
           incoterms?: string | null
           insurance_value?: number | null
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          mawb_number?: string | null
           mode?: string
+          nature_and_quantity?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null
@@ -2053,7 +2119,10 @@ export type Database = {
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null
+          rate_class?: string | null
           requested_ship_date?: string | null
+          routing_and_destination?: string | null
+          sci?: string | null
           shipment_ref?: string
           shipment_type?: string
           si_cutoff?: string | null
