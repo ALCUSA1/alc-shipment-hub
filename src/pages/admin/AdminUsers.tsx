@@ -161,14 +161,23 @@ const AdminUsers = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Users className="h-5 w-5 text-blue-400" />
-          <h1 className="text-2xl font-bold text-white">Users & Roles</h1>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Users className="h-5 w-5 text-blue-400" />
+            <h1 className="text-2xl font-bold text-white">Users & Roles</h1>
+          </div>
+          <p className="text-sm text-[hsl(220,10%,50%)]">
+            Manage platform users, roles, and account status
+          </p>
         </div>
-        <p className="text-sm text-[hsl(220,10%,50%)]">
-          Manage platform users, roles, and account status
-        </p>
+        <Button
+          onClick={() => setInviteOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Invite User
+        </Button>
       </div>
 
       <div className="mb-4">
