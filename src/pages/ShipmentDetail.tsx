@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { TruckingPanel } from "@/components/shipment/TruckingPanel";
