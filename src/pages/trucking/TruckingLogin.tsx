@@ -18,6 +18,7 @@ const TruckingLogin = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Only redirect if user has trucker role
   const { roles, isLoading: rolesLoading } = useUserRole();
@@ -65,8 +66,14 @@ const TruckingLogin = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">Carrier Login</h1>
           <p className="text-sm text-muted-foreground mb-8">Sign in to view available orders</p>
 
+          {forgotSent && (
+            <div className="rounded-lg border border-accent/30 bg-accent/10 p-3 text-sm text-accent mb-4">
+              Password reset email sent. Check your inbox and follow the link to set a new password.
+            </div>
+          )}
+
           {error && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4">
               {error}
             </div>
           )}
@@ -85,7 +92,31 @@ const TruckingLogin = () => {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      setError("Enter your email first, then click Forgot password");
+                      return;
+                    }
+                    setError("");
+                    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (resetErr) {
+                      setError(resetErr.message);
+                    } else {
+                      setError("");
+                      setForgotSent(true);
+                    }
+                  }}
+                  className="text-xs text-accent hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
