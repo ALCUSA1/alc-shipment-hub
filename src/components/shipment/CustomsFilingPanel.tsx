@@ -1,11 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Shield, FileCheck, AlertCircle } from "lucide-react";
+import { Shield, FileCheck, AlertCircle, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface CustomsFilingPanelProps {
   shipmentId: string;
@@ -23,6 +25,8 @@ const formatLabel = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
+  const queryClient = useQueryClient();
+
   const { data: filings, isLoading } = useQuery({
     queryKey: ["customs_filings", shipmentId],
     queryFn: async () => {
@@ -53,6 +57,47 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
     enabled: !!filings && filings.length > 0,
   });
 
+  const submitMutation = useMutation({
+    mutationFn: async (filingId: string) => {
+      const { data, error } = await supabase.functions.invoke("submit-aes-filing", {
+        body: { action: "submit", shipment_id: shipmentId, filing_id: filingId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["customs_filings", shipmentId] });
+      queryClient.invalidateQueries({ queryKey: ["customs_milestones", shipmentId] });
+      if (data?.itn) {
+        toast({ title: "AES Filed — ITN Received", description: `ITN: ${data.itn}` });
+      } else {
+        toast({ title: "AES Filing Submitted", description: "Your filing has been submitted electronically. You'll receive an ITN shortly." });
+      }
+    },
+    onError: (err: any) => {
+      toast({ title: "AES Submission Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const autoCreateMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("submit-aes-filing", {
+        body: { action: "auto_create", shipment_id: shipmentId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customs_filings", shipmentId] });
+      toast({ title: "Draft Filing Created", description: "A draft AES filing has been pre-filled from shipment data." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to create draft", description: err.message, variant: "destructive" });
+    },
+  });
+
   if (isLoading) {
     return <Skeleton className="h-32 w-full" />;
   }
@@ -67,9 +112,24 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <AlertCircle className="h-4 w-4" />
-            No customs filings for this shipment.
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              No customs filings for this shipment.
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => autoCreateMutation.mutate()}
+              disabled={autoCreateMutation.isPending}
+            >
+              {autoCreateMutation.isPending ? (
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Shield className="mr-2 h-3.5 w-3.5" />
+              )}
+              Create Draft Filing
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -83,6 +143,8 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
           (m) => m.filing_id === filing.id
         );
         const htsCodes = Array.isArray(filing.hts_codes) ? filing.hts_codes : [];
+        const canSubmit = filing.status === "draft";
+        const isSubmitting = submitMutation.isPending;
 
         return (
           <Card key={filing.id}>
@@ -92,52 +154,54 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
                   <Shield className="h-4 w-4 text-accent" />
                   {filing.filing_type} Filing
                 </CardTitle>
-                <Badge
-                  className={
-                    statusStyle[filing.status] ||
-                    "bg-secondary text-muted-foreground"
-                  }
-                  variant="secondary"
-                >
-                  {formatLabel(filing.status)}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={
+                      statusStyle[filing.status] ||
+                      "bg-secondary text-muted-foreground"
+                    }
+                    variant="secondary"
+                  >
+                    {formatLabel(filing.status)}
+                  </Badge>
+                  {canSubmit && (
+                    <Button
+                      size="sm"
+                      variant="electric"
+                      onClick={() => submitMutation.mutate(filing.id)}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Send className="mr-2 h-3.5 w-3.5" />
+                      )}
+                      File AES Electronically
+                    </Button>
+                  )}
+                  {filing.status === "accepted" && (
+                    <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Accepted
+                    </span>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-5">
+              {/* ITN highlight */}
+              {filing.itn && (
+                <div className="flex items-center gap-3 rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
+                  <CheckCircle2 className="h-5 w-5 text-accent shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Internal Transaction Number (ITN)</p>
+                    <p className="text-sm font-mono font-semibold text-foreground mt-0.5">{filing.itn}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Core filing info */}
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
-                <Row label="ITN" value={filing.itn || "—"} />
-                <Row label="AES Citation" value={filing.aes_citation || "—"} />
-                <Row label="Exporter" value={filing.exporter_name || "—"} />
-                <Row label="Exporter EIN" value={filing.exporter_ein || "—"} />
-                <Row label="Consignee" value={filing.consignee_name || "—"} />
-                <Row
-                  label="Country of Destination"
-                  value={filing.country_of_destination || "—"}
-                />
-                <Row
-                  label="Port of Export"
-                  value={filing.port_of_export || "—"}
-                />
-                <Row
-                  label="Port of Unlading"
-                  value={filing.port_of_unlading || "—"}
-                />
-                <Row
-                  label="Mode of Transport"
-                  value={formatLabel(filing.mode_of_transport || "—")}
-                />
-                <Row
-                  label="Export Date"
-                  value={
-                    filing.export_date
-                      ? format(new Date(filing.export_date), "MMM d, yyyy")
-                      : "—"
-                  }
-                />
-                <Row label="Vessel" value={filing.vessel_name || "—"} />
-                <Row label="Voyage" value={filing.voyage_number || "—"} />
-              </div>
+              <FilingDetails filing={filing} />
 
               {/* Broker info */}
               {(filing.broker_name || filing.broker_email) && (
@@ -198,7 +262,7 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
                         key={ms.id}
                         className="flex items-center gap-3 text-xs"
                       >
-                        <FileCheck className="h-3.5 w-3.5 text-accent shrink-0" />
+                        <FileCheck className={`h-3.5 w-3.5 shrink-0 ${ms.status === "error" ? "text-destructive" : "text-accent"}`} />
                         <span className="font-medium text-foreground">
                           {ms.milestone}
                         </span>
@@ -207,7 +271,7 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
                         </span>
                         <Badge
                           variant="outline"
-                          className="text-[10px] ml-auto"
+                          className={`text-[10px] ml-auto ${ms.status === "error" ? "text-destructive border-destructive/30" : ""}`}
                         >
                           {ms.status}
                         </Badge>
@@ -234,6 +298,38 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
         );
       })}
     </>
+  );
+}
+
+function FilingDetails({ filing }: { filing: any }) {
+  return (
+    <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
+      <Row label="ITN" value={filing.itn || "—"} />
+      <Row label="AES Citation" value={filing.aes_citation || "—"} />
+      <Row label="Exporter" value={filing.exporter_name || "—"} />
+      <Row label="Exporter EIN" value={filing.exporter_ein || "—"} />
+      <Row label="Consignee" value={filing.consignee_name || "—"} />
+      <Row
+        label="Country of Destination"
+        value={filing.country_of_destination || "—"}
+      />
+      <Row label="Port of Export" value={filing.port_of_export || "—"} />
+      <Row label="Port of Unlading" value={filing.port_of_unlading || "—"} />
+      <Row
+        label="Mode of Transport"
+        value={formatLabel(filing.mode_of_transport || "—")}
+      />
+      <Row
+        label="Export Date"
+        value={
+          filing.export_date
+            ? format(new Date(filing.export_date), "MMM d, yyyy")
+            : "—"
+        }
+      />
+      <Row label="Vessel" value={filing.vessel_name || "—"} />
+      <Row label="Voyage" value={filing.voyage_number || "—"} />
+    </div>
   );
 }
 

@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.places-autocomplete]
 verify_jwt = false
+
+[functions.submit-aes-filing]
+verify_jwt = false
+
+[functions.aes-webhook]
+verify_jwt = false
