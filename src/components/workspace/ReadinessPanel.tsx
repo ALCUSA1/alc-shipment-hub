@@ -33,15 +33,15 @@ export function ReadinessPanel({ items }: ReadinessPanelProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {item.percent === 100 ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
                 ) : (
-                  <AlertCircle className={cn("h-3.5 w-3.5", item.percent >= 60 ? "text-amber-500" : "text-muted-foreground")} />
+                  <AlertCircle className={cn("h-3.5 w-3.5", item.percent >= 60 ? "text-destructive" : "text-muted-foreground")} />
                 )}
                 <span className="text-xs font-medium text-foreground">{item.label}</span>
               </div>
               <span className={cn(
                 "text-xs font-semibold",
-                item.percent === 100 ? "text-emerald-500" : item.percent >= 60 ? "text-amber-500" : "text-muted-foreground"
+                item.percent === 100 ? "text-accent" : item.percent >= 60 ? "text-destructive" : "text-muted-foreground"
               )}>
                 {item.percent}%
               </span>

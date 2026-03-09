@@ -284,10 +284,10 @@ const NewShipment = () => {
 
       // 6. Execute parallel inserts
       const inserts: Promise<any>[] = [];
-      if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts));
-      if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts));
-      if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts));
-      if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts));
+      if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts).then());
+      if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts).then());
+      if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts).then());
+      if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts).then());
 
       // Customs filing
       if (comp.exporterName || comp.exporterEin) {
@@ -303,7 +303,7 @@ const NewShipment = () => {
           country_of_destination: comp.countryOfUltimateDestination || null,
           port_of_export: r.portOfLoading || null,
           port_of_unlading: r.portOfDischarge || null,
-        }));
+        }).then());
       }
 
       // Documents checklist
@@ -316,7 +316,7 @@ const NewShipment = () => {
         requiredDocs.map(docType => ({
           shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending",
         }))
-      ));
+      ).then());
 
       // Quote
       inserts.push(supabase.from("quotes").insert({
@@ -327,7 +327,7 @@ const NewShipment = () => {
         destination_port: r.portOfDischarge || b.destinationPort || null,
         container_type: ds.containers[0]?.containerType || null,
         company_id: b.companyId || null,
-      }));
+      }).then());
 
       await Promise.all(inserts);
 
