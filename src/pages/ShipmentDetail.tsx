@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DocumentGenerator } from "@/components/shipment/DocumentGenerator";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
@@ -8,6 +9,7 @@ import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { TruckingPanel } from "@/components/shipment/TruckingPanel";
 import { WarehousePanel } from "@/components/shipment/WarehousePanel";
 import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
+import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
@@ -71,6 +73,7 @@ const ShipmentDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [showDocGen, setShowDocGen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -315,7 +318,7 @@ const ShipmentDetail = () => {
               <Copy className="mr-2 h-4 w-4" />
               Clone
             </Button>
-            <Button variant="electric" size="sm">
+            <Button variant="electric" size="sm" onClick={() => setShowDocGen(true)}>
               <FileText className="mr-2 h-4 w-4" />
               Generate Documents
             </Button>
@@ -512,6 +515,9 @@ const ShipmentDetail = () => {
             quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
             shipmentStatus={shipment.status}
           />
+
+          {/* Audit Trail / Activity Log */}
+          <AuditTrailPanel shipmentId={id!} />
         </motion.div>
 
         {/* Sidebar */}
@@ -616,6 +622,15 @@ const ShipmentDetail = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Document Generator Dialog */}
+      <DocumentGenerator
+        shipmentId={id!}
+        shipmentRef={shipment.shipment_ref}
+        mode={isAirShipment ? "air" : "ocean"}
+        open={showDocGen}
+        onOpenChange={setShowDocGen}
+      />
     </DashboardLayout>
   );
 };

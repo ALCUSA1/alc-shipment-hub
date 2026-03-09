@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.fetch-air-rates]
 verify_jwt = false
+
+[functions.generate-documents]
+verify_jwt = false
