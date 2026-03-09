@@ -463,16 +463,15 @@ const ShipmentDetail = () => {
             </Card>
           )}
 
-          {/* Demurrage & Detention */}
-          <DemurrageTracker
-            shipmentId={id!}
-            shipmentStatus={shipment.status}
-          />
+          {/* Demurrage & Detention (Ocean only) */}
+          {!isAirShipment && (
+            <DemurrageTracker shipmentId={id!} shipmentStatus={shipment.status} />
+          )}
 
-          {/* Detention Timeline */}
-          <DetentionTimeline
-            eta={shipment.eta}
-          />
+          {/* Detention Timeline (Ocean only) */}
+          {!isAirShipment && (
+            <DetentionTimeline eta={shipment.eta} />
+          )}
 
           {/* Amendments & Corrections */}
           <AmendmentPanel
