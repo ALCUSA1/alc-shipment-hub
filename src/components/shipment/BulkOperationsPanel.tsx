@@ -68,9 +68,7 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
         const row = rows[i];
         try {
           // Create shipment
-          const { data: shipment, error: shipErr } = await supabase
-            .from("shipments")
-            .insert({
+          const shipmentData: any = {
               user_id: user.id,
               shipment_type: row.shipment_type || "export",
               mode: row.mode || "ocean",
@@ -79,7 +77,10 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
               pickup_location: row.pickup_location || null,
               delivery_location: row.delivery_location || null,
               status: "draft",
-            })
+            };
+          const { data: shipment, error: shipErr } = await supabase
+            .from("shipments")
+            .insert(shipmentData)
             .select("id")
             .single();
 
