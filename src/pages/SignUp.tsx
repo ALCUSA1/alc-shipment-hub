@@ -12,7 +12,7 @@ const ROLE_OPTIONS = [
   { value: "viewer", label: "Shipper", companyType: "shipper", description: "I need to ship goods" },
   { value: "trucker", label: "Carrier (Back Office)", companyType: "trucking_company", description: "I manage trucking operations" },
   { value: "driver", label: "Driver", companyType: "trucking_company", description: "I drive and deliver cargo" },
-  { value: "ops_manager", label: "Warehouse Operator", companyType: "warehouse", description: "I operate a warehouse" },
+  { value: "warehouse", label: "Warehouse Operator", companyType: "warehouse", description: "I operate a warehouse" },
 ] as const;
 
 const SignUp = () => {

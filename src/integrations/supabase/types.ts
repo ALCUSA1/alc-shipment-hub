@@ -2433,6 +2433,177 @@ export type Database = {
           },
         ]
       }
+      warehouse_orders: {
+        Row: {
+          actual_date: string | null
+          bay_number: string | null
+          billing_status: string | null
+          cargo_description: string | null
+          container_numbers: string[] | null
+          created_at: string
+          expected_date: string | null
+          handling_fee: number | null
+          handling_instructions: string | null
+          id: string
+          notes: string | null
+          num_packages: number | null
+          order_type: string
+          release_authorization: string | null
+          release_to_name: string | null
+          release_to_phone: string | null
+          requester_user_id: string | null
+          shipment_id: string | null
+          status: string
+          storage_end_date: string | null
+          storage_instructions: string | null
+          storage_rate_per_day: number | null
+          storage_start_date: string | null
+          storage_zone: string | null
+          total_storage_charges: number | null
+          updated_at: string
+          volume: number | null
+          warehouse_id: string | null
+          warehouse_user_id: string | null
+          weight: number | null
+        }
+        Insert: {
+          actual_date?: string | null
+          bay_number?: string | null
+          billing_status?: string | null
+          cargo_description?: string | null
+          container_numbers?: string[] | null
+          created_at?: string
+          expected_date?: string | null
+          handling_fee?: number | null
+          handling_instructions?: string | null
+          id?: string
+          notes?: string | null
+          num_packages?: number | null
+          order_type?: string
+          release_authorization?: string | null
+          release_to_name?: string | null
+          release_to_phone?: string | null
+          requester_user_id?: string | null
+          shipment_id?: string | null
+          status?: string
+          storage_end_date?: string | null
+          storage_instructions?: string | null
+          storage_rate_per_day?: number | null
+          storage_start_date?: string | null
+          storage_zone?: string | null
+          total_storage_charges?: number | null
+          updated_at?: string
+          volume?: number | null
+          warehouse_id?: string | null
+          warehouse_user_id?: string | null
+          weight?: number | null
+        }
+        Update: {
+          actual_date?: string | null
+          bay_number?: string | null
+          billing_status?: string | null
+          cargo_description?: string | null
+          container_numbers?: string[] | null
+          created_at?: string
+          expected_date?: string | null
+          handling_fee?: number | null
+          handling_instructions?: string | null
+          id?: string
+          notes?: string | null
+          num_packages?: number | null
+          order_type?: string
+          release_authorization?: string | null
+          release_to_name?: string | null
+          release_to_phone?: string | null
+          requester_user_id?: string | null
+          shipment_id?: string | null
+          status?: string
+          storage_end_date?: string | null
+          storage_instructions?: string | null
+          storage_rate_per_day?: number | null
+          storage_start_date?: string | null
+          storage_zone?: string | null
+          total_storage_charges?: number | null
+          updated_at?: string
+          volume?: number | null
+          warehouse_id?: string | null
+          warehouse_user_id?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_orders_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouses: {
+        Row: {
+          address: string | null
+          capabilities: string[] | null
+          city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          id: string
+          operating_hours: string | null
+          owner_user_id: string
+          state: string | null
+          status: string
+          total_capacity_sqft: number | null
+          updated_at: string
+          warehouse_name: string
+        }
+        Insert: {
+          address?: string | null
+          capabilities?: string[] | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          operating_hours?: string | null
+          owner_user_id: string
+          state?: string | null
+          status?: string
+          total_capacity_sqft?: number | null
+          updated_at?: string
+          warehouse_name: string
+        }
+        Update: {
+          address?: string | null
+          capabilities?: string[] | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          operating_hours?: string | null
+          owner_user_id?: string
+          state?: string | null
+          status?: string
+          total_capacity_sqft?: number | null
+          updated_at?: string
+          warehouse_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2458,6 +2629,7 @@ export type Database = {
         | "viewer"
         | "trucker"
         | "driver"
+        | "warehouse"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -2598,6 +2770,7 @@ export const Constants = {
         "viewer",
         "trucker",
         "driver",
+        "warehouse",
       ],
       company_status: [
         "prospect",

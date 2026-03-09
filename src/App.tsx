@@ -33,6 +33,14 @@ import TruckingOrderDetail from "./pages/trucking/TruckingOrderDetail";
 import TruckingQuotes from "./pages/trucking/TruckingQuotes";
 import TruckingAccount from "./pages/trucking/TruckingAccount";
 import { DriverGate } from "./components/driver/DriverGate";
+import { WarehouseGate } from "./components/warehouse/WarehouseGate";
+import WarehouseDashboard from "./pages/warehouse/WarehouseDashboard";
+import WarehouseInbound from "./pages/warehouse/WarehouseInbound";
+import WarehouseInventory from "./pages/warehouse/WarehouseInventory";
+import WarehouseReleases from "./pages/warehouse/WarehouseReleases";
+import WarehouseBilling from "./pages/warehouse/WarehouseBilling";
+import WarehouseFacility from "./pages/warehouse/WarehouseFacility";
+import WarehouseAccount from "./pages/warehouse/WarehouseAccount";
 import DriverDashboard from "./pages/driver/DriverDashboard";
 import DriverAssignmentDetail from "./pages/driver/DriverAssignmentDetail";
 import DriverAccount from "./pages/driver/DriverAccount";
@@ -164,6 +172,15 @@ const App = () => (
             <Route path="/driver" element={<DriverGate><DriverDashboard /></DriverGate>} />
             <Route path="/driver/job/:id" element={<DriverGate><DriverAssignmentDetail /></DriverGate>} />
             <Route path="/driver/account" element={<DriverGate><DriverAccount /></DriverGate>} />
+
+            {/* Warehouse Portal */}
+            <Route path="/warehouse" element={<WarehouseGate><WarehouseDashboard /></WarehouseGate>} />
+            <Route path="/warehouse/inbound" element={<WarehouseGate><WarehouseInbound /></WarehouseGate>} />
+            <Route path="/warehouse/inventory" element={<WarehouseGate><WarehouseInventory /></WarehouseGate>} />
+            <Route path="/warehouse/releases" element={<WarehouseGate><WarehouseReleases /></WarehouseGate>} />
+            <Route path="/warehouse/billing" element={<WarehouseGate><WarehouseBilling /></WarehouseGate>} />
+            <Route path="/warehouse/facility" element={<WarehouseGate><WarehouseFacility /></WarehouseGate>} />
+            <Route path="/warehouse/account" element={<WarehouseGate><WarehouseAccount /></WarehouseGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
