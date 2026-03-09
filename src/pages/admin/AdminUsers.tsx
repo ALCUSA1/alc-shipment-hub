@@ -145,10 +145,6 @@ const AdminUsers = () => {
       setInviting(false);
     }
   };
-    ops_manager: "bg-blue-500/15 text-blue-400 border-blue-500/20",
-    sales: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-    viewer: "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,20%)]",
-  };
 
   const filtered = (profiles || []).filter((p) => {
     if (!search) return true;
