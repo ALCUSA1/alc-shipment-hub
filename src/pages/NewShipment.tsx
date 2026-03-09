@@ -29,7 +29,10 @@ const NewShipment = () => {
   const [submitting, setSubmitting] = useState(false);
   const [autoFilledShipper, setAutoFilledShipper] = useState(false);
   const [autoFilledCompliance, setAutoFilledCompliance] = useState(false);
+  const [customerAutoFilled, setCustomerAutoFilled] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const cloneId = searchParams.get("clone");
   const { user } = useAuth();
   const { toast } = useToast();
 
