@@ -40,6 +40,7 @@ import RateTrends from "./pages/RateTrends";
 import Pipeline from "./pages/Pipeline";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
