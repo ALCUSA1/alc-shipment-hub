@@ -351,8 +351,9 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
+        </TabsContent>
+      </Tabs>
 
-      {/* Add Role Dialog */}
       <Dialog open={addRoleOpen} onOpenChange={setAddRoleOpen}>
         <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-sm">
           <DialogHeader>
