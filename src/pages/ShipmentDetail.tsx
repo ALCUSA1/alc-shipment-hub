@@ -557,7 +557,7 @@ const ShipmentDetail = () => {
           )}
 
           {/* Carrier Rate Selection & Booking - hide for delivered */}
-          {!isDelivered && (
+          {!isDelivered && !isAirShipment && (
             <CarrierRateSelector
               shipmentId={id!}
               shipmentRef={shipment.shipment_ref}
