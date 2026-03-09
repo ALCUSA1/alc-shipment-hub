@@ -49,7 +49,9 @@ const Documents = () => {
                   </div>
                   <span className="text-xs font-medium px-2 py-0.5 rounded bg-secondary text-muted-foreground">{d.doc_type}</span>
                 </div>
-                <h3 className="font-semibold text-sm text-foreground mb-1">{d.doc_type}</h3>
+                 <h3 className="font-semibold text-sm text-foreground mb-1">
+                   {d.doc_type === "seaway_bill" ? "Seaway Bill (SWB)" : d.doc_type}
+                 </h3>
                 <p className="text-xs text-muted-foreground mb-1">
                   {(d as any).shipments?.shipment_ref || "—"} · {format(new Date(d.created_at), "MMM d, yyyy")}
                 </p>
