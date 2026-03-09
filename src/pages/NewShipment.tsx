@@ -44,7 +44,7 @@ const NewShipment = () => {
 
   const [parties, setParties] = useState<PartiesData>({
     shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
-    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+    notifyPartySameAsConsignee: false, truckingCompany: "", pickupWarehouse: emptyParty(),
   });
 
   const [cargo, setCargo] = useState<CargoData>({
