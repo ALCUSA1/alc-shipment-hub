@@ -493,7 +493,7 @@ const ShipmentDetail = () => {
 
           {/* Customs / AES Filing */}
           <div data-guide="customs">
-            <CustomsFilingPanel shipmentId={id!} />
+            <CustomsFilingPanel shipmentId={id!} mode={isAirShipment ? "air" : "ocean"} />
           </div>
 
           {/* Trucking */}
