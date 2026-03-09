@@ -358,7 +358,33 @@ const NewShipment = () => {
 
           <main className="flex-1 min-w-0 space-y-12 pb-24">
             <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
-            <PartiesSection data={ds.parties} onChange={(p) => setDs(prev => ({ ...prev, parties: p }))} autoFilledShipper={autoFilledShipper} />
+            <PartiesSection
+              data={ds.parties}
+              onChange={(p) => setDs(prev => ({ ...prev, parties: p }))}
+              autoFilledShipper={autoFilledShipper}
+              companies={companies}
+              onSaveToCrm={async (party, type) => {
+                if (!user || !party.companyName) return;
+                try {
+                  await supabase.from("companies").insert({
+                    user_id: user.id,
+                    company_name: party.companyName,
+                    company_type: type === "truckingPartner" ? "trucking" : "consignee",
+                    address: party.address || null,
+                    city: party.city || null,
+                    state: party.state || null,
+                    zip: party.postalCode || null,
+                    country: party.country || null,
+                    email: party.email || null,
+                    phone: party.phone || null,
+                    ein: party.taxId || null,
+                  });
+                  toast({ title: "Saved to CRM", description: `${party.companyName} added as ${type === "truckingPartner" ? "trucking partner" : "consignee"}.` });
+                } catch (err: any) {
+                  toast({ title: "Save failed", description: err.message, variant: "destructive" });
+                }
+              }}
+            />
             <RoutingSection data={ds.routing} onChange={(r) => setDs(prev => ({ ...prev, routing: r }))} ports={ports} />
             <CargoSection
               cargoLines={ds.cargoLines} containers={ds.containers}
