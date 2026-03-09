@@ -113,7 +113,7 @@ const App = () => (
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/login" element={<Navigate to="/login" replace />} />
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
             <Route path="/admin/pipeline" element={<AdminGate><AdminPipeline /></AdminGate>} />
             <Route path="/admin/quotes" element={<AdminGate><AdminQuotes /></AdminGate>} />
@@ -145,7 +145,7 @@ const App = () => (
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
             {/* Trucking Company Portal */}
-            <Route path="/trucking/login" element={<TruckingLogin />} />
+            <Route path="/trucking/login" element={<Navigate to="/login" replace />} />
             <Route path="/trucking" element={<TruckingGate><TruckingDashboard /></TruckingGate>} />
             <Route path="/trucking/orders" element={<TruckingGate><TruckingOrders /></TruckingGate>} />
             <Route path="/trucking/orders/:id" element={<TruckingGate><TruckingOrderDetail /></TruckingGate>} />
