@@ -224,7 +224,7 @@ export default function Messages() {
           otherName={activeConv?.otherName || ""}
           currentUserId={user?.id || ""}
           currentUserName={currentUserName}
-          messages={messages}
+          messages={messages.map((m) => ({ ...m, attachments: Array.isArray(m.attachments) ? m.attachments : [] }))}
           onSend={handleSend}
           loading={msgsLoading}
         />
