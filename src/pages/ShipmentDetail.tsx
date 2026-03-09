@@ -447,6 +447,17 @@ const ShipmentDetail = () => {
             shipmentStatus={shipment.status}
           />
 
+          {/* Detention Timeline */}
+          <DetentionTimeline
+            eta={shipment.eta}
+          />
+
+          {/* Amendments & Corrections */}
+          <AmendmentPanel
+            shipmentId={id!}
+            vesselDeparted={["in_transit", "arrived", "delivered", "completed"].includes(shipment.status)}
+          />
+
           {/* Vessel Bookings - read-only for delivered */}
           {!isDelivered && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
 
