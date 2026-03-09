@@ -18,32 +18,21 @@ const TruckingLogin = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    // Check if user has trucker role before redirecting
-    const checkRole = async () => {
-      const { data } = await supabase.rpc("get_user_roles", { _user_id: user.id });
-      const roles = (data as string[]) || [];
-      if (roles.includes("trucker")) {
-        navigate("/trucking");
-      } else {
-        // User is logged in but not a trucker — sign them out and show error
-        await supabase.auth.signOut();
-        toast({ title: "Access denied", description: "Your account does not have carrier portal access. Contact your administrator.", variant: "destructive" });
-      }
-    };
-    checkRole();
-  }, [user, navigate, toast]);
+    if (user) {
+      navigate("/trucking");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-      return;
+    } else {
+      navigate("/trucking");
     }
-    // Role check happens in useEffect when user state updates
   };
 
   return (
