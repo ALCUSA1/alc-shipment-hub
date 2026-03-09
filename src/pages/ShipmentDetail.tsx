@@ -579,6 +579,9 @@ const ShipmentDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Payment Status */}
+          <PaymentStatusCard shipmentId={id!} />
+
           {/* Document Checklist */}
           <div data-guide="documents">
             <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
