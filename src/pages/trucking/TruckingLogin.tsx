@@ -18,11 +18,14 @@ const TruckingLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Only redirect if user has trucker role
+  const { roles, isLoading: rolesLoading } = useUserRole();
+  
   useEffect(() => {
-    if (user) {
+    if (user && !rolesLoading && roles.includes("trucker" as any)) {
       navigate("/trucking");
     }
-  }, [user, navigate]);
+  }, [user, roles, rolesLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
