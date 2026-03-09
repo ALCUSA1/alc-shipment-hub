@@ -196,17 +196,23 @@ const NewQuote = () => {
       }
 
       // Create parties
-      const partyMap: [keyof PartiesData, string][] = [
-        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
-        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
+      const coreParties: { data: typeof partiesData.shipper; role: string }[] = [
+        { data: partiesData.shipper, role: "shipper" },
+        { data: partiesData.consignee, role: "consignee" },
+        { data: partiesData.notifyPartySameAsConsignee ? partiesData.consignee : partiesData.notifyParty, role: "notify_party" },
+        { data: partiesData.pickupWarehouse, role: "warehouse" },
       ];
-      const partyEntries = partyMap
-        .filter(([key]) => partiesData[key].companyName)
-        .map(([key, role]) => ({
-          role, company_name: partiesData[key].companyName, contact_name: partiesData[key].contactName || null,
-          address: partiesData[key].address || null, email: partiesData[key].email || null,
-          phone: partiesData[key].phone || null, shipment_id: shipment.id,
-        }));
+      for (const { data: p, role } of coreParties) {
+        if (p.companyName) {
+          partyEntries.push({ role, company_name: p.companyName, contact_name: p.contactName || null,
+            address: p.address || null, email: p.email || null, phone: p.phone || null, shipment_id: shipment.id });
+        }
+      }
+      if (partiesData.truckingCompany) {
+        partyEntries.push({ role: "trucking", company_name: partiesData.truckingCompany, contact_name: null,
+          address: null, email: null, phone: null, shipment_id: shipment.id });
+      }
       if (partyEntries.length > 0) await supabase.from("shipment_parties").insert(partyEntries);
 
       // Customs filing
