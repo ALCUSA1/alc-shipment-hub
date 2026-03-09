@@ -42,15 +42,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
-const MILESTONES_ORDER = [
-  "Booking Confirmed",
-  "Cargo Received",
-  "Container Loaded",
-  "Vessel Departed",
-  "In Transit",
-  "Port Arrival",
-  "Customs Clearance",
-  "Delivered",
+const OCEAN_MILESTONES = [
+  "Booking Confirmed", "Cargo Received", "Container Loaded",
+  "Vessel Departed", "In Transit", "Port Arrival", "Customs Clearance", "Delivered",
+];
+
+const AIR_MILESTONES = [
+  "Booking Confirmed", "Cargo Received at Origin", "Security Screening",
+  "Flight Departed", "In Transit", "Arrived at Destination", "Customs Clearance", "Delivered",
 ];
 
 const statusColor: Record<string, string> = {
