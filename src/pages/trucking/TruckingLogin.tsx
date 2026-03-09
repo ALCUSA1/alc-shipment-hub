@@ -97,12 +97,18 @@ const TruckingLogin = () => {
             </Button>
           </form>
 
-          <p className="text-sm text-muted-foreground mt-6 text-center">
-            Not a carrier partner?{" "}
-            <Link to="/login" className="text-accent font-medium hover:underline">
-              Shipper login
-            </Link>
-          </p>
+          <div className="mt-6 space-y-3">
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              Don't have an account? Carrier accounts are created by ALC administrators. 
+              Contact your ALC representative to get invited.
+            </p>
+            <p className="text-sm text-muted-foreground text-center">
+              Not a carrier partner?{" "}
+              <Link to="/login" className="text-accent font-medium hover:underline">
+                Shipper login
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

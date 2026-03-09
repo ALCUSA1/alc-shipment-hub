@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 
 type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status";
 
-const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer"] as const;
+const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer", "trucker"] as const;
 
 const AdminUsers = () => {
   const queryClient = useQueryClient();
@@ -52,6 +52,11 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
   const [addRoleUserId, setAddRoleUserId] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["admin-profiles"],
@@ -115,6 +120,30 @@ const AdminUsers = () => {
     ops_manager: "bg-blue-500/15 text-blue-400 border-blue-500/20",
     sales: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
     viewer: "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,20%)]",
+    trucker: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !inviteRole) return;
+    setInviting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { email: inviteEmail, role: inviteRole, full_name: inviteName },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data.message || `Invited ${inviteEmail}`);
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRole("");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to invite user");
+    } finally {
+      setInviting(false);
+    }
   };
 
   const filtered = (profiles || []).filter((p) => {
@@ -132,14 +161,23 @@ const AdminUsers = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Users className="h-5 w-5 text-blue-400" />
-          <h1 className="text-2xl font-bold text-white">Users & Roles</h1>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Users className="h-5 w-5 text-blue-400" />
+            <h1 className="text-2xl font-bold text-white">Users & Roles</h1>
+          </div>
+          <p className="text-sm text-[hsl(220,10%,50%)]">
+            Manage platform users, roles, and account status
+          </p>
         </div>
-        <p className="text-sm text-[hsl(220,10%,50%)]">
-          Manage platform users, roles, and account status
-        </p>
+        <Button
+          onClick={() => setInviteOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Invite User
+        </Button>
       </div>
 
       <div className="mb-4">
@@ -355,6 +393,60 @@ const AdminUsers = () => {
               />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite User Dialog */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Full Name</label>
+              <Input
+                placeholder="John Doe"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Email *</label>
+              <Input
+                placeholder="user@example.com"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[hsl(220,10%,45%)] mb-1 block">Role *</label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
+                  <SelectValue placeholder="Select a role…" />
+                </SelectTrigger>
+                <SelectContent className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
+                  {ALL_ROLES.map((r) => (
+                    <SelectItem key={r} value={r} className="focus:bg-[hsl(220,15%,18%)]">
+                      {r === "trucker" ? "Trucker (Carrier Portal)" : r.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={handleInvite}
+              disabled={!inviteEmail || !inviteRole || inviting}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              {inviting ? "Sending Invite…" : "Send Invite"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>
