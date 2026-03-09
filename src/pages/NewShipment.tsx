@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Save } from "lucide-react";
@@ -29,7 +29,10 @@ const NewShipment = () => {
   const [submitting, setSubmitting] = useState(false);
   const [autoFilledShipper, setAutoFilledShipper] = useState(false);
   const [autoFilledCompliance, setAutoFilledCompliance] = useState(false);
+  const [customerAutoFilled, setCustomerAutoFilled] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const cloneId = searchParams.get("clone");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -99,6 +102,117 @@ const NewShipment = () => {
       setAutoFilledCompliance(true);
     }
   }, [profileCompany]);
+
+  // Clone shipment data
+  useEffect(() => {
+    if (!cloneId || !user) return;
+    const fetchClone = async () => {
+      const [shipRes, cargoRes, containerRes, partiesRes] = await Promise.all([
+        supabase.from("shipments").select("*").eq("id", cloneId).single(),
+        supabase.from("cargo").select("*").eq("shipment_id", cloneId),
+        supabase.from("containers").select("*").eq("shipment_id", cloneId),
+        supabase.from("shipment_parties").select("*").eq("shipment_id", cloneId),
+      ]);
+      if (!shipRes.data) return;
+      const s = shipRes.data;
+      setDs(prev => ({
+        ...prev,
+        basics: {
+          ...prev.basics,
+          shipmentType: s.shipment_type || "export",
+          originPort: s.origin_port || "",
+          destinationPort: s.destination_port || "",
+          placeOfReceipt: s.place_of_receipt || "",
+          placeOfDelivery: s.place_of_delivery || "",
+          incoterms: s.incoterms || "",
+          companyId: s.company_id || "",
+          customerReference: "",
+          requestedShipDate: "",
+        },
+        routing: {
+          ...prev.routing,
+          portOfLoading: s.origin_port || "",
+          portOfDischarge: s.destination_port || "",
+          carrier: s.carrier || "",
+          freightTerms: s.freight_terms || "",
+        },
+        cargoLines: (cargoRes.data || []).map(c => ({
+          id: crypto.randomUUID(),
+          commodity: c.commodity || "", hsCode: c.hs_code || "",
+          htsCode: c.hts_code || "", scheduleBCode: c.schedule_b || "",
+          marksAndNumbers: c.marks_and_numbers || "",
+          numPackages: c.num_packages?.toString() || "",
+          packageType: c.package_type || "",
+          grossWeight: c.gross_weight?.toString() || "",
+          netWeight: c.net_weight?.toString() || "",
+          volume: c.volume?.toString() || "",
+          dimensions: c.dimensions || "",
+          countryOfOrigin: c.country_of_origin || "",
+          dangerousGoods: c.dangerous_goods,
+          specialInstructions: c.special_instructions || "",
+        })),
+        containers: (containerRes.data || []).map(c => ({
+          id: crypto.randomUUID(),
+          containerNumber: "", containerType: c.container_type || "",
+          containerSize: c.container_size || "",
+          quantity: c.quantity?.toString() || "1",
+          sealNumber: "", vgm: "", reeferTemp: c.reefer_temp || "",
+          oogDimensions: c.oog_dimensions || "",
+        })),
+      }));
+
+      // Map parties
+      const pMap = new Map((partiesRes.data || []).map(p => [p.role, p]));
+      const mapParty = (role: string) => {
+        const p = pMap.get(role);
+        if (!p) return undefined;
+        return {
+          companyName: p.company_name || "", contactName: p.contact_name || "",
+          address: p.address || "", city: p.city || "", state: p.state || "",
+          postalCode: p.postal_code || "", country: p.country || "",
+          email: p.email || "", phone: p.phone || "", taxId: p.tax_id || "",
+        };
+      };
+      const consignee = mapParty("consignee");
+      if (consignee) {
+        setDs(prev => ({
+          ...prev,
+          parties: {
+            ...prev.parties,
+            consignee,
+            notifyParty: mapParty("notify_party") || prev.parties.notifyParty,
+          },
+        }));
+      }
+      toast({ title: "Shipment cloned", description: "Data pre-filled from previous shipment. Review and adjust as needed." });
+    };
+    fetchClone();
+  }, [cloneId, user]);
+
+  // Auto-fill consignee when customer selected
+  const handleCustomerSelected = useCallback((company: any) => {
+    if (!company || customerAutoFilled) return;
+    setCustomerAutoFilled(true);
+    const primaryContact = company.company_contacts?.find((c: any) => c.is_primary) || company.company_contacts?.[0];
+    setDs(prev => ({
+      ...prev,
+      parties: {
+        ...prev.parties,
+        consignee: {
+          companyName: company.company_name || "",
+          contactName: primaryContact?.full_name || "",
+          address: company.address || "",
+          city: company.city || "",
+          state: company.state || "",
+          postalCode: company.zip || "",
+          country: company.country || "",
+          email: primaryContact?.email || company.email || "",
+          phone: primaryContact?.phone || company.phone || "",
+          taxId: company.ein || "",
+        },
+      },
+    }));
+  }, [customerAutoFilled]);
 
   // Readiness
   const readiness = useMemo(() => computeReadiness(ds), [ds]);
@@ -357,7 +471,7 @@ const NewShipment = () => {
           <SectionNav activeSection={activeSection} onNavigate={handleNavigate} sectionFilled={sectionFilled} />
 
           <main className="flex-1 min-w-0 space-y-12 pb-24">
-            <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
+            <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} onCustomerSelected={handleCustomerSelected} />
             <PartiesSection
               data={ds.parties}
               onChange={(p) => setDs(prev => ({ ...prev, parties: p }))}

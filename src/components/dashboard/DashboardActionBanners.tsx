@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { ArrowRight, Ship, FileText, Truck, CreditCard } from "lucide-react";
+import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ActionBanner {
@@ -69,6 +69,30 @@ export function DashboardActionBanners() {
     enabled: !!user,
   });
 
+  const { data: warehouseUpdates } = useQuery({
+    queryKey: ["guide-warehouse-updates"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("warehouse_orders")
+        .select("id, status")
+        .in("status", ["confirmed", "in_progress"]);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: driverUpdates } = useQuery({
+    queryKey: ["guide-driver-updates"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("driver_assignments")
+        .select("id, status")
+        .in("status", ["en_route", "assigned"]);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   const banners: ActionBanner[] = [];
 
   const draftCount = (activeShipments || []).filter(s => s.status === "draft").length;
@@ -128,6 +152,37 @@ export function DashboardActionBanners() {
       bgColor: "bg-emerald-50",
       textColor: "text-emerald-700",
       iconColor: "text-emerald-600",
+    });
+  }
+
+  // Cross-portal banners
+  const warehouseConfirmed = (warehouseUpdates || []).filter(w => w.status === "confirmed").length;
+  if (warehouseConfirmed > 0) {
+    banners.push({
+      key: "warehouse-received",
+      label: `${warehouseConfirmed} warehouse${warehouseConfirmed > 1 ? "s" : ""} confirmed cargo receipt`,
+      count: warehouseConfirmed,
+      icon: Warehouse,
+      link: "/dashboard/shipments",
+      borderColor: "border-teal-200",
+      bgColor: "bg-teal-50",
+      textColor: "text-teal-700",
+      iconColor: "text-teal-600",
+    });
+  }
+
+  const driversEnRoute = (driverUpdates || []).filter(d => d.status === "en_route").length;
+  if (driversEnRoute > 0) {
+    banners.push({
+      key: "driver-enroute",
+      label: `${driversEnRoute} driver${driversEnRoute > 1 ? "s" : ""} en route to pickup`,
+      count: driversEnRoute,
+      icon: UserCheck,
+      link: "/dashboard/shipments",
+      borderColor: "border-indigo-200",
+      bgColor: "bg-indigo-50",
+      textColor: "text-indigo-700",
+      iconColor: "text-indigo-600",
     });
   }
 

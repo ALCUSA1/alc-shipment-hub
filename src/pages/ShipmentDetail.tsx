@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { TruckingPanel } from "@/components/shipment/TruckingPanel";
@@ -19,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -305,6 +306,10 @@ const ShipmentDetail = () => {
                 </AlertDialogContent>
               </AlertDialog>
             )}
+            <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/shipments/new?clone=${id}`)}>
+              <Copy className="mr-2 h-4 w-4" />
+              Clone
+            </Button>
             <Button variant="electric" size="sm">
               <FileText className="mr-2 h-4 w-4" />
               Generate Documents
@@ -573,6 +578,9 @@ const ShipmentDetail = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Payment Status */}
+          <PaymentStatusCard shipmentId={id!} />
 
           {/* Document Checklist */}
           <div data-guide="documents">

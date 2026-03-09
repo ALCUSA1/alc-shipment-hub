@@ -8,6 +8,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CrmCompanySelector } from "@/components/shared/CrmCompanySelector";
+import { CountrySelector } from "@/components/shared/CountrySelector";
 import type { ShipmentDataset, PartyInfo } from "@/lib/shipment-dataset";
 
 interface CrmCompany {
@@ -48,7 +49,6 @@ function CompactPartyCard({
   onSaveToCrm?: () => void;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
   const set = (f: keyof PartyInfo, v: string) => onChange({ ...party, [f]: v });
   const hasSomeData = party.companyName || party.contactName;
 
@@ -122,7 +122,17 @@ function CompactPartyCard({
                 <div><Label className="text-[10px] text-muted-foreground">City</Label><Input className="mt-1 h-8 text-xs" value={party.city} onChange={(e) => set("city", e.target.value)} /></div>
                 <div><Label className="text-[10px] text-muted-foreground">State</Label><Input className="mt-1 h-8 text-xs" value={party.state} onChange={(e) => set("state", e.target.value)} /></div>
                 <div><Label className="text-[10px] text-muted-foreground">Zip</Label><Input className="mt-1 h-8 text-xs" value={party.postalCode} onChange={(e) => set("postalCode", e.target.value)} /></div>
-                <div><Label className="text-[10px] text-muted-foreground">Country</Label><Input className="mt-1 h-8 text-xs" value={party.country} onChange={(e) => set("country", e.target.value)} /></div>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Country</Label>
+                  <div className="mt-1">
+                    <CountrySelector
+                      value={party.country}
+                      onValueChange={(v) => set("country", v)}
+                      triggerClassName="h-8 text-xs"
+                      placeholder="Country"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div><Label className="text-[10px] text-muted-foreground">Email</Label><Input className="mt-1 h-8 text-xs" value={party.email} onChange={(e) => set("email", e.target.value)} placeholder="email@co.com" /></div>
