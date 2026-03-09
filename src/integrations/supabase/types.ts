@@ -120,12 +120,19 @@ export type Database = {
           commodity: string | null
           country_of_origin: string | null
           created_at: string
+          dangerous_goods: boolean
+          dimensions: string | null
           gross_weight: number | null
           hs_code: string | null
+          hts_code: string | null
           id: string
+          marks_and_numbers: string | null
+          net_weight: number | null
           num_packages: number | null
           package_type: string | null
+          schedule_b: string | null
           shipment_id: string
+          special_instructions: string | null
           total_value: number | null
           unit_value: number | null
           volume: number | null
@@ -134,12 +141,19 @@ export type Database = {
           commodity?: string | null
           country_of_origin?: string | null
           created_at?: string
+          dangerous_goods?: boolean
+          dimensions?: string | null
           gross_weight?: number | null
           hs_code?: string | null
+          hts_code?: string | null
           id?: string
+          marks_and_numbers?: string | null
+          net_weight?: number | null
           num_packages?: number | null
           package_type?: string | null
+          schedule_b?: string | null
           shipment_id: string
+          special_instructions?: string | null
           total_value?: number | null
           unit_value?: number | null
           volume?: number | null
@@ -148,12 +162,19 @@ export type Database = {
           commodity?: string | null
           country_of_origin?: string | null
           created_at?: string
+          dangerous_goods?: boolean
+          dimensions?: string | null
           gross_weight?: number | null
           hs_code?: string | null
+          hts_code?: string | null
           id?: string
+          marks_and_numbers?: string | null
+          net_weight?: number | null
           num_packages?: number | null
           package_type?: string | null
+          schedule_b?: string | null
           shipment_id?: string
+          special_instructions?: string | null
           total_value?: number | null
           unit_value?: number | null
           volume?: number | null
@@ -540,30 +561,42 @@ export type Database = {
       containers: {
         Row: {
           container_number: string | null
+          container_size: string | null
           container_type: string
           created_at: string
           id: string
+          oog_dimensions: string | null
           quantity: number
+          reefer_temp: string | null
           seal_number: string | null
           shipment_id: string
+          vgm: number | null
         }
         Insert: {
           container_number?: string | null
+          container_size?: string | null
           container_type: string
           created_at?: string
           id?: string
+          oog_dimensions?: string | null
           quantity?: number
+          reefer_temp?: string | null
           seal_number?: string | null
           shipment_id: string
+          vgm?: number | null
         }
         Update: {
           container_number?: string | null
+          container_size?: string | null
           container_type?: string
           created_at?: string
           id?: string
+          oog_dimensions?: string | null
           quantity?: number
+          reefer_temp?: string | null
           seal_number?: string | null
           shipment_id?: string
+          vgm?: number | null
         }
         Relationships: [
           {
@@ -1463,6 +1496,50 @@ export type Database = {
         }
         Relationships: []
       }
+      shipment_charges: {
+        Row: {
+          amount: number
+          charge_type: string
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          notes: string | null
+          shipment_id: string
+          who_pays: string | null
+        }
+        Insert: {
+          amount?: number
+          charge_type?: string
+          created_at?: string
+          currency?: string
+          description: string
+          id?: string
+          notes?: string | null
+          shipment_id: string
+          who_pays?: string | null
+        }
+        Update: {
+          amount?: number
+          charge_type?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          shipment_id?: string
+          who_pays?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_charges_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_financials: {
         Row: {
           amount: number
@@ -1525,36 +1602,51 @@ export type Database = {
       shipment_parties: {
         Row: {
           address: string | null
+          city: string | null
           company_name: string
           contact_name: string | null
+          country: string | null
           created_at: string
           email: string | null
           id: string
           phone: string | null
+          postal_code: string | null
           role: string
           shipment_id: string
+          state: string | null
+          tax_id: string | null
         }
         Insert: {
           address?: string | null
+          city?: string | null
           company_name: string
           contact_name?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
           id?: string
           phone?: string | null
+          postal_code?: string | null
           role: string
           shipment_id: string
+          state?: string | null
+          tax_id?: string | null
         }
         Update: {
           address?: string | null
+          city?: string | null
           company_name?: string
           contact_name?: string | null
+          country?: string | null
           created_at?: string
           email?: string | null
           id?: string
           phone?: string | null
+          postal_code?: string | null
           role?: string
           shipment_id?: string
+          state?: string | null
+          tax_id?: string | null
         }
         Relationships: [
           {
@@ -1569,78 +1661,165 @@ export type Database = {
       shipments: {
         Row: {
           booking_ref: string | null
+          booking_terms: string | null
+          cargo_arrival_date: string | null
+          carrier: string | null
+          carrier_submission_mode: string | null
+          carrier_submission_status: string | null
           company_id: string | null
           converted_from_quote_id: string | null
           created_at: string
+          customer_reference: string | null
           cy_cutoff: string | null
+          declared_value: number | null
           delivery_location: string | null
           destination_port: string | null
+          destuffing_required: boolean | null
           doc_cutoff: string | null
           eta: string | null
           etd: string | null
+          feeder_vessel: string | null
+          feeder_voyage: string | null
+          final_destination: string | null
+          freight_terms: string | null
+          handling_notes: string | null
           id: string
           incoterms: string | null
+          insurance_value: number | null
+          invoice_currency: string | null
+          invoice_date: string | null
+          invoice_number: string | null
+          mode: string
           origin_port: string | null
+          payment_terms: string | null
           pickup_location: string | null
+          place_of_delivery: string | null
+          place_of_receipt: string | null
+          quote_reference: string | null
+          requested_ship_date: string | null
           shipment_ref: string
           shipment_type: string
           si_cutoff: string | null
           status: string
+          storage_notes: string | null
+          total_shipment_value: number | null
+          transshipment_port_1: string | null
+          transshipment_port_2: string | null
           updated_at: string
           user_id: string
           vessel: string | null
           vgm_cutoff: string | null
           voyage: string | null
+          warehouse_location: string | null
+          warehouse_receipt_number: string | null
         }
         Insert: {
           booking_ref?: string | null
+          booking_terms?: string | null
+          cargo_arrival_date?: string | null
+          carrier?: string | null
+          carrier_submission_mode?: string | null
+          carrier_submission_status?: string | null
           company_id?: string | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_reference?: string | null
           cy_cutoff?: string | null
+          declared_value?: number | null
           delivery_location?: string | null
           destination_port?: string | null
+          destuffing_required?: boolean | null
           doc_cutoff?: string | null
           eta?: string | null
           etd?: string | null
+          feeder_vessel?: string | null
+          feeder_voyage?: string | null
+          final_destination?: string | null
+          freight_terms?: string | null
+          handling_notes?: string | null
           id?: string
           incoterms?: string | null
+          insurance_value?: number | null
+          invoice_currency?: string | null
+          invoice_date?: string | null
+          invoice_number?: string | null
+          mode?: string
           origin_port?: string | null
+          payment_terms?: string | null
           pickup_location?: string | null
+          place_of_delivery?: string | null
+          place_of_receipt?: string | null
+          quote_reference?: string | null
+          requested_ship_date?: string | null
           shipment_ref: string
           shipment_type?: string
           si_cutoff?: string | null
           status?: string
+          storage_notes?: string | null
+          total_shipment_value?: number | null
+          transshipment_port_1?: string | null
+          transshipment_port_2?: string | null
           updated_at?: string
           user_id: string
           vessel?: string | null
           vgm_cutoff?: string | null
           voyage?: string | null
+          warehouse_location?: string | null
+          warehouse_receipt_number?: string | null
         }
         Update: {
           booking_ref?: string | null
+          booking_terms?: string | null
+          cargo_arrival_date?: string | null
+          carrier?: string | null
+          carrier_submission_mode?: string | null
+          carrier_submission_status?: string | null
           company_id?: string | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_reference?: string | null
           cy_cutoff?: string | null
+          declared_value?: number | null
           delivery_location?: string | null
           destination_port?: string | null
+          destuffing_required?: boolean | null
           doc_cutoff?: string | null
           eta?: string | null
           etd?: string | null
+          feeder_vessel?: string | null
+          feeder_voyage?: string | null
+          final_destination?: string | null
+          freight_terms?: string | null
+          handling_notes?: string | null
           id?: string
           incoterms?: string | null
+          insurance_value?: number | null
+          invoice_currency?: string | null
+          invoice_date?: string | null
+          invoice_number?: string | null
+          mode?: string
           origin_port?: string | null
+          payment_terms?: string | null
           pickup_location?: string | null
+          place_of_delivery?: string | null
+          place_of_receipt?: string | null
+          quote_reference?: string | null
+          requested_ship_date?: string | null
           shipment_ref?: string
           shipment_type?: string
           si_cutoff?: string | null
           status?: string
+          storage_notes?: string | null
+          total_shipment_value?: number | null
+          transshipment_port_1?: string | null
+          transshipment_port_2?: string | null
           updated_at?: string
           user_id?: string
           vessel?: string | null
           vgm_cutoff?: string | null
           voyage?: string | null
+          warehouse_location?: string | null
+          warehouse_receipt_number?: string | null
         }
         Relationships: [
           {
