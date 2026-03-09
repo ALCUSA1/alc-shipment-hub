@@ -4,6 +4,7 @@ import { useAdminFilters } from "@/hooks/useAdminFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useCallback } from "react";
