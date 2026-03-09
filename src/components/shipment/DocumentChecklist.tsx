@@ -106,7 +106,7 @@ export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps
                   </p>
                 </div>
                 <span className="text-[10px] text-muted-foreground shrink-0">
-                  {format(new Date(doc.created_at), "MMM d")}
+                  {doc.created_at && !isNaN(new Date(doc.created_at).getTime()) ? format(new Date(doc.created_at), "MMM d") : "—"}
                 </span>
               </label>
             );
