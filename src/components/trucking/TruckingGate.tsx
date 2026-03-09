@@ -16,13 +16,13 @@ export function TruckingGate({ children }: { children: ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/trucking/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Allow access if user has trucker role or no roles assigned yet (new user)
   const hasTruckerRole = roles.includes("trucker" as any);
   if (roles.length > 0 && !hasTruckerRole) {
-    return <Navigate to="/trucking/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

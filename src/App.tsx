@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleGate } from "@/components/RoleGate";
@@ -27,7 +27,6 @@ import Account from "./pages/Account";
 import CRM from "./pages/CRM";
 import Trucking from "./pages/Trucking";
 import { TruckingGate } from "./components/trucking/TruckingGate";
-import TruckingLogin from "./pages/trucking/TruckingLogin";
 import TruckingDashboard from "./pages/trucking/TruckingDashboard";
 import TruckingOrders from "./pages/trucking/TruckingOrders";
 import TruckingOrderDetail from "./pages/trucking/TruckingOrderDetail";
@@ -47,7 +46,6 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminFinancials from "./pages/admin/AdminFinancials";
 import AdminSystem from "./pages/admin/AdminSystem";
-import AdminLogin from "./pages/admin/AdminLogin";
 import AdminShipments from "./pages/admin/AdminShipments";
 import AdminShipmentDetail from "./pages/admin/AdminShipmentDetail";
 import AdminCustomerLookup from "./pages/admin/AdminCustomerLookup";
@@ -115,7 +113,7 @@ const App = () => (
             <Route path="/dashboard/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/login" element={<Navigate to="/login" replace />} />
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
             <Route path="/admin/pipeline" element={<AdminGate><AdminPipeline /></AdminGate>} />
             <Route path="/admin/quotes" element={<AdminGate><AdminQuotes /></AdminGate>} />
@@ -147,7 +145,7 @@ const App = () => (
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
             {/* Trucking Company Portal */}
-            <Route path="/trucking/login" element={<TruckingLogin />} />
+            <Route path="/trucking/login" element={<Navigate to="/login" replace />} />
             <Route path="/trucking" element={<TruckingGate><TruckingDashboard /></TruckingGate>} />
             <Route path="/trucking/orders" element={<TruckingGate><TruckingOrders /></TruckingGate>} />
             <Route path="/trucking/orders/:id" element={<TruckingGate><TruckingOrderDetail /></TruckingGate>} />

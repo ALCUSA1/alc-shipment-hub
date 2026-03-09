@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getPostLoginRoute } from "@/lib/role-routing";
 import alcLogo from "@/assets/alc-logo.png";
 
 const Login = () => {
@@ -19,13 +20,16 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      navigate("/dashboard");
+      return;
     }
+    // Role-based routing
+    const route = await getPostLoginRoute(data.user.id);
+    setLoading(false);
+    navigate(route);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -52,8 +56,8 @@ const Login = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-navy items-center justify-center p-12">
         <div className="max-w-md text-center">
           <img src={alcLogo} alt="ALC Logo" className="h-16 w-auto mx-auto mb-6 brightness-0 invert" />
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">ALC Shipper Portal</h2>
-          <p className="text-primary-foreground/60">Your centralized logistics workspace for global shipping operations.</p>
+          <h2 className="text-3xl font-bold text-primary-foreground mb-4">ALC Logistics</h2>
+          <p className="text-primary-foreground/60">Sign in to access your workspace — shippers, carriers, and administrators all in one place.</p>
         </div>
       </div>
       <div className="flex-1 flex items-center justify-center p-8">
@@ -84,7 +88,7 @@ const Login = () => {
           ) : (
             <>
               <h1 className="text-2xl font-bold text-foreground mb-2">Welcome back</h1>
-              <p className="text-sm text-muted-foreground mb-8">Log in to your workspace</p>
+              <p className="text-sm text-muted-foreground mb-8">Sign in to your account</p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -100,7 +104,7 @@ const Login = () => {
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required />
                 </div>
                 <Button variant="electric" className="w-full" type="submit" disabled={loading}>
-                  {loading ? "Logging in..." : "Log In"}
+                  {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
               <p className="text-sm text-muted-foreground mt-6 text-center">

@@ -52,14 +52,13 @@ const ResetPassword = () => {
       return;
     }
 
-    // Check user's role to redirect appropriately
+    // Role-based redirect after password set
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: roles } = await supabase.rpc("get_user_roles", { _user_id: user.id });
-      if (roles && (roles as string[]).includes("trucker")) {
-        navigate("/trucking");
-        return;
-      }
+      const { getPostLoginRoute } = await import("@/lib/role-routing");
+      const route = await getPostLoginRoute(user.id);
+      navigate(route);
+      return;
     }
     navigate("/login");
   };

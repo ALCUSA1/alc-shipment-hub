@@ -15,8 +15,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/admin/login" replace />;
-  if (!isAdmin) return <Navigate to="/admin/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }
