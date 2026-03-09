@@ -471,7 +471,7 @@ const NewShipment = () => {
           <SectionNav activeSection={activeSection} onNavigate={handleNavigate} sectionFilled={sectionFilled} />
 
           <main className="flex-1 min-w-0 space-y-12 pb-24">
-            <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} />
+            <BasicsSection data={ds.basics} onChange={updateBasics} ports={ports} companies={customerCompanies} onCustomerSelected={handleCustomerSelected} />
             <PartiesSection
               data={ds.parties}
               onChange={(p) => setDs(prev => ({ ...prev, parties: p }))}
