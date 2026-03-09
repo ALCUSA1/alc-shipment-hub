@@ -61,6 +61,7 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [draft, setDraft] = useState({
     cy_cutoff: toLocalDatetime(cutoffs.cy_cutoff),
     si_cutoff: toLocalDatetime(cutoffs.si_cutoff),
