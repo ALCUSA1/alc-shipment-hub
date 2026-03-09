@@ -22,6 +22,20 @@ export function NotificationBell() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
+  // Realtime: auto-refresh when new notifications arrive
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["notifications", user.id] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
+
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications", user?.id],
     queryFn: async () => {
