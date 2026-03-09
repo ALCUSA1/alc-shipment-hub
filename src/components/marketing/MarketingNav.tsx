@@ -62,5 +62,5 @@ export function MarketingNav() {
         </div>
       )}
     </nav>
-  );
+    </header>
 }
