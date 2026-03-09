@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     const { email, role, full_name } = await req.json();
     if (!email || !role) throw new Error("Email and role are required");
 
-    const validRoles = ["admin", "ops_manager", "sales", "viewer"];
+    const validRoles = ["admin", "ops_manager", "sales", "viewer", "trucker"];
     if (!validRoles.includes(role)) throw new Error("Invalid role");
 
     // Use service role client to invite user

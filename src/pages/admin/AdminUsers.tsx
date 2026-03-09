@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 
 type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status";
 
-const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer"] as const;
+const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer", "trucker"] as const;
 
 const AdminUsers = () => {
   const queryClient = useQueryClient();
