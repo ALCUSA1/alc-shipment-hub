@@ -17,18 +17,30 @@ const STEPS = ["Overview", "Trade Parties", "Cargo & Container", "Compliance & I
 const NewShipment = () => {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [autoFilledShipper, setAutoFilledShipper] = useState(false);
+  const [autoFilledCompliance, setAutoFilledCompliance] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: companies = [] } = useQuery({
-    queryKey: ["wizard-companies", user?.id],
+  // Fetch all CRM companies (all types)
+  const { data: allCompanies = [] } = useQuery({
+    queryKey: ["wizard-all-companies", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("id, company_name").eq("user_id", user!.id).order("company_name");
+      const { data } = await supabase
+        .from("companies")
+        .select("id, company_name, company_type, address, city, state, country, email, phone")
+        .eq("user_id", user!.id)
+        .order("company_name");
       return data || [];
     },
     enabled: !!user,
   });
+
+  // Customer-type companies for the overview dropdown
+  const companies = allCompanies.filter(
+    (c) => c.company_type === "customer" || !c.company_type
+  );
 
   const { data: ports = [] } = useQuery({
     queryKey: ["ports"],
@@ -36,6 +48,19 @@ const NewShipment = () => {
       const { data } = await supabase.from("ports").select("code, name, country").order("name");
       return data || [];
     },
+  });
+
+  // Fetch user profile + primary company for auto-fill
+  const { data: profileCompany } = useQuery({
+    queryKey: ["wizard-profile-company", user?.id],
+    queryFn: async () => {
+      const [profileRes, companyRes] = await Promise.all([
+        supabase.from("profiles").select("full_name, company_name").eq("user_id", user!.id).maybeSingle(),
+        supabase.from("companies").select("*").eq("user_id", user!.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
+      ]);
+      return { profile: profileRes.data, company: companyRes.data };
+    },
+    enabled: !!user,
   });
 
   const [overview, setOverview] = useState<OverviewData>({
@@ -56,6 +81,83 @@ const NewShipment = () => {
     exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
     insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
   });
+
+  // Auto-fill shipper from profile/company
+  useEffect(() => {
+    if (!profileCompany?.company) return;
+    const c = profileCompany.company;
+    const p = profileCompany.profile;
+
+    // Only auto-fill if shipper is still empty
+    if (!parties.shipper.companyName) {
+      const addr = [c.address, c.city, c.state, c.zip, c.country].filter(Boolean).join(", ");
+      setParties((prev) => ({
+        ...prev,
+        shipper: {
+          companyName: c.company_name || p?.company_name || "",
+          contactName: p?.full_name || "",
+          address: addr,
+          email: c.email || "",
+          phone: c.phone || "",
+        },
+      }));
+      setAutoFilledShipper(true);
+    }
+
+    // Auto-fill compliance
+    if (!compliance.exporterName) {
+      setCompliance((prev) => ({
+        ...prev,
+        exporterName: c.company_name || "",
+        exporterEin: c.ein || "",
+        insuranceProvider: c.cargo_insurance_provider || "",
+        insurancePolicy: c.cargo_insurance_policy || "",
+      }));
+      setAutoFilledCompliance(true);
+    }
+  }, [profileCompany]);
+
+  // Auto-save new consignee to CRM after submit
+  const autoSaveConsigneeToCrm = async (consignee: typeof parties.consignee) => {
+    if (!consignee.companyName || !user) return;
+    // Check if already exists
+    const { data: existing } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("company_name", consignee.companyName)
+      .eq("company_type", "consignee")
+      .maybeSingle();
+    if (existing) return;
+
+    await supabase.from("companies").insert({
+      user_id: user.id,
+      company_name: consignee.companyName,
+      company_type: "consignee",
+      email: consignee.email || null,
+      phone: consignee.phone || null,
+      address: consignee.address || null,
+    });
+  };
+
+  // Auto-save trucking company to CRM
+  const autoSaveTruckingToCrm = async (truckingName: string) => {
+    if (!truckingName || !user) return;
+    const { data: existing } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("company_name", truckingName)
+      .eq("company_type", "trucking")
+      .maybeSingle();
+    if (existing) return;
+
+    await supabase.from("companies").insert({
+      user_id: user.id,
+      company_name: truckingName,
+      company_type: "trucking",
+    });
+  };
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -107,10 +209,9 @@ const NewShipment = () => {
         });
       }
 
-      // 4. Create parties (with full details)
+      // 4. Create parties
       const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
       
-      // Core parties
       const coreParties: { data: typeof parties.shipper; role: string }[] = [
         { data: parties.shipper, role: "shipper" },
         { data: parties.consignee, role: "consignee" },
@@ -128,7 +229,6 @@ const NewShipment = () => {
         }
       }
 
-      // Trucking company (simplified - just name)
       if (parties.truckingCompany) {
         partyEntries.push({
           role: "trucking", company_name: parties.truckingCompany, contact_name: null,
@@ -140,7 +240,7 @@ const NewShipment = () => {
         await supabase.from("shipment_parties").insert(partyEntries);
       }
 
-      // 5. Create customs filing (if compliance data provided)
+      // 5. Create customs filing
       if (compliance.exporterName || compliance.exporterEin) {
         await supabase.from("customs_filings").insert({
           shipment_id: shipmentId,
@@ -171,7 +271,7 @@ const NewShipment = () => {
         }))
       );
 
-      // 7. Create a pending quote linked to shipment
+      // 7. Create a pending quote
       await supabase.from("quotes").insert({
         shipment_id: shipmentId,
         user_id: user.id,
@@ -181,6 +281,10 @@ const NewShipment = () => {
         container_type: cargo.containerType || null,
         company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
       });
+
+      // 8. Auto-save consignee & trucking to CRM (fire-and-forget)
+      autoSaveConsigneeToCrm(parties.consignee);
+      autoSaveTruckingToCrm(parties.truckingCompany);
 
       toast({ title: "Shipment created", description: "Your shipment has been created with all trade documents initialized." });
       navigate(`/dashboard/shipments/${shipmentId}`);
@@ -194,9 +298,9 @@ const NewShipment = () => {
   const renderStep = () => {
     switch (step) {
       case 0: return <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />;
-      case 1: return <PartiesStep data={parties} onChange={setParties} />;
+      case 1: return <PartiesStep data={parties} onChange={setParties} crmCompanies={allCompanies} autoFilledShipper={autoFilledShipper} />;
       case 2: return <CargoStep data={cargo} onChange={setCargo} />;
-      case 3: return <ComplianceStep data={compliance} onChange={setCompliance} />;
+      case 3: return <ComplianceStep data={compliance} onChange={setCompliance} autoFilled={autoFilledCompliance} />;
       case 4: return <ReviewStep overview={overview} parties={parties} cargo={cargo} compliance={compliance} companies={companies} />;
       default: return null;
     }
