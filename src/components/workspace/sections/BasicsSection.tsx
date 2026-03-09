@@ -2,7 +2,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PortSelector } from "@/components/shipment/PortSelector";
-import type { ShipmentDataset } from "@/lib/shipment-dataset";
+import type { ShipmentDataset, PartyInfo } from "@/lib/shipment-dataset";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const INCOTERMS = ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "CPT", "CIP", "DAP", "DPU", "DDP"];
 
@@ -11,10 +13,39 @@ interface Props {
   onChange: (d: ShipmentDataset["basics"]) => void;
   ports: { code: string; name: string; country: string }[];
   companies: { id: string; company_name: string }[];
+  onCustomerSelected?: (company: any) => void;
 }
 
-export function BasicsSection({ data, onChange, ports, companies }: Props) {
+export function BasicsSection({ data, onChange, ports, companies, onCustomerSelected }: Props) {
   const set = (field: keyof typeof data, v: string) => onChange({ ...data, [field]: v });
+
+  // Fetch full company details when a customer is selected for auto-fill
+  const { data: selectedCompany } = useQuery({
+    queryKey: ["company-detail", data.companyId],
+    queryFn: async () => {
+      const { data: company } = await supabase
+        .from("companies")
+        .select("*, company_contacts(*)")
+        .eq("id", data.companyId!)
+        .single();
+      return company;
+    },
+    enabled: !!data.companyId,
+  });
+
+  const handleCustomerChange = (v: string) => {
+    const companyId = v === "none" ? "" : v;
+    set("companyId", companyId);
+    if (companyId && selectedCompany && onCustomerSelected) {
+      onCustomerSelected(selectedCompany);
+    }
+  };
+
+  // Trigger auto-fill when selectedCompany data arrives
+  if (selectedCompany && data.companyId && onCustomerSelected) {
+    // Use a micro-task to avoid setState during render
+    Promise.resolve().then(() => onCustomerSelected(selectedCompany));
+  }
 
   return (
     <section id="basics" className="scroll-mt-8">
@@ -39,7 +70,7 @@ export function BasicsSection({ data, onChange, ports, companies }: Props) {
           </div>
           <div>
             <Label className="text-[11px] text-muted-foreground">Customer</Label>
-            <Select value={data.companyId || "none"} onValueChange={(v) => set("companyId", v === "none" ? "" : v)}>
+            <Select value={data.companyId || "none"} onValueChange={handleCustomerChange}>
               <SelectTrigger className="mt-1.5 h-10"><SelectValue placeholder="Select customer" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">— No customer —</SelectItem>
