@@ -439,7 +439,6 @@ const NewShipment = () => {
         }).then());
       }
 
-      const isAirMode = b.mode === "air";
       const requiredDocs = isAirMode
         ? ["mawb", "hawb", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "known_shipper_declaration", "aes_filing"]
         : ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing"];

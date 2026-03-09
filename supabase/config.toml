@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.sync-cutoffs]
 verify_jwt = false
+
+[functions.generate-air-waybill]
+verify_jwt = false
+
+[functions.fetch-air-rates]
+verify_jwt = false
