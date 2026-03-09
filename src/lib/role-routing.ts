@@ -10,6 +10,7 @@ export async function getPostLoginRoute(userId: string): Promise<string> {
   const roleList = (roles as string[]) || [];
 
   if (roleList.includes("admin")) return "/admin";
+  if (roleList.includes("driver")) return "/driver";
   if (roleList.includes("trucker")) return "/trucking";
   if (roleList.length > 0) return "/dashboard";
 

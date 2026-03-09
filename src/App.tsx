@@ -157,7 +157,13 @@ const App = () => (
             <Route path="/trucking/orders" element={<TruckingGate><TruckingOrders /></TruckingGate>} />
             <Route path="/trucking/orders/:id" element={<TruckingGate><TruckingOrderDetail /></TruckingGate>} />
             <Route path="/trucking/quotes" element={<TruckingGate><TruckingQuotes /></TruckingGate>} />
+            <Route path="/trucking/assignments" element={<TruckingGate><TruckingAssignments /></TruckingGate>} />
             <Route path="/trucking/account" element={<TruckingGate><TruckingAccount /></TruckingGate>} />
+
+            {/* Driver Portal */}
+            <Route path="/driver" element={<DriverGate><DriverDashboard /></DriverGate>} />
+            <Route path="/driver/job/:id" element={<DriverGate><DriverAssignmentDetail /></DriverGate>} />
+            <Route path="/driver/account" element={<DriverGate><DriverAccount /></DriverGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
