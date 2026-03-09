@@ -120,6 +120,34 @@ const AdminUsers = () => {
     ops_manager: "bg-blue-500/15 text-blue-400 border-blue-500/20",
     sales: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
     viewer: "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,20%)]",
+    trucker: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !inviteRole) return;
+    setInviting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { email: inviteEmail, role: inviteRole, full_name: inviteName },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data.message || `Invited ${inviteEmail}`);
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRole("");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to invite user");
+    } finally {
+      setInviting(false);
+    }
+  };
+    ops_manager: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+    sales: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+    viewer: "bg-[hsl(220,15%,20%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,20%)]",
   };
 
   const filtered = (profiles || []).filter((p) => {
