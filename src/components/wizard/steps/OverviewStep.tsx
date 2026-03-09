@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PortSelector } from "@/components/shipment/PortSelector";
 import { Separator } from "@/components/ui/separator";
+import { AddressAutocomplete } from "@/components/shared/AddressAutocomplete";
 
 interface Port { code: string; name: string; country: string; }
 interface Company { id: string; company_name: string; }
@@ -86,11 +87,23 @@ export function OverviewStep({ data, onChange, ports, companies }: OverviewStepP
         </div>
         <div>
           <Label>Pickup Location</Label>
-          <Input placeholder="Full address" className="mt-1" value={data.pickupLocation} onChange={(e) => set("pickupLocation", e.target.value)} />
+          <div className="mt-1">
+            <AddressAutocomplete
+              value={data.pickupLocation}
+              onChange={(v) => set("pickupLocation", v)}
+              placeholder="Search pickup address..."
+            />
+          </div>
         </div>
         <div>
           <Label>Delivery Location</Label>
-          <Input placeholder="Full address" className="mt-1" value={data.deliveryLocation} onChange={(e) => set("deliveryLocation", e.target.value)} />
+          <div className="mt-1">
+            <AddressAutocomplete
+              value={data.deliveryLocation}
+              onChange={(v) => set("deliveryLocation", v)}
+              placeholder="Search delivery address..."
+            />
+          </div>
         </div>
       </div>
     </>

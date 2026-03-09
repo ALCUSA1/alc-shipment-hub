@@ -1,6 +1,8 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Zap } from "lucide-react";
 
 export interface ComplianceData {
   exporterEin: string;
@@ -15,9 +17,10 @@ export interface ComplianceData {
 interface ComplianceStepProps {
   data: ComplianceData;
   onChange: (data: ComplianceData) => void;
+  autoFilled?: boolean;
 }
 
-export function ComplianceStep({ data, onChange }: ComplianceStepProps) {
+export function ComplianceStep({ data, onChange, autoFilled }: ComplianceStepProps) {
   const set = (field: keyof ComplianceData, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -28,7 +31,14 @@ export function ComplianceStep({ data, onChange }: ComplianceStepProps) {
       </p>
 
       <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-        <h4 className="text-sm font-semibold text-foreground">Export Compliance (AES / SLI)</h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-foreground">Export Compliance (AES / SLI)</h4>
+          {autoFilled && (
+            <Badge variant="outline" className="text-[9px] gap-1 text-accent border-accent/30">
+              <Zap className="h-2.5 w-2.5" /> Auto-filled from profile
+            </Badge>
+          )}
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-xs">Exporter Name (USPPI)</Label>
@@ -54,7 +64,14 @@ export function ComplianceStep({ data, onChange }: ComplianceStepProps) {
       <Separator />
 
       <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-        <h4 className="text-sm font-semibold text-foreground">Insurance Certificate</h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-foreground">Insurance Certificate</h4>
+          {autoFilled && (
+            <Badge variant="outline" className="text-[9px] gap-1 text-accent border-accent/30">
+              <Zap className="h-2.5 w-2.5" /> Auto-filled from profile
+            </Badge>
+          )}
+        </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label className="text-xs">Insurance Provider</Label>
