@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck } from "lucide-react";
+import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck, Receipt } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ActionBanner {
