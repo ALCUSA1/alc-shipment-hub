@@ -515,6 +515,9 @@ const ShipmentDetail = () => {
             quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
             shipmentStatus={shipment.status}
           />
+
+          {/* Audit Trail / Activity Log */}
+          <AuditTrailPanel shipmentId={id!} />
         </motion.div>
 
         {/* Sidebar */}
