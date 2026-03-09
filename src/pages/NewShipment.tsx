@@ -39,7 +39,7 @@ const NewShipment = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, company_type, address, city, state, country, email, phone, ein, cargo_insurance_provider, cargo_insurance_policy")
+        .select("id, company_name, company_type, address, city, state, country, email, phone, ein, zip, cargo_insurance_provider, cargo_insurance_policy")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
