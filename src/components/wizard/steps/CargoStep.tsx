@@ -97,7 +97,14 @@ export function CargoStep({ data, onChange }: CargoStepProps) {
         </div>
         <div>
           <Label>Country of Origin</Label>
-          <Input placeholder="e.g. China" className="mt-1" value={data.countryOfOrigin} onChange={(e) => set("countryOfOrigin", e.target.value)} />
+          <Select value={data.countryOfOrigin} onValueChange={(v) => set("countryOfOrigin", v)}>
+            <SelectTrigger className="mt-1"><SelectValue placeholder="Select country" /></SelectTrigger>
+            <SelectContent>
+              {COUNTRIES.map((country) => (
+                <SelectItem key={country} value={country}>{country}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Package Type</Label>
