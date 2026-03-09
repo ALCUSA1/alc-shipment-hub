@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Shield, FileCheck, AlertCircle, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Shield, FileCheck, AlertCircle, Send, Loader2, CheckCircle2, Plane, Ship } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 interface CustomsFilingPanelProps {
   shipmentId: string;
+  mode?: "ocean" | "air";
 }
 
 const statusStyle: Record<string, string> = {
@@ -24,8 +25,9 @@ const statusStyle: Record<string, string> = {
 const formatLabel = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
+export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFilingPanelProps) {
   const queryClient = useQueryClient();
+  const isAir = mode === "air";
 
   const { data: filings, isLoading } = useQuery({
     queryKey: ["customs_filings", shipmentId],
@@ -109,6 +111,7 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4 text-accent" />
             Customs / AES Filing
+            {isAir && <Badge variant="outline" className="text-[9px] gap-0.5 ml-1"><Plane className="h-2.5 w-2.5" /> Air</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -145,6 +148,7 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
         const htsCodes = Array.isArray(filing.hts_codes) ? filing.hts_codes : [];
         const canSubmit = filing.status === "draft";
         const isSubmitting = submitMutation.isPending;
+        const filingIsAir = filing.mode_of_transport === "air";
 
         return (
           <Card key={filing.id}>
@@ -153,6 +157,11 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
                 <CardTitle className="text-base flex items-center gap-2">
                   <Shield className="h-4 w-4 text-accent" />
                   {filing.filing_type} Filing
+                  {filingIsAir ? (
+                    <Badge variant="outline" className="text-[9px] gap-0.5"><Plane className="h-2.5 w-2.5" /> Air</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[9px] gap-0.5"><Ship className="h-2.5 w-2.5" /> Ocean</Badge>
+                  )}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge
@@ -200,8 +209,8 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
                 </div>
               )}
 
-              {/* Core filing info */}
-              <FilingDetails filing={filing} />
+              {/* Core filing info — mode-aware */}
+              <FilingDetails filing={filing} isAir={filingIsAir} />
 
               {/* Broker info */}
               {(filing.broker_name || filing.broker_email) && (
@@ -301,7 +310,7 @@ export function CustomsFilingPanel({ shipmentId }: CustomsFilingPanelProps) {
   );
 }
 
-function FilingDetails({ filing }: { filing: any }) {
+function FilingDetails({ filing, isAir }: { filing: any; isAir: boolean }) {
   return (
     <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
       <Row label="ITN" value={filing.itn || "—"} />
@@ -313,8 +322,8 @@ function FilingDetails({ filing }: { filing: any }) {
         label="Country of Destination"
         value={filing.country_of_destination || "—"}
       />
-      <Row label="Port of Export" value={filing.port_of_export || "—"} />
-      <Row label="Port of Unlading" value={filing.port_of_unlading || "—"} />
+      <Row label={isAir ? "Airport of Export" : "Port of Export"} value={filing.port_of_export || "—"} />
+      <Row label={isAir ? "Airport of Unlading" : "Port of Unlading"} value={filing.port_of_unlading || "—"} />
       <Row
         label="Mode of Transport"
         value={formatLabel(filing.mode_of_transport || "—")}
@@ -327,8 +336,18 @@ function FilingDetails({ filing }: { filing: any }) {
             : "—"
         }
       />
-      <Row label="Vessel" value={filing.vessel_name || "—"} />
-      <Row label="Voyage" value={filing.voyage_number || "—"} />
+      {isAir ? (
+        <>
+          <Row label="Airline" value={filing.vessel_name || filing.carrier_name || "—"} />
+          <Row label="Flight Number" value={filing.voyage_number || "—"} />
+          <Row label="Carrier" value={filing.carrier_name || "—"} />
+        </>
+      ) : (
+        <>
+          <Row label="Vessel" value={filing.vessel_name || "—"} />
+          <Row label="Voyage" value={filing.voyage_number || "—"} />
+        </>
+      )}
     </div>
   );
 }

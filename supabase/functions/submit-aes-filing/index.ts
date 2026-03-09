@@ -105,6 +105,15 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Determine mode-specific fields
+      const isAir = ship.mode === "air";
+      const modeOfTransport = isAir ? "air" : "vessel";
+      const vesselName = isAir ? (ship.airline || null) : (ship.vessel || null);
+      const voyageNumber = isAir ? (ship.flight_number || null) : (ship.voyage || null);
+      const carrierName = isAir ? (ship.airline || null) : null;
+      const portOfExport = isAir ? (ship.airport_of_departure || ship.origin_port || null) : (ship.origin_port || null);
+      const portOfUnlading = isAir ? (ship.airport_of_destination || ship.destination_port || null) : (ship.destination_port || null);
+
       const { data: filing, error: insertErr } = await supabase
         .from("customs_filings")
         .insert({
@@ -117,12 +126,13 @@ Deno.serve(async (req) => {
           consignee_name: consignee?.name || null,
           consignee_address: consignee?.address || null,
           country_of_destination: ship.destination_country || null,
-          port_of_export: ship.origin_port || null,
-          port_of_unlading: ship.destination_port || null,
-          vessel_name: ship.vessel || null,
-          voyage_number: ship.voyage || null,
+          port_of_export: portOfExport,
+          port_of_unlading: portOfUnlading,
+          vessel_name: vesselName,
+          voyage_number: voyageNumber,
           export_date: ship.etd || null,
-          mode_of_transport: "vessel",
+          mode_of_transport: modeOfTransport,
+          carrier_name: carrierName,
           hts_codes: htsCodes.length > 0 ? htsCodes : null,
         })
         .select("id")
