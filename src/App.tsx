@@ -26,6 +26,13 @@ import Partners from "./pages/Partners";
 import Account from "./pages/Account";
 import CRM from "./pages/CRM";
 import Trucking from "./pages/Trucking";
+import { TruckingGate } from "./components/trucking/TruckingGate";
+import TruckingLogin from "./pages/trucking/TruckingLogin";
+import TruckingDashboard from "./pages/trucking/TruckingDashboard";
+import TruckingOrders from "./pages/trucking/TruckingOrders";
+import TruckingOrderDetail from "./pages/trucking/TruckingOrderDetail";
+import TruckingQuotes from "./pages/trucking/TruckingQuotes";
+import TruckingAccount from "./pages/trucking/TruckingAccount";
 import Warehouses from "./pages/Warehouses";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Team from "./pages/Team";
@@ -138,6 +145,14 @@ const App = () => (
             <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
+
+            {/* Trucking Company Portal */}
+            <Route path="/trucking/login" element={<TruckingLogin />} />
+            <Route path="/trucking" element={<TruckingGate><TruckingDashboard /></TruckingGate>} />
+            <Route path="/trucking/orders" element={<TruckingGate><TruckingOrders /></TruckingGate>} />
+            <Route path="/trucking/orders/:id" element={<TruckingGate><TruckingOrderDetail /></TruckingGate>} />
+            <Route path="/trucking/quotes" element={<TruckingGate><TruckingQuotes /></TruckingGate>} />
+            <Route path="/trucking/account" element={<TruckingGate><TruckingAccount /></TruckingGate>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

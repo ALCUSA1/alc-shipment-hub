@@ -1756,6 +1756,77 @@ export type Database = {
           },
         ]
       }
+      trucking_quotes: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          currency: string
+          driver_name: string | null
+          driver_phone: string | null
+          equipment_type: string | null
+          estimated_delivery: string | null
+          id: string
+          notes: string | null
+          pickup_date: string | null
+          pickup_time: string | null
+          price: number
+          service_region: string | null
+          shipment_id: string
+          status: string
+          truck_plate: string | null
+          trucker_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          currency?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          equipment_type?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          pickup_date?: string | null
+          pickup_time?: string | null
+          price: number
+          service_region?: string | null
+          shipment_id: string
+          status?: string
+          truck_plate?: string | null
+          trucker_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          currency?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          equipment_type?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          notes?: string | null
+          pickup_date?: string | null
+          pickup_time?: string | null
+          price?: number
+          service_region?: string | null
+          shipment_id?: string
+          status?: string
+          truck_plate?: string | null
+          trucker_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_quotes_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1920,7 +1991,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "ops_manager" | "sales" | "viewer"
+      app_role: "admin" | "ops_manager" | "sales" | "viewer" | "trucker"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -2054,7 +2125,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "ops_manager", "sales", "viewer"],
+      app_role: ["admin", "ops_manager", "sales", "viewer", "trucker"],
       company_status: [
         "prospect",
         "pending_compliance",
