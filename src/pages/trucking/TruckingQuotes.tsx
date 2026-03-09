@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { TruckingLayout } from "@/components/trucking/TruckingLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { FileText, Calendar, DollarSign, Truck } from "lucide-react";
+import { FileText, Calendar, DollarSign, Truck, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AssignDriverDialog } from "@/components/trucking/AssignDriverDialog";
 
 const statusStyles: Record<string, string> = {
   submitted: "bg-blue-100 text-blue-700",
@@ -17,6 +20,7 @@ const statusStyles: Record<string, string> = {
 
 const TruckingQuotes = () => {
   const { user } = useAuth();
+  const [assignQuote, setAssignQuote] = useState<any>(null);
 
   const { data: quotes, isLoading } = useQuery({
     queryKey: ["my-trucking-quotes", user?.id],
@@ -109,7 +113,7 @@ const TruckingQuotes = () => {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end gap-1">
                     <p className="font-semibold text-foreground flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
                       {Number(quote.price).toLocaleString()}
@@ -117,6 +121,20 @@ const TruckingQuotes = () => {
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(quote.created_at), "MMM d, yyyy")}
                     </p>
+                    {quote.status === "accepted" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs mt-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAssignQuote(quote);
+                        }}
+                      >
+                        <UserPlus className="h-3 w-3 mr-1" /> Assign Driver
+                      </Button>
+                    )}
                   </div>
                 </Link>
               ))}
@@ -124,6 +142,23 @@ const TruckingQuotes = () => {
           )}
         </CardContent>
       </Card>
+
+      {assignQuote && (
+        <AssignDriverDialog
+          open={!!assignQuote}
+          onOpenChange={(open) => !open && setAssignQuote(null)}
+          quoteId={assignQuote.id}
+          shipmentId={assignQuote.shipment_id}
+          pickupAddress={
+            (assignQuote.shipments as any)?.pickup_location ||
+            (assignQuote.shipments as any)?.origin_port
+          }
+          deliveryAddress={
+            (assignQuote.shipments as any)?.delivery_location ||
+            (assignQuote.shipments as any)?.destination_port
+          }
+        />
+      )}
     </TruckingLayout>
   );
 };

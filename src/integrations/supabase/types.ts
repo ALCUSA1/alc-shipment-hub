@@ -874,6 +874,90 @@ export type Database = {
           },
         ]
       }
+      driver_assignments: {
+        Row: {
+          assigned_by: string
+          container_numbers: string[] | null
+          created_at: string
+          delivery_address: string | null
+          delivery_contact_name: string | null
+          delivery_contact_phone: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          driver_user_id: string
+          id: string
+          instructions: string | null
+          pickup_address: string | null
+          pickup_contact_name: string | null
+          pickup_contact_phone: string | null
+          shipment_id: string
+          status: string
+          status_updated_at: string | null
+          truck_plate: string | null
+          trucking_quote_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          container_numbers?: string[] | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          driver_user_id: string
+          id?: string
+          instructions?: string | null
+          pickup_address?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
+          shipment_id: string
+          status?: string
+          status_updated_at?: string | null
+          truck_plate?: string | null
+          trucking_quote_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          container_numbers?: string[] | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          driver_user_id?: string
+          id?: string
+          instructions?: string | null
+          pickup_address?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
+          shipment_id?: string
+          status?: string
+          status_updated_at?: string | null
+          truck_plate?: string | null
+          trucking_quote_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_assignments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_assignments_trucking_quote_id_fkey"
+            columns: ["trucking_quote_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edi_messages: {
         Row: {
           carrier: string
@@ -2367,7 +2451,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "ops_manager" | "sales" | "viewer" | "trucker"
+      app_role:
+        | "admin"
+        | "ops_manager"
+        | "sales"
+        | "viewer"
+        | "trucker"
+        | "driver"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -2501,7 +2591,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "ops_manager", "sales", "viewer", "trucker"],
+      app_role: [
+        "admin",
+        "ops_manager",
+        "sales",
+        "viewer",
+        "trucker",
+        "driver",
+      ],
       company_status: [
         "prospect",
         "pending_compliance",
