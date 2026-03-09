@@ -135,6 +135,49 @@ const AdminCompliance = () => {
         </div>
       )}
 
+      {/* AES Filings Table */}
+      {customs && customs.length > 0 && (
+        <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden mb-6">
+          <div className="px-4 py-3 border-b border-[hsl(220,15%,13%)]">
+            <h2 className="text-sm font-semibold text-white">AES / Customs Filings</h2>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[hsl(220,15%,13%)] text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">
+                <th className="text-left px-4 py-3">Filing Type</th>
+                <th className="text-left px-4 py-3">Exporter</th>
+                <th className="text-center px-4 py-3">Status</th>
+                <th className="text-left px-4 py-3">ITN</th>
+                <th className="text-left px-4 py-3">Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customs.map((f: any) => (
+                <tr key={f.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
+                  <td className="px-4 py-3 text-xs text-white font-medium">{f.filing_type}</td>
+                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{f.exporter_name || "—"}</td>
+                  <td className="px-4 py-3 text-center">
+                    <Badge variant="outline" className={`text-[10px] ${
+                      f.status === "accepted" ? "text-emerald-400 border-emerald-500/30" :
+                      f.status === "rejected" ? "text-red-400 border-red-500/30" :
+                      f.status === "submitted" ? "text-amber-400 border-amber-500/30" :
+                      f.status === "itn_received" ? "text-indigo-400 border-indigo-500/30" :
+                      "text-[hsl(220,10%,50%)] border-[hsl(220,15%,20%)]"
+                    }`}>
+                      {f.status.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-indigo-400">{f.itn || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">
+                    {f.submitted_at ? format(new Date(f.submitted_at), "MMM d, yyyy") : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {isLoading ? <Skeleton className="h-64 w-full bg-[hsl(220,15%,15%)]" /> : (
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] overflow-hidden">
           <table className="w-full text-sm">
