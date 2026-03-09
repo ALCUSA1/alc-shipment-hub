@@ -20,6 +20,7 @@ const statusStyles: Record<string, string> = {
 
 const TruckingQuotes = () => {
   const { user } = useAuth();
+  const [assignQuote, setAssignQuote] = useState<any>(null);
 
   const { data: quotes, isLoading } = useQuery({
     queryKey: ["my-trucking-quotes", user?.id],
