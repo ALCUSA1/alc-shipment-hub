@@ -44,7 +44,7 @@ const NewShipment = () => {
 
   const [parties, setParties] = useState<PartiesData>({
     shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
-    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+    notifyPartySameAsConsignee: false, truckingCompany: "", pickupWarehouse: emptyParty(),
   });
 
   const [cargo, setCargo] = useState<CargoData>({
@@ -109,25 +109,33 @@ const NewShipment = () => {
 
       // 4. Create parties (with full details)
       const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
-      const partyMap: [keyof PartiesData, string][] = [
-        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
-        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      
+      // Core parties
+      const coreParties: { data: typeof parties.shipper; role: string }[] = [
+        { data: parties.shipper, role: "shipper" },
+        { data: parties.consignee, role: "consignee" },
+        { data: parties.notifyPartySameAsConsignee ? parties.consignee : parties.notifyParty, role: "notify_party" },
+        { data: parties.pickupWarehouse, role: "warehouse" },
       ];
 
-      for (const [key, role] of partyMap) {
-        const p = parties[key];
+      for (const { data: p, role } of coreParties) {
         if (p.companyName) {
           partyEntries.push({
-            role,
-            company_name: p.companyName,
-            contact_name: p.contactName || null,
-            address: p.address || null,
-            email: p.email || null,
-            phone: p.phone || null,
+            role, company_name: p.companyName, contact_name: p.contactName || null,
+            address: p.address || null, email: p.email || null, phone: p.phone || null,
             shipment_id: shipmentId,
           });
         }
       }
+
+      // Trucking company (simplified - just name)
+      if (parties.truckingCompany) {
+        partyEntries.push({
+          role: "trucking", company_name: parties.truckingCompany, contact_name: null,
+          address: null, email: null, phone: null, shipment_id: shipmentId,
+        });
+      }
+
       if (partyEntries.length > 0) {
         await supabase.from("shipment_parties").insert(partyEntries);
       }

@@ -78,7 +78,7 @@ const NewQuote = () => {
   });
   const [partiesData, setPartiesData] = useState<PartiesData>({
     shipper: emptyParty(), consignee: emptyParty(), notifyParty: emptyParty(),
-    forwarder: emptyParty(), truckingCompany: emptyParty(), warehouse: emptyParty(),
+    notifyPartySameAsConsignee: false, truckingCompany: "", pickupWarehouse: emptyParty(),
   });
   const [cargoData, setCargoData] = useState<CargoData>({
     commodity: "", hsCode: "", numPackages: "", packageType: "", grossWeight: "", volume: "",
@@ -196,17 +196,23 @@ const NewQuote = () => {
       }
 
       // Create parties
-      const partyMap: [keyof PartiesData, string][] = [
-        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
-        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      const partyEntries: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
+      const coreParties: { data: typeof partiesData.shipper; role: string }[] = [
+        { data: partiesData.shipper, role: "shipper" },
+        { data: partiesData.consignee, role: "consignee" },
+        { data: partiesData.notifyPartySameAsConsignee ? partiesData.consignee : partiesData.notifyParty, role: "notify_party" },
+        { data: partiesData.pickupWarehouse, role: "warehouse" },
       ];
-      const partyEntries = partyMap
-        .filter(([key]) => partiesData[key].companyName)
-        .map(([key, role]) => ({
-          role, company_name: partiesData[key].companyName, contact_name: partiesData[key].contactName || null,
-          address: partiesData[key].address || null, email: partiesData[key].email || null,
-          phone: partiesData[key].phone || null, shipment_id: shipment.id,
-        }));
+      for (const { data: p, role } of coreParties) {
+        if (p.companyName) {
+          partyEntries.push({ role, company_name: p.companyName, contact_name: p.contactName || null,
+            address: p.address || null, email: p.email || null, phone: p.phone || null, shipment_id: shipment.id });
+        }
+      }
+      if (partiesData.truckingCompany) {
+        partyEntries.push({ role: "trucking", company_name: partiesData.truckingCompany, contact_name: null,
+          address: null, email: null, phone: null, shipment_id: shipment.id });
+      }
       if (partyEntries.length > 0) await supabase.from("shipment_parties").insert(partyEntries);
 
       // Customs filing
@@ -287,16 +293,24 @@ const NewQuote = () => {
         });
       }
 
-      const partyMap: [keyof PartiesData, string][] = [
-        ["shipper", "shipper"], ["consignee", "consignee"], ["notifyParty", "notify_party"],
-        ["forwarder", "forwarder"], ["truckingCompany", "trucking"], ["warehouse", "warehouse"],
+      const partyEntries2: { role: string; company_name: string; contact_name: string | null; address: string | null; email: string | null; phone: string | null; shipment_id: string }[] = [];
+      const coreParties2: { data: typeof partiesData.shipper; role: string }[] = [
+        { data: partiesData.shipper, role: "shipper" },
+        { data: partiesData.consignee, role: "consignee" },
+        { data: partiesData.notifyPartySameAsConsignee ? partiesData.consignee : partiesData.notifyParty, role: "notify_party" },
+        { data: partiesData.pickupWarehouse, role: "warehouse" },
       ];
-      const entries = partyMap.filter(([k]) => partiesData[k].companyName).map(([k, r]) => ({
-        role: r, company_name: partiesData[k].companyName, contact_name: partiesData[k].contactName || null,
-        address: partiesData[k].address || null, email: partiesData[k].email || null,
-        phone: partiesData[k].phone || null, shipment_id: shipment.id,
-      }));
-      if (entries.length > 0) await supabase.from("shipment_parties").insert(entries);
+      for (const { data: p, role } of coreParties2) {
+        if (p.companyName) {
+          partyEntries2.push({ role, company_name: p.companyName, contact_name: p.contactName || null,
+            address: p.address || null, email: p.email || null, phone: p.phone || null, shipment_id: shipment.id });
+        }
+      }
+      if (partiesData.truckingCompany) {
+        partyEntries2.push({ role: "trucking", company_name: partiesData.truckingCompany, contact_name: null,
+          address: null, email: null, phone: null, shipment_id: shipment.id });
+      }
+      if (partyEntries2.length > 0) await supabase.from("shipment_parties").insert(partyEntries2);
 
       if (complianceData.exporterName || complianceData.exporterEin) {
         await supabase.from("customs_filings").insert({
