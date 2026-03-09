@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +8,7 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -26,7 +26,6 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized");
 
-    // Check admin role via security definer function
     const { data: isAdmin } = await userClient.rpc("has_role", {
       _user_id: user.id,
       _role: "admin",
@@ -39,25 +38,35 @@ Deno.serve(async (req) => {
     const validRoles = ["admin", "ops_manager", "sales", "viewer", "trucker"];
     if (!validRoles.includes(role)) throw new Error("Invalid role");
 
-    // Use service role client to invite user
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Invite user via Supabase Auth (sends invite email)
+    let userId: string;
+
+    // Try to invite — if user already exists, look them up instead
     const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
       data: { full_name: full_name || "" },
     });
-    if (inviteError) throw inviteError;
 
-    const newUserId = inviteData.user.id;
+    if (inviteError) {
+      // User already registered — look up by email
+      const { data: listData, error: listError } = await adminClient.auth.admin.listUsers();
+      if (listError) throw listError;
+      const existing = listData.users.find((u) => u.email === email);
+      if (!existing) throw new Error("User not found and invite failed: " + inviteError.message);
+      userId = existing.id;
+    } else {
+      userId = inviteData.user.id;
+    }
 
-    // Assign role
+    // Assign role (upsert to avoid duplicate errors)
     const { error: roleError } = await adminClient
       .from("user_roles")
-      .insert({ user_id: newUserId, role });
+      .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
     if (roleError) throw roleError;
 
+    const action = inviteError ? "Assigned role to existing user" : "Invited";
     return new Response(
-      JSON.stringify({ message: `Invited ${email} as ${role}`, user_id: newUserId }),
+      JSON.stringify({ message: `${action} ${email} as ${role}`, user_id: userId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
