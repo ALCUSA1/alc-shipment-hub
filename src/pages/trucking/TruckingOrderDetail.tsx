@@ -349,10 +349,14 @@ const TruckingOrderDetail = () => {
               {existingQuote ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-accent/10 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">Your Quote</p>
-                    <p className="text-2xl font-bold text-foreground">
-                      ${Number(existingQuote.price).toLocaleString()}
+                    <p className="text-sm text-muted-foreground mb-1">
+                      {existingQuote.status === "available" ? "Incoming Order" : "Your Quote"}
                     </p>
+                    {existingQuote.status !== "available" && (
+                      <p className="text-2xl font-bold text-foreground">
+                        ${Number(existingQuote.price).toLocaleString()}
+                      </p>
+                    )}
                     <Badge
                       className="mt-2"
                       variant={
@@ -366,11 +370,126 @@ const TruckingOrderDetail = () => {
                       {existingQuote.status}
                     </Badge>
                   </div>
+
+                  {existingQuote.notes && (
+                    <p className="text-xs text-muted-foreground border rounded-lg p-3 bg-secondary/30">
+                      {existingQuote.notes}
+                    </p>
+                  )}
+
                   {existingQuote.pickup_date && (
                     <p className="text-sm text-muted-foreground">
                       Pickup: {format(new Date(existingQuote.pickup_date), "MMM d, yyyy")}
                       {existingQuote.pickup_time && ` at ${existingQuote.pickup_time}`}
                     </p>
+                  )}
+
+                  {/* Accept / Reject for incoming orders (status: available) */}
+                  {existingQuote.status === "available" && (
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-sm font-medium text-foreground">This order was sent to you by a shipper.</p>
+                      <div className="flex gap-2">
+                        <Button
+                          className="flex-1"
+                          variant="electric"
+                          onClick={async () => {
+                            const { error } = await supabase
+                              .from("trucking_quotes")
+                              .update({ status: "accepted_by_carrier" })
+                              .eq("id", existingQuote.id);
+                            if (error) {
+                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                              return;
+                            }
+                            queryClient.invalidateQueries({ queryKey: ["my-quote", id] });
+                            toast({ title: "Order accepted", description: "You can now submit your pricing details." });
+                          }}
+                        >
+                          <Check className="h-4 w-4 mr-1" /> Accept Order
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={async () => {
+                            const { error } = await supabase
+                              .from("trucking_quotes")
+                              .update({ status: "rejected" })
+                              .eq("id", existingQuote.id);
+                            if (error) {
+                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                              return;
+                            }
+                            queryClient.invalidateQueries({ queryKey: ["my-quote", id] });
+                            toast({ title: "Order declined" });
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" /> Decline
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show quote form after carrier accepts the order */}
+                  {existingQuote.status === "accepted_by_carrier" && (
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-sm font-medium text-foreground">Submit your pricing to the shipper:</p>
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          const { data: profile } = await supabase
+                            .from("profiles")
+                            .select("company_name")
+                            .eq("user_id", user!.id)
+                            .maybeSingle();
+
+                          const { error } = await supabase
+                            .from("trucking_quotes")
+                            .update({
+                              price: parseFloat(price),
+                              pickup_date: pickupDate || null,
+                              pickup_time: pickupTime || null,
+                              equipment_type: equipmentType || null,
+                              driver_name: driverName || null,
+                              driver_phone: driverPhone || null,
+                              truck_plate: truckPlate || null,
+                              notes: notes || existingQuote.notes || null,
+                              company_name: profile?.company_name || null,
+                              status: "submitted",
+                            })
+                            .eq("id", existingQuote.id);
+                          if (error) {
+                            toast({ title: "Error", description: error.message, variant: "destructive" });
+                            return;
+                          }
+                          queryClient.invalidateQueries({ queryKey: ["my-quote", id] });
+                          toast({ title: "Quote submitted", description: "Your quote has been sent to the shipper." });
+                        }}
+                        className="space-y-3"
+                      >
+                        <div>
+                          <Label htmlFor="price-update">Price (USD) *</Label>
+                          <Input id="price-update" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" required className="mt-1" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>Pickup Date</Label>
+                            <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} className="mt-1" />
+                          </div>
+                          <div>
+                            <Label>Time</Label>
+                            <Input type="time" value={pickupTime} onChange={(e) => setPickupTime(e.target.value)} className="mt-1" />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Equipment Type</Label>
+                          <Input value={equipmentType} onChange={(e) => setEquipmentType(e.target.value)} placeholder="53' Dry Van" className="mt-1" />
+                        </div>
+                        <div>
+                          <Label>Notes</Label>
+                          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="mt-1" />
+                        </div>
+                        <Button type="submit" className="w-full">Submit Quote</Button>
+                      </form>
+                    </div>
                   )}
                 </div>
               ) : (
