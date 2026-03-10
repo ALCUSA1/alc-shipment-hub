@@ -11,7 +11,8 @@ import { Link } from "react-router-dom";
 
 export function RoleGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { roles, isLoading: roleLoading } = useUserRole();
+  const { roles, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { isImpersonating, impersonatedRole } = useImpersonation();
   const location = useLocation();
 
   if (authLoading || roleLoading) {
