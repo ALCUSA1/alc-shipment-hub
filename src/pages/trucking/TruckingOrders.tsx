@@ -194,12 +194,19 @@ const TruckingOrders = () => {
                     </div>
                   </div>
 
-                  {totalWeight > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Weight className="h-3.5 w-3.5" />
-                        {totalWeight.toLocaleString()} kg
-                      </span>
+                  {(totalWeight > 0 || shipment.pickup_instructions) && (
+                    <div className="mt-4 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                      {totalWeight > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Weight className="h-3.5 w-3.5" />
+                          {totalWeight.toLocaleString()} kg
+                        </span>
+                      )}
+                      {shipment.pickup_instructions && (
+                        <span className="text-xs truncate max-w-[300px]">
+                          📋 {shipment.pickup_instructions}
+                        </span>
+                      )}
                     </div>
                   )}
                 </CardContent>
