@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ImpersonationProvider } from "@/contexts/ImpersonationContext";
+import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleGate } from "@/components/RoleGate";
 import { AdminGate } from "@/components/admin/AdminGate";
