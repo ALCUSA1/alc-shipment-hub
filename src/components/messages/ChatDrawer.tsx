@@ -76,9 +76,6 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
             <span className="font-semibold text-sm text-foreground">Messages</span>
           </div>
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handlePopOut} title="Open full page">
-              <Maximize2 className="h-3.5 w-3.5" />
-            </Button>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onClose}>
               <X className="h-3.5 w-3.5" />
             </Button>
