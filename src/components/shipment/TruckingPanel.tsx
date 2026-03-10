@@ -142,6 +142,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
               Send to Carrier
             </Button>
           </div>
+          <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
         </CardContent>
       </Card>
     );
