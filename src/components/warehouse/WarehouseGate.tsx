@@ -1,11 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 
 export function WarehouseGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { roles, isLoading: rolesLoading } = useUserRole();
+  const { roles, isAdmin, isLoading: rolesLoading } = useUserRole();
+  const { isImpersonating, impersonatedRole } = useImpersonation();
 
   if (authLoading || rolesLoading) {
     return (
@@ -17,6 +19,11 @@ export function WarehouseGate({ children }: { children: ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Admin impersonating warehouse role — allow access
+  if (isAdmin && isImpersonating && impersonatedRole === "warehouse") {
+    return <>{children}</>;
   }
 
   const hasWarehouseRole = roles.includes("warehouse");

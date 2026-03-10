@@ -8,6 +8,7 @@ import {
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { ImpersonationSwitcher } from "./ImpersonationSwitcher";
 
 const navGroups = [
   {
