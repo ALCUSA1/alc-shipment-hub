@@ -9,6 +9,7 @@ import { Truck, MapPin, Calendar, Package, User, Phone, Plus, Loader2, Check, X,
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { CarrierSelectDialog } from "./CarrierSelectDialog";
 
 interface TruckingPanelProps {
   shipmentId: string;
@@ -29,6 +30,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [requesting, setRequesting] = useState(false);
+  const [carrierDialogOpen, setCarrierDialogOpen] = useState(false);
 
   const { data: pickups, isLoading } = useQuery({
     queryKey: ["truck_pickups", shipmentId],
@@ -89,32 +91,31 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
     },
   });
 
-  const handleRequestPickup = async () => {
+  const handleSendToCarrier = async (carrier: { user_id: string; full_name: string | null; company_name: string | null }, instructions: string) => {
     if (!user) return;
-    setRequesting(true);
-    try {
-      // Get shipment details for pre-filling
-      const { data: shipment } = await supabase
-        .from("shipments")
-        .select("origin_port, pickup_location, destination_port, delivery_location")
-        .eq("id", shipmentId)
-        .single();
+    // Get shipment details for pre-filling
+    const { data: shipment } = await supabase
+      .from("shipments")
+      .select("origin_port, pickup_location, destination_port, delivery_location")
+      .eq("id", shipmentId)
+      .single();
 
-      const { error } = await supabase.from("trucking_quotes").insert({
-        shipment_id: shipmentId,
-        trucker_user_id: user.id,
-        price: 0,
-        status: "available",
-        notes: `Pickup: ${shipment?.pickup_location || shipment?.origin_port || "TBD"} → Delivery: ${shipment?.delivery_location || shipment?.destination_port || "TBD"}`,
-      });
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
-      toast({ title: "Trucking request posted", description: "Carrier partners can now bid on this pickup." });
-    } catch (err: any) {
-      toast({ title: "Request failed", description: err.message, variant: "destructive" });
-    } finally {
-      setRequesting(false);
-    }
+    const notes = [
+      `Pickup: ${shipment?.pickup_location || shipment?.origin_port || "TBD"} → Delivery: ${shipment?.delivery_location || shipment?.destination_port || "TBD"}`,
+      instructions ? `Instructions: ${instructions}` : "",
+    ].filter(Boolean).join("\n");
+
+    const { error } = await supabase.from("trucking_quotes").insert({
+      shipment_id: shipmentId,
+      trucker_user_id: carrier.user_id,
+      company_name: carrier.company_name || carrier.full_name || null,
+      price: 0,
+      status: "available",
+      notes,
+    });
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
+    toast({ title: "Order sent to carrier", description: `Trucking order sent to ${carrier.company_name || carrier.full_name || "carrier"}.` });
   };
 
   if (isLoading) return <Skeleton className="h-32 w-full" />;
@@ -136,11 +137,12 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
         <CardContent>
           <div className="text-center py-6">
             <p className="text-sm text-muted-foreground mb-4">No trucking arranged for this shipment.</p>
-            <Button variant="outline" onClick={handleRequestPickup} disabled={requesting}>
-              {requesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              Request Pickup
+            <Button variant="outline" onClick={() => setCarrierDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Send to Carrier
             </Button>
           </div>
+          <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
         </CardContent>
       </Card>
     );
@@ -154,9 +156,9 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
             <Truck className="h-4 w-4 text-accent" />
             Trucking
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={handleRequestPickup} disabled={requesting} className="text-xs">
-            {requesting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
-            New Request
+          <Button variant="ghost" size="sm" onClick={() => setCarrierDialogOpen(true)} className="text-xs">
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Send to Carrier
           </Button>
         </div>
       </CardHeader>
@@ -261,6 +263,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
             {p.notes && <p className="text-xs text-muted-foreground border-t pt-2 mt-2">{p.notes}</p>}
           </div>
         ))}
+        <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
       </CardContent>
     </Card>
   );
