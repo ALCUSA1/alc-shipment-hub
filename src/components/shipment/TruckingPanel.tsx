@@ -155,9 +155,9 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
             <Truck className="h-4 w-4 text-accent" />
             Trucking
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={handleRequestPickup} disabled={requesting} className="text-xs">
-            {requesting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
-            New Request
+          <Button variant="ghost" size="sm" onClick={() => setCarrierDialogOpen(true)} className="text-xs">
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Send to Carrier
           </Button>
         </div>
       </CardHeader>
