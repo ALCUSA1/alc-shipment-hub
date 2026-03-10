@@ -1,11 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 
 export function TruckingGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { roles, isLoading: rolesLoading } = useUserRole();
+  const { roles, isAdmin, isLoading: rolesLoading } = useUserRole();
+  const { isImpersonating, impersonatedRole } = useImpersonation();
 
   if (authLoading || rolesLoading) {
     return (
@@ -19,7 +21,11 @@ export function TruckingGate({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Allow access if user has trucker role or no roles assigned yet (new user)
+  // Admin impersonating trucker role — allow access
+  if (isAdmin && isImpersonating && impersonatedRole === "trucker") {
+    return <>{children}</>;
+  }
+
   const hasTruckerRole = roles.includes("trucker" as any);
   if (roles.length > 0 && !hasTruckerRole) {
     return <Navigate to="/login" replace />;

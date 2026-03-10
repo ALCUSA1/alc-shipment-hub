@@ -1,11 +1,13 @@
 import { ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { Navigate } from "react-router-dom";
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
+  const { isImpersonating } = useImpersonation();
 
   if (authLoading || roleLoading) {
     return (
@@ -16,6 +18,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
   }
 
   if (!user) return <Navigate to="/login" replace />;
+  // If impersonating another role, redirect away from admin
+  if (isImpersonating) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
