@@ -48,10 +48,10 @@ const TruckingOrders = () => {
         .from("shipments")
         .select(`
           id, shipment_ref, origin_port, destination_port, pickup_location, delivery_location,
-          etd, eta, status, shipment_type, created_at, pickup_instructions, delivery_instructions, user_id,
+          etd, eta, status, shipment_type, created_at, pickup_instructions, delivery_instructions,
           cargo (commodity, gross_weight, volume, dangerous_goods),
           containers (container_type, quantity),
-          profiles!shipments_user_id_fkey (company_name)
+          shipment_parties!inner (company_name, role)
         `)
         .in("status", ["draft", "booked", "in_transit"])
         .order("created_at", { ascending: false });
