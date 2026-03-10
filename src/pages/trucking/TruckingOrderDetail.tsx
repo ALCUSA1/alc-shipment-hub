@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import {
   MapPin, Calendar, Package, ArrowLeft, Truck, User, Phone,
-  DollarSign, Building2, Ship, FileText, AlertTriangle, Mail, Navigation,
+  DollarSign, Building2, Ship, FileText, AlertTriangle, Mail, Navigation, Check, X,
 } from "lucide-react";
 
 const TruckingOrderDetail = () => {
