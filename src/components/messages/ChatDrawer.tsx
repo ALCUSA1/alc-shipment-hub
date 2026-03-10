@@ -14,7 +14,6 @@ interface ChatDrawerProps {
 }
 
 export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
-  export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [view, setView] = useState<"list" | "chat">("list");
 
