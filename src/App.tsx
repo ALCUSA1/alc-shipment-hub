@@ -99,7 +99,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <ImpersonationProvider>
+            <ImpersonationBanner />
+            <Routes>
             {/* Marketing / Public */}
             <Route path="/" element={<Index />} />
             <Route path="/product" element={<Product />} />
