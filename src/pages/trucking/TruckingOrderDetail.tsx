@@ -124,6 +124,8 @@ const TruckingOrderDetail = () => {
   const consignee = parties.find((p: any) => p.role === "consignee");
   const notifyParty = parties.find((p: any) => p.role === "notify_party");
   const hasDG = shipment.cargo?.some((c: any) => c.dangerous_goods) || false;
+  const isShipmentFinalized = ["delivered", "completed", "cancelled"].includes(shipment.status);
+  const canSubmitQuote = !isShipmentFinalized && ["draft", "booked", "in_transit", "arrived", "booking_confirmed"].includes(shipment.status);
 
   return (
     <TruckingLayout>
@@ -342,11 +344,16 @@ const TruckingOrderDetail = () => {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-accent" />
-                Submit Quote
+                {isShipmentFinalized ? "Quote Summary" : "Submit Quote"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {existingQuote ? (
+              {isShipmentFinalized && !existingQuote ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-muted-foreground">Shipment is {shipment.status}.</p>
+                  <p className="text-xs text-muted-foreground mt-1">No quotes can be submitted.</p>
+                </div>
+              ) : existingQuote ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-accent/10 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">
@@ -492,7 +499,7 @@ const TruckingOrderDetail = () => {
                     </div>
                   )}
                 </div>
-              ) : (
+              ) : canSubmitQuote ? (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -596,6 +603,11 @@ const TruckingOrderDetail = () => {
                     {submitQuote.isPending ? "Submitting..." : "Submit Quote"}
                   </Button>
                 </form>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-muted-foreground">Shipment is {shipment.status}.</p>
+                  <p className="text-xs text-muted-foreground mt-1">No quotes can be submitted.</p>
+                </div>
               )}
             </CardContent>
           </Card>

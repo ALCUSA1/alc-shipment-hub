@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Truck, MapPin, Calendar, Package, User, Phone, Plus, Loader2, Check, X, DollarSign } from "lucide-react";
+import { Truck, MapPin, Calendar, Package, User, Phone, Plus, Loader2, Check, X, DollarSign, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import { CarrierSelectDialog } from "./CarrierSelectDialog";
 
 interface TruckingPanelProps {
   shipmentId: string;
+  shipmentStatus?: string;
 }
 
 const statusStyle: Record<string, string> = {
@@ -21,16 +22,24 @@ const statusStyle: Record<string, string> = {
   completed: "bg-green-100 text-green-700",
   cancelled: "bg-destructive/10 text-destructive",
   available: "bg-blue-100 text-blue-700",
+  accepted_by_carrier: "bg-cyan-100 text-cyan-700",
+  submitted: "bg-indigo-100 text-indigo-700",
+  accepted: "bg-green-100 text-green-700",
+  rejected: "bg-destructive/10 text-destructive",
   assigned: "bg-accent/10 text-accent",
   en_route: "bg-yellow-100 text-yellow-700",
   delivered: "bg-green-100 text-green-700",
 };
 
-export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
+export function TruckingPanel({ shipmentId, shipmentStatus }: TruckingPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [requesting, setRequesting] = useState(false);
   const [carrierDialogOpen, setCarrierDialogOpen] = useState(false);
+
+  // Determine if shipment is in a read-only / finalized state
+  const isReadOnly = ["delivered", "completed", "cancelled"].includes(shipmentStatus || "");
+  // Only allow new carrier requests for active shipments
+  const canRequestCarrier = !isReadOnly && ["draft", "booked", "in_transit", "arrived", "booking_confirmed"].includes(shipmentStatus || "");
 
   const { data: pickups, isLoading } = useQuery({
     queryKey: ["truck_pickups", shipmentId],
@@ -93,7 +102,6 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
 
   const handleSendToCarrier = async (carrier: { user_id: string; full_name: string | null; company_name: string | null }, instructions: string) => {
     if (!user) return;
-    // Get shipment details for pre-filling
     const { data: shipment } = await supabase
       .from("shipments")
       .select("origin_port, pickup_location, destination_port, delivery_location")
@@ -137,16 +145,30 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
         <CardContent>
           <div className="text-center py-6">
             <p className="text-sm text-muted-foreground mb-4">No trucking arranged for this shipment.</p>
-            <Button variant="outline" onClick={() => setCarrierDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Send to Carrier
-            </Button>
+            {canRequestCarrier ? (
+              <Button variant="outline" onClick={() => setCarrierDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Send to Carrier
+              </Button>
+            ) : isReadOnly ? (
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                <Lock className="h-3 w-3" /> Shipment is {shipmentStatus} — no changes allowed
+              </p>
+            ) : null}
           </div>
-          <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
+          {canRequestCarrier && (
+            <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
+          )}
         </CardContent>
       </Card>
     );
   }
+
+  // Check if there's already an accepted or delivered quote — prevent new requests
+  const hasActiveQuote = truckingQuotes?.some((tq) =>
+    ["accepted", "accepted_by_carrier", "submitted"].includes(tq.status)
+  );
+  const showNewRequestBtn = canRequestCarrier && !hasActiveQuote;
 
   return (
     <Card>
@@ -155,11 +177,18 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
           <CardTitle className="text-base flex items-center gap-2">
             <Truck className="h-4 w-4 text-accent" />
             Trucking
+            {isReadOnly && (
+              <Badge variant="secondary" className="text-[10px] ml-1">
+                <Lock className="h-2.5 w-2.5 mr-0.5" /> Read-only
+              </Badge>
+            )}
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={() => setCarrierDialogOpen(true)} className="text-xs">
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Send to Carrier
-          </Button>
+          {showNewRequestBtn && (
+            <Button variant="ghost" size="sm" onClick={() => setCarrierDialogOpen(true)} className="text-xs">
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Send to Carrier
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -185,7 +214,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
         ))}
 
         {/* Trucking Quotes */}
-        {hasQuotes && !hasDrivers && truckingQuotes!.map((tq) => (
+        {hasQuotes && truckingQuotes!.map((tq) => (
           <div key={tq.id} className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -212,7 +241,8 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
 
             {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
 
-            {tq.status === "submitted" && (
+            {/* Only show accept/reject for submitted quotes on non-finalized shipments */}
+            {tq.status === "submitted" && !isReadOnly && (
               <div className="flex items-center gap-2 pt-2 border-t">
                 <Button
                   size="sm"
@@ -263,7 +293,9 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
             {p.notes && <p className="text-xs text-muted-foreground border-t pt-2 mt-2">{p.notes}</p>}
           </div>
         ))}
-        <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
+        {canRequestCarrier && (
+          <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
+        )}
       </CardContent>
     </Card>
   );

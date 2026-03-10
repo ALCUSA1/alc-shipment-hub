@@ -13,9 +13,11 @@ import { Link } from "react-router-dom";
 import { AssignDriverDialog } from "@/components/trucking/AssignDriverDialog";
 
 const statusStyles: Record<string, string> = {
-  submitted: "bg-blue-100 text-blue-700",
+  available: "bg-blue-100 text-blue-700",
+  accepted_by_carrier: "bg-cyan-100 text-cyan-700",
+  submitted: "bg-indigo-100 text-indigo-700",
   accepted: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  rejected: "bg-destructive/10 text-destructive",
 };
 
 const TruckingQuotes = () => {
