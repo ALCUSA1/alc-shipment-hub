@@ -251,8 +251,8 @@ const TruckingOrderDetail = () => {
                 {shipment.flight_number && (
                   <InfoField label="Flight #" value={shipment.flight_number} />
                 )}
-                {shipment.incoterm && (
-                  <InfoField label="Incoterm" value={shipment.incoterm} />
+                {shipment.incoterms && (
+                  <InfoField label="Incoterm" value={shipment.incoterms} />
                 )}
               </CardContent>
             </Card>
