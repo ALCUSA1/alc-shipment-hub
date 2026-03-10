@@ -7,13 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { MapPin, Calendar, Package, ArrowLeft, Truck, User, Phone, DollarSign } from "lucide-react";
+import {
+  MapPin, Calendar, Package, ArrowLeft, Truck, User, Phone,
+  DollarSign, Building2, Ship, FileText, AlertTriangle, Mail, Navigation,
+} from "lucide-react";
 
 const TruckingOrderDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,8 +42,9 @@ const TruckingOrderDetail = () => {
         .from("shipments")
         .select(`
           *,
-          cargo (commodity, gross_weight, volume, hs_code, country_of_origin, num_packages, package_type),
-          containers (container_type, quantity, container_number)
+          cargo (commodity, gross_weight, volume, hs_code, country_of_origin, num_packages, package_type, dangerous_goods, dimensions, special_instructions),
+          containers (container_type, container_size, quantity, container_number, reefer_temp, oog_dimensions),
+          shipment_parties (role, company_name, contact_name, email, phone, address, city, state, postal_code, country)
         `)
         .eq("id", id!)
         .single();
@@ -65,6 +70,12 @@ const TruckingOrderDetail = () => {
 
   const submitQuote = useMutation({
     mutationFn: async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+
       const { error } = await supabase.from("trucking_quotes").insert({
         shipment_id: id!,
         trucker_user_id: user!.id,
@@ -76,6 +87,7 @@ const TruckingOrderDetail = () => {
         driver_phone: driverPhone || null,
         truck_plate: truckPlate || null,
         notes: notes || null,
+        company_name: profile?.company_name || null,
         status: "submitted",
       });
       if (error) throw error;
@@ -107,7 +119,11 @@ const TruckingOrderDetail = () => {
     );
   }
 
-  const totalWeight = shipment.cargo?.reduce((sum: number, c: any) => sum + (c.gross_weight || 0), 0) || 0;
+  const parties = (shipment.shipment_parties || []) as any[];
+  const shipper = parties.find((p: any) => p.role === "shipper");
+  const consignee = parties.find((p: any) => p.role === "consignee");
+  const notifyParty = parties.find((p: any) => p.role === "notify_party");
+  const hasDG = shipment.cargo?.some((c: any) => c.dangerous_goods) || false;
 
   return (
     <TruckingLayout>
@@ -123,42 +139,126 @@ const TruckingOrderDetail = () => {
             {shipment.shipment_type} shipment • Created {format(new Date(shipment.created_at), "MMM d, yyyy")}
           </p>
         </div>
-        <Badge variant="outline">{shipment.status}</Badge>
+        <div className="flex items-center gap-2">
+          {hasDG && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> Hazmat
+            </Badge>
+          )}
+          <Badge variant="outline">{shipment.status}</Badge>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Shipper & Consignee */}
+          {(shipper || consignee) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-accent" />
+                  Parties
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid sm:grid-cols-2 gap-6">
+                {shipper && <PartyBlock label="Shipper" party={shipper} />}
+                {consignee && <PartyBlock label="Consignee" party={consignee} />}
+                {notifyParty && <PartyBlock label="Notify Party" party={notifyParty} />}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Route & Pickup/Delivery Instructions */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-accent" />
-                Route Details
+                Route & Instructions
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Pickup Location</p>
-                <p className="font-medium text-foreground">{shipment.pickup_location || shipment.origin_port || "TBD"}</p>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Pickup Location</p>
+                  <p className="font-medium text-foreground">{shipment.pickup_location || shipment.origin_port || "TBD"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Delivery Location</p>
+                  <p className="font-medium text-foreground">{shipment.delivery_location || shipment.destination_port || "TBD"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">ETD</p>
+                  <p className="font-medium text-foreground">
+                    {shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">ETA</p>
+                  <p className="font-medium text-foreground">
+                    {shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Delivery Location</p>
-                <p className="font-medium text-foreground">{shipment.delivery_location || shipment.destination_port || "TBD"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">ETD</p>
-                <p className="font-medium text-foreground">
-                  {shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">ETA</p>
-                <p className="font-medium text-foreground">
-                  {shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"}
-                </p>
-              </div>
+
+              {(shipment.pickup_instructions || shipment.delivery_instructions) && (
+                <>
+                  <Separator />
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {shipment.pickup_instructions && (
+                      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1 flex items-center gap-1">
+                          <Navigation className="h-3 w-3" /> Pickup Instructions
+                        </p>
+                        <p className="text-sm text-foreground">{shipment.pickup_instructions}</p>
+                      </div>
+                    )}
+                    {shipment.delivery_instructions && (
+                      <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                        <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1 flex items-center gap-1">
+                          <Navigation className="h-3 w-3" /> Delivery Instructions
+                        </p>
+                        <p className="text-sm text-foreground">{shipment.delivery_instructions}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
+          {/* Booking / Vessel Info */}
+          {(shipment.vessel || shipment.carrier || shipment.airline) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Ship className="h-4 w-4 text-accent" />
+                  Booking Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {shipment.carrier && (
+                  <InfoField label="Carrier" value={shipment.carrier} />
+                )}
+                {shipment.vessel && (
+                  <InfoField label="Vessel" value={shipment.vessel} />
+                )}
+                {shipment.voyage && (
+                  <InfoField label="Voyage" value={shipment.voyage} />
+                )}
+                {shipment.airline && (
+                  <InfoField label="Airline" value={shipment.airline} />
+                )}
+                {shipment.flight_number && (
+                  <InfoField label="Flight #" value={shipment.flight_number} />
+                )}
+                {shipment.incoterms && (
+                  <InfoField label="Incoterm" value={shipment.incoterms} />
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cargo Details */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -170,14 +270,28 @@ const TruckingOrderDetail = () => {
               {shipment.cargo?.length > 0 ? (
                 <div className="space-y-3">
                   {shipment.cargo.map((cargo: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-secondary/50 rounded-lg">
-                      <p className="font-medium text-foreground">{cargo.commodity || "General cargo"}</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-sm text-muted-foreground">
+                    <div key={idx} className="p-3 bg-secondary/50 rounded-lg space-y-2">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground">{cargo.commodity || "General cargo"}</p>
+                        {cargo.dangerous_goods && (
+                          <Badge variant="destructive" className="text-xs">
+                            <AlertTriangle className="h-3 w-3 mr-1" /> DG
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-muted-foreground">
                         {cargo.gross_weight && <span>Weight: {cargo.gross_weight} kg</span>}
                         {cargo.volume && <span>Volume: {cargo.volume} CBM</span>}
-                        {cargo.num_packages && <span>Packages: {cargo.num_packages}</span>}
+                        {cargo.num_packages && <span>Packages: {cargo.num_packages} {cargo.package_type || ""}</span>}
+                        {cargo.dimensions && <span>Dims: {cargo.dimensions}</span>}
                         {cargo.hs_code && <span>HS: {cargo.hs_code}</span>}
+                        {cargo.country_of_origin && <span>Origin: {cargo.country_of_origin}</span>}
                       </div>
+                      {cargo.special_instructions && (
+                        <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-2 mt-1">
+                          ⚠️ {cargo.special_instructions}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -187,6 +301,7 @@ const TruckingOrderDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Equipment */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -196,12 +311,22 @@ const TruckingOrderDetail = () => {
             </CardHeader>
             <CardContent>
               {shipment.containers?.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-2">
                   {shipment.containers.map((c: any, idx: number) => (
-                    <Badge key={idx} variant="secondary">
-                      {c.quantity}x {c.container_type}
-                      {c.container_number && ` (${c.container_number})`}
-                    </Badge>
+                    <div key={idx} className="flex items-center gap-3 text-sm">
+                      <Badge variant="secondary">
+                        {c.quantity}x {c.container_size ? `${c.container_size} ` : ""}{c.container_type}
+                      </Badge>
+                      {c.container_number && (
+                        <span className="text-muted-foreground">#{c.container_number}</span>
+                      )}
+                      {c.reefer_temp && (
+                        <Badge variant="outline" className="text-xs">Temp: {c.reefer_temp}</Badge>
+                      )}
+                      {c.oog_dimensions && (
+                        <Badge variant="outline" className="text-xs">OOG: {c.oog_dimensions}</Badge>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -211,8 +336,9 @@ const TruckingOrderDetail = () => {
           </Card>
         </div>
 
+        {/* Quote Panel */}
         <div>
-          <Card>
+          <Card className="sticky top-4">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-accent" />
@@ -359,5 +485,44 @@ const TruckingOrderDetail = () => {
     </TruckingLayout>
   );
 };
+
+function PartyBlock({ label, party }: { label: string; party: any }) {
+  const addressParts = [party.address, party.city, party.state, party.postal_code, party.country].filter(Boolean);
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="font-medium text-foreground">{party.company_name || "—"}</p>
+      {party.contact_name && (
+        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <User className="h-3 w-3" /> {party.contact_name}
+        </p>
+      )}
+      {party.phone && (
+        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <Phone className="h-3 w-3" /> {party.phone}
+        </p>
+      )}
+      {party.email && (
+        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <Mail className="h-3 w-3" /> {party.email}
+        </p>
+      )}
+      {addressParts.length > 0 && (
+        <p className="text-sm text-muted-foreground flex items-start gap-1.5">
+          <MapPin className="h-3 w-3 mt-0.5 shrink-0" /> {addressParts.join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function InfoField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
 
 export default TruckingOrderDetail;

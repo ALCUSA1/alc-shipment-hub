@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { MapPin, Calendar, Package, Search, ArrowRight, Weight, DollarSign } from "lucide-react";
+import { MapPin, Calendar, Package, Search, ArrowRight, Weight, DollarSign, Building2, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ShipmentWithDetails {
@@ -23,15 +23,20 @@ interface ShipmentWithDetails {
   status: string;
   shipment_type: string;
   created_at: string;
+  pickup_instructions: string | null;
+  delivery_instructions: string | null;
   cargo: Array<{
     commodity: string | null;
     gross_weight: number | null;
     volume: number | null;
+    dangerous_goods: boolean;
   }>;
   containers: Array<{
     container_type: string;
     quantity: number;
   }>;
+  profiles: { company_name: string | null } | null;
+  shipment_parties: Array<{ company_name: string | null; role: string }>;
 }
 
 const TruckingOrders = () => {
@@ -44,9 +49,10 @@ const TruckingOrders = () => {
         .from("shipments")
         .select(`
           id, shipment_ref, origin_port, destination_port, pickup_location, delivery_location,
-          etd, eta, status, shipment_type, created_at,
-          cargo (commodity, gross_weight, volume),
-          containers (container_type, quantity)
+          etd, eta, status, shipment_type, created_at, pickup_instructions, delivery_instructions,
+          cargo (commodity, gross_weight, volume, dangerous_goods),
+          containers (container_type, quantity),
+          shipment_parties (company_name, role)
         `)
         .in("status", ["draft", "booked", "in_transit"])
         .order("created_at", { ascending: false });
@@ -108,6 +114,9 @@ const TruckingOrders = () => {
               ?.map((c) => `${c.quantity}x ${c.container_type}`)
               .join(", ") || "TBD";
             const commodities = [...new Set(shipment.cargo?.map((c) => c.commodity).filter(Boolean))].join(", ") || "General cargo";
+            const shipperParty = shipment.shipment_parties?.find((p) => p.role === "shipper");
+            const shipperName = shipperParty?.company_name;
+            const hasDG = shipment.cargo?.some((c) => c.dangerous_goods) || false;
 
             return (
               <Card key={shipment.id} className="hover:border-accent/50 transition-colors">
@@ -131,8 +140,18 @@ const TruckingOrders = () => {
                         >
                           {shipment.status}
                         </Badge>
+                        {hasDG && (
+                          <Badge variant="destructive" className="text-xs">
+                            <AlertTriangle className="h-3 w-3 mr-1" /> Hazmat
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">{commodities}</p>
+                      {shipperName && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Building2 className="h-3 w-3" /> {shipperName}
+                        </p>
+                      )}
                     </div>
                     <Link to={`/trucking/orders/${shipment.id}`}>
                       <Button variant="electric" size="sm">
@@ -175,12 +194,19 @@ const TruckingOrders = () => {
                     </div>
                   </div>
 
-                  {totalWeight > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Weight className="h-3.5 w-3.5" />
-                        {totalWeight.toLocaleString()} kg
-                      </span>
+                  {(totalWeight > 0 || shipment.pickup_instructions) && (
+                    <div className="mt-4 pt-4 border-t border-border flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                      {totalWeight > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Weight className="h-3.5 w-3.5" />
+                          {totalWeight.toLocaleString()} kg
+                        </span>
+                      )}
+                      {shipment.pickup_instructions && (
+                        <span className="text-xs truncate max-w-[300px]">
+                          📋 {shipment.pickup_instructions}
+                        </span>
+                      )}
                     </div>
                   )}
                 </CardContent>
