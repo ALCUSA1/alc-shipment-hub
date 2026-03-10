@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { ConversationList, ConversationItem } from "@/components/messages/ConversationList";
+import { ConversationList, ConversationItem, ConversationScope } from "@/components/messages/ConversationList";
 import { ChatPanel } from "@/components/messages/ChatPanel";
 import { CompanyDirectoryDialog } from "@/components/messages/CompanyDirectoryDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,7 @@ export default function Messages() {
   const queryClient = useQueryClient();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [activeScope, setActiveScope] = useState<ConversationScope>("internal");
 
   const { data: profile } = useQuery({
     queryKey: ["msg-profile", user?.id],
@@ -45,26 +46,39 @@ export default function Messages() {
         lastReadMap[p.conversation_id] = p.last_read_at || "";
       });
 
+      // Fetch conversations with scope
+      const { data: convRows } = await supabase
+        .from("conversations")
+        .select("id, scope")
+        .in("id", convIds);
+
+      const scopeMap: Record<string, ConversationScope> = {};
+      (convRows || []).forEach((c) => {
+        scopeMap[c.id] = (c.scope === "internal" ? "internal" : "external") as ConversationScope;
+      });
+
       const { data: allParticipants } = await supabase
         .from("conversation_participants")
         .select("conversation_id, user_id, company_name")
         .in("conversation_id", convIds);
 
-      // Get other participant profile names
       const otherUserIds = [...new Set(
         (allParticipants || [])
           .filter((p) => p.user_id !== user!.id)
           .map((p) => p.user_id)
       )];
 
-      let profileMap: Record<string, string> = {};
+      let profileMap: Record<string, { name: string; company: string }> = {};
       if (otherUserIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, full_name, company_name")
           .in("user_id", otherUserIds);
         (profiles || []).forEach((p) => {
-          profileMap[p.user_id] = p.full_name || p.company_name || "Unknown";
+          profileMap[p.user_id] = {
+            name: p.full_name || p.company_name || "Unknown",
+            company: p.company_name || "",
+          };
         });
       }
 
@@ -78,14 +92,21 @@ export default function Messages() {
         const otherParticipant = (allParticipants || []).find(
           (p) => p.conversation_id === cid && p.user_id !== user!.id
         );
-        const otherName = otherParticipant
-          ? profileMap[otherParticipant.user_id] || otherParticipant.company_name || "Unknown"
-          : "Unknown";
+        const otherProfile = otherParticipant ? profileMap[otherParticipant.user_id] : null;
+        const otherName = otherProfile?.name || otherParticipant?.company_name || "Unknown";
         const latestMsg = (latestMessages || []).find((m) => m.conversation_id === cid);
         const lastRead = lastReadMap[cid];
         const unread = latestMsg ? new Date(latestMsg.created_at) > new Date(lastRead) : false;
 
-        return { id: cid, otherName, lastMessage: latestMsg?.content || null, lastMessageAt: latestMsg?.created_at || null, unread };
+        return {
+          id: cid,
+          otherName,
+          otherCompany: otherProfile?.company || "",
+          lastMessage: latestMsg?.content || null,
+          lastMessageAt: latestMsg?.created_at || null,
+          unread,
+          scope: scopeMap[cid] || "external",
+        };
       });
 
       convItems.sort((a, b) => {
@@ -150,6 +171,12 @@ export default function Messages() {
     async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
 
+      // Determine scope based on company match
+      const isSameCompany =
+        currentCompanyName &&
+        selectedUser.company_name?.toLowerCase() === currentCompanyName.toLowerCase();
+      const scope: ConversationScope = isSameCompany ? "internal" : "external";
+
       // Check existing conversation
       const { data: myParticipations } = await supabase
         .from("conversation_participants")
@@ -165,6 +192,7 @@ export default function Messages() {
           .in("conversation_id", convIds);
 
         if (otherParticipations?.length) {
+          setActiveScope(scope);
           setActiveConversationId(otherParticipations[0].conversation_id);
           return;
         }
@@ -172,7 +200,7 @@ export default function Messages() {
 
       const { data: conv, error: convErr } = await supabase
         .from("conversations")
-        .insert({ type: "direct" })
+        .insert({ type: "direct", scope })
         .select("id")
         .single();
       if (convErr || !conv) return;
@@ -183,12 +211,13 @@ export default function Messages() {
       ]);
 
       queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
+      setActiveScope(scope);
       setActiveConversationId(conv.id);
     },
     [user, currentCompanyName, currentUserName, queryClient]
   );
 
-  const activeConv = conversations.find((c) => c.id === activeConversationId);
+  const activeConv = conversations.find((c) => c.id === activeConversationId) as (ConversationItem & { otherCompany?: string }) | undefined;
 
   return (
     <DashboardLayout>
@@ -197,6 +226,8 @@ export default function Messages() {
           <ConversationList
             conversations={conversations}
             activeId={activeConversationId}
+            activeScope={activeScope}
+            onScopeChange={setActiveScope}
             onSelect={setActiveConversationId}
             onNewChat={() => setDirectoryOpen(true)}
             loading={convsLoading}
@@ -205,6 +236,8 @@ export default function Messages() {
         <ChatPanel
           conversationId={activeConversationId}
           otherName={activeConv?.otherName || ""}
+          otherCompany={activeConv?.otherCompany || ""}
+          scope={activeConv?.scope}
           currentUserId={user?.id || ""}
           currentUserName={currentUserName}
           messages={messages.map((m) => ({ ...m, attachments: Array.isArray(m.attachments) ? m.attachments : [] }))}
@@ -218,6 +251,7 @@ export default function Messages() {
         onSelectUser={handleSelectUser}
         currentUserId={user?.id || ""}
         currentCompanyName={currentCompanyName}
+        scope={activeScope}
       />
     </DashboardLayout>
   );

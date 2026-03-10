@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Loader2 } from "lucide-react";
+import { Send, Paperclip, Loader2, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { MessageBubble } from "./MessageBubble";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { ConversationScope } from "./ConversationList";
 
 interface Message {
   id: string;
@@ -20,6 +22,8 @@ interface Message {
 interface ChatPanelProps {
   conversationId: string | null;
   otherName: string;
+  otherCompany?: string;
+  scope?: ConversationScope;
   currentUserId: string;
   currentUserName: string;
   messages: Message[];
@@ -27,7 +31,7 @@ interface ChatPanelProps {
   loading: boolean;
 }
 
-export function ChatPanel({ conversationId, otherName, currentUserId, currentUserName, messages, onSend, loading }: ChatPanelProps) {
+export function ChatPanel({ conversationId, otherName, otherCompany, scope, currentUserId, currentUserName, messages, onSend, loading }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -65,10 +69,9 @@ export function ChatPanel({ conversationId, otherName, currentUserId, currentUse
         .from("chat-attachments")
         .getPublicUrl(path);
 
-      // Since bucket is private, use signed URL
       const { data: signedData } = await supabase.storage
         .from("chat-attachments")
-        .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
 
       const url = signedData?.signedUrl || urlData.publicUrl;
       await onSend(file.name, [{ name: file.name, url, type: file.type }]);
@@ -94,11 +97,27 @@ export function ChatPanel({ conversationId, otherName, currentUserId, currentUse
     );
   }
 
+  const isInternal = scope === "internal";
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border">
-        <h3 className="font-semibold text-foreground text-sm">{otherName}</h3>
+      <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-foreground text-sm truncate">{otherName}</h3>
+            <Badge variant="secondary" className="text-[10px] shrink-0 flex items-center gap-1">
+              {isInternal ? (
+                <><Users className="h-3 w-3" /> Team</>
+              ) : (
+                <><Globe className="h-3 w-3" /> External</>
+              )}
+            </Badge>
+          </div>
+          {!isInternal && otherCompany && (
+            <p className="text-xs text-muted-foreground truncate">{otherCompany}</p>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
