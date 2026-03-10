@@ -193,7 +193,8 @@ const App = () => (
             <Route path="/warehouse/account" element={<WarehouseGate><WarehouseAccount /></WarehouseGate>} />
 
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </ImpersonationProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
