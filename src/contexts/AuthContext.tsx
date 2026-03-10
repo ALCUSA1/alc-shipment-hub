@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    sessionStorage.removeItem("impersonated_role");
     await supabase.auth.signOut();
   };
 
