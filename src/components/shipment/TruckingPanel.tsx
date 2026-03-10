@@ -9,6 +9,7 @@ import { Truck, MapPin, Calendar, Package, User, Phone, Plus, Loader2, Check, X,
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { CarrierSelectDialog } from "./CarrierSelectDialog";
 
 interface TruckingPanelProps {
   shipmentId: string;
