@@ -27,6 +27,11 @@ export function RoleGate({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Admin impersonating viewer/shipper — allow access to dashboard routes
+  if (isAdmin && isImpersonating && impersonatedRole === "viewer") {
+    return <>{children}</>;
+  }
+
   if (!canAccessRoute(location.pathname, roles)) {
     return (
       <DashboardLayout>
