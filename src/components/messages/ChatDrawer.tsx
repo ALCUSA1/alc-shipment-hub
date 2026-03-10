@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { MessageSquare, X, Maximize2, ChevronLeft } from "lucide-react";
+import { MessageSquare, X, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationList } from "./ConversationList";
 import { ChatPanel } from "./ChatPanel";
 import { CompanyDirectoryDialog } from "./CompanyDirectoryDialog";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
-import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -15,7 +14,6 @@ interface ChatDrawerProps {
 }
 
 export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
-  const navigate = useNavigate();
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [view, setView] = useState<"list" | "chat">("list");
 
@@ -46,10 +44,6 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     setView("list");
   };
 
-  const handlePopOut = () => {
-    onClose();
-    navigate("/dashboard/messages");
-  };
 
   return (
     <>
@@ -80,9 +74,6 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
             <span className="font-semibold text-sm text-foreground">Messages</span>
           </div>
           <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handlePopOut} title="Open full page">
-              <Maximize2 className="h-3.5 w-3.5" />
-            </Button>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onClose}>
               <X className="h-3.5 w-3.5" />
             </Button>
