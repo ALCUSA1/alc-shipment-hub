@@ -13,7 +13,7 @@ import {
   Package, DollarSign, Truck, Warehouse, Clock, ArrowRight, TrendingUp,
   ContactRound, Plus, Layers, FileText, Zap
 } from "lucide-react";
-import { DashboardActionBanners } from "@/components/dashboard/DashboardActionBanners";
+
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, CartesianGrid,
@@ -244,8 +244,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Workflow Action Banners */}
-      <DashboardActionBanners />
 
       {/* Metric Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
