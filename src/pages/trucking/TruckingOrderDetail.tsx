@@ -499,7 +499,7 @@ const TruckingOrderDetail = () => {
                     </div>
                   )}
                 </div>
-              ) : (
+              ) : canSubmitQuote ? (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
