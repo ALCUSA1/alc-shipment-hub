@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, X, Maximize2, ChevronLeft } from "lucide-react";
+import { MessageSquare, X, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationList } from "./ConversationList";
 import { ChatPanel } from "./ChatPanel";
