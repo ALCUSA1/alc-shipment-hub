@@ -12,6 +12,7 @@ export type ConversationScope = "internal" | "external";
 export interface ConversationItem {
   id: string;
   otherName: string;
+  otherCompany?: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
   unread: boolean;
