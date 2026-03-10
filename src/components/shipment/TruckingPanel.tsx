@@ -30,6 +30,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [requesting, setRequesting] = useState(false);
+  const [carrierDialogOpen, setCarrierDialogOpen] = useState(false);
 
   const { data: pickups, isLoading } = useQuery({
     queryKey: ["truck_pickups", shipmentId],
