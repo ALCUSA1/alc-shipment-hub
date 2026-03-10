@@ -124,6 +124,8 @@ const TruckingOrderDetail = () => {
   const consignee = parties.find((p: any) => p.role === "consignee");
   const notifyParty = parties.find((p: any) => p.role === "notify_party");
   const hasDG = shipment.cargo?.some((c: any) => c.dangerous_goods) || false;
+  const isShipmentFinalized = ["delivered", "completed", "cancelled"].includes(shipment.status);
+  const canSubmitQuote = !isShipmentFinalized && ["draft", "booked", "in_transit", "arrived", "booking_confirmed"].includes(shipment.status);
 
   return (
     <TruckingLayout>
