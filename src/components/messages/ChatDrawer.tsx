@@ -46,10 +46,6 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     setView("list");
   };
 
-  const handlePopOut = () => {
-    onClose();
-    navigate("/dashboard/messages");
-  };
 
   return (
     <>
