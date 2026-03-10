@@ -54,7 +54,7 @@ const TruckingOrders = () => {
           containers (container_type, quantity),
           shipment_parties (company_name, role)
         `)
-        .in("status", ["draft", "booked", "in_transit"])
+        .in("status", ["draft", "booked", "booking_confirmed", "in_transit"])
         .order("created_at", { ascending: false });
 
       if (regionFilter) {
