@@ -36,6 +36,7 @@ interface ShipmentWithDetails {
     quantity: number;
   }>;
   profiles: { company_name: string | null } | null;
+  shipment_parties: Array<{ company_name: string | null; role: string }>;
 }
 
 const TruckingOrders = () => {
