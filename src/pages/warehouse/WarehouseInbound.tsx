@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, Package, Weight, Box } from "lucide-react";
+import { PackageOpen, Package, Weight, Box, Check, X, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WarehouseInbound = () => {
@@ -46,7 +46,12 @@ const WarehouseInbound = () => {
     confirmed: "bg-accent/10 text-accent",
     in_progress: "bg-blue-100 text-blue-700",
     completed: "bg-green-100 text-green-700",
+    rejected: "bg-destructive/10 text-destructive",
+    cancelled: "bg-destructive/10 text-destructive",
   };
+
+  // Statuses where no further actions are allowed
+  const isFinalStatus = (status: string) => ["completed", "rejected", "cancelled"].includes(status);
 
   return (
     <WarehouseLayout>
@@ -101,22 +106,42 @@ const WarehouseInbound = () => {
                     <p className="text-xs text-muted-foreground border-t pt-2">{order.handling_instructions}</p>
                   )}
 
+                  {/* Action buttons — only for actionable states */}
                   {order.status === "pending" && (
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" variant="default" onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}>
-                        <PackageOpen className="h-3.5 w-3.5 mr-1" /> Accept & Confirm Receipt
+                      <Button
+                        size="sm"
+                        variant="default"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1" /> Accept & Confirm Receipt
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}>
-                        Reject
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" /> Reject
                       </Button>
                     </div>
                   )}
                   {order.status === "confirmed" && (
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}>
+                      <Button
+                        size="sm"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}
+                      >
                         Mark Completed
                       </Button>
                     </div>
+                  )}
+                  {isFinalStatus(order.status) && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
+                      <Lock className="h-3 w-3" /> No further actions — order is {order.status}
+                    </p>
                   )}
                 </div>
               ))}

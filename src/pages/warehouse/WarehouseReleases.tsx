@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageCheck, Phone, User } from "lucide-react";
+import { PackageCheck, Phone, User, Check, X, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WarehouseReleases = () => {
@@ -49,7 +49,11 @@ const WarehouseReleases = () => {
     confirmed: "bg-accent/10 text-accent",
     in_progress: "bg-blue-100 text-blue-700",
     completed: "bg-green-100 text-green-700",
+    rejected: "bg-destructive/10 text-destructive",
+    cancelled: "bg-destructive/10 text-destructive",
   };
+
+  const isFinalStatus = (status: string) => ["completed", "rejected", "cancelled"].includes(status);
 
   return (
     <WarehouseLayout>
@@ -109,17 +113,38 @@ const WarehouseReleases = () => {
 
                   {order.status === "pending" && (
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" onClick={() => updateStatus.mutate({ id: order.id, status: "in_progress" })}>
-                        Start Processing
+                      <Button
+                        size="sm"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "in_progress" })}
+                      >
+                        <Check className="h-3.5 w-3.5 mr-1" /> Accept & Start Processing
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}
+                      >
+                        <X className="h-3.5 w-3.5 mr-1" /> Reject
                       </Button>
                     </div>
                   )}
                   {order.status === "in_progress" && (
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}>
+                      <Button
+                        size="sm"
+                        disabled={updateStatus.isPending}
+                        onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}
+                      >
                         Mark Released
                       </Button>
                     </div>
+                  )}
+                  {isFinalStatus(order.status) && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
+                      <Lock className="h-3 w-3" /> No further actions — order is {order.status}
+                    </p>
                   )}
                 </div>
               ))}
