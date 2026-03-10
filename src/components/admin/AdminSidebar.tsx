@@ -136,6 +136,11 @@ export function AdminSidebar({ onClose }: { onClose: () => void }) {
         ))}
       </nav>
 
+      {/* Impersonation Switcher */}
+      <div className="border-t border-[hsl(220,15%,13%)] shrink-0">
+        <ImpersonationSwitcher />
+      </div>
+
       {/* Footer */}
       <div className="p-3 border-t border-[hsl(220,15%,13%)] space-y-0.5 shrink-0">
         <button
