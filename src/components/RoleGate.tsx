@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { canAccessRoute } from "@/lib/permissions";
 import { Navigate, useLocation } from "react-router-dom";
 import { ReactNode } from "react";
@@ -10,7 +11,8 @@ import { Link } from "react-router-dom";
 
 export function RoleGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { roles, isLoading: roleLoading } = useUserRole();
+  const { roles, isAdmin, isLoading: roleLoading } = useUserRole();
+  const { isImpersonating, impersonatedRole } = useImpersonation();
   const location = useLocation();
 
   if (authLoading || roleLoading) {
@@ -23,6 +25,11 @@ export function RoleGate({ children }: { children: ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Admin impersonating viewer/shipper — allow access to dashboard routes
+  if (isAdmin && isImpersonating && impersonatedRole === "viewer") {
+    return <>{children}</>;
   }
 
   if (!canAccessRoute(location.pathname, roles)) {

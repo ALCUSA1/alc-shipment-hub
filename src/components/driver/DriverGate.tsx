@@ -1,11 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 
 export function DriverGate({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const { roles, isLoading: rolesLoading } = useUserRole();
+  const { roles, isAdmin, isLoading: rolesLoading } = useUserRole();
+  const { isImpersonating, impersonatedRole } = useImpersonation();
 
   if (authLoading || rolesLoading) {
     return (
@@ -17,6 +19,11 @@ export function DriverGate({ children }: { children: ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Admin impersonating driver role — allow access
+  if (isAdmin && isImpersonating && impersonatedRole === "driver") {
+    return <>{children}</>;
   }
 
   const hasDriverRole = roles.includes("driver");
