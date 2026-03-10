@@ -23,15 +23,19 @@ interface ShipmentWithDetails {
   status: string;
   shipment_type: string;
   created_at: string;
+  pickup_instructions: string | null;
+  delivery_instructions: string | null;
   cargo: Array<{
     commodity: string | null;
     gross_weight: number | null;
     volume: number | null;
+    dangerous_goods: boolean;
   }>;
   containers: Array<{
     container_type: string;
     quantity: number;
   }>;
+  profiles: { company_name: string | null } | null;
 }
 
 const TruckingOrders = () => {
