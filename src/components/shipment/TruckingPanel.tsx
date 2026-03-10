@@ -184,15 +184,53 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
 
         {/* Trucking Quotes */}
         {hasQuotes && !hasDrivers && truckingQuotes!.map((tq) => (
-          <div key={tq.id} className="rounded-lg border p-4 space-y-2">
+          <div key={tq.id} className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">Trucking Quote</span>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-3.5 w-3.5 text-accent" />
+                <span className="text-sm font-medium text-foreground">
+                  {tq.company_name || "Carrier Quote"}
+                </span>
+              </div>
               <Badge className={statusStyle[tq.status] || "bg-secondary text-muted-foreground"} variant="secondary">
                 {tq.status.replace(/_/g, " ")}
               </Badge>
             </div>
-            {tq.price > 0 && (
-              <p className="text-xs text-muted-foreground">Price: ${tq.price.toLocaleString()}</p>
+
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+              {tq.price > 0 && (
+                <Row icon={<DollarSign className="h-3 w-3" />} label="Price" value={`$${Number(tq.price).toLocaleString()} ${tq.currency || "USD"}`} />
+              )}
+              {tq.driver_name && <Row icon={<User className="h-3 w-3" />} label="Driver" value={tq.driver_name} />}
+              {tq.equipment_type && <Row icon={<Truck className="h-3 w-3" />} label="Equipment" value={tq.equipment_type} />}
+              {tq.pickup_date && (
+                <Row icon={<Calendar className="h-3 w-3" />} label="Pickup" value={`${format(new Date(tq.pickup_date), "MMM d, yyyy")}${tq.pickup_time ? ` at ${tq.pickup_time}` : ""}`} />
+              )}
+            </div>
+
+            {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
+
+            {tq.status === "submitted" && (
+              <div className="flex items-center gap-2 pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="electric"
+                  className="text-xs"
+                  disabled={updateQuoteStatus.isPending}
+                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "accepted" })}
+                >
+                  <Check className="h-3 w-3 mr-1" /> Accept
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                  disabled={updateQuoteStatus.isPending}
+                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "rejected" })}
+                >
+                  <X className="h-3 w-3 mr-1" /> Reject
+                </Button>
+              </div>
             )}
           </div>
         ))}
