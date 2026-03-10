@@ -5,7 +5,7 @@ import { ConversationList } from "./ConversationList";
 import { ChatPanel } from "./ChatPanel";
 import { CompanyDirectoryDialog } from "./CompanyDirectoryDialog";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
-import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
