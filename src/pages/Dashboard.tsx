@@ -220,29 +220,6 @@ const Dashboard = () => {
         </Card>
       )}
 
-      {/* Action Items — things that need attention */}
-      {!loading && (acceptedQuotes > 0 || pendingQuotes > 0) && (
-        <div className="flex flex-wrap gap-3 mb-6">
-          {acceptedQuotes > 0 && (
-            <Link to="/dashboard/quotes" className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors">
-              <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">
-                {acceptedQuotes} quote{acceptedQuotes > 1 ? "s" : ""} ready to convert
-              </span>
-              <ArrowRight className="h-3.5 w-3.5 text-green-600" />
-            </Link>
-          )}
-          {pendingQuotes > 0 && (
-            <Link to="/dashboard/quotes" className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 transition-colors">
-              <Clock className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-700">
-                {pendingQuotes} quote{pendingQuotes > 1 ? "s" : ""} awaiting approval
-              </span>
-              <ArrowRight className="h-3.5 w-3.5 text-yellow-600" />
-            </Link>
-          )}
-        </div>
-      )}
 
 
       {/* Metric Cards */}
