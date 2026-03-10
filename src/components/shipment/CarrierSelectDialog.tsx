@@ -32,21 +32,12 @@ export function CarrierSelectDialog({ open, onOpenChange, onSelect }: CarrierSel
   const { data: carriers, isLoading } = useQuery({
     queryKey: ["trucker-carriers"],
     queryFn: async () => {
-      // Get all users with trucker role, join with profiles
+      // Get all profiles with trucker role
       const { data, error } = await supabase
         .from("profiles")
         .select("user_id, full_name, company_name")
-        .in("user_id", 
-          (await supabase.rpc("get_trucker_user_ids")).data || []
-        );
-      if (error) {
-        // Fallback: query profiles that have role = trucker
-        const { data: fallback } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, company_name")
-          .eq("role", "trucker");
-        return (fallback || []) as CarrierOption[];
-      }
+        .eq("role", "trucker");
+      if (error) throw error;
       return (data || []) as CarrierOption[];
     },
     enabled: open,
