@@ -603,6 +603,11 @@ const TruckingOrderDetail = () => {
                     {submitQuote.isPending ? "Submitting..." : "Submit Quote"}
                   </Button>
                 </form>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-muted-foreground">Shipment is {shipment.status}.</p>
+                  <p className="text-xs text-muted-foreground mt-1">No quotes can be submitted.</p>
+                </div>
               )}
             </CardContent>
           </Card>
