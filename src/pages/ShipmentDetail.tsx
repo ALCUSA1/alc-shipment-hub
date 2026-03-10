@@ -502,7 +502,7 @@ const ShipmentDetail = () => {
 
           {/* Trucking */}
           <div data-guide="trucking">
-            <TruckingPanel shipmentId={id!} />
+            <TruckingPanel shipmentId={id!} shipmentStatus={shipment.status} />
           </div>
 
           {/* Warehouse Operations */}
