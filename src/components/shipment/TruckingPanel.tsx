@@ -91,32 +91,31 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
     },
   });
 
-  const handleRequestPickup = async () => {
+  const handleSendToCarrier = async (carrier: { user_id: string; full_name: string | null; company_name: string | null }, instructions: string) => {
     if (!user) return;
-    setRequesting(true);
-    try {
-      // Get shipment details for pre-filling
-      const { data: shipment } = await supabase
-        .from("shipments")
-        .select("origin_port, pickup_location, destination_port, delivery_location")
-        .eq("id", shipmentId)
-        .single();
+    // Get shipment details for pre-filling
+    const { data: shipment } = await supabase
+      .from("shipments")
+      .select("origin_port, pickup_location, destination_port, delivery_location")
+      .eq("id", shipmentId)
+      .single();
 
-      const { error } = await supabase.from("trucking_quotes").insert({
-        shipment_id: shipmentId,
-        trucker_user_id: user.id,
-        price: 0,
-        status: "available",
-        notes: `Pickup: ${shipment?.pickup_location || shipment?.origin_port || "TBD"} → Delivery: ${shipment?.delivery_location || shipment?.destination_port || "TBD"}`,
-      });
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
-      toast({ title: "Trucking request posted", description: "Carrier partners can now bid on this pickup." });
-    } catch (err: any) {
-      toast({ title: "Request failed", description: err.message, variant: "destructive" });
-    } finally {
-      setRequesting(false);
-    }
+    const notes = [
+      `Pickup: ${shipment?.pickup_location || shipment?.origin_port || "TBD"} → Delivery: ${shipment?.delivery_location || shipment?.destination_port || "TBD"}`,
+      instructions ? `Instructions: ${instructions}` : "",
+    ].filter(Boolean).join("\n");
+
+    const { error } = await supabase.from("trucking_quotes").insert({
+      shipment_id: shipmentId,
+      trucker_user_id: carrier.user_id,
+      company_name: carrier.company_name || carrier.full_name || null,
+      price: 0,
+      status: "available",
+      notes,
+    });
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
+    toast({ title: "Order sent to carrier", description: `Trucking order sent to ${carrier.company_name || carrier.full_name || "carrier"}.` });
   };
 
   if (isLoading) return <Skeleton className="h-32 w-full" />;
