@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { MapPin, Calendar, Package, Search, ArrowRight, Weight, DollarSign } from "lucide-react";
+import { MapPin, Calendar, Package, Search, ArrowRight, Weight, DollarSign, Building2, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ShipmentWithDetails {
