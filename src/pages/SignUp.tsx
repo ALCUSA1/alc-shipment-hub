@@ -118,7 +118,7 @@ const SignUp = () => {
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
+              <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
             </div>
             <Button variant="electric" className="w-full" type="submit" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}

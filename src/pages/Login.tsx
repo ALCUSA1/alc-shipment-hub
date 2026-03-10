@@ -102,7 +102,7 @@ const Login = () => {
                       Forgot password?
                     </button>
                   </div>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required />
+                  <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required />
                 </div>
                 <Button variant="electric" className="w-full" type="submit" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
