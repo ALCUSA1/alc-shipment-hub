@@ -6,7 +6,6 @@ import { ChatPanel } from "./ChatPanel";
 import { CompanyDirectoryDialog } from "./CompanyDirectoryDialog";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface ChatDrawerProps {
