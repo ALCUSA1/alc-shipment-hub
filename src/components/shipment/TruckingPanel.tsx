@@ -63,13 +63,30 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("trucking_quotes")
-        .select("id, status, price, company_name")
+        .select("id, status, price, company_name, driver_name, equipment_type, pickup_date, pickup_time, notes, currency, created_at")
         .eq("shipment_id", shipmentId)
         .order("created_at", { ascending: false });
       if (error) return [];
       return data || [];
     },
     enabled: !!shipmentId,
+  });
+
+  const updateQuoteStatus = useMutation({
+    mutationFn: async ({ quoteId, status }: { quoteId: string; status: string }) => {
+      const { error } = await supabase
+        .from("trucking_quotes")
+        .update({ status })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
+      toast({ title: status === "accepted" ? "Quote accepted" : "Quote rejected" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to update", description: err.message, variant: "destructive" });
+    },
   });
 
   const handleRequestPickup = async () => {
