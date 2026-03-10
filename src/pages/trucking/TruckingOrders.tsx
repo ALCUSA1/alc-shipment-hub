@@ -52,7 +52,7 @@ const TruckingOrders = () => {
           etd, eta, status, shipment_type, created_at, pickup_instructions, delivery_instructions,
           cargo (commodity, gross_weight, volume, dangerous_goods),
           containers (container_type, quantity),
-          shipment_parties!inner (company_name, role)
+          shipment_parties (company_name, role)
         `)
         .in("status", ["draft", "booked", "in_transit"])
         .order("created_at", { ascending: false });
