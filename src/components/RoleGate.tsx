@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useImpersonation } from "@/contexts/ImpersonationContext";
 import { canAccessRoute } from "@/lib/permissions";
 import { Navigate, useLocation } from "react-router-dom";
 import { ReactNode } from "react";
