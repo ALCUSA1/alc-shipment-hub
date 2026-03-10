@@ -344,11 +344,16 @@ const TruckingOrderDetail = () => {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-accent" />
-                Submit Quote
+                {isShipmentFinalized ? "Quote Summary" : "Submit Quote"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {existingQuote ? (
+              {isShipmentFinalized && !existingQuote ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-muted-foreground">Shipment is {shipment.status}.</p>
+                  <p className="text-xs text-muted-foreground mt-1">No quotes can be submitted.</p>
+                </div>
+              ) : existingQuote ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-accent/10 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">
