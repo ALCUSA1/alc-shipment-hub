@@ -72,7 +72,7 @@ const Dashboard = () => {
 
       const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes, allShipmentsRes, acceptedQuotesRes] = await Promise.all([
         supabase.from("shipments").select("id, status", { count: "exact" }).in("status", ["booked", "in_transit", "arrived"]),
-        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "pending"),
+        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "pending").eq("user_id", user!.id),
         supabase.from("truck_pickups").select("id", { count: "exact" }).eq("status", "scheduled"),
         supabase.from("warehouse_operations").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, created_at, companies(company_name)").order("created_at", { ascending: false }).limit(5),
