@@ -103,8 +103,11 @@ const WarehouseInbound = () => {
 
                   {order.status === "pending" && (
                     <div className="flex gap-2 pt-1">
-                      <Button size="sm" onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}>
-                        Confirm Receipt
+                      <Button size="sm" variant="default" onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}>
+                        <PackageOpen className="h-3.5 w-3.5 mr-1" /> Accept & Confirm Receipt
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}>
+                        Reject
                       </Button>
                     </div>
                   )}
