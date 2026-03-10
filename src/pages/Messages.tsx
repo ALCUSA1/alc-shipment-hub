@@ -13,7 +13,6 @@ export default function Messages() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
 
-  // Get current user profile
   const { data: profile } = useQuery({
     queryKey: ["msg-profile", user?.id],
     queryFn: async () => {
@@ -28,12 +27,11 @@ export default function Messages() {
   });
 
   const currentUserName = profile?.full_name || profile?.company_name || "Me";
+  const currentCompanyName = profile?.company_name || "";
 
-  // Fetch conversations with last message
   const { data: conversations = [], isLoading: convsLoading } = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: async () => {
-      // Get participations for current user
       const { data: participations, error: pErr } = await supabase
         .from("conversation_participants")
         .select("conversation_id, last_read_at")
@@ -47,38 +45,49 @@ export default function Messages() {
         lastReadMap[p.conversation_id] = p.last_read_at || "";
       });
 
-      // Get other participants
       const { data: allParticipants } = await supabase
         .from("conversation_participants")
         .select("conversation_id, user_id, company_name")
         .in("conversation_id", convIds);
 
-      // Get latest message per conversation
+      // Get other participant profile names
+      const otherUserIds = [...new Set(
+        (allParticipants || [])
+          .filter((p) => p.user_id !== user!.id)
+          .map((p) => p.user_id)
+      )];
+
+      let profileMap: Record<string, string> = {};
+      if (otherUserIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, company_name")
+          .in("user_id", otherUserIds);
+        (profiles || []).forEach((p) => {
+          profileMap[p.user_id] = p.full_name || p.company_name || "Unknown";
+        });
+      }
+
       const { data: latestMessages } = await supabase
         .from("messages")
         .select("conversation_id, content, created_at")
         .in("conversation_id", convIds)
         .order("created_at", { ascending: false });
 
-      // Build conversation items
       const convItems: ConversationItem[] = convIds.map((cid) => {
         const otherParticipant = (allParticipants || []).find(
           (p) => p.conversation_id === cid && p.user_id !== user!.id
         );
+        const otherName = otherParticipant
+          ? profileMap[otherParticipant.user_id] || otherParticipant.company_name || "Unknown"
+          : "Unknown";
         const latestMsg = (latestMessages || []).find((m) => m.conversation_id === cid);
         const lastRead = lastReadMap[cid];
         const unread = latestMsg ? new Date(latestMsg.created_at) > new Date(lastRead) : false;
 
-        return {
-          id: cid,
-          otherName: otherParticipant?.company_name || "Unknown",
-          lastMessage: latestMsg?.content || null,
-          lastMessageAt: latestMsg?.created_at || null,
-          unread,
-        };
+        return { id: cid, otherName, lastMessage: latestMsg?.content || null, lastMessageAt: latestMsg?.created_at || null, unread };
       });
 
-      // Sort by last message time
       convItems.sort((a, b) => {
         if (!a.lastMessageAt) return 1;
         if (!b.lastMessageAt) return -1;
@@ -91,7 +100,6 @@ export default function Messages() {
     refetchInterval: 10000,
   });
 
-  // Fetch messages for active conversation
   const { data: messages = [], isLoading: msgsLoading } = useQuery({
     queryKey: ["messages", activeConversationId],
     queryFn: async () => {
@@ -106,32 +114,18 @@ export default function Messages() {
     enabled: !!activeConversationId,
   });
 
-  // Realtime subscription for messages
   useEffect(() => {
     if (!activeConversationId) return;
     const channel = supabase
       .channel(`messages-${activeConversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${activeConversationId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
-          queryClient.invalidateQueries({ queryKey: ["conversations", user?.id] });
-        }
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeConversationId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
+        queryClient.invalidateQueries({ queryKey: ["conversations", user?.id] });
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [activeConversationId, queryClient, user?.id]);
 
-  // Mark as read when opening a conversation
   useEffect(() => {
     if (!activeConversationId || !user) return;
     supabase
@@ -139,33 +133,24 @@ export default function Messages() {
       .update({ last_read_at: new Date().toISOString() })
       .eq("conversation_id", activeConversationId)
       .eq("user_id", user.id)
-      .then(() => {
-        queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
-      });
+      .then(() => { queryClient.invalidateQueries({ queryKey: ["conversations", user.id] }); });
   }, [activeConversationId, user, queryClient]);
 
   const handleSend = useCallback(
     async (content: string, attachments: any[]) => {
       if (!activeConversationId || !user) return;
-      const { error } = await supabase.from("messages").insert({
-        conversation_id: activeConversationId,
-        sender_id: user.id,
-        sender_name: currentUserName,
-        content,
-        attachments,
-      });
-      if (error) throw error;
+      await supabase.from("messages").insert({ conversation_id: activeConversationId, sender_id: user.id, sender_name: currentUserName, content, attachments });
       queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });
       queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
     },
     [activeConversationId, user, currentUserName, queryClient]
   );
 
-  const handleSelectCompany = useCallback(
-    async (company: { id: string; company_name: string; company_type: string; user_id: string }) => {
+  const handleSelectUser = useCallback(
+    async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
 
-      // Check if a conversation already exists between these two users
+      // Check existing conversation
       const { data: myParticipations } = await supabase
         .from("conversation_participants")
         .select("conversation_id")
@@ -176,7 +161,7 @@ export default function Messages() {
         const { data: otherParticipations } = await supabase
           .from("conversation_participants")
           .select("conversation_id")
-          .eq("user_id", company.user_id)
+          .eq("user_id", selectedUser.user_id)
           .in("conversation_id", convIds);
 
         if (otherParticipations?.length) {
@@ -185,7 +170,6 @@ export default function Messages() {
         }
       }
 
-      // Create new conversation
       const { data: conv, error: convErr } = await supabase
         .from("conversations")
         .insert({ type: "direct" })
@@ -193,16 +177,15 @@ export default function Messages() {
         .single();
       if (convErr || !conv) return;
 
-      // Add both participants
       await supabase.from("conversation_participants").insert([
-        { conversation_id: conv.id, user_id: user.id, company_name: profile?.company_name || currentUserName },
-        { conversation_id: conv.id, user_id: company.user_id, company_name: company.company_name },
+        { conversation_id: conv.id, user_id: user.id, company_name: currentCompanyName || currentUserName },
+        { conversation_id: conv.id, user_id: selectedUser.user_id, company_name: selectedUser.company_name },
       ]);
 
       queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
       setActiveConversationId(conv.id);
     },
-    [user, profile, currentUserName, queryClient]
+    [user, currentCompanyName, currentUserName, queryClient]
   );
 
   const activeConv = conversations.find((c) => c.id === activeConversationId);
@@ -232,8 +215,9 @@ export default function Messages() {
       <CompanyDirectoryDialog
         open={directoryOpen}
         onOpenChange={setDirectoryOpen}
-        onSelectCompany={handleSelectCompany}
+        onSelectUser={handleSelectUser}
         currentUserId={user?.id || ""}
+        currentCompanyName={currentCompanyName}
       />
     </DashboardLayout>
   );
