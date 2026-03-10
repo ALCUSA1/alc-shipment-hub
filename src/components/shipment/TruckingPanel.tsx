@@ -137,9 +137,9 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
         <CardContent>
           <div className="text-center py-6">
             <p className="text-sm text-muted-foreground mb-4">No trucking arranged for this shipment.</p>
-            <Button variant="outline" onClick={handleRequestPickup} disabled={requesting}>
-              {requesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              Request Pickup
+            <Button variant="outline" onClick={() => setCarrierDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Send to Carrier
             </Button>
           </div>
         </CardContent>
