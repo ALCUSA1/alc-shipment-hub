@@ -114,6 +114,9 @@ const TruckingOrders = () => {
               ?.map((c) => `${c.quantity}x ${c.container_type}`)
               .join(", ") || "TBD";
             const commodities = [...new Set(shipment.cargo?.map((c) => c.commodity).filter(Boolean))].join(", ") || "General cargo";
+            const shipperParty = shipment.shipment_parties?.find((p) => p.role === "shipper");
+            const shipperName = shipperParty?.company_name;
+            const hasDG = shipment.cargo?.some((c) => c.dangerous_goods) || false;
 
             return (
               <Card key={shipment.id} className="hover:border-accent/50 transition-colors">
@@ -137,8 +140,18 @@ const TruckingOrders = () => {
                         >
                           {shipment.status}
                         </Badge>
+                        {hasDG && (
+                          <Badge variant="destructive" className="text-xs">
+                            <AlertTriangle className="h-3 w-3 mr-1" /> Hazmat
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">{commodities}</p>
+                      {shipperName && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Building2 className="h-3 w-3" /> {shipperName}
+                        </p>
+                      )}
                     </div>
                     <Link to={`/trucking/orders/${shipment.id}`}>
                       <Button variant="electric" size="sm">
