@@ -95,6 +95,14 @@ Deno.serve(async (req) => {
         result = { message: `Role ${role} removed` };
         break;
       }
+      case "confirm_email": {
+        const { error } = await adminClient.auth.admin.updateUserById(target_user_id, {
+          email_confirm: true,
+        });
+        if (error) throw error;
+        result = { message: "Email confirmed" };
+        break;
+      }
       case "get_user_status": {
         const { data: userData, error: fetchErr } = await adminClient.auth.admin.getUserById(target_user_id);
         if (fetchErr) throw fetchErr;
