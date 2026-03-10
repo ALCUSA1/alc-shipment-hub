@@ -263,6 +263,7 @@ export function TruckingPanel({ shipmentId }: TruckingPanelProps) {
             {p.notes && <p className="text-xs text-muted-foreground border-t pt-2 mt-2">{p.notes}</p>}
           </div>
         ))}
+        <CarrierSelectDialog open={carrierDialogOpen} onOpenChange={setCarrierDialogOpen} onSelect={handleSendToCarrier} />
       </CardContent>
     </Card>
   );
