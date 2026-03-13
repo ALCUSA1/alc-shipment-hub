@@ -26,11 +26,14 @@ import {
 
 const statusColor: Record<string, string> = {
   in_transit: "bg-accent/10 text-accent",
+  booked: "bg-yellow-100 text-yellow-800",
   booking_confirmed: "bg-yellow-100 text-yellow-700",
   cargo_received: "bg-blue-100 text-blue-700",
-  delivered: "bg-green-100 text-green-700",
-  draft: "bg-secondary text-muted-foreground",
-  pending: "bg-secondary text-muted-foreground",
+  arrived: "bg-blue-100 text-blue-700",
+  delivered: "bg-emerald-100 text-emerald-700",
+  draft: "bg-muted text-muted-foreground",
+  pending: "bg-muted text-muted-foreground",
+  cancelled: "bg-destructive/10 text-destructive",
 };
 
 const STATUS_OPTIONS = [
