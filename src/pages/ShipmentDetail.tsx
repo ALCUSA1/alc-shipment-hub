@@ -319,6 +319,35 @@ const ShipmentDetail = () => {
               <Copy className="mr-2 h-4 w-4" />
               Clone
             </Button>
+            <Button variant="outline" size="sm" onClick={async () => {
+              if (!user || !shipment) return;
+              try {
+                const { error } = await supabase.from("shipment_templates").insert({
+                  user_id: user.id,
+                  name: `${shipment.shipment_ref} Template`,
+                  shipment_type: shipment.shipment_type,
+                  mode: shipment.mode || "ocean",
+                  origin_port: shipment.origin_port,
+                  destination_port: shipment.destination_port,
+                  pickup_location: shipment.pickup_location,
+                  delivery_location: shipment.delivery_location,
+                  commodity: firstCargo?.commodity || null,
+                  hs_code: firstCargo?.hs_code || null,
+                  container_type: containers?.[0]?.container_type || null,
+                  container_count: containers?.length || 1,
+                  incoterm: (shipment as any).incoterm || null,
+                  parties: JSON.stringify((parties || []).map(p => ({ role: p.role, name: p.name, company_name: p.company_name }))),
+                  cargo: JSON.stringify((cargo || []).map(c => ({ commodity: c.commodity, hs_code: c.hs_code, gross_weight: c.gross_weight, volume: c.volume }))),
+                });
+                if (error) throw error;
+                toast({ title: "Template saved", description: "Shipment saved as reusable template." });
+              } catch (err: any) {
+                toast({ title: "Failed to save template", description: err.message, variant: "destructive" });
+              }
+            }}>
+              <BookmarkPlus className="mr-2 h-4 w-4" />
+              Save Template
+            </Button>
             <Button variant="electric" size="sm" onClick={() => setShowDocGen(true)}>
               <FileText className="mr-2 h-4 w-4" />
               Generate Documents
