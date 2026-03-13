@@ -25,6 +25,7 @@ const Index = () => {
       <WorkflowSection />
       <FeaturesSection />
       <PartnerAccessSection />
+      <SecuritySection />
       <CTASection />
     </MarketingLayout>
   );
