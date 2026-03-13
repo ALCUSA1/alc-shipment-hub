@@ -59,6 +59,271 @@ export type Database = {
         }
         Relationships: []
       }
+      aes_commodity_lines: {
+        Row: {
+          aes_filing_id: string
+          commodity_description: string | null
+          country_of_origin: string | null
+          created_at: string
+          df_indicator: string | null
+          eccn: string | null
+          export_info_code: string | null
+          hts_number: string | null
+          id: string
+          license_code: string | null
+          license_number: string | null
+          line_sequence: number
+          no_license_required: boolean | null
+          number_of_pieces: number | null
+          quantity: number | null
+          schedule_b_number: string | null
+          shipping_weight_kg: number | null
+          tariff_code: string | null
+          unit_of_measure: string | null
+          updated_at: string
+          value_usd: number | null
+          vehicle_title_number: string | null
+          vin_product_number: string | null
+        }
+        Insert: {
+          aes_filing_id: string
+          commodity_description?: string | null
+          country_of_origin?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          hts_number?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          no_license_required?: boolean | null
+          number_of_pieces?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipping_weight_kg?: number | null
+          tariff_code?: string | null
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vehicle_title_number?: string | null
+          vin_product_number?: string | null
+        }
+        Update: {
+          aes_filing_id?: string
+          commodity_description?: string | null
+          country_of_origin?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          hts_number?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          no_license_required?: boolean | null
+          number_of_pieces?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipping_weight_kg?: number | null
+          tariff_code?: string | null
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vehicle_title_number?: string | null
+          vin_product_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aes_commodity_lines_aes_filing_id_fkey"
+            columns: ["aes_filing_id"]
+            isOneToOne: false
+            referencedRelation: "aes_filings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aes_filings: {
+        Row: {
+          authorized_agent_address: string | null
+          authorized_agent_ein: string | null
+          authorized_agent_name: string | null
+          carrier_identification_code: string | null
+          compliance_alerts: string[] | null
+          containerized: boolean | null
+          country_of_manufacture: string | null
+          country_of_ultimate_destination: string | null
+          created_at: string
+          date_of_exportation: string | null
+          eei_exemption_citation: string | null
+          eei_required: boolean | null
+          entry_number: string | null
+          equipment_numbers: string[] | null
+          exporting_carrier: string | null
+          filing_option: string | null
+          filing_status: string
+          forwarder_authorization_language: string | null
+          hazardous_materials: boolean | null
+          id: string
+          in_bond_code: string | null
+          inability_to_deliver: string | null
+          intermediate_consignee_address: string | null
+          intermediate_consignee_name: string | null
+          itn: string | null
+          itn_created_date: string | null
+          itn_last_updated_date: string | null
+          loading_pier: string | null
+          method_of_transportation: string | null
+          original_itn: string | null
+          port_of_export: string | null
+          port_of_unlading: string | null
+          related_parties: boolean | null
+          routed_export_transaction: boolean | null
+          seal_numbers: string[] | null
+          shipment_id: string
+          shipment_reference_number: string | null
+          shipper_certification_language: string | null
+          special_instructions: string | null
+          state_of_origin: string | null
+          title_of_shipper_representative: string | null
+          transportation_ref_number: string | null
+          ultimate_consignee_address: string | null
+          ultimate_consignee_name: string | null
+          ultimate_consignee_type: string | null
+          updated_at: string
+          user_id: string
+          usppi_address: string | null
+          usppi_contact_name: string | null
+          usppi_ein: string | null
+          usppi_email: string | null
+          usppi_name: string | null
+          usppi_phone: string | null
+          xtn: string | null
+        }
+        Insert: {
+          authorized_agent_address?: string | null
+          authorized_agent_ein?: string | null
+          authorized_agent_name?: string | null
+          carrier_identification_code?: string | null
+          compliance_alerts?: string[] | null
+          containerized?: boolean | null
+          country_of_manufacture?: string | null
+          country_of_ultimate_destination?: string | null
+          created_at?: string
+          date_of_exportation?: string | null
+          eei_exemption_citation?: string | null
+          eei_required?: boolean | null
+          entry_number?: string | null
+          equipment_numbers?: string[] | null
+          exporting_carrier?: string | null
+          filing_option?: string | null
+          filing_status?: string
+          forwarder_authorization_language?: string | null
+          hazardous_materials?: boolean | null
+          id?: string
+          in_bond_code?: string | null
+          inability_to_deliver?: string | null
+          intermediate_consignee_address?: string | null
+          intermediate_consignee_name?: string | null
+          itn?: string | null
+          itn_created_date?: string | null
+          itn_last_updated_date?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
+          original_itn?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
+          seal_numbers?: string[] | null
+          shipment_id: string
+          shipment_reference_number?: string | null
+          shipper_certification_language?: string | null
+          special_instructions?: string | null
+          state_of_origin?: string | null
+          title_of_shipper_representative?: string | null
+          transportation_ref_number?: string | null
+          ultimate_consignee_address?: string | null
+          ultimate_consignee_name?: string | null
+          ultimate_consignee_type?: string | null
+          updated_at?: string
+          user_id: string
+          usppi_address?: string | null
+          usppi_contact_name?: string | null
+          usppi_ein?: string | null
+          usppi_email?: string | null
+          usppi_name?: string | null
+          usppi_phone?: string | null
+          xtn?: string | null
+        }
+        Update: {
+          authorized_agent_address?: string | null
+          authorized_agent_ein?: string | null
+          authorized_agent_name?: string | null
+          carrier_identification_code?: string | null
+          compliance_alerts?: string[] | null
+          containerized?: boolean | null
+          country_of_manufacture?: string | null
+          country_of_ultimate_destination?: string | null
+          created_at?: string
+          date_of_exportation?: string | null
+          eei_exemption_citation?: string | null
+          eei_required?: boolean | null
+          entry_number?: string | null
+          equipment_numbers?: string[] | null
+          exporting_carrier?: string | null
+          filing_option?: string | null
+          filing_status?: string
+          forwarder_authorization_language?: string | null
+          hazardous_materials?: boolean | null
+          id?: string
+          in_bond_code?: string | null
+          inability_to_deliver?: string | null
+          intermediate_consignee_address?: string | null
+          intermediate_consignee_name?: string | null
+          itn?: string | null
+          itn_created_date?: string | null
+          itn_last_updated_date?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
+          original_itn?: string | null
+          port_of_export?: string | null
+          port_of_unlading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
+          seal_numbers?: string[] | null
+          shipment_id?: string
+          shipment_reference_number?: string | null
+          shipper_certification_language?: string | null
+          special_instructions?: string | null
+          state_of_origin?: string | null
+          title_of_shipper_representative?: string | null
+          transportation_ref_number?: string | null
+          ultimate_consignee_address?: string | null
+          ultimate_consignee_name?: string | null
+          ultimate_consignee_type?: string | null
+          updated_at?: string
+          user_id?: string
+          usppi_address?: string | null
+          usppi_contact_name?: string | null
+          usppi_ein?: string | null
+          usppi_email?: string | null
+          usppi_name?: string | null
+          usppi_phone?: string | null
+          xtn?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aes_filings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -293,6 +558,7 @@ export type Database = {
           base_rate: number
           carrier: string
           container_type: string
+          contract_number: string | null
           created_at: string
           currency: string
           destination_port: string
@@ -300,6 +566,7 @@ export type Database = {
           mode: string
           notes: string | null
           origin_port: string
+          rate_basis_type: string | null
           surcharges: Json
           transit_days: number | null
           updated_at: string
@@ -310,6 +577,7 @@ export type Database = {
           base_rate: number
           carrier: string
           container_type: string
+          contract_number?: string | null
           created_at?: string
           currency?: string
           destination_port: string
@@ -317,6 +585,7 @@ export type Database = {
           mode?: string
           notes?: string | null
           origin_port: string
+          rate_basis_type?: string | null
           surcharges?: Json
           transit_days?: number | null
           updated_at?: string
@@ -327,6 +596,7 @@ export type Database = {
           base_rate?: number
           carrier?: string
           container_type?: string
+          contract_number?: string | null
           created_at?: string
           currency?: string
           destination_port?: string
@@ -334,6 +604,7 @@ export type Database = {
           mode?: string
           notes?: string | null
           origin_port?: string
+          rate_basis_type?: string | null
           surcharges?: Json
           transit_days?: number | null
           updated_at?: string
@@ -352,6 +623,7 @@ export type Database = {
           cargo_insurance_provider: string | null
           chassis_capable: boolean | null
           city: string | null
+          company_contact_name: string | null
           company_name: string
           company_type: string
           country: string | null
@@ -403,6 +675,7 @@ export type Database = {
           cargo_insurance_provider?: string | null
           chassis_capable?: boolean | null
           city?: string | null
+          company_contact_name?: string | null
           company_name: string
           company_type?: string
           country?: string | null
@@ -454,6 +727,7 @@ export type Database = {
           cargo_insurance_provider?: string | null
           chassis_capable?: boolean | null
           city?: string | null
+          company_contact_name?: string | null
           company_name?: string
           company_type?: string
           country?: string | null
@@ -657,6 +931,99 @@ export type Database = {
           },
         ]
       }
+      container_commodities: {
+        Row: {
+          commodity_description: string | null
+          container_id: string
+          country_of_manufacture: string | null
+          created_at: string
+          df_indicator: string | null
+          eccn: string | null
+          export_info_code: string | null
+          gross_weight_kg: number | null
+          hazardous: boolean
+          hs_code: string | null
+          hts_code: string | null
+          id: string
+          license_code: string | null
+          license_number: string | null
+          line_sequence: number
+          net_weight_kg: number | null
+          quantity: number | null
+          schedule_b_number: string | null
+          shipment_id: string
+          unit_of_measure: string | null
+          updated_at: string
+          value_usd: number | null
+          vin_product_number: string | null
+        }
+        Insert: {
+          commodity_description?: string | null
+          container_id: string
+          country_of_manufacture?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          gross_weight_kg?: number | null
+          hazardous?: boolean
+          hs_code?: string | null
+          hts_code?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          net_weight_kg?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipment_id: string
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vin_product_number?: string | null
+        }
+        Update: {
+          commodity_description?: string | null
+          container_id?: string
+          country_of_manufacture?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          gross_weight_kg?: number | null
+          hazardous?: boolean
+          hs_code?: string | null
+          hts_code?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          net_weight_kg?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipment_id?: string
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vin_product_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "container_commodities_container_id_fkey"
+            columns: ["container_id"]
+            isOneToOne: false
+            referencedRelation: "containers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "container_commodities_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       containers: {
         Row: {
           container_number: string | null
@@ -664,11 +1031,16 @@ export type Database = {
           container_type: string
           created_at: string
           id: string
+          max_payload: number | null
           oog_dimensions: string | null
+          pickup_date: string | null
           quantity: number
           reefer_temp: string | null
+          return_date: string | null
           seal_number: string | null
           shipment_id: string
+          status: string | null
+          tare_weight: number | null
           vgm: number | null
         }
         Insert: {
@@ -677,11 +1049,16 @@ export type Database = {
           container_type: string
           created_at?: string
           id?: string
+          max_payload?: number | null
           oog_dimensions?: string | null
+          pickup_date?: string | null
           quantity?: number
           reefer_temp?: string | null
+          return_date?: string | null
           seal_number?: string | null
           shipment_id: string
+          status?: string | null
+          tare_weight?: number | null
           vgm?: number | null
         }
         Update: {
@@ -690,11 +1067,16 @@ export type Database = {
           container_type?: string
           created_at?: string
           id?: string
+          max_payload?: number | null
           oog_dimensions?: string | null
+          pickup_date?: string | null
           quantity?: number
           reefer_temp?: string | null
+          return_date?: string | null
           seal_number?: string | null
           shipment_id?: string
+          status?: string | null
+          tare_weight?: number | null
           vgm?: number | null
         }
         Relationships: [
@@ -908,8 +1290,11 @@ export type Database = {
       demurrage_charges: {
         Row: {
           carrier: string | null
+          carrier_specific_rules: string | null
           charge_type: string
           container_number: string | null
+          contract_free_days: number | null
+          contract_specific_rules: string | null
           created_at: string
           currency: string
           daily_rate: number
@@ -920,13 +1305,17 @@ export type Database = {
           shipment_id: string
           start_date: string | null
           status: string
+          street_turn_eligible: boolean | null
           total_amount: number
           updated_at: string
         }
         Insert: {
           carrier?: string | null
+          carrier_specific_rules?: string | null
           charge_type?: string
           container_number?: string | null
+          contract_free_days?: number | null
+          contract_specific_rules?: string | null
           created_at?: string
           currency?: string
           daily_rate?: number
@@ -937,13 +1326,17 @@ export type Database = {
           shipment_id: string
           start_date?: string | null
           status?: string
+          street_turn_eligible?: boolean | null
           total_amount?: number
           updated_at?: string
         }
         Update: {
           carrier?: string | null
+          carrier_specific_rules?: string | null
           charge_type?: string
           container_number?: string | null
+          contract_free_days?: number | null
+          contract_specific_rules?: string | null
           created_at?: string
           currency?: string
           daily_rate?: number
@@ -954,6 +1347,7 @@ export type Database = {
           shipment_id?: string
           start_date?: string | null
           status?: string
+          street_turn_eligible?: boolean | null
           total_amount?: number
           updated_at?: string
         }
@@ -1948,6 +2342,53 @@ export type Database = {
           },
         ]
       }
+      shipment_cutoffs: {
+        Row: {
+          created_at: string
+          cutoff_datetime: string | null
+          cutoff_type: string
+          id: string
+          is_estimated: boolean
+          notes: string | null
+          set_by: string | null
+          shipment_id: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cutoff_datetime?: string | null
+          cutoff_type: string
+          id?: string
+          is_estimated?: boolean
+          notes?: string | null
+          set_by?: string | null
+          shipment_id: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cutoff_datetime?: string | null
+          cutoff_type?: string
+          id?: string
+          is_estimated?: boolean
+          notes?: string | null
+          set_by?: string | null
+          shipment_id?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_cutoffs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_financials: {
         Row: {
           amount: number
@@ -2000,6 +2441,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shipment_financials_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_milestones: {
+        Row: {
+          completed_by: string | null
+          created_at: string
+          event_date: string | null
+          id: string
+          is_completed: boolean
+          milestone_key: string
+          milestone_label: string
+          milestone_order: number
+          notes: string | null
+          shipment_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_by?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          is_completed?: boolean
+          milestone_key: string
+          milestone_label: string
+          milestone_order: number
+          notes?: string | null
+          shipment_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_by?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          is_completed?: boolean
+          milestone_key?: string
+          milestone_label?: string
+          milestone_order?: number
+          notes?: string | null
+          shipment_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_milestones_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
@@ -2066,6 +2557,134 @@ export type Database = {
           },
         ]
       }
+      shipment_pnl_audit_log: {
+        Row: {
+          after_value: string | null
+          before_value: string | null
+          edited_at: string
+          edited_by: string
+          field_name: string
+          financial_id: string
+          id: string
+          notes: string | null
+          shipment_id: string
+        }
+        Insert: {
+          after_value?: string | null
+          before_value?: string | null
+          edited_at?: string
+          edited_by: string
+          field_name: string
+          financial_id: string
+          id?: string
+          notes?: string | null
+          shipment_id: string
+        }
+        Update: {
+          after_value?: string | null
+          before_value?: string | null
+          edited_at?: string
+          edited_by?: string
+          field_name?: string
+          financial_id?: string
+          id?: string
+          notes?: string | null
+          shipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_pnl_audit_log_financial_id_fkey"
+            columns: ["financial_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_pnl_audit_log_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_rates: {
+        Row: {
+          carrier: string | null
+          container_count: number
+          container_type: string | null
+          contract_number: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_selected: boolean
+          markup_amount: number | null
+          markup_percent: number | null
+          notes: string | null
+          rate_basis_type: string
+          rate_per_container: number
+          shipment_id: string
+          surcharges: Json | null
+          total_freight: number
+          transit_days: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          container_count?: number
+          container_type?: string | null
+          contract_number?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_selected?: boolean
+          markup_amount?: number | null
+          markup_percent?: number | null
+          notes?: string | null
+          rate_basis_type?: string
+          rate_per_container?: number
+          shipment_id: string
+          surcharges?: Json | null
+          total_freight?: number
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          container_count?: number
+          container_type?: string | null
+          contract_number?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_selected?: boolean
+          markup_amount?: number | null
+          markup_percent?: number | null
+          notes?: string | null
+          rate_basis_type?: string
+          rate_per_container?: number
+          shipment_id?: string
+          surcharges?: Json | null
+          total_freight?: number
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_rates_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           accounting_information: string | null
@@ -2073,22 +2692,30 @@ export type Database = {
           airline: string | null
           airport_of_departure: string | null
           airport_of_destination: string | null
+          available_for_pickup_date: string | null
+          booking_confirmed_date: string | null
           booking_ref: string | null
           booking_terms: string | null
           cargo_arrival_date: string | null
+          cargo_loaded_date: string | null
+          cargo_received_date: string | null
           carrier: string | null
           carrier_submission_mode: string | null
           carrier_submission_status: string | null
           chargeable_weight: number | null
           commodity_item_number: string | null
           company_id: string | null
+          container_count: number | null
+          containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
           customer_reference: string | null
+          customs_clearance_date: string | null
           cy_cutoff: string | null
           declared_value: number | null
           declared_value_for_carriage: number | null
           declared_value_for_customs: number | null
+          delivered_date: string | null
           delivery_city: string | null
           delivery_contact_name: string | null
           delivery_contact_phone: string | null
@@ -2103,6 +2730,7 @@ export type Database = {
           destination_port: string | null
           destuffing_required: boolean | null
           doc_cutoff: string | null
+          erd: string | null
           eta: string | null
           etd: string | null
           feeder_vessel: string | null
@@ -2140,21 +2768,27 @@ export type Database = {
           place_of_delivery: string | null
           place_of_receipt: string | null
           quote_reference: string | null
+          rate_basis_type: string | null
           rate_class: string | null
+          rate_per_container: number | null
           requested_ship_date: string | null
           routing_and_destination: string | null
           sci: string | null
           shipment_ref: string
           shipment_type: string
           si_cutoff: string | null
+          space_confirmed: boolean | null
           status: string
           storage_notes: string | null
+          total_freight: number | null
           total_shipment_value: number | null
           transshipment_port_1: string | null
           transshipment_port_2: string | null
           updated_at: string
           user_id: string
           vessel: string | null
+          vessel_arrived_date: string | null
+          vessel_departed_date: string | null
           vgm_cutoff: string | null
           voyage: string | null
           warehouse_location: string | null
@@ -2166,22 +2800,30 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          available_for_pickup_date?: string | null
+          booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
           cargo_arrival_date?: string | null
+          cargo_loaded_date?: string | null
+          cargo_received_date?: string | null
           carrier?: string | null
           carrier_submission_mode?: string | null
           carrier_submission_status?: string | null
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          container_count?: number | null
+          containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
           declared_value_for_carriage?: number | null
           declared_value_for_customs?: number | null
+          delivered_date?: string | null
           delivery_city?: string | null
           delivery_contact_name?: string | null
           delivery_contact_phone?: string | null
@@ -2196,6 +2838,7 @@ export type Database = {
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
+          erd?: string | null
           eta?: string | null
           etd?: string | null
           feeder_vessel?: string | null
@@ -2233,21 +2876,27 @@ export type Database = {
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null
+          rate_basis_type?: string | null
           rate_class?: string | null
+          rate_per_container?: number | null
           requested_ship_date?: string | null
           routing_and_destination?: string | null
           sci?: string | null
           shipment_ref: string
           shipment_type?: string
           si_cutoff?: string | null
+          space_confirmed?: boolean | null
           status?: string
           storage_notes?: string | null
+          total_freight?: number | null
           total_shipment_value?: number | null
           transshipment_port_1?: string | null
           transshipment_port_2?: string | null
           updated_at?: string
           user_id: string
           vessel?: string | null
+          vessel_arrived_date?: string | null
+          vessel_departed_date?: string | null
           vgm_cutoff?: string | null
           voyage?: string | null
           warehouse_location?: string | null
@@ -2259,22 +2908,30 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          available_for_pickup_date?: string | null
+          booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
           cargo_arrival_date?: string | null
+          cargo_loaded_date?: string | null
+          cargo_received_date?: string | null
           carrier?: string | null
           carrier_submission_mode?: string | null
           carrier_submission_status?: string | null
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          container_count?: number | null
+          containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
           declared_value_for_carriage?: number | null
           declared_value_for_customs?: number | null
+          delivered_date?: string | null
           delivery_city?: string | null
           delivery_contact_name?: string | null
           delivery_contact_phone?: string | null
@@ -2289,6 +2946,7 @@ export type Database = {
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
+          erd?: string | null
           eta?: string | null
           etd?: string | null
           feeder_vessel?: string | null
@@ -2326,21 +2984,27 @@ export type Database = {
           place_of_delivery?: string | null
           place_of_receipt?: string | null
           quote_reference?: string | null
+          rate_basis_type?: string | null
           rate_class?: string | null
+          rate_per_container?: number | null
           requested_ship_date?: string | null
           routing_and_destination?: string | null
           sci?: string | null
           shipment_ref?: string
           shipment_type?: string
           si_cutoff?: string | null
+          space_confirmed?: boolean | null
           status?: string
           storage_notes?: string | null
+          total_freight?: number | null
           total_shipment_value?: number | null
           transshipment_port_1?: string | null
           transshipment_port_2?: string | null
           updated_at?: string
           user_id?: string
           vessel?: string | null
+          vessel_arrived_date?: string | null
+          vessel_departed_date?: string | null
           vgm_cutoff?: string | null
           voyage?: string | null
           warehouse_location?: string | null
@@ -2411,6 +3075,147 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sli_documents: {
+        Row: {
+          aes_filing_id: string | null
+          carrier_ship_date: string | null
+          consignee_address: string | null
+          consignee_name: string | null
+          consignee_phone: string | null
+          consignee_type: string | null
+          containerized: boolean | null
+          country_of_manufacture: string | null
+          country_of_ultimate_destination: string | null
+          created_at: string
+          eccn: string | null
+          exporter_ein: string | null
+          exporting_carrier: string | null
+          forwarder_authorization: string | null
+          generated_url: string | null
+          hazardous_material: boolean | null
+          id: string
+          inability_to_deliver: string | null
+          license_info: string | null
+          loading_pier: string | null
+          method_of_transportation: string | null
+          no_license_required: boolean | null
+          point_state_of_origin: string | null
+          port_of_export: string | null
+          port_of_unloading: string | null
+          related_parties: boolean | null
+          routed_export_transaction: boolean | null
+          shipment_id: string
+          shipper_address: string | null
+          shipper_certification: string | null
+          shipper_contact_person: string | null
+          shipper_email: string | null
+          shipper_name: string | null
+          shipper_phone: string | null
+          shipper_reference_number: string | null
+          shipper_representative_title: string | null
+          special_instructions: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          aes_filing_id?: string | null
+          carrier_ship_date?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          consignee_phone?: string | null
+          consignee_type?: string | null
+          containerized?: boolean | null
+          country_of_manufacture?: string | null
+          country_of_ultimate_destination?: string | null
+          created_at?: string
+          eccn?: string | null
+          exporter_ein?: string | null
+          exporting_carrier?: string | null
+          forwarder_authorization?: string | null
+          generated_url?: string | null
+          hazardous_material?: boolean | null
+          id?: string
+          inability_to_deliver?: string | null
+          license_info?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
+          no_license_required?: boolean | null
+          point_state_of_origin?: string | null
+          port_of_export?: string | null
+          port_of_unloading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
+          shipment_id: string
+          shipper_address?: string | null
+          shipper_certification?: string | null
+          shipper_contact_person?: string | null
+          shipper_email?: string | null
+          shipper_name?: string | null
+          shipper_phone?: string | null
+          shipper_reference_number?: string | null
+          shipper_representative_title?: string | null
+          special_instructions?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          aes_filing_id?: string | null
+          carrier_ship_date?: string | null
+          consignee_address?: string | null
+          consignee_name?: string | null
+          consignee_phone?: string | null
+          consignee_type?: string | null
+          containerized?: boolean | null
+          country_of_manufacture?: string | null
+          country_of_ultimate_destination?: string | null
+          created_at?: string
+          eccn?: string | null
+          exporter_ein?: string | null
+          exporting_carrier?: string | null
+          forwarder_authorization?: string | null
+          generated_url?: string | null
+          hazardous_material?: boolean | null
+          id?: string
+          inability_to_deliver?: string | null
+          license_info?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
+          no_license_required?: boolean | null
+          point_state_of_origin?: string | null
+          port_of_export?: string | null
+          port_of_unloading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
+          shipment_id?: string
+          shipper_address?: string | null
+          shipper_certification?: string | null
+          shipper_contact_person?: string | null
+          shipper_email?: string | null
+          shipper_name?: string | null
+          shipper_phone?: string | null
+          shipper_reference_number?: string | null
+          shipper_representative_title?: string | null
+          special_instructions?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sli_documents_aes_filing_id_fkey"
+            columns: ["aes_filing_id"]
+            isOneToOne: false
+            referencedRelation: "aes_filings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sli_documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tracking_events: {
         Row: {
