@@ -657,6 +657,99 @@ export type Database = {
           },
         ]
       }
+      container_commodities: {
+        Row: {
+          commodity_description: string | null
+          container_id: string
+          country_of_manufacture: string | null
+          created_at: string
+          df_indicator: string | null
+          eccn: string | null
+          export_info_code: string | null
+          gross_weight_kg: number | null
+          hazardous: boolean
+          hs_code: string | null
+          hts_code: string | null
+          id: string
+          license_code: string | null
+          license_number: string | null
+          line_sequence: number
+          net_weight_kg: number | null
+          quantity: number | null
+          schedule_b_number: string | null
+          shipment_id: string
+          unit_of_measure: string | null
+          updated_at: string
+          value_usd: number | null
+          vin_product_number: string | null
+        }
+        Insert: {
+          commodity_description?: string | null
+          container_id: string
+          country_of_manufacture?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          gross_weight_kg?: number | null
+          hazardous?: boolean
+          hs_code?: string | null
+          hts_code?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          net_weight_kg?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipment_id: string
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vin_product_number?: string | null
+        }
+        Update: {
+          commodity_description?: string | null
+          container_id?: string
+          country_of_manufacture?: string | null
+          created_at?: string
+          df_indicator?: string | null
+          eccn?: string | null
+          export_info_code?: string | null
+          gross_weight_kg?: number | null
+          hazardous?: boolean
+          hs_code?: string | null
+          hts_code?: string | null
+          id?: string
+          license_code?: string | null
+          license_number?: string | null
+          line_sequence?: number
+          net_weight_kg?: number | null
+          quantity?: number | null
+          schedule_b_number?: string | null
+          shipment_id?: string
+          unit_of_measure?: string | null
+          updated_at?: string
+          value_usd?: number | null
+          vin_product_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "container_commodities_container_id_fkey"
+            columns: ["container_id"]
+            isOneToOne: false
+            referencedRelation: "containers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "container_commodities_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       containers: {
         Row: {
           container_number: string | null
@@ -1948,6 +2041,53 @@ export type Database = {
           },
         ]
       }
+      shipment_cutoffs: {
+        Row: {
+          created_at: string
+          cutoff_datetime: string | null
+          cutoff_type: string
+          id: string
+          is_estimated: boolean
+          notes: string | null
+          set_by: string | null
+          shipment_id: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cutoff_datetime?: string | null
+          cutoff_type: string
+          id?: string
+          is_estimated?: boolean
+          notes?: string | null
+          set_by?: string | null
+          shipment_id: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cutoff_datetime?: string | null
+          cutoff_type?: string
+          id?: string
+          is_estimated?: boolean
+          notes?: string | null
+          set_by?: string | null
+          shipment_id?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_cutoffs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_financials: {
         Row: {
           amount: number
@@ -2007,6 +2147,56 @@ export type Database = {
           },
         ]
       }
+      shipment_milestones: {
+        Row: {
+          completed_by: string | null
+          created_at: string
+          event_date: string | null
+          id: string
+          is_completed: boolean
+          milestone_key: string
+          milestone_label: string
+          milestone_order: number
+          notes: string | null
+          shipment_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_by?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          is_completed?: boolean
+          milestone_key: string
+          milestone_label: string
+          milestone_order: number
+          notes?: string | null
+          shipment_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_by?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          is_completed?: boolean
+          milestone_key?: string
+          milestone_label?: string
+          milestone_order?: number
+          notes?: string | null
+          shipment_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_milestones_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_parties: {
         Row: {
           address: string | null
@@ -2059,6 +2249,83 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shipment_parties_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_rates: {
+        Row: {
+          carrier: string | null
+          container_count: number
+          container_type: string | null
+          contract_number: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_selected: boolean
+          markup_amount: number | null
+          markup_percent: number | null
+          notes: string | null
+          rate_basis_type: string
+          rate_per_container: number
+          shipment_id: string
+          surcharges: Json | null
+          total_freight: number
+          transit_days: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          container_count?: number
+          container_type?: string | null
+          contract_number?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_selected?: boolean
+          markup_amount?: number | null
+          markup_percent?: number | null
+          notes?: string | null
+          rate_basis_type?: string
+          rate_per_container?: number
+          shipment_id: string
+          surcharges?: Json | null
+          total_freight?: number
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          container_count?: number
+          container_type?: string | null
+          contract_number?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_selected?: boolean
+          markup_amount?: number | null
+          markup_percent?: number | null
+          notes?: string | null
+          rate_basis_type?: string
+          rate_per_container?: number
+          shipment_id?: string
+          surcharges?: Json | null
+          total_freight?: number
+          transit_days?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_rates_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
