@@ -6,6 +6,7 @@ import { BeforeAfterSection } from "@/components/marketing/BeforeAfterSection";
 import { WorkflowSection } from "@/components/marketing/WorkflowSection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
+import { SecuritySection } from "@/components/marketing/SecuritySection";
 import { CTASection } from "@/components/marketing/CTASection";
 import { SEO } from "@/components/SEO";
 
@@ -24,6 +25,7 @@ const Index = () => {
       <WorkflowSection />
       <FeaturesSection />
       <PartnerAccessSection />
+      <SecuritySection />
       <CTASection />
     </MarketingLayout>
   );

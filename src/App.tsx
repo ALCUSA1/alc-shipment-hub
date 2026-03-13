@@ -61,6 +61,7 @@ import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
+import Security from "./pages/Security";
 import Templates from "./pages/Templates";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
 import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
@@ -118,6 +119,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/features" element={<Features />} />
             <Route path="/category" element={<Category />} />
+            <Route path="/security" element={<Security />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
