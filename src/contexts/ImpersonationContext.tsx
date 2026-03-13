@@ -9,6 +9,7 @@ type ImpersonationTarget = {
 
 const IMPERSONATION_TARGETS: ImpersonationTarget[] = [
   { role: "viewer", label: "Shipper", route: "/dashboard" },
+  { role: "forwarder", label: "Freight Forwarder", route: "/forwarder" },
   { role: "trucker", label: "Carrier (Back Office)", route: "/trucking" },
   { role: "driver", label: "Driver", route: "/driver" },
   { role: "warehouse", label: "Warehouse Operator", route: "/warehouse" },
