@@ -74,25 +74,32 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-navy items-center justify-center p-12">
-        <div className="max-w-md text-center">
-          <img src={alcLogo} alt="ALC Logo" className="h-16 w-auto mx-auto mb-6 brightness-0 invert" />
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">ALC Logistics</h2>
-          <p className="text-primary-foreground/60">Join our platform — whether you're a shipper, carrier, or warehouse operator.</p>
+      {/* Left panel — brand */}
+      <div className="hidden lg:flex lg:w-1/2 bg-navy items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(217,95%,58%)]/10 to-transparent" />
+        <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full bg-accent/5 blur-3xl" />
+        <div className="max-w-md text-center relative z-10">
+          <img src={alcLogo} alt="ALC Logo" className="h-14 w-auto mx-auto mb-8 brightness-0 invert" />
+          <h2 className="text-3xl font-bold text-primary-foreground mb-3 tracking-tight">ALC Shipper Portal</h2>
+          <p className="text-primary-foreground/50 text-sm leading-relaxed">
+            Join the platform — whether you're a shipper, freight forwarder, carrier, or warehouse operator.
+          </p>
         </div>
       </div>
+
+      {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <Link to="/" className="flex items-center gap-2 font-bold text-lg text-foreground mb-8 lg:hidden">
             <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Create your account</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-8">Get started with ALC Logistics</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="account-type">I am a…</Label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1.5">
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,26 +114,26 @@ const SignUp = () => {
             </div>
             <div>
               <Label htmlFor="company">Company name</Label>
-              <Input id="company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Logistics Inc." className="mt-1" />
+              <Input id="company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Logistics Inc." className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="name">Full name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" className="mt-1" required />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" className="mt-1.5" required />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="mt-1" required />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="mt-1.5" required />
             </div>
             <div>
               <Label htmlFor="password">Password</Label>
-              <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
+              <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1.5" required minLength={6} />
             </div>
-            <Button variant="electric" className="w-full" type="submit" disabled={loading}>
+            <Button variant="electric" className="w-full h-11" type="submit" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
           <p className="text-xs text-muted-foreground mt-4 text-center leading-relaxed">
-            Your account will be reviewed by our team before access is granted. You'll receive an email once approved.
+            Your account will be reviewed by our team before access is granted.
           </p>
           <p className="text-sm text-muted-foreground mt-4 text-center">
             Already have an account? <Link to="/login" className="text-accent font-medium hover:underline">Log in</Link>
