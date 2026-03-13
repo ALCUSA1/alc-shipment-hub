@@ -227,58 +227,65 @@ export function TruckingPanel({ shipmentId, shipmentStatus }: TruckingPanelProps
         })}
 
         {/* Trucking Quotes */}
-        {hasQuotes && truckingQuotes!.map((tq) => (
-          <div key={tq.id} className="rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-3.5 w-3.5 text-accent" />
-                <span className="text-sm font-medium text-foreground">
-                  {tq.company_name || "Carrier Quote"}
-                </span>
+        {hasQuotes && truckingQuotes!.map((tq) => {
+          // Controlled marketplace: Only reveal full company name & driver after quote is accepted
+          const isAccepted = ["accepted", "assigned", "en_route", "delivered"].includes(tq.status);
+          const displayName = isAccepted
+            ? (tq.company_name || "Carrier")
+            : `Service Option ${tq.company_name ? "•" : ""} ${tq.equipment_type || "Standard"}`.trim();
+
+          return (
+            <div key={tq.id} className="rounded-lg border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-sm font-medium text-foreground">{displayName}</span>
+                </div>
+                <Badge className={statusStyle[tq.status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                  {tq.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <Badge className={statusStyle[tq.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                {tq.status.replace(/_/g, " ")}
-              </Badge>
-            </div>
 
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-              {tq.price > 0 && (
-                <Row icon={<DollarSign className="h-3 w-3" />} label="Price" value={`$${Number(tq.price).toLocaleString()} ${tq.currency || "USD"}`} />
-              )}
-              {tq.driver_name && <Row icon={<User className="h-3 w-3" />} label="Driver" value={tq.driver_name} />}
-              {tq.equipment_type && <Row icon={<Truck className="h-3 w-3" />} label="Equipment" value={tq.equipment_type} />}
-              {tq.pickup_date && (
-                <Row icon={<Calendar className="h-3 w-3" />} label="Pickup" value={`${format(new Date(tq.pickup_date), "MMM d, yyyy")}${tq.pickup_time ? ` at ${tq.pickup_time}` : ""}`} />
-              )}
-            </div>
-
-            {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
-
-            {/* Only show accept/reject for submitted quotes on non-finalized shipments */}
-            {tq.status === "submitted" && !isReadOnly && (
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <Button
-                  size="sm"
-                  variant="electric"
-                  className="text-xs"
-                  disabled={updateQuoteStatus.isPending}
-                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "accepted" })}
-                >
-                  <Check className="h-3 w-3 mr-1" /> Accept
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                  disabled={updateQuoteStatus.isPending}
-                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "rejected" })}
-                >
-                  <X className="h-3 w-3 mr-1" /> Reject
-                </Button>
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                {tq.price > 0 && (
+                  <Row icon={<DollarSign className="h-3 w-3" />} label="Price" value={`$${Number(tq.price).toLocaleString()} ${tq.currency || "USD"}`} />
+                )}
+                {/* Anti-bypass: Driver name only shown after acceptance */}
+                {isAccepted && tq.driver_name && <Row icon={<User className="h-3 w-3" />} label="Driver" value={tq.driver_name} />}
+                {tq.equipment_type && <Row icon={<Truck className="h-3 w-3" />} label="Equipment" value={tq.equipment_type} />}
+                {tq.pickup_date && (
+                  <Row icon={<Calendar className="h-3 w-3" />} label="Pickup" value={`${format(new Date(tq.pickup_date), "MMM d, yyyy")}${tq.pickup_time ? ` at ${tq.pickup_time}` : ""}`} />
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
+
+              {/* Only show accept/reject for submitted quotes on non-finalized shipments */}
+              {tq.status === "submitted" && !isReadOnly && (
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant="electric"
+                    className="text-xs"
+                    disabled={updateQuoteStatus.isPending}
+                    onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "accepted" })}
+                  >
+                    <Check className="h-3 w-3 mr-1" /> Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    disabled={updateQuoteStatus.isPending}
+                    onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "rejected" })}
+                  >
+                    <X className="h-3 w-3 mr-1" /> Reject
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Legacy Truck Pickups */}
         {hasPickups && !hasDrivers && !hasQuotes && pickups!.map((p) => (
