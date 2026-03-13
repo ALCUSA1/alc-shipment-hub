@@ -193,25 +193,38 @@ export function TruckingPanel({ shipmentId, shipmentStatus }: TruckingPanelProps
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Driver Assignments */}
-        {hasDrivers && driverAssignments!.map((da) => (
-          <div key={da.id} className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-3.5 w-3.5 text-accent" />
-                <span className="text-sm font-medium text-foreground">{da.driver_name || "Assigned Driver"}</span>
+        {hasDrivers && driverAssignments!.map((da) => {
+          // Only reveal driver contact info for accepted/active assignments
+          const isConfirmed = ["en_route", "arrived", "loaded", "in_transit", "delivered"].includes(da.status);
+          return (
+            <div key={da.id} className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-sm font-medium text-foreground">
+                    {isConfirmed ? (da.driver_name || "Assigned Driver") : "Driver Assigned"}
+                  </span>
+                </div>
+                <Badge className={statusStyle[da.status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                  {da.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <Badge className={statusStyle[da.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                {da.status.replace(/_/g, " ")}
-              </Badge>
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                {da.pickup_address && <Row icon={<MapPin className="h-3 w-3" />} label="Pickup" value={da.pickup_address} />}
+                {da.delivery_address && <Row icon={<MapPin className="h-3 w-3" />} label="Delivery" value={da.delivery_address} />}
+                {/* Anti-bypass: Contact info only visible after confirmed pickup */}
+                {isConfirmed && da.driver_phone && <Row icon={<Phone className="h-3 w-3" />} label="Phone" value={da.driver_phone} />}
+                {isConfirmed && da.truck_plate && <Row icon={<Truck className="h-3 w-3" />} label="Plate" value={da.truck_plate} />}
+                {!isConfirmed && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/60 italic col-span-2">
+                    <Lock className="h-3 w-3" />
+                    Contact details available after pickup confirmation
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-              {da.pickup_address && <Row icon={<MapPin className="h-3 w-3" />} label="Pickup" value={da.pickup_address} />}
-              {da.delivery_address && <Row icon={<MapPin className="h-3 w-3" />} label="Delivery" value={da.delivery_address} />}
-              {da.driver_phone && <Row icon={<Phone className="h-3 w-3" />} label="Phone" value={da.driver_phone} />}
-              {da.truck_plate && <Row icon={<Truck className="h-3 w-3" />} label="Plate" value={da.truck_plate} />}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Trucking Quotes */}
         {hasQuotes && truckingQuotes!.map((tq) => (
