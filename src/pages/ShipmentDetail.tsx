@@ -337,7 +337,7 @@ const ShipmentDetail = () => {
                   container_type: containers?.[0]?.container_type || null,
                   container_count: containers?.length || 1,
                   incoterm: (shipment as any).incoterm || null,
-                  parties: JSON.stringify((parties || []).map(p => ({ role: p.role, name: p.name, company_name: p.company_name }))),
+                  parties: JSON.stringify((parties || []).map(p => ({ role: p.role, company_name: p.company_name, contact_name: p.contact_name }))),
                   cargo: JSON.stringify((cargo || []).map(c => ({ commodity: c.commodity, hs_code: c.hs_code, gross_weight: c.gross_weight, volume: c.volume }))),
                 });
                 if (error) throw error;
