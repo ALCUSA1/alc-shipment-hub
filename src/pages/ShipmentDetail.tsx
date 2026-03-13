@@ -73,6 +73,7 @@ const ShipmentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [deleting, setDeleting] = useState(false);
   const [showDocGen, setShowDocGen] = useState(false);
 
