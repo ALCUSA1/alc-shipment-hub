@@ -180,6 +180,16 @@ const App = () => (
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
 
+            {/* Forwarder Portal */}
+            <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />
+            <Route path="/forwarder/customers" element={<ForwarderGate><ForwarderCustomers /></ForwarderGate>} />
+            <Route path="/forwarder/shipments" element={<ForwarderGate><ForwarderShipments /></ForwarderGate>} />
+            <Route path="/forwarder/requests" element={<ForwarderGate><ForwarderRequests /></ForwarderGate>} />
+            <Route path="/forwarder/quotes" element={<ForwarderGate><ForwarderQuotes /></ForwarderGate>} />
+            <Route path="/forwarder/documents" element={<ForwarderGate><ForwarderDocuments /></ForwarderGate>} />
+            <Route path="/forwarder/analytics" element={<ForwarderGate><ForwarderAnalytics /></ForwarderGate>} />
+            <Route path="/forwarder/account" element={<ForwarderGate><ForwarderAccount /></ForwarderGate>} />
+
             {/* Trucking Company Portal */}
             <Route path="/trucking/login" element={<Navigate to="/login" replace />} />
             <Route path="/trucking" element={<TruckingGate><TruckingDashboard /></TruckingGate>} />
