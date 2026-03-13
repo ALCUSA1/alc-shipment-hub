@@ -11,6 +11,7 @@ import alcLogo from "@/assets/alc-logo.png";
 
 const ROLE_OPTIONS = [
   { value: "viewer", label: "Shipper", companyType: "shipper", description: "I need to ship goods" },
+  { value: "forwarder", label: "Freight Forwarder", companyType: "forwarder", description: "I manage freight forwarding operations" },
   { value: "trucker", label: "Carrier (Back Office)", companyType: "trucking_company", description: "I manage trucking operations" },
   { value: "driver", label: "Driver", companyType: "trucking_company", description: "I drive and deliver cargo" },
   { value: "warehouse", label: "Warehouse Operator", companyType: "warehouse", description: "I operate a warehouse" },
