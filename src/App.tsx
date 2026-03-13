@@ -9,6 +9,7 @@ import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleGate } from "@/components/RoleGate";
 import { AdminGate } from "@/components/admin/AdminGate";
+import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
 import HowItWorks from "./pages/HowItWorks";
@@ -60,6 +61,15 @@ import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
+import Templates from "./pages/Templates";
+import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
+import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
+import ForwarderShipments from "./pages/forwarder/ForwarderShipments";
+import ForwarderRequests from "./pages/forwarder/ForwarderRequests";
+import ForwarderQuotes from "./pages/forwarder/ForwarderQuotes";
+import ForwarderDocuments from "./pages/forwarder/ForwarderDocuments";
+import ForwarderAnalytics from "./pages/forwarder/ForwarderAnalytics";
+import ForwarderAccount from "./pages/forwarder/ForwarderAccount";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminActivity from "./pages/admin/AdminActivity";
@@ -136,6 +146,7 @@ const App = () => (
             <Route path="/dashboard/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/dashboard/portal" element={<ProtectedRoute><CustomerPortal /></ProtectedRoute>} />
             <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
@@ -168,6 +179,16 @@ const App = () => (
             <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
+
+            {/* Forwarder Portal */}
+            <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />
+            <Route path="/forwarder/customers" element={<ForwarderGate><ForwarderCustomers /></ForwarderGate>} />
+            <Route path="/forwarder/shipments" element={<ForwarderGate><ForwarderShipments /></ForwarderGate>} />
+            <Route path="/forwarder/requests" element={<ForwarderGate><ForwarderRequests /></ForwarderGate>} />
+            <Route path="/forwarder/quotes" element={<ForwarderGate><ForwarderQuotes /></ForwarderGate>} />
+            <Route path="/forwarder/documents" element={<ForwarderGate><ForwarderDocuments /></ForwarderGate>} />
+            <Route path="/forwarder/analytics" element={<ForwarderGate><ForwarderAnalytics /></ForwarderGate>} />
+            <Route path="/forwarder/account" element={<ForwarderGate><ForwarderAccount /></ForwarderGate>} />
 
             {/* Trucking Company Portal */}
             <Route path="/trucking/login" element={<Navigate to="/login" replace />} />

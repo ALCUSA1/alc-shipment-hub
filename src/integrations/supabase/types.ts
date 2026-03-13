@@ -1635,6 +1635,51 @@ export type Database = {
         }
         Relationships: []
       }
+      forwarder_customers: {
+        Row: {
+          accepted_at: string | null
+          company_name: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_user_id: string | null
+          forwarder_user_id: string
+          id: string
+          invited_at: string
+          metadata: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_user_id?: string | null
+          forwarder_user_id: string
+          id?: string
+          invited_at?: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_user_id?: string | null
+          forwarder_user_id?: string
+          id?: string
+          invited_at?: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -2684,6 +2729,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shipment_templates: {
+        Row: {
+          cargo: Json | null
+          commodity: string | null
+          container_count: number | null
+          container_type: string | null
+          created_at: string
+          delivery_location: string | null
+          description: string | null
+          destination_port: string | null
+          hs_code: string | null
+          id: string
+          incoterm: string | null
+          last_used_at: string | null
+          metadata: Json | null
+          mode: string
+          name: string
+          origin_port: string | null
+          parties: Json | null
+          pickup_location: string | null
+          shipment_type: string
+          special_instructions: string | null
+          updated_at: string
+          use_count: number | null
+          user_id: string
+        }
+        Insert: {
+          cargo?: Json | null
+          commodity?: string | null
+          container_count?: number | null
+          container_type?: string | null
+          created_at?: string
+          delivery_location?: string | null
+          description?: string | null
+          destination_port?: string | null
+          hs_code?: string | null
+          id?: string
+          incoterm?: string | null
+          last_used_at?: string | null
+          metadata?: Json | null
+          mode?: string
+          name: string
+          origin_port?: string | null
+          parties?: Json | null
+          pickup_location?: string | null
+          shipment_type?: string
+          special_instructions?: string | null
+          updated_at?: string
+          use_count?: number | null
+          user_id: string
+        }
+        Update: {
+          cargo?: Json | null
+          commodity?: string | null
+          container_count?: number | null
+          container_type?: string | null
+          created_at?: string
+          delivery_location?: string | null
+          description?: string | null
+          destination_port?: string | null
+          hs_code?: string | null
+          id?: string
+          incoterm?: string | null
+          last_used_at?: string | null
+          metadata?: Json | null
+          mode?: string
+          name?: string
+          origin_port?: string | null
+          parties?: Json | null
+          pickup_location?: string | null
+          shipment_type?: string
+          special_instructions?: string | null
+          updated_at?: string
+          use_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
       }
       shipments: {
         Row: {
@@ -3763,6 +3886,7 @@ export type Database = {
         | "trucker"
         | "driver"
         | "warehouse"
+        | "forwarder"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -3904,6 +4028,7 @@ export const Constants = {
         "trucker",
         "driver",
         "warehouse",
+        "forwarder",
       ],
       company_status: [
         "prospect",

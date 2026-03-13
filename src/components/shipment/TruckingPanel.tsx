@@ -193,79 +193,99 @@ export function TruckingPanel({ shipmentId, shipmentStatus }: TruckingPanelProps
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Driver Assignments */}
-        {hasDrivers && driverAssignments!.map((da) => (
-          <div key={da.id} className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-3.5 w-3.5 text-accent" />
-                <span className="text-sm font-medium text-foreground">{da.driver_name || "Assigned Driver"}</span>
+        {hasDrivers && driverAssignments!.map((da) => {
+          // Only reveal driver contact info for accepted/active assignments
+          const isConfirmed = ["en_route", "arrived", "loaded", "in_transit", "delivered"].includes(da.status);
+          return (
+            <div key={da.id} className="rounded-lg border border-accent/20 bg-accent/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-sm font-medium text-foreground">
+                    {isConfirmed ? (da.driver_name || "Assigned Driver") : "Driver Assigned"}
+                  </span>
+                </div>
+                <Badge className={statusStyle[da.status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                  {da.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <Badge className={statusStyle[da.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                {da.status.replace(/_/g, " ")}
-              </Badge>
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                {da.pickup_address && <Row icon={<MapPin className="h-3 w-3" />} label="Pickup" value={da.pickup_address} />}
+                {da.delivery_address && <Row icon={<MapPin className="h-3 w-3" />} label="Delivery" value={da.delivery_address} />}
+                {/* Anti-bypass: Contact info only visible after confirmed pickup */}
+                {isConfirmed && da.driver_phone && <Row icon={<Phone className="h-3 w-3" />} label="Phone" value={da.driver_phone} />}
+                {isConfirmed && da.truck_plate && <Row icon={<Truck className="h-3 w-3" />} label="Plate" value={da.truck_plate} />}
+                {!isConfirmed && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/60 italic col-span-2">
+                    <Lock className="h-3 w-3" />
+                    Contact details available after pickup confirmation
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-              {da.pickup_address && <Row icon={<MapPin className="h-3 w-3" />} label="Pickup" value={da.pickup_address} />}
-              {da.delivery_address && <Row icon={<MapPin className="h-3 w-3" />} label="Delivery" value={da.delivery_address} />}
-              {da.driver_phone && <Row icon={<Phone className="h-3 w-3" />} label="Phone" value={da.driver_phone} />}
-              {da.truck_plate && <Row icon={<Truck className="h-3 w-3" />} label="Plate" value={da.truck_plate} />}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Trucking Quotes */}
-        {hasQuotes && truckingQuotes!.map((tq) => (
-          <div key={tq.id} className="rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-3.5 w-3.5 text-accent" />
-                <span className="text-sm font-medium text-foreground">
-                  {tq.company_name || "Carrier Quote"}
-                </span>
+        {hasQuotes && truckingQuotes!.map((tq) => {
+          // Controlled marketplace: Only reveal full company name & driver after quote is accepted
+          const isAccepted = ["accepted", "assigned", "en_route", "delivered"].includes(tq.status);
+          const displayName = isAccepted
+            ? (tq.company_name || "Carrier")
+            : `Service Option ${tq.company_name ? "•" : ""} ${tq.equipment_type || "Standard"}`.trim();
+
+          return (
+            <div key={tq.id} className="rounded-lg border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-sm font-medium text-foreground">{displayName}</span>
+                </div>
+                <Badge className={statusStyle[tq.status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                  {tq.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <Badge className={statusStyle[tq.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                {tq.status.replace(/_/g, " ")}
-              </Badge>
-            </div>
 
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-              {tq.price > 0 && (
-                <Row icon={<DollarSign className="h-3 w-3" />} label="Price" value={`$${Number(tq.price).toLocaleString()} ${tq.currency || "USD"}`} />
-              )}
-              {tq.driver_name && <Row icon={<User className="h-3 w-3" />} label="Driver" value={tq.driver_name} />}
-              {tq.equipment_type && <Row icon={<Truck className="h-3 w-3" />} label="Equipment" value={tq.equipment_type} />}
-              {tq.pickup_date && (
-                <Row icon={<Calendar className="h-3 w-3" />} label="Pickup" value={`${format(new Date(tq.pickup_date), "MMM d, yyyy")}${tq.pickup_time ? ` at ${tq.pickup_time}` : ""}`} />
-              )}
-            </div>
-
-            {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
-
-            {/* Only show accept/reject for submitted quotes on non-finalized shipments */}
-            {tq.status === "submitted" && !isReadOnly && (
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <Button
-                  size="sm"
-                  variant="electric"
-                  className="text-xs"
-                  disabled={updateQuoteStatus.isPending}
-                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "accepted" })}
-                >
-                  <Check className="h-3 w-3 mr-1" /> Accept
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                  disabled={updateQuoteStatus.isPending}
-                  onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "rejected" })}
-                >
-                  <X className="h-3 w-3 mr-1" /> Reject
-                </Button>
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+                {tq.price > 0 && (
+                  <Row icon={<DollarSign className="h-3 w-3" />} label="Price" value={`$${Number(tq.price).toLocaleString()} ${tq.currency || "USD"}`} />
+                )}
+                {/* Anti-bypass: Driver name only shown after acceptance */}
+                {isAccepted && tq.driver_name && <Row icon={<User className="h-3 w-3" />} label="Driver" value={tq.driver_name} />}
+                {tq.equipment_type && <Row icon={<Truck className="h-3 w-3" />} label="Equipment" value={tq.equipment_type} />}
+                {tq.pickup_date && (
+                  <Row icon={<Calendar className="h-3 w-3" />} label="Pickup" value={`${format(new Date(tq.pickup_date), "MMM d, yyyy")}${tq.pickup_time ? ` at ${tq.pickup_time}` : ""}`} />
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              {tq.notes && <p className="text-xs text-muted-foreground border-t pt-2">{tq.notes}</p>}
+
+              {/* Only show accept/reject for submitted quotes on non-finalized shipments */}
+              {tq.status === "submitted" && !isReadOnly && (
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant="electric"
+                    className="text-xs"
+                    disabled={updateQuoteStatus.isPending}
+                    onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "accepted" })}
+                  >
+                    <Check className="h-3 w-3 mr-1" /> Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    disabled={updateQuoteStatus.isPending}
+                    onClick={() => updateQuoteStatus.mutate({ quoteId: tq.id, status: "rejected" })}
+                  >
+                    <X className="h-3 w-3 mr-1" /> Reject
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Legacy Truck Pickups */}
         {hasPickups && !hasDrivers && !hasQuotes && pickups!.map((p) => (
