@@ -9,6 +9,7 @@ import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleGate } from "@/components/RoleGate";
 import { AdminGate } from "@/components/admin/AdminGate";
+import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
 import HowItWorks from "./pages/HowItWorks";
