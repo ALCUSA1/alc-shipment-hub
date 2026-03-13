@@ -37,10 +37,13 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
   { value: "draft", label: "Draft" },
   { value: "pending", label: "Pending" },
+  { value: "booked", label: "Booked" },
   { value: "booking_confirmed", label: "Booking Confirmed" },
   { value: "cargo_received", label: "Cargo Received" },
   { value: "in_transit", label: "In Transit" },
+  { value: "arrived", label: "Arrived" },
   { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 const TYPE_OPTIONS = [
