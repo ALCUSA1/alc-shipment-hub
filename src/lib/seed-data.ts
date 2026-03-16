@@ -91,27 +91,27 @@ export async function autoSeedIfEmpty(userId: string) {
   await supabase.from("containers").insert(containers);
 
   // --- Quotes ---
-  const quotableShipments = insertedShipments.slice(0, 7);
+  const quotableShipments = insertedShipments.slice(0, 10);
   const quotes = quotableShipments.map((s, i) => ({
     shipment_id: s.id,
     user_id: userId,
-    status: ["pending", "pending", "accepted", "accepted", "pending", "booked", "pending"][i],
+    status: ["pending", "pending", "accepted", "accepted", "pending", "booked", "converted", "declined", "draft", "draft"][i],
     payment_status: i === 5 ? "unpaid" : "unpaid",
     origin_port: s.origin_port,
     destination_port: s.destination_port,
     carrier: s.carrier,
     container_type: "40HC",
-    amount: [4200, 3800, 5100, 3600, 4800, 2900, 6200][i],
-    customer_price: [4800, 4200, 5800, 4100, 5500, 3400, 7000][i],
-    carrier_cost: [3800, 3400, 4600, 3200, 4300, 2600, 5600][i],
+    amount: [4200, 3800, 5100, 3600, 4800, 2900, 6200, 3100, 4500, 5800][i],
+    customer_price: [4800, 4200, 5800, 4100, 5500, 3400, 7000, 3600, 5100, 6500][i],
+    carrier_cost: [3800, 3400, 4600, 3200, 4300, 2600, 5600, 2800, 4000, 5200][i],
     margin_type: "fixed" as const,
-    margin_value: [1000, 800, 1200, 900, 1200, 800, 1400][i],
+    margin_value: [1000, 800, 1200, 900, 1200, 800, 1400, 800, 1100, 1300][i],
     currency: "USD",
-    transit_days: [25, 19, 15, 17, 18, 28, 22][i],
-    valid_until: format(addDays(now, [14, 10, 7, 21, 12, 5, 18][i]), "yyyy-MM-dd"),
-    customer_name: ["Pacific Trade Corp", "Hamburg Logistics GmbH", "Santos Export LLC", "Pacific Trade Corp", "Yokohama Freight Services", "Pacific Trade Corp", "Hamburg Logistics GmbH"][i],
-    customer_email: ["ops@pacifictrade.com", "info@hamburglog.de", "sales@santosexport.com", "ops@pacifictrade.com", "dispatch@yokohamafreight.jp", "ops@pacifictrade.com", "info@hamburglog.de"][i],
-    notes: ["Standard ocean freight quote", "Return cargo from Hamburg", "Grain export to Santos", "Heavy machinery shipment", "Import from Yokohama", "Budget option declined", "Premium service quote"][i],
+    transit_days: [25, 19, 15, 17, 18, 28, 22, 20, 16, 24][i],
+    valid_until: format(addDays(now, [14, 10, 7, 21, 12, 5, 18, -3, 30, 25][i]), "yyyy-MM-dd"),
+    customer_name: ["Pacific Trade Corp", "Hamburg Logistics GmbH", "Santos Export LLC", "Pacific Trade Corp", "Yokohama Freight Services", "Pacific Trade Corp", "Hamburg Logistics GmbH", "Santos Export LLC", "Pacific Trade Corp", "Yokohama Freight Services"][i],
+    customer_email: ["ops@pacifictrade.com", "info@hamburglog.de", "sales@santosexport.com", "ops@pacifictrade.com", "dispatch@yokohamafreight.jp", "ops@pacifictrade.com", "info@hamburglog.de", "sales@santosexport.com", "ops@pacifictrade.com", "dispatch@yokohamafreight.jp"][i],
+    notes: ["Standard ocean freight quote", "Return cargo from Hamburg", "Grain export to Santos", "Heavy machinery shipment", "Import from Yokohama", "Budget option — booked", "Converted to active shipment", "Customer declined — price too high", "Draft — awaiting carrier rates", "Draft — incomplete routing"][i],
   }));
 
   await supabase.from("quotes").insert(quotes);
