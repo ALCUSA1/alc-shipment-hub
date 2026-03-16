@@ -425,14 +425,13 @@ const ShipmentDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
+              {/* General Info */}
+              <div className="grid sm:grid-cols-3 gap-x-8 gap-y-4 mb-6">
                 <InfoRow label="Shipment Type" value={formatStatus(shipment.shipment_type)} />
                 <InfoRow label="Mode" value={isAirShipment ? "Air" : "Ocean"} />
                 <InfoRow label="Status" value={formatStatus(shipment.status)} />
-                <InfoRow label={isAirShipment ? "Airport of Origin" : "Origin Port"} value={shipment.origin_port || "—"} />
-                <InfoRow label={isAirShipment ? "Airport of Dest." : "Destination Port"} value={shipment.destination_port || "—"} />
-                <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
-                <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
+                <InfoRow label="Booking Ref" value={shipment.booking_ref || "—"} />
+                <InfoRow label="Containers" value={containersSummary} />
                 {isAirShipment ? (
                   <>
                     <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
@@ -446,10 +445,24 @@ const ShipmentDetail = () => {
                     <InfoRow label="Voyage" value={shipment.voyage || "TBD"} />
                   </>
                 )}
-                <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
-                <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
-                <InfoRow label="Booking Ref" value={shipment.booking_ref || "—"} />
-                <InfoRow label="Containers" value={containersSummary} />
+              </div>
+
+              <Separator className="my-5" />
+
+              {/* Origin ↔ Destination side by side */}
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-4 p-4 rounded-lg bg-muted/40 border border-border">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Origin</h4>
+                  <InfoRow label={isAirShipment ? "Airport" : "Port"} value={shipment.origin_port || "—"} />
+                  <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
+                  <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
+                </div>
+                <div className="space-y-4 p-4 rounded-lg bg-muted/40 border border-border">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Destination</h4>
+                  <InfoRow label={isAirShipment ? "Airport" : "Port"} value={shipment.destination_port || "—"} />
+                  <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
+                  <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
+                </div>
               </div>
               {firstCargo && (
                 <>
