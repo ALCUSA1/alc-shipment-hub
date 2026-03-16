@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
