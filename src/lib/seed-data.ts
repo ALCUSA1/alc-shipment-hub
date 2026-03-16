@@ -61,8 +61,7 @@ export async function autoSeedIfEmpty(userId: string) {
     .select("id, status, origin_port, destination_port, carrier, mode");
 
   if (!insertedShipments?.length) {
-    seededUsers.push(userId);
-    localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+    console.error("[seed] Failed to insert shipments");
     return false;
   }
 
