@@ -95,7 +95,8 @@ export async function autoSeedIfEmpty(userId: string) {
   const quotes = quotableShipments.map((s, i) => ({
     shipment_id: s.id,
     user_id: userId,
-    status: ["pending", "pending", "accepted", "accepted", "pending", "declined", "pending"][i],
+    status: ["pending", "pending", "accepted", "accepted", "pending", "booked", "pending"][i],
+    payment_status: i === 5 ? "unpaid" : "unpaid",
     origin_port: s.origin_port,
     destination_port: s.destination_port,
     carrier: s.carrier,
