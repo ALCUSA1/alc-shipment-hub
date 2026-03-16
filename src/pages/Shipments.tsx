@@ -258,7 +258,15 @@ const Shipments = () => {
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground text-sm">
-              {hasActiveFilters ? "No shipments match your filters." : "No shipments yet. Create your first shipment to get started."}
+              {hasActiveFilters ? "No shipments match your filters." : (
+                <div className="space-y-3">
+                  <p>No shipments yet. Create your first shipment to get started.</p>
+                  <Button variant="outline" size="sm" onClick={seedPendingShipments} disabled={seeding}>
+                    {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Seed Pending Shipments
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
