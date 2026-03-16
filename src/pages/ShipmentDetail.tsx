@@ -265,12 +265,9 @@ const ShipmentDetail = () => {
     <DashboardLayout>
       {/* Header */}
       <div className="mb-8">
-        <Button variant="ghost" size="sm" className="mb-4 -ml-2" asChild>
-          <Link to="/dashboard/shipments">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shipments
-          </Link>
-        </Button>
+        <div className="mb-4 -ml-2">
+          <BackButton />
+        </div>
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">

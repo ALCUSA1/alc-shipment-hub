@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

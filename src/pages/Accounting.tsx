@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
