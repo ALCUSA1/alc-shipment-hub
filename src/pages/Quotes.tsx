@@ -63,11 +63,13 @@ const paymentStatusStyle: Record<string, string> = {
 const Quotes = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [convertDialogQuote, setConvertDialogQuote] = useState<QuoteRow | null>(null);
   const [cutoffs, setCutoffs] = useState({ cy: "", si: "", vgm: "", doc: "" });
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const statusFilter = searchParams.get("status") || "all";
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes", user?.id],
