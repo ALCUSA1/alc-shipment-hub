@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -63,11 +63,13 @@ const paymentStatusStyle: Record<string, string> = {
 const Quotes = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [convertDialogQuote, setConvertDialogQuote] = useState<QuoteRow | null>(null);
   const [cutoffs, setCutoffs] = useState({ cy: "", si: "", vgm: "", doc: "" });
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const statusFilter = searchParams.get("status") || "all";
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes", user?.id],
@@ -82,6 +84,11 @@ const Quotes = () => {
     },
     enabled: !!user,
   });
+
+  const filteredQuotes = useMemo(() => {
+    if (statusFilter === "all") return quotes;
+    return quotes.filter((q) => q.status === statusFilter);
+  }, [quotes, statusFilter]);
 
   const [bookingId, setBookingId] = useState<string | null>(null);
 
@@ -325,19 +332,41 @@ const Quotes = () => {
         </Button>
       </div>
 
+      {/* Status Filter */}
+      <div className="flex items-center gap-2 mb-4">
+        {["all", "pending", "accepted", "booked", "converted", "declined", "draft"].map((s) => (
+          <Button
+            key={s}
+            variant={statusFilter === s ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              if (s === "all") {
+                searchParams.delete("status");
+              } else {
+                searchParams.set("status", s);
+              }
+              setSearchParams(searchParams);
+            }}
+            className="capitalize text-xs"
+          >
+            {s === "all" ? "All" : s}
+          </Button>
+        ))}
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Quotes</CardTitle>
+          <CardTitle className="text-base">{statusFilter === "all" ? "All Quotes" : `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Quotes`}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
             </div>
-          ) : quotes.length === 0 ? (
+          ) : filteredQuotes.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No quotes yet.</p>
+              <p className="text-sm text-muted-foreground">{statusFilter !== "all" ? `No ${statusFilter} quotes.` : "No quotes yet."}</p>
               <p className="text-xs text-muted-foreground mt-1">Create a new quote to get started.</p>
               <Button asChild className="mt-4">
                 <Link to="/dashboard/quotes/new">
@@ -362,7 +391,7 @@ const Quotes = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {quotes.map((q) => {
+                  {filteredQuotes.map((q) => {
                     const marginAmt = q.margin_type === "flat"
                       ? (q.margin_value || 0)
                       : (q.carrier_cost || 0) * ((q.margin_value || 0) / 100);
