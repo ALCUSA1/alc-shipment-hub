@@ -332,16 +332,49 @@ const Quotes = () => {
         </Button>
       </div>
 
+      {/* Status Filter */}
+      <div className="flex items-center gap-2 mb-4">
+        {["all", "pending", "accepted", "booked", "converted", "declined", "draft"].map((s) => (
+          <Button
+            key={s}
+            variant={statusFilter === s ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              if (s === "all") {
+                searchParams.delete("status");
+              } else {
+                searchParams.set("status", s);
+              }
+              setSearchParams(searchParams);
+            }}
+            className="capitalize text-xs"
+          >
+            {s === "all" ? "All" : s}
+          </Button>
+        ))}
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Quotes</CardTitle>
+          <CardTitle className="text-base">{statusFilter === "all" ? "All Quotes" : `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Quotes`}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
             </div>
-          ) : quotes.length === 0 ? (
+          ) : filteredQuotes.length === 0 ? (
+            <div className="text-center py-12">
+              <DollarSign className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">{statusFilter !== "all" ? `No ${statusFilter} quotes.` : "No quotes yet."}</p>
+              <p className="text-xs text-muted-foreground mt-1">Create a new quote to get started.</p>
+              <Button asChild className="mt-4">
+                <Link to="/dashboard/quotes/new">
+                  <Plus className="h-4 w-4 mr-2" /> Create Quote
+                </Link>
+              </Button>
+            </div>
+          ) : (
             <div className="text-center py-12">
               <DollarSign className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No quotes yet.</p>
