@@ -95,8 +95,6 @@ const Shipments = () => {
       setSeeding(false);
     }
   };
-  const [search, setSearch] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (e: React.MouseEvent, shipmentId: string, ref: string) => {
     e.stopPropagation();
