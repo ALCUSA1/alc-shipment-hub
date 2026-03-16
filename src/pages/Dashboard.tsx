@@ -70,15 +70,20 @@ const Dashboard = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [templateCount, setTemplateCount] = useState(0);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      setLoading(true);
 
       const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes, allShipmentsRes, templatesRes] = await Promise.all([
         supabase.from("shipments").select("id, status", { count: "exact" }).in("status", ["booked", "in_transit", "arrived"]),
-        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "pending").eq("user_id", user!.id),
+        supabase.from("quotes").select("id", { count: "exact" }).eq("status", "pending").eq("user_id", user.id),
         supabase.from("trucking_quotes").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("warehouse_orders").select("id", { count: "exact" }).eq("status", "pending"),
         supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, mode, created_at, updated_at, etd, eta, companies(company_name)").order("created_at", { ascending: false }).limit(6),
         supabase.from("shipments").select("id, status, created_at"),
-        supabase.from("shipment_templates").select("id", { count: "exact" }).eq("user_id", user!.id),
+        supabase.from("shipment_templates").select("id", { count: "exact" }).eq("user_id", user.id),
       ]);
 
       setActiveCount(shipmentsRes.count ?? 0);
@@ -100,6 +105,7 @@ const Dashboard = () => {
         const end = endOfMonth(d).toISOString();
         months.push({ month: format(d, "MMM"), shipments: allShipments.filter(s => s.created_at >= start && s.created_at <= end).length, quotes: 0 });
       }
+
       const { data: allQuotes } = await supabase.from("quotes").select("id, created_at");
       if (allQuotes) {
         for (let i = 5; i >= 0; i--) {
@@ -124,7 +130,7 @@ const Dashboard = () => {
       setLoading(false);
     };
 
-    fetchData();
+    void fetchData();
   }, [user]);
 
   const canOps = canAccessRoute("/dashboard/trucking", roles);
