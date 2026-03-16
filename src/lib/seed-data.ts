@@ -1,24 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 import { addDays, subDays, format } from "date-fns";
 
-const SEED_KEY = "alc_data_seeded";
+
 
 /**
  * Auto-seeds realistic demo data for the current user if they have none.
  * Runs once per browser (tracked via localStorage).
  */
 export async function autoSeedIfEmpty(userId: string) {
-  const seededUsers: string[] = JSON.parse(localStorage.getItem(SEED_KEY) || "[]");
-  if (seededUsers.includes(userId)) return false;
-
-  const { count } = await supabase
+  // Always check the DB — don't rely on localStorage alone
+  const { count, error: countErr } = await supabase
     .from("shipments")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
 
+  if (countErr) {
+    console.error("[seed] Failed to check shipments count:", countErr);
+    return false;
+  }
+
   if ((count ?? 0) > 0) {
-    seededUsers.push(userId);
-    localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
     return false;
   }
 
@@ -60,8 +61,7 @@ export async function autoSeedIfEmpty(userId: string) {
     .select("id, status, origin_port, destination_port, carrier, mode");
 
   if (!insertedShipments?.length) {
-    seededUsers.push(userId);
-    localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+    console.error("[seed] Failed to insert shipments");
     return false;
   }
 
@@ -178,7 +178,6 @@ export async function autoSeedIfEmpty(userId: string) {
 
   await supabase.from("notifications").insert(notifications);
 
-  seededUsers.push(userId);
-  localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+  console.log("[seed] Demo data seeded successfully for user:", userId);
   return true;
 }
