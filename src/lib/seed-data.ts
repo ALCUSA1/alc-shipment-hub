@@ -1,0 +1,186 @@
+import { supabase } from "@/integrations/supabase/client";
+import { addDays, subDays, format } from "date-fns";
+
+const SEED_KEY = "alc_data_seeded";
+
+/**
+ * Auto-seeds realistic demo data for the current user if they have none.
+ * Runs once per browser (tracked via localStorage).
+ */
+export async function autoSeedIfEmpty(userId: string) {
+  // Check if already seeded in this browser
+  const seededUsers: string[] = JSON.parse(localStorage.getItem(SEED_KEY) || "[]");
+  if (seededUsers.includes(userId)) return false;
+
+  // Check if user already has shipments
+  const { count } = await supabase
+    .from("shipments")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if ((count ?? 0) > 0) {
+    // Already has data, mark as seeded
+    seededUsers.push(userId);
+    localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+    return false;
+  }
+
+  // --- Seed Companies ---
+  const companies = [
+    { company_name: "Pacific Trade Corp", company_type: "customer", status: "active" as const, industry: "Electronics", email: "ops@pacifictrade.com", phone: "+1-310-555-0101", city: "Los Angeles", state: "CA", country: "US" },
+    { company_name: "Hamburg Logistics GmbH", company_type: "customer", status: "active" as const, industry: "Automotive Parts", email: "info@hamburglog.de", phone: "+49-40-555-0202", city: "Hamburg", country: "DE" },
+    { company_name: "Santos Export LLC", company_type: "customer", status: "prospect" as const, industry: "Agriculture", email: "sales@santosexport.com", phone: "+55-13-555-0303", city: "Santos", country: "BR" },
+    { company_name: "Yokohama Freight Services", company_type: "trucker", status: "active" as const, industry: "Trucking", email: "dispatch@yokohamafreight.jp", phone: "+81-45-555-0404", city: "Yokohama", country: "JP", service_area: "Kanto Region" },
+    { company_name: "Gulf Coast Warehousing", company_type: "warehouse", status: "active" as const, industry: "Warehousing", email: "ops@gulfcoastwh.com", phone: "+1-713-555-0505", city: "Houston", state: "TX", country: "US" },
+  ];
+
+  const { data: insertedCompanies } = await supabase
+    .from("companies")
+    .insert(companies.map(c => ({ ...c, user_id: userId })))
+    .select("id, company_name");
+
+  const companyMap = Object.fromEntries((insertedCompanies || []).map(c => [c.company_name, c.id]));
+
+  // --- Seed Shipments (various statuses) ---
+  const now = new Date();
+  const shipments = [
+    { shipment_type: "export" as const, status: "pending", origin_port: "USLAX", destination_port: "CNSHA", mode: "ocean", carrier: "Maersk", incoterms: "FOB", vessel: "Maersk Sealand", voyage: "MA-2026-W12", etd: format(addDays(now, 5), "yyyy-MM-dd"), eta: format(addDays(now, 30), "yyyy-MM-dd"), company_id: companyMap["Pacific Trade Corp"] },
+    { shipment_type: "import" as const, status: "pending", origin_port: "DEHAM", destination_port: "USNYC", mode: "ocean", carrier: "Hapag-Lloyd", incoterms: "CIF", vessel: "Hamburg Express", voyage: "HL-2026-E08", etd: format(addDays(now, 3), "yyyy-MM-dd"), eta: format(addDays(now, 22), "yyyy-MM-dd"), company_id: companyMap["Hamburg Logistics GmbH"] },
+    { shipment_type: "export" as const, status: "booked", origin_port: "USHOU", destination_port: "BRSSZ", mode: "ocean", carrier: "MSC", incoterms: "EXW", vessel: "MSC Anna", voyage: "MSC-2026-S15", etd: format(addDays(now, 2), "yyyy-MM-dd"), eta: format(addDays(now, 18), "yyyy-MM-dd"), company_id: companyMap["Santos Export LLC"] },
+    { shipment_type: "export" as const, status: "in_transit", origin_port: "USSAV", destination_port: "GBFXT", mode: "ocean", carrier: "CMA CGM", incoterms: "FOB", vessel: "CMA CGM Marco Polo", voyage: "CMA-2026-N04", etd: format(subDays(now, 5), "yyyy-MM-dd"), eta: format(addDays(now, 12), "yyyy-MM-dd"), company_id: companyMap["Pacific Trade Corp"] },
+    { shipment_type: "import" as const, status: "in_transit", origin_port: "JPYOK", destination_port: "USLGB", mode: "ocean", carrier: "ONE", incoterms: "CFR", vessel: "ONE Minato", voyage: "ONE-2026-P22", etd: format(subDays(now, 10), "yyyy-MM-dd"), eta: format(addDays(now, 8), "yyyy-MM-dd"), company_id: companyMap["Yokohama Freight Services"] },
+    { shipment_type: "export" as const, status: "arrived", origin_port: "USLAX", destination_port: "KRPUS", mode: "ocean", carrier: "Evergreen", incoterms: "FOB", vessel: "Ever Given", voyage: "EG-2026-A09", etd: format(subDays(now, 25), "yyyy-MM-dd"), eta: format(subDays(now, 2), "yyyy-MM-dd"), company_id: companyMap["Pacific Trade Corp"] },
+    { shipment_type: "export" as const, status: "delivered", origin_port: "USNYC", destination_port: "NLRTM", mode: "ocean", carrier: "Maersk", incoterms: "CIF", vessel: "Maersk Elba", voyage: "MA-2026-W08", etd: format(subDays(now, 35), "yyyy-MM-dd"), eta: format(subDays(now, 14), "yyyy-MM-dd"), company_id: companyMap["Hamburg Logistics GmbH"] },
+    { shipment_type: "export" as const, status: "pending", origin_port: "USLAX", destination_port: "SGSIN", mode: "air", carrier: "Singapore Airlines Cargo", incoterms: "FCA", airline: "Singapore Airlines Cargo", flight_number: "SQ-7952", airport_of_departure: "LAX", airport_of_destination: "SIN", etd: format(addDays(now, 7), "yyyy-MM-dd"), eta: format(addDays(now, 9), "yyyy-MM-dd") },
+    { shipment_type: "export" as const, status: "draft", origin_port: "USCHI", destination_port: "MXZLO", mode: "ocean", carrier: "ZIM", incoterms: "FOB" },
+    { shipment_type: "import" as const, status: "booked", origin_port: "CNSHA", destination_port: "USLAX", mode: "ocean", carrier: "COSCO", incoterms: "CIF", vessel: "COSCO Shipping Universe", voyage: "COS-2026-T11", etd: format(addDays(now, 1), "yyyy-MM-dd"), eta: format(addDays(now, 20), "yyyy-MM-dd"), company_id: companyMap["Pacific Trade Corp"] },
+  ];
+
+  const { data: insertedShipments } = await supabase
+    .from("shipments")
+    .insert(shipments.map(s => ({ ...s, user_id: userId })))
+    .select("id, status, origin_port, destination_port, carrier, mode");
+
+  if (!insertedShipments?.length) {
+    seededUsers.push(userId);
+    localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+    return false;
+  }
+
+  // --- Seed Cargo for each shipment ---
+  const cargoItems = insertedShipments.map((s, i) => ({
+    shipment_id: s.id,
+    commodity: ["Electronics Components", "Auto Parts", "Soybeans", "Machinery", "Consumer Goods", "Steel Coils", "Textiles", "Pharmaceuticals", "Furniture", "Chemicals"][i] || "General Cargo",
+    hs_code: ["8542.31", "8708.29", "1201.90", "8429.52", "9403.60", "7208.51", "5208.31", "3004.90", "9403.50", "2905.11"][i] || "0000.00",
+    gross_weight: [12500, 8400, 25000, 15600, 9200, 22000, 7800, 3200, 11400, 18500][i],
+    volume: [28, 22, 45, 32, 18, 38, 15, 8, 24, 35][i],
+    num_packages: [120, 85, 500, 24, 340, 15, 200, 60, 45, 100][i],
+    package_type: ["Carton", "Pallet", "Bulk Bag", "Crate", "Carton", "Coil", "Bale", "Carton", "Pallet", "Drum"][i],
+    total_value: [185000, 92000, 45000, 320000, 67000, 280000, 38000, 520000, 54000, 125000][i],
+    country_of_origin: ["CN", "DE", "BR", "US", "US", "US", "IN", "CH", "VN", "US"][i],
+    dangerous_goods: i === 9, // Chemicals
+  }));
+
+  await supabase.from("cargo").insert(cargoItems);
+
+  // --- Seed Containers for ocean shipments ---
+  const oceanShipments = insertedShipments.filter(s => s.mode === "ocean");
+  const containers = oceanShipments.flatMap((s, i) => [
+    { shipment_id: s.id, container_type: i % 3 === 0 ? "40HC" : "20GP", container_number: `MSKU${(7000000 + i * 1000 + 1).toString()}`, seal_number: `SL${(300000 + i * 100 + 1).toString()}`, quantity: 1, status: s.status === "delivered" ? "returned" : s.status === "in_transit" ? "loaded" : "pending" },
+    ...(i % 2 === 0 ? [{ shipment_id: s.id, container_type: "20GP" as const, container_number: `TCLU${(5000000 + i * 1000 + 2).toString()}`, seal_number: `SL${(300000 + i * 100 + 2).toString()}`, quantity: 1, status: s.status === "delivered" ? "returned" : s.status === "in_transit" ? "loaded" : "pending" }] : []),
+  ]);
+
+  await supabase.from("containers").insert(containers);
+
+  // --- Seed Quotes linked to shipments ---
+  const quotableShipments = insertedShipments.slice(0, 7);
+  const quotes = quotableShipments.map((s, i) => ({
+    shipment_id: s.id,
+    user_id: userId,
+    status: ["pending", "pending", "accepted", "accepted", "pending", "declined", "pending"][i],
+    origin_port: s.origin_port,
+    destination_port: s.destination_port,
+    carrier: s.carrier,
+    container_type: "40HC",
+    amount: [4200, 3800, 5100, 3600, 4800, 2900, 6200][i],
+    customer_price: [4800, 4200, 5800, 4100, 5500, 3400, 7000][i],
+    carrier_cost: [3800, 3400, 4600, 3200, 4300, 2600, 5600][i],
+    margin_type: "fixed" as const,
+    margin_value: [1000, 800, 1200, 900, 1200, 800, 1400][i],
+    currency: "USD",
+    transit_days: [25, 19, 15, 17, 18, 28, 22][i],
+    valid_until: format(addDays(now, [14, 10, 7, 21, 12, 5, 18][i]), "yyyy-MM-dd"),
+    customer_name: ["Pacific Trade Corp", "Hamburg Logistics GmbH", "Santos Export LLC", "Pacific Trade Corp", "Yokohama Freight Services", "Pacific Trade Corp", "Hamburg Logistics GmbH"][i],
+    customer_email: ["ops@pacifictrade.com", "info@hamburglog.de", "sales@santosexport.com", "ops@pacifictrade.com", "dispatch@yokohamafreight.jp", "ops@pacifictrade.com", "info@hamburglog.de"][i],
+    notes: ["Standard ocean freight quote", "Return cargo from Hamburg", "Grain export to Santos", "Heavy machinery shipment", "Import from Yokohama", "Budget option declined", "Premium service quote"][i],
+  }));
+
+  await supabase.from("quotes").insert(quotes);
+
+  // --- Seed Documents ---
+  const docsShipments = insertedShipments.filter(s => ["booked", "in_transit", "arrived", "delivered"].includes(s.status));
+  const documents = docsShipments.flatMap(s => [
+    { shipment_id: s.id, user_id: userId, doc_type: "bill_of_lading", status: "generated" },
+    { shipment_id: s.id, user_id: userId, doc_type: "commercial_invoice", status: "generated" },
+    { shipment_id: s.id, user_id: userId, doc_type: "packing_list", status: "generated" },
+  ]);
+
+  await supabase.from("documents").insert(documents);
+
+  // --- Seed Trucking Quotes ---
+  const truckableShipments = insertedShipments.filter(s => s.mode === "ocean").slice(0, 4);
+  const truckingQuotes = truckableShipments.map((s, i) => ({
+    shipment_id: s.id,
+    user_id: userId,
+    status: ["pending", "accepted", "pending", "completed"][i],
+    pickup_address: ["Port of Los Angeles, CA", "Port of Houston, TX", "Port of Savannah, GA", "Port of New York, NJ"][i],
+    delivery_address: ["14200 Industry Ave, Fontana, CA 92335", "8900 Gulf Fwy, Houston, TX 77017", "1200 Logistics Pkwy, Savannah, GA 31322", "500 Terminal Rd, Elizabeth, NJ 07201"][i],
+    container_count: [2, 1, 2, 1][i],
+    quoted_rate: [1800, 950, 1400, 1100][i],
+    currency: "USD",
+    pickup_date: format(addDays(now, [6, 3, 8, -10][i]), "yyyy-MM-dd"),
+    notes: ["Needs chassis", "Standard delivery", "Two containers same location", "Completed last week"][i],
+  }));
+
+  await supabase.from("trucking_quotes").insert(truckingQuotes);
+
+  // --- Seed Warehouse Orders ---
+  const warehouseShipments = insertedShipments.filter(s => s.mode === "ocean").slice(0, 3);
+  const warehouseOrders = warehouseShipments.map((s, i) => ({
+    shipment_id: s.id,
+    user_id: userId,
+    status: ["pending", "receiving", "stored"][i],
+    warehouse_name: ["Gulf Coast Warehousing", "Pacific Gateway WH", "East Coast Distribution"][i],
+    cargo_description: ["Electronics pallets", "Auto parts crates", "Grain bulk bags"][i],
+    expected_arrival: format(addDays(now, [5, 2, -3][i]), "yyyy-MM-dd"),
+    notes: ["Temperature controlled section", "Standard storage", "Fumigation required"][i],
+  }));
+
+  await supabase.from("warehouse_orders").insert(warehouseOrders);
+
+  // --- Seed Leads (Pipeline) ---
+  const leads = [
+    { full_name: "Sarah Chen", company_name: "Shenzhen Electronics Co.", email: "schen@szelectronics.cn", phone: "+86-755-555-0101", stage: "qualified", score: 85, source: "referral", notes: "Interested in regular ocean FCL from Shenzhen to LA" },
+    { full_name: "Marcus Weber", company_name: "Bavarian Motors Export", email: "mweber@bavmotors.de", phone: "+49-89-555-0202", stage: "proposal", score: 72, source: "website", notes: "Needs air freight for urgent auto parts" },
+    { full_name: "Ana Oliveira", company_name: "Rio Agro Exports", email: "aoliveira@rioagro.com.br", phone: "+55-21-555-0303", stage: "new", score: 45, source: "cold_call", notes: "Bulk agricultural exports to US Gulf" },
+    { full_name: "James Mitchell", company_name: "Texas Steel Works", email: "jmitchell@txsteel.com", phone: "+1-214-555-0404", stage: "negotiation", score: 90, source: "trade_show", notes: "Heavy steel coil exports to Middle East" },
+    { full_name: "Yuki Tanaka", company_name: "Osaka Pharma Ltd", email: "ytanaka@osakapharma.jp", phone: "+81-6-555-0505", stage: "qualified", score: 68, source: "referral", notes: "Temperature-sensitive pharmaceutical imports" },
+  ];
+
+  await supabase.from("leads").insert(leads.map(l => ({ ...l, assigned_to: userId })));
+
+  // --- Seed Notifications ---
+  const notifications = [
+    { user_id: userId, title: "Shipment Booked", message: "Your shipment to Santos has been confirmed with MSC", type: "shipment_update" },
+    { user_id: userId, title: "Quote Accepted", message: "Pacific Trade Corp accepted your quote for LAX → Shanghai", type: "quote_update" },
+    { user_id: userId, title: "Document Ready", message: "Bill of Lading generated for shipment to Felixstowe", type: "document_ready" },
+    { user_id: userId, title: "Vessel Departed", message: "CMA CGM Marco Polo departed Savannah on schedule", type: "tracking_update" },
+  ];
+
+  await supabase.from("notifications").insert(notifications);
+
+  // Mark as seeded
+  seededUsers.push(userId);
+  localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+  return true;
+}
