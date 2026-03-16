@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship, ArrowLeft } from "lucide-react";
+import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
+import { BackButton } from "@/components/shared/BackButton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -321,9 +322,7 @@ const Quotes = () => {
     <DashboardLayout>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Quotes</h1>
             <p className="text-sm text-muted-foreground">Build quotes with carrier rates and margin markup</p>

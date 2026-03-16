@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,9 +117,12 @@ const CustomerPortal = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Customer Portal</h1>
-        <p className="text-sm text-muted-foreground mt-1">Track shipments, review quotes, and download documents</p>
+      <div className="mb-6 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Customer Portal</h1>
+          <p className="text-sm text-muted-foreground mt-1">Track shipments, review quotes, and download documents</p>
+        </div>
       </div>
 
       {/* Summary Cards */}

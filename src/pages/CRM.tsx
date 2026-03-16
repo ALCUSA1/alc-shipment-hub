@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -467,9 +468,12 @@ const CRM = () => {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">CRM</h1>
-          <p className="text-sm text-muted-foreground">Manage your B2B customers</p>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">CRM</h1>
+            <p className="text-sm text-muted-foreground">Manage your B2B customers</p>
+          </div>
         </div>
         <Button variant="electric" onClick={openNew}><Plus className="h-4 w-4 mr-1" />Add Customer</Button>
       </div>

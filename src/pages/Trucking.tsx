@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,9 +54,12 @@ const Trucking = () => {
   return (
     <DashboardLayout>
       <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Trucking</h1>
-          <p className="text-sm text-muted-foreground">Manage truck pickup and delivery operations</p>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Trucking</h1>
+            <p className="text-sm text-muted-foreground">Manage truck pickup and delivery operations</p>
+          </div>
         </div>
       </div>
 

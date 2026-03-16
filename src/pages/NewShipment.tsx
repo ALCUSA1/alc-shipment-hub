@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
+import { BackButton } from "@/components/shared/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -470,9 +471,7 @@ const NewShipment = () => {
         {/* Sticky header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => navigate("/dashboard/shipments")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <BackButton />
             <div>
               <h1 className="text-lg font-semibold text-foreground tracking-tight">New Shipment</h1>
               <p className="text-[11px] text-muted-foreground">Enter once — generates all documents automatically.</p>

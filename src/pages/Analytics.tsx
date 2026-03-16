@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,11 +134,16 @@ const Analytics = () => {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-accent" />
-          Analytics & Reporting
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Business intelligence across your shipment operations</p>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <BarChart3 className="h-6 w-6 text-accent" />
+              Analytics & Reporting
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Business intelligence across your shipment operations</p>
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}

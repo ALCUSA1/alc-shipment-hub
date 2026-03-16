@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X } from "lucide-react";
+import { BackButton } from "@/components/shared/BackButton";
 
 interface ProfileData {
   full_name: string;
@@ -221,9 +222,12 @@ const Account = () => {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Account</h1>
-          <p className="text-sm text-muted-foreground">Manage your profile, company details & NVOCC compliance</p>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Account</h1>
+            <p className="text-sm text-muted-foreground">Manage your profile, company details & NVOCC compliance</p>
+          </div>
         </div>
         {company.id && (
           <Badge className={statusColor[company.status] || ""}>{company.status.replace("_", " ").toUpperCase()}</Badge>

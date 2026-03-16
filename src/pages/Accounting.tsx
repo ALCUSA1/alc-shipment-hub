@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -136,9 +137,12 @@ const Accounting = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Accounting</h1>
-        <p className="text-sm text-muted-foreground">Profit & Loss overview across all shipments</p>
+      <div className="mb-6 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Accounting</h1>
+          <p className="text-sm text-muted-foreground">Profit & Loss overview across all shipments</p>
+        </div>
       </div>
 
       {/* Summary Cards */}

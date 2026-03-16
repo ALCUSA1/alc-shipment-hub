@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -213,11 +214,14 @@ const RateTrends = () => {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Track carrier rate history across routes and container types
-          </p>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Rate Trends</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Track carrier rate history across routes and container types
+            </p>
+          </div>
         </div>
         <Button onClick={() => setAlertDialogOpen(true)} className="gap-2">
           <Bell className="h-4 w-4" />

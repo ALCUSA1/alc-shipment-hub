@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,9 +52,12 @@ const Warehouses = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Warehouses</h1>
-        <p className="text-sm text-muted-foreground">Manage warehouse cargo handling operations</p>
+      <div className="mb-8 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Warehouses</h1>
+          <p className="text-sm text-muted-foreground">Manage warehouse cargo handling operations</p>
+        </div>
       </div>
 
       <Card>
