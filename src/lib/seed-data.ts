@@ -178,7 +178,6 @@ export async function autoSeedIfEmpty(userId: string) {
 
   await supabase.from("notifications").insert(notifications);
 
-  seededUsers.push(userId);
-  localStorage.setItem(SEED_KEY, JSON.stringify(seededUsers));
+  console.log("[seed] Demo data seeded successfully for user:", userId);
   return true;
 }
