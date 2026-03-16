@@ -322,9 +322,7 @@ const Quotes = () => {
     <DashboardLayout>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Quotes</h1>
             <p className="text-sm text-muted-foreground">Build quotes with carrier rates and margin markup</p>
