@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { addDays, subDays, format } from "date-fns";
 
-const SEED_KEY = "alc_data_seeded";
+
 
 /**
  * Auto-seeds realistic demo data for the current user if they have none.
