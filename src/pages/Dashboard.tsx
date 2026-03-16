@@ -70,11 +70,23 @@ const Dashboard = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [templateCount, setTemplateCount] = useState(0);
 
+  const seededRef = useRef(false);
+
   useEffect(() => {
     if (!user) return;
 
     const fetchData = async () => {
       setLoading(true);
+
+      // Auto-seed demo data for new users
+      if (!seededRef.current) {
+        seededRef.current = true;
+        const didSeed = await autoSeedIfEmpty(user.id);
+        if (didSeed) {
+          // Data was just created, small delay for triggers to run
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
 
       const [shipmentsRes, quotesRes, pickupsRes, warehouseRes, recentShipmentsRes, allShipmentsRes, templatesRes] = await Promise.all([
         supabase.from("shipments").select("id, status", { count: "exact" }).in("status", ["booked", "in_transit", "arrived"]),
