@@ -85,6 +85,11 @@ const Quotes = () => {
     enabled: !!user,
   });
 
+  const filteredQuotes = useMemo(() => {
+    if (statusFilter === "all") return quotes;
+    return quotes.filter((q) => q.status === statusFilter);
+  }, [quotes, statusFilter]);
+
   const [bookingId, setBookingId] = useState<string | null>(null);
 
   const handleBookQuote = async (quote: QuoteRow) => {
