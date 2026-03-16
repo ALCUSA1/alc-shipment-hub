@@ -402,7 +402,7 @@ const Quotes = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {quotes.map((q) => {
+                  {filteredQuotes.map((q) => {
                     const marginAmt = q.margin_type === "flat"
                       ? (q.margin_value || 0)
                       : (q.carrier_cost || 0) * ((q.margin_value || 0) / 100);
