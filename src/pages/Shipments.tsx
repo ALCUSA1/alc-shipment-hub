@@ -206,9 +206,15 @@ const Shipments = () => {
           <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
           <p className="text-sm text-muted-foreground">Manage your shipment operations</p>
         </div>
-        <Button variant="electric" asChild>
-          <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={seedPendingShipments} disabled={seeding}>
+            {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Seed Pending Data
+          </Button>
+          <Button variant="electric" asChild>
+            <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Bulk Operations */}
