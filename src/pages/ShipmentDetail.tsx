@@ -20,6 +20,7 @@ import { DetentionTimeline } from "@/components/shipment/DetentionTimeline";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ShipmentNextAction } from "@/components/shipment/ShipmentNextAction";
+import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

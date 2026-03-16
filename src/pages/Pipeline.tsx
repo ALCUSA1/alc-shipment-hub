@@ -92,12 +92,15 @@ const Pipeline = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Layers className="h-5 w-5 text-accent" />
-          <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
+      <div className="mb-8 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Layers className="h-5 w-5 text-accent" />
+            <h1 className="text-2xl font-bold text-foreground">Pipeline</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">Track all active transactions across lifecycle stages</p>
         </div>
-        <p className="text-sm text-muted-foreground">Track all active transactions across lifecycle stages</p>
       </div>
 
       {isLoading ? (

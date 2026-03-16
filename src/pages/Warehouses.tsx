@@ -51,9 +51,12 @@ const Warehouses = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Warehouses</h1>
-        <p className="text-sm text-muted-foreground">Manage warehouse cargo handling operations</p>
+      <div className="mb-8 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Warehouses</h1>
+          <p className="text-sm text-muted-foreground">Manage warehouse cargo handling operations</p>
+        </div>
       </div>
 
       <Card>

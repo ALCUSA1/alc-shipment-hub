@@ -25,8 +25,13 @@ const Documents = () => {
 
   return (
     <DashboardLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Documents</h1>
-      <p className="text-sm text-muted-foreground mb-8">Auto-generated shipping documents</p>
+      <div className="flex items-center gap-3 mb-2">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Documents</h1>
+          <p className="text-sm text-muted-foreground">Auto-generated shipping documents</p>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">

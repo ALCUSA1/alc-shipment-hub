@@ -116,9 +116,12 @@ const CustomerPortal = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Customer Portal</h1>
-        <p className="text-sm text-muted-foreground mt-1">Track shipments, review quotes, and download documents</p>
+      <div className="mb-6 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Customer Portal</h1>
+          <p className="text-sm text-muted-foreground mt-1">Track shipments, review quotes, and download documents</p>
+        </div>
       </div>
 
       {/* Summary Cards */}

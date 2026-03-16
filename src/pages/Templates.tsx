@@ -63,11 +63,14 @@ const Templates = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Shipment Templates</h1>
-        <p className="text-sm text-muted-foreground">
-          Save and reuse shipment configurations for faster booking
-        </p>
+      <div className="mb-8 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Shipment Templates</h1>
+          <p className="text-sm text-muted-foreground">
+            Save and reuse shipment configurations for faster booking
+          </p>
+        </div>
       </div>
 
       <Card>

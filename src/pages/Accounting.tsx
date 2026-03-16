@@ -136,9 +136,12 @@ const Accounting = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Accounting</h1>
-        <p className="text-sm text-muted-foreground">Profit & Loss overview across all shipments</p>
+      <div className="mb-6 flex items-center gap-3">
+        <BackButton />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Accounting</h1>
+          <p className="text-sm text-muted-foreground">Profit & Loss overview across all shipments</p>
+        </div>
       </div>
 
       {/* Summary Cards */}
