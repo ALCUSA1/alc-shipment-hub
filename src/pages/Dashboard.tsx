@@ -136,7 +136,7 @@ const Dashboard = () => {
 
   const stats = [
     { label: "Active Shipments", value: activeCount, icon: Package, sub: "Booked, in transit & arrived", link: "/dashboard/shipments", accent: "text-accent" },
-    { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, sub: "Awaiting response", link: "/dashboard/quotes", accent: "text-yellow-500" },
+    { label: "Pending Quotes", value: pendingQuotes, icon: DollarSign, sub: "Awaiting response", link: "/dashboard/quotes?status=pending", accent: "text-yellow-500" },
     ...(canOps ? [
       { label: "Trucking Queue", value: truckPickups, icon: Truck, sub: "Pending pickups", link: "/dashboard/trucking", accent: "text-orange-500" },
       { label: "Warehouse Queue", value: warehouseArrivals, icon: Warehouse, sub: "Pending cargo", link: "/dashboard/warehouses", accent: "text-violet-500" },
