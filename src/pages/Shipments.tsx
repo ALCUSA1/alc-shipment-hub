@@ -63,11 +63,38 @@ const PAGE_SIZE = 20;
 type SortKey = "shipment_ref" | "customer" | "origin_port" | "shipment_type" | "status";
 type SortDir = "asc" | "desc";
 
+const SEED_SHIPMENTS = [
+  { shipment_ref: "ALC-2026-0101", shipment_type: "export" as const, status: "pending", origin_port: "USLAX", destination_port: "CNSHA", mode: "ocean", carrier: "Maersk", incoterms: "FOB" },
+  { shipment_ref: "ALC-2026-0102", shipment_type: "import" as const, status: "pending", origin_port: "DEHAM", destination_port: "USNYC", mode: "ocean", carrier: "Hapag-Lloyd", incoterms: "CIF" },
+  { shipment_ref: "ALC-2026-0103", shipment_type: "export" as const, status: "pending", origin_port: "USHOU", destination_port: "BRSSZ", mode: "ocean", carrier: "MSC", incoterms: "EXW" },
+  { shipment_ref: "ALC-2026-0104", shipment_type: "export" as const, status: "pending", origin_port: "USSAV", destination_port: "GBFXT", mode: "ocean", carrier: "CMA CGM", incoterms: "FOB" },
+  { shipment_ref: "ALC-2026-0105", shipment_type: "import" as const, status: "pending", origin_port: "JPYOK", destination_port: "USLGB", mode: "ocean", carrier: "ONE", incoterms: "CFR" },
+];
+
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+
+  const seedPendingShipments = async () => {
+    if (!user) return;
+    setSeeding(true);
+    try {
+      const rows = SEED_SHIPMENTS.map((s) => ({ ...s, user_id: user.id }));
+      const { error } = await supabase.from("shipments").insert(rows);
+      if (error) throw error;
+      toast({ title: "Seed data created", description: `${rows.length} pending shipments added.` });
+      queryClient.invalidateQueries({ queryKey: ["shipments-list"] });
+    } catch (err: any) {
+      toast({ title: "Seed failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSeeding(false);
+    }
+  };
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
