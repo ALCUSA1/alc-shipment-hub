@@ -375,17 +375,6 @@ const Quotes = () => {
               </Button>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <DollarSign className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No quotes yet.</p>
-              <p className="text-xs text-muted-foreground mt-1">Create a new quote to get started.</p>
-              <Button asChild className="mt-4">
-                <Link to="/dashboard/quotes/new">
-                  <Plus className="h-4 w-4 mr-2" /> Create Quote
-                </Link>
-              </Button>
-            </div>
-          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
