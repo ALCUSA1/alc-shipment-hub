@@ -63,6 +63,14 @@ const PAGE_SIZE = 20;
 type SortKey = "shipment_ref" | "customer" | "origin_port" | "shipment_type" | "status";
 type SortDir = "asc" | "desc";
 
+const SEED_SHIPMENTS = [
+  { shipment_ref: "ALC-2026-0101", shipment_type: "export" as const, status: "pending", origin_port: "USLAX", destination_port: "CNSHA", mode: "ocean", carrier: "Maersk", incoterms: "FOB" },
+  { shipment_ref: "ALC-2026-0102", shipment_type: "import" as const, status: "pending", origin_port: "DEHAM", destination_port: "USNYC", mode: "ocean", carrier: "Hapag-Lloyd", incoterms: "CIF" },
+  { shipment_ref: "ALC-2026-0103", shipment_type: "export" as const, status: "pending", origin_port: "USHOU", destination_port: "BRSSZ", mode: "ocean", carrier: "MSC", incoterms: "EXW" },
+  { shipment_ref: "ALC-2026-0104", shipment_type: "export" as const, status: "pending", origin_port: "USSAV", destination_port: "GBFXT", mode: "ocean", carrier: "CMA CGM", incoterms: "FOB" },
+  { shipment_ref: "ALC-2026-0105", shipment_type: "import" as const, status: "pending", origin_port: "JPYOK", destination_port: "USLGB", mode: "ocean", carrier: "ONE", incoterms: "CFR" },
+];
+
 const Shipments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -70,6 +78,23 @@ const Shipments = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+
+  const seedPendingShipments = async () => {
+    if (!user) return;
+    setSeeding(true);
+    try {
+      const rows = SEED_SHIPMENTS.map((s) => ({ ...s, user_id: user.id }));
+      const { error } = await supabase.from("shipments").insert(rows);
+      if (error) throw error;
+      toast({ title: "Seed data created", description: `${rows.length} pending shipments added.` });
+      queryClient.invalidateQueries({ queryKey: ["shipments-list"] });
+    } catch (err: any) {
+      toast({ title: "Seed failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const handleDelete = async (e: React.MouseEvent, shipmentId: string, ref: string) => {
     e.stopPropagation();
@@ -181,9 +206,15 @@ const Shipments = () => {
           <h1 className="text-2xl font-bold text-foreground">Shipments</h1>
           <p className="text-sm text-muted-foreground">Manage your shipment operations</p>
         </div>
-        <Button variant="electric" asChild>
-          <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={seedPendingShipments} disabled={seeding}>
+            {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Seed Pending Data
+          </Button>
+          <Button variant="electric" asChild>
+            <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Bulk Operations */}
@@ -233,7 +264,15 @@ const Shipments = () => {
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground text-sm">
-              {hasActiveFilters ? "No shipments match your filters." : "No shipments yet. Create your first shipment to get started."}
+              {hasActiveFilters ? "No shipments match your filters." : (
+                <div className="space-y-3">
+                  <p>No shipments yet. Create your first shipment to get started.</p>
+                  <Button variant="outline" size="sm" onClick={seedPendingShipments} disabled={seeding}>
+                    {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Seed Pending Shipments
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
