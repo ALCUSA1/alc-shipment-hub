@@ -5,12 +5,12 @@ import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/component
 import { motion } from "framer-motion";
 
 const lanes = [
-  { origin: "🇨🇳 Shanghai", destination: "🇺🇸 Los Angeles", tag: "FCL · 14-18 days" },
-  { origin: "🇨🇳 Shenzhen", destination: "🇳🇱 Rotterdam", tag: "FCL · 28-32 days" },
-  { origin: "🇰🇷 Busan", destination: "🇺🇸 Long Beach", tag: "FCL · 12-16 days" },
-  { origin: "🇻🇳 Ho Chi Minh", destination: "🇬🇧 Felixstowe", tag: "FCL · 26-30 days" },
-  { origin: "🇩🇪 Hamburg", destination: "🇺🇸 New York", tag: "FCL · 10-14 days" },
-  { origin: "🇸🇬 Singapore", destination: "🇦🇺 Sydney", tag: "FCL · 12-15 days" },
+  { origin: "🇨🇳 Shanghai", destination: "🇺🇸 Los Angeles", tag: "FCL · 14-18 days", originCode: "CNSGH", destCode: "USLAX" },
+  { origin: "🇨🇳 Shenzhen", destination: "🇳🇱 Rotterdam", tag: "FCL · 28-32 days", originCode: "CNSZX", destCode: "NLRTM" },
+  { origin: "🇰🇷 Busan", destination: "🇺🇸 Long Beach", tag: "FCL · 12-16 days", originCode: "KRPUS", destCode: "USLGB" },
+  { origin: "🇻🇳 Ho Chi Minh", destination: "🇬🇧 Felixstowe", tag: "FCL · 26-30 days", originCode: "VNSGN", destCode: "GBFXT" },
+  { origin: "🇩🇪 Hamburg", destination: "🇺🇸 New York", tag: "FCL · 10-14 days", originCode: "DEHAM", destCode: "USNYC" },
+  { origin: "🇸🇬 Singapore", destination: "🇦🇺 Sydney", tag: "FCL · 12-15 days", originCode: "SGSIN", destCode: "AUSYD" },
 ];
 
 export function FocusLanesSection() {
@@ -29,9 +29,9 @@ export function FocusLanesSection() {
 
         <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.08}>
           {lanes.map((lane) => (
-            <motion.div key={lane.origin + lane.destination} variants={staggerItemVariants}>
+            <motion.div key={lane.originCode + lane.destCode} variants={staggerItemVariants}>
               <Link
-                to="/signup"
+                to={`/rates?origin=${lane.originCode}&destination=${lane.destCode}&mode=ocean`}
                 className="block bg-card rounded-2xl p-6 border hover:border-accent/30 hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="flex items-center gap-3 mb-4">
@@ -41,7 +41,7 @@ export function FocusLanesSection() {
                   <span className="text-sm font-semibold text-foreground">{lane.destination}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">{lane.tag}</span>
-                <p className="text-xs font-medium text-accent mt-3 group-hover:underline">Get a quote →</p>
+                <p className="text-xs font-medium text-accent mt-3 group-hover:underline">Search rates →</p>
               </Link>
             </motion.div>
           ))}
@@ -49,7 +49,7 @@ export function FocusLanesSection() {
 
         <ScrollReveal delay={0.2} className="text-center mt-12">
           <Button variant="electric" size="lg" asChild>
-            <Link to="/signup">Explore All Routes <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Link to="/rates">Explore All Routes <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
         </ScrollReveal>
       </div>
