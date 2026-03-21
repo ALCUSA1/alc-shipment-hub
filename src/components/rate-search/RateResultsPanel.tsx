@@ -2,15 +2,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Ship, Clock, ChevronDown, ChevronUp, ArrowRight, TrendingDown, Zap, Anchor, Container } from "lucide-react";
+import { Ship, Clock, ChevronDown, ChevronUp, ArrowRight, TrendingDown, Zap, Anchor, Container, Info } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { RouteMapPreview } from "./RouteMapPreview";
-import { CargoDetailsForm } from "./CargoDetailsForm";
+import { CargoSummaryBar } from "./CargoSummaryBar";
+import { SailingScheduleSelector } from "./SailingScheduleSelector";
+import { ShippingPreferences, type ShippingFilters } from "./ShippingPreferences";
+import { PriceSummarySidebar } from "./PriceSummarySidebar";
 import type { Json } from "@/integrations/supabase/types";
 
-// Port name lookup for display
 const PORT_NAMES: Record<string, string> = {
   USLAX: "Los Angeles", USLGB: "Long Beach", USNYC: "New York",
   USHOU: "Houston", USSAV: "Savannah", USCHI: "Chicago",
@@ -81,18 +83,12 @@ function categorizeSurcharges(surcharges: Surcharge[]) {
   const origin: Surcharge[] = [];
   const destination: Surcharge[] = [];
   const freight: Surcharge[] = [];
-
   surcharges.forEach((s) => {
     const code = s.code.toLowerCase();
-    if (code.includes("origin") || code === "thc_origin" || code === "doc") {
-      origin.push(s);
-    } else if (code.includes("dest") || code === "thc_dest" || code === "do") {
-      destination.push(s);
-    } else {
-      freight.push(s);
-    }
+    if (code.includes("origin") || code === "thc_origin" || code === "doc") origin.push(s);
+    else if (code.includes("dest") || code === "thc_dest" || code === "do") destination.push(s);
+    else freight.push(s);
   });
-
   return { origin, destination, freight };
 }
 
@@ -112,6 +108,12 @@ interface RateResultsPanelProps {
 
 export function RateResultsPanel({ rates, origin, destination, containerSize }: RateResultsPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ShippingFilters>({
+    routing: "all",
+    carrierType: "all",
+    rateType: "all",
+  });
 
   if (rates.length === 0) {
     return (
@@ -125,21 +127,31 @@ export function RateResultsPanel({ rates, origin, destination, containerSize }: 
     );
   }
 
-  const sorted = [...rates].sort((a, b) => getTotalRate(a) - getTotalRate(b));
-  const bestRate = getTotalRate(sorted[0]);
-  const highRate = getTotalRate(sorted[sorted.length - 1]);
-  const avgTransit = sorted.filter(r => r.transit_days).length > 0
-    ? Math.round(sorted.filter(r => r.transit_days).reduce((s, r) => s + (r.transit_days || 0), 0) / sorted.filter(r => r.transit_days).length)
+  // Apply filters
+  let filtered = [...rates];
+  if (filters.rateType === "spot") {
+    filtered = filtered.filter((r) => r.rate_basis_type === "spot" || !r.rate_basis_type);
+  } else if (filters.rateType === "contract") {
+    filtered = filtered.filter((r) => r.rate_basis_type === "contract");
+  }
+
+  const sorted = filtered.sort((a, b) => getTotalRate(a) - getTotalRate(b));
+  const bestRate = sorted.length > 0 ? getTotalRate(sorted[0]) : 0;
+  const highRate = sorted.length > 0 ? getTotalRate(sorted[sorted.length - 1]) : 0;
+  const transitRates = sorted.filter((r) => r.transit_days);
+  const avgTransit = transitRates.length > 0
+    ? Math.round(transitRates.reduce((s, r) => s + (r.transit_days || 0), 0) / transitRates.length)
     : null;
 
+  const selectedRate = selectedRateId ? sorted.find((r) => r.id === selectedRateId) || sorted[0] : sorted[0];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Route Map */}
       <RouteMapPreview originCode={origin} destinationCode={destination} />
 
-      {/* Enhanced Summary Header */}
+      {/* Summary Header */}
       <div className="p-5 rounded-xl bg-accent/5 border border-accent/20 space-y-4">
-        {/* Route name */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground mb-1">
@@ -159,8 +171,6 @@ export function RateResultsPanel({ rates, origin, destination, containerSize }: 
             <p className="text-xs text-muted-foreground">per container</p>
           </div>
         </div>
-
-        {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="gap-1 text-xs">
             <Anchor className="h-3 w-3" />
@@ -179,136 +189,163 @@ export function RateResultsPanel({ rates, origin, destination, containerSize }: 
         </div>
       </div>
 
-      {/* Rate cards */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Choose your shipment quote
-        </h3>
+      {/* Cargo Summary Bar */}
+      <CargoSummaryBar containerSize={containerSize} />
 
-        {sorted.map((rate, index) => {
-          const surcharges = parseSurcharges(rate.surcharges);
-          const totalRate = getTotalRate(rate);
-          const isBest = index === 0;
-          const isExpanded = expandedId === rate.id;
-          const categories = categorizeSurcharges(surcharges);
-          const isSpot = rate.rate_basis_type === "spot" || !rate.rate_basis_type;
+      {/* Sailing Schedule */}
+      <SailingScheduleSelector avgTransitDays={avgTransit} />
 
-          return (
-            <Card key={rate.id} className={`transition-all hover:shadow-md ${isBest ? "border-accent/40 shadow-sm" : ""}`}>
-              <CardContent className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-foreground">{rate.carrier}</h3>
-                      {isBest && (
-                        <Badge className="bg-accent text-accent-foreground text-[10px]">
-                          <TrendingDown className="h-3 w-3 mr-0.5" />
-                          Best Rate
-                        </Badge>
-                      )}
-                      {isSpot && (
-                        <Badge variant="secondary" className="text-[10px] gap-0.5">
-                          <Zap className="h-3 w-3" />
-                          Spot Rate
-                        </Badge>
-                      )}
-                      {rate.rate_basis_type === "contract" && (
-                        <Badge variant="outline" className="text-[10px]">Contract</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 mt-1">
-                      {rate.transit_days && (
-                        <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {rate.transit_days} days transit
-                        </span>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        Valid {format(new Date(rate.valid_from), "MMM d")} — {format(new Date(rate.valid_until), "MMM d, yyyy")}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-foreground">${totalRate.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">{rate.currency} / container</p>
-                  </div>
-                </div>
+      {/* Shipping Preferences */}
+      <ShippingPreferences filters={filters} onChange={setFilters} />
 
-                {/* Cost breakdown toggle */}
-                <button
-                  className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 mt-3 transition-colors"
-                  onClick={() => setExpandedId(isExpanded ? null : rate.id)}
+      {/* 2-column: Rate cards + Sticky sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
+        {/* Rate cards */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            Choose your shipment quote
+          </h3>
+
+          {sorted.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">No rates match your preferences. Try adjusting the filters above.</p>
+          ) : (
+            sorted.map((rate, index) => {
+              const surcharges = parseSurcharges(rate.surcharges);
+              const totalRate = getTotalRate(rate);
+              const isBest = index === 0;
+              const isExpanded = expandedId === rate.id;
+              const categories = categorizeSurcharges(surcharges);
+              const isSpot = rate.rate_basis_type === "spot" || !rate.rate_basis_type;
+              const isSelected = selectedRate?.id === rate.id;
+
+              return (
+                <Card
+                  key={rate.id}
+                  className={`transition-all hover:shadow-md cursor-pointer ${isSelected ? "border-accent ring-1 ring-accent/30 shadow-sm" : isBest ? "border-accent/40 shadow-sm" : ""}`}
+                  onClick={() => setSelectedRateId(rate.id)}
                 >
-                  {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  View cost breakdown
-                </button>
-
-                {isExpanded && (
-                  <div className="mt-3 pt-3 border-t space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">FCL Freight</p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Base ocean freight</span>
-                        <span className="font-mono font-medium">${rate.base_rate.toLocaleString()}</span>
-                      </div>
-                      {categories.freight.map((s, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{s.description || s.code}</span>
-                          <span className="font-mono">${s.amount.toLocaleString()}</span>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-foreground">{rate.carrier}</h3>
+                          {isBest && (
+                            <Badge className="bg-accent text-accent-foreground text-[10px]">
+                              <TrendingDown className="h-3 w-3 mr-0.5" />
+                              Best Rate
+                            </Badge>
+                          )}
+                          {isSpot && (
+                            <Badge variant="secondary" className="text-[10px] gap-0.5">
+                              <Zap className="h-3 w-3" />
+                              Spot Rate
+                            </Badge>
+                          )}
+                          {rate.rate_basis_type === "contract" && (
+                            <Badge variant="outline" className="text-[10px]">Contract</Badge>
+                          )}
                         </div>
-                      ))}
+                        <div className="flex items-center gap-4 mt-1">
+                          {rate.transit_days && (
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {rate.transit_days} days transit
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            Valid {format(new Date(rate.valid_from), "MMM d")} — {format(new Date(rate.valid_until), "MMM d, yyyy")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-foreground">${totalRate.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{rate.currency} / container</p>
+                      </div>
                     </div>
 
-                    {categories.origin.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Origin Local</p>
-                        {categories.origin.map((s, i) => (
-                          <div key={i} className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{s.description || s.code}</span>
-                            <span className="font-mono">${s.amount.toLocaleString()}</span>
+                    <button
+                      className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 mt-3 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : rate.id); }}
+                    >
+                      {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      View cost breakdown
+                    </button>
+
+                    {isExpanded && (
+                      <div className="mt-3 pt-3 border-t space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">FCL Freight</p>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Base ocean freight</span>
+                            <span className="font-mono font-medium">${rate.base_rate.toLocaleString()}</span>
                           </div>
-                        ))}
+                          {categories.freight.map((s, i) => (
+                            <div key={i} className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">{s.description || s.code}</span>
+                              <span className="font-mono">${s.amount.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {categories.origin.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Origin Local</p>
+                            {categories.origin.map((s, i) => (
+                              <div key={i} className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">{s.description || s.code}</span>
+                                <span className="font-mono">${s.amount.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {categories.destination.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Destination Local</p>
+                            {categories.destination.map((s, i) => (
+                              <div key={i} className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">{s.description || s.code}</span>
+                                <span className="font-mono">${s.amount.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between text-sm font-bold">
+                          <span>Total All-In</span>
+                          <span className="font-mono">${totalRate.toLocaleString()}</span>
+                        </div>
                       </div>
                     )}
 
-                    {categories.destination.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Destination Local</p>
-                        {categories.destination.map((s, i) => (
-                          <div key={i} className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{s.description || s.code}</span>
-                            <span className="font-mono">${s.amount.toLocaleString()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <Separator />
-                    <div className="flex justify-between text-sm font-bold">
-                      <span>Total All-In</span>
-                      <span className="font-mono">${totalRate.toLocaleString()}</span>
+                    <div className="flex justify-end mt-3">
+                      <Button variant="electric" size="sm" asChild>
+                        <Link to="/signup">
+                          Book Now
+                          <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                        </Link>
+                      </Button>
                     </div>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </div>
 
-                {/* Book CTA */}
-                <div className="flex justify-end mt-3">
-                  <Button variant="electric" size="sm" asChild>
-                    <Link to="/signup">
-                      Book Now
-                      <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {/* Sticky Price Sidebar — hidden on mobile */}
+        <div className="hidden lg:block">
+          <PriceSummarySidebar selectedRate={selectedRate || null} containerSize={containerSize} />
+        </div>
       </div>
 
-      {/* Cargo Details Form */}
-      <CargoDetailsForm />
+      {/* Trust & Disclaimer Footer */}
+      <div className="rounded-lg bg-muted/50 border px-4 py-3 flex items-start gap-2 text-xs text-muted-foreground">
+        <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+        <p>
+          Total cost may vary based on actual weight, dimensions, and applicable taxes or duties.
+          Local charges are estimates and subject to carrier confirmation.
+          <span className="text-accent font-medium ml-1">Looking for savings? Apply coupons in the next step.</span>
+        </p>
+      </div>
     </div>
   );
 }
