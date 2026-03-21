@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Truck, MapPin, Calendar, Package, DollarSign, User, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+
 
 const statusStyle: Record<string, string> = {
   available: "bg-accent/10 text-accent border-accent/20",
