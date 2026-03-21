@@ -6,6 +6,7 @@ import alcLogo from "@/assets/alc-logo.png";
 
 const navLinks = [
   { label: "Product", to: "/product" },
+  { label: "Rates", to: "/rates" },
   { label: "How It Works", to: "/how-it-works" },
   { label: "Features", to: "/features" },
   { label: "Category", to: "/category" },

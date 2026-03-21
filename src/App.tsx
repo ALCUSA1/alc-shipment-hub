@@ -12,6 +12,7 @@ import { AdminGate } from "@/components/admin/AdminGate";
 import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
+import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
 import Features from "./pages/Features";
 import Category from "./pages/Category";
@@ -119,6 +120,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/features" element={<Features />} />
             <Route path="/category" element={<Category />} />
+            <Route path="/rates" element={<RateSearch />} />
             <Route path="/security" element={<Security />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
