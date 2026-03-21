@@ -1635,6 +1635,141 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_comments: {
+        Row: {
+          author_avatar_url: string | null
+          author_name: string | null
+          company_name: string | null
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar_url?: string | null
+          author_name?: string | null
+          company_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar_url?: string | null
+          author_name?: string | null
+          company_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_posts: {
+        Row: {
+          author_avatar_url: string | null
+          author_name: string | null
+          company_name: string | null
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          media_urls: string[] | null
+          original_post_id: string | null
+          post_type: string
+          share_count: number | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar_url?: string | null
+          author_name?: string | null
+          company_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          media_urls?: string[] | null
+          original_post_id?: string | null
+          post_type?: string
+          share_count?: number | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar_url?: string | null
+          author_name?: string | null
+          company_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          media_urls?: string[] | null
+          original_post_id?: string | null
+          post_type?: string
+          share_count?: number | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_original_post_id_fkey"
+            columns: ["original_post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reaction_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forwarder_customers: {
         Row: {
           accepted_at: string | null

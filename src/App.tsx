@@ -65,6 +65,7 @@ import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Security from "./pages/Security";
 import Templates from "./pages/Templates";
+import Community from "./pages/Community";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
 import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
 import ForwarderShipments from "./pages/forwarder/ForwarderShipments";
@@ -153,6 +154,7 @@ const App = () => (
             <Route path="/dashboard/portal" element={<ProtectedRoute><CustomerPortal /></ProtectedRoute>} />
             <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+            <Route path="/dashboard/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
