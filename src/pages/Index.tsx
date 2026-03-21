@@ -7,6 +7,7 @@ import { CategorySection } from "@/components/marketing/CategorySection";
 import { BeforeAfterSection } from "@/components/marketing/BeforeAfterSection";
 import { IndustriesSection } from "@/components/marketing/IndustriesSection";
 import { WorkflowSection } from "@/components/marketing/WorkflowSection";
+import { ServiceAssuranceSection } from "@/components/marketing/ServiceAssuranceSection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { FocusLanesSection } from "@/components/marketing/FocusLanesSection";
 import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
@@ -30,6 +31,7 @@ const Index = () => {
       <BeforeAfterSection />
       <IndustriesSection />
       <WorkflowSection />
+      <ServiceAssuranceSection />
       <FeaturesSection />
       <FocusLanesSection />
       <PartnerAccessSection />
