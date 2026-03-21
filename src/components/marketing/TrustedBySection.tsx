@@ -10,7 +10,7 @@ export function TrustedBySection() {
       <div className="container-narrow">
         <ScrollReveal>
           <p className="text-center text-sm font-medium text-muted-foreground mb-10 tracking-wide uppercase">
-            Trusted by leading shippers worldwide
+            Trusted by global trade leaders
           </p>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
