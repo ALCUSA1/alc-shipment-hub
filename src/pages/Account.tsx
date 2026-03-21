@@ -315,6 +315,46 @@ const Account = () => {
           </Card>
         </TabsContent>
 
+        {/* SECURITY TAB */}
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Password & Security</CardTitle>
+              <CardDescription>Change your password to keep your account secure</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-lg">
+              <div>
+                <Label>New Password</Label>
+                <PasswordInput
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="mt-1"
+                  minLength={6}
+                />
+              </div>
+              <div>
+                <Label>Confirm New Password</Label>
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="mt-1"
+                  minLength={6}
+                />
+              </div>
+              <Button
+                variant="electric"
+                onClick={handleChangePassword}
+                disabled={changingPassword || !newPassword || !confirmPassword}
+              >
+                {changingPassword && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                Update Password
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* COMPANY TAB */}
         <TabsContent value="company">
           <Card>

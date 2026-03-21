@@ -123,6 +123,22 @@ export function DashboardActionBanners() {
 
   const banners: ActionBanner[] = [];
 
+  // Onboarding banner — show if user skipped onboarding
+  const skipped = user ? localStorage.getItem(`onboarding_skipped_${user.id}`) === "true" : false;
+  if (skipped && needsOnboarding) {
+    banners.push({
+      key: "onboarding",
+      label: "Complete your organization setup",
+      count: 1,
+      icon: Building2,
+      link: "/onboarding",
+      borderColor: "border-accent/30",
+      bgColor: "bg-accent/5",
+      textColor: "text-accent",
+      iconColor: "text-accent",
+    });
+  }
+
   const draftCount = (activeShipments || []).filter(s => s.status === "draft").length;
   if (draftCount > 0) {
     banners.push({
