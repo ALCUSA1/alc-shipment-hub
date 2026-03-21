@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Truck, MapPin, Calendar, Package, DollarSign, User, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+
 
 const statusStyle: Record<string, string> = {
   available: "bg-accent/10 text-accent border-accent/20",
@@ -113,10 +113,9 @@ const Trucking = () => {
               ) : (
                 <div className="space-y-3">
                   {activeQuotes.map((q: any) => (
-                    <Link
+                    <div
                       key={q.id}
-                      to={`/dashboard/shipments/${q.shipment_id}`}
-                      className="block p-4 rounded-lg border hover:bg-secondary/50 transition-colors"
+                      className="p-4 rounded-lg border"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -162,7 +161,7 @@ const Trucking = () => {
                           </span>
                         )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
@@ -183,10 +182,9 @@ const Trucking = () => {
               ) : (
                 <div className="space-y-3">
                   {assignments.map((a: any) => (
-                    <Link
+                    <div
                       key={a.id}
-                      to={`/dashboard/shipments/${a.shipment_id}`}
-                      className="block p-3 rounded-lg border hover:bg-secondary/50 transition-colors"
+                      className="p-3 rounded-lg border"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium text-foreground">{a.driver_name || "Unassigned"}</span>
@@ -197,7 +195,7 @@ const Trucking = () => {
                         {a.pickup_address && <p className="truncate">From: {a.pickup_address}</p>}
                         {a.delivery_address && <p className="truncate">To: {a.delivery_address}</p>}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
@@ -214,16 +212,15 @@ const Trucking = () => {
               <CardContent>
                 <div className="space-y-2">
                   {completedQuotes.slice(0, 5).map((q: any) => (
-                    <Link
+                    <div
                       key={q.id}
-                      to={`/dashboard/shipments/${q.shipment_id}`}
-                      className="flex items-center justify-between p-2 rounded hover:bg-secondary/50 transition-colors"
+                      className="flex items-center justify-between p-2 rounded"
                     >
                       <span className="text-sm text-muted-foreground">{(q.shipments as any)?.shipment_ref || "—"}</span>
                       <Badge className={statusStyle[q.status] || "bg-secondary"} variant="outline">
                         {formatStatus(q.status)}
                       </Badge>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </CardContent>
