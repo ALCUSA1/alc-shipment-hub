@@ -182,10 +182,9 @@ const Trucking = () => {
               ) : (
                 <div className="space-y-3">
                   {assignments.map((a: any) => (
-                    <Link
+                    <div
                       key={a.id}
-                      to={`/dashboard/shipments/${a.shipment_id}`}
-                      className="block p-3 rounded-lg border hover:bg-secondary/50 transition-colors"
+                      className="p-3 rounded-lg border"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium text-foreground">{a.driver_name || "Unassigned"}</span>
@@ -196,7 +195,7 @@ const Trucking = () => {
                         {a.pickup_address && <p className="truncate">From: {a.pickup_address}</p>}
                         {a.delivery_address && <p className="truncate">To: {a.delivery_address}</p>}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
