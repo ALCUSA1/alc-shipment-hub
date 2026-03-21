@@ -1,10 +1,14 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { HeroSection } from "@/components/marketing/HeroSection";
+import { TrustedBySection } from "@/components/marketing/TrustedBySection";
+import { PlatformStatsSection } from "@/components/marketing/PlatformStatsSection";
 import { ProblemSection } from "@/components/marketing/ProblemSection";
 import { CategorySection } from "@/components/marketing/CategorySection";
 import { BeforeAfterSection } from "@/components/marketing/BeforeAfterSection";
+import { IndustriesSection } from "@/components/marketing/IndustriesSection";
 import { WorkflowSection } from "@/components/marketing/WorkflowSection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
+import { FocusLanesSection } from "@/components/marketing/FocusLanesSection";
 import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
 import { SecuritySection } from "@/components/marketing/SecuritySection";
 import { CTASection } from "@/components/marketing/CTASection";
@@ -19,11 +23,15 @@ const Index = () => {
         canonical="https://alcshipper.com/"
       />
       <HeroSection />
+      <TrustedBySection />
+      <PlatformStatsSection />
       <ProblemSection />
       <CategorySection />
       <BeforeAfterSection />
+      <IndustriesSection />
       <WorkflowSection />
       <FeaturesSection />
+      <FocusLanesSection />
       <PartnerAccessSection />
       <SecuritySection />
       <CTASection />
