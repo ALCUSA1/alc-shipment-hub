@@ -268,7 +268,7 @@ const ShipmentDetail = () => {
         <div className="mb-4 -ml-2">
           <BackButton />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-foreground">{shipment.shipment_ref}</h1>
@@ -289,7 +289,7 @@ const ShipmentDetail = () => {
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {shipment.status === "draft" && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>

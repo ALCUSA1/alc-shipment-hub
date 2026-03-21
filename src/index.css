@@ -114,7 +114,7 @@
     background-color: hsl(var(--gray-light));
   }
   .section-padding {
-    @apply py-24 px-6 md:py-32 md:px-8;
+    @apply py-16 px-6 md:py-24 md:px-8;
   }
   .container-narrow {
     @apply max-w-5xl mx-auto;
