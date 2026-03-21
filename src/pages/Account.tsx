@@ -13,8 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X } from "lucide-react";
+import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X, Lock } from "lucide-react";
 import { BackButton } from "@/components/shared/BackButton";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface ProfileData {
   full_name: string;
