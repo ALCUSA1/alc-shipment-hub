@@ -1,57 +1,83 @@
 
 
-# Cogoport Rate Results Page — Replicable Improvements
+# Cogoport-Inspired Rate Results Enhancements
 
-## What the Screenshot Shows
+## What to Build
 
-Cogoport's rate results page (USLAX → CNSGH) has several UI patterns our results panel lacks:
+Five new UI patterns from the Cogoport screenshot that we don't yet have:
 
-1. **Route visualization map** — A world map with origin/destination pins and a route line connecting them
-2. **Rich route header** — Shows full city names ("Los Angeles" / "Shanghai") with port codes, mode badge (Ocean Freight), container badge (20ft Standard General), and transit time badge (Avg Transit: 19 Days)
-3. **Estimated price range** prominently displayed ($4,501/ctr – $5,157/ctr) with helper text
-4. **"Choose your shipment quote"** section with a Spot Rate card
-5. **Cargo details form** — Commodity, number of containers, total weight per container, with a "Proceed" button to get an exact tailored quote
+### 1. Sticky Price Sidebar
+A persistent cost breakdown card showing Origin Local, Destination Local, FCL Freight, and Total. Sticks to the right side as the user scrolls through rate cards. On mobile, this becomes a fixed bottom bar showing the total.
 
-## What We Already Have
-- Summary bar with price range and carrier count (good)
-- Individual rate cards with cost breakdowns (good)
-- Mode tabs in search form (good)
+**File**: New `src/components/rate-search/PriceSummarySidebar.tsx`
+**Change in**: `RateResultsPanel.tsx` — wrap rate cards in a 2-column grid layout (cards left, sidebar right)
 
-## What to Add
+### 2. Sailing Schedule Selector
+Weekly date range rows showing available sailing windows with prices per week. User picks a sailing week, which highlights the selected schedule. Shows "Sail By", "Transit time", and "Week of arrival" details below.
 
-### 1. Route Header with City Names
-Replace port codes in the summary bar with full city/port names. Use the `ports` data to resolve codes to names. Add mode/container/transit badges.
+**File**: New `src/components/rate-search/SailingScheduleSelector.tsx`
+**Change in**: `RateResultsPanel.tsx` — render above the rate cards, after summary header
 
-**File**: `RateResultsPanel.tsx` — update summary bar to show city names, add badges for mode and container type.
+### 3. Shipping Preferences Panel
+A collapsible section with three preference controls:
+- Direct vs. Transshipment toggle
+- Carrier type preference (All / Major / NVOCC)
+- Spot vs. Contract toggle
 
-### 2. Route Map Visualization
-Add an SVG world map showing origin and destination with a curved route line. Use approximate lat/lng for major ports to place pins.
+These filter the displayed rate cards client-side.
 
-**File**: New `RouteMapPreview.tsx` component, rendered above the summary bar in `RateResultsPanel.tsx`.
+**File**: New `src/components/rate-search/ShippingPreferences.tsx`
+**Change in**: `RateResultsPanel.tsx` — render below sailing schedule
 
-### 3. Cargo Details Form
-Below the rate cards, add a "Get Exact Quote" form with commodity, number of containers, and weight fields. The "Proceed" button links to signup/new-shipment.
+### 4. Inline Cargo Summary (replace bottom form)
+Replace the current bottom `CargoDetailsForm` with an inline compact cargo summary bar at the top (like Cogoport's "1 Ctr x 20ft Standard | 18 MT | Edit") with an edit popover. The "Edit" button opens a popover with the commodity/weight/container fields.
 
-**File**: New section at bottom of `RateResultsPanel.tsx` or a new `CargoDetailsForm.tsx`.
+**File**: New `src/components/rate-search/CargoSummaryBar.tsx`
+**Change in**: `RateResultsPanel.tsx` — replace `<CargoDetailsForm />` at bottom, add summary bar near top
 
-### 4. Spot Rate Highlight
-Add a "Spot Rate" label to the best-rate card, similar to Cogoport's "from $4,501/ctr" callout.
+### 5. Trust & Disclaimer Footer
+A small text block below rate cards with tax disclaimer ("Total cost including taxes, local charges...") and a savings callout ("Looking for savings? Apply coupons in the next step").
 
-**File**: Update existing rate card in `RateResultsPanel.tsx`.
+**File**: Inline in `RateResultsPanel.tsx`
 
-## Implementation Steps
+## Layout Change
 
-| Step | Description | File(s) | Complexity |
-|------|-------------|---------|------------|
-| 1 | Route map SVG component | New `RouteMapPreview.tsx` | Medium |
-| 2 | Enhanced route header with city names + badges | `RateResultsPanel.tsx` | Low |
-| 3 | Cargo details form | `RateResultsPanel.tsx` | Low |
-| 4 | Spot Rate label on best card | `RateResultsPanel.tsx` | Low |
+Current layout is single-column. New layout:
 
-### Technical Notes
-- Port name resolution: Pass `ports` array as a prop to `RateResultsPanel`, or look up names from the rate data's origin/destination fields
-- Route map: Use a lightweight inline SVG with approximate coordinates for ~20 major ports. No external map library needed
-- Cargo form "Proceed" action: Link to `/signup` for unauthenticated users since this is a marketing conversion funnel
+```text
+┌─────────────────────────────────────────────┐
+│  Route Map                                  │
+├─────────────────────────────────────────────┤
+│  Summary Header (route, badges, range)      │
+├─────────────────────────────────────────────┤
+│  Cargo Summary Bar  [1x40HC | 18MT | Edit]  │
+├─────────────────────────────────────────────┤
+│  Sailing Schedule Selector                  │
+├─────────────────────────────────────────────┤
+│  Shipping Preferences (collapsible)         │
+├──────────────────────────┬──────────────────┤
+│  Rate Cards (left col)   │  Sticky Price    │
+│  Card 1                  │  Sidebar (right) │
+│  Card 2                  │  - Origin Local  │
+│  Card 3                  │  - Dest Local    │
+│                          │  - FCL Freight   │
+│                          │  - Total         │
+│                          │  [Book Now]      │
+├──────────────────────────┴──────────────────┤
+│  Trust Disclaimer Footer                    │
+└─────────────────────────────────────────────┘
+```
 
-No database changes required.
+## Files Summary
+
+| Action | File |
+|--------|------|
+| Create | `src/components/rate-search/PriceSummarySidebar.tsx` |
+| Create | `src/components/rate-search/SailingScheduleSelector.tsx` |
+| Create | `src/components/rate-search/ShippingPreferences.tsx` |
+| Create | `src/components/rate-search/CargoSummaryBar.tsx` |
+| Modify | `src/components/rate-search/RateResultsPanel.tsx` — new layout, integrate all components |
+| Delete reference | Remove `CargoDetailsForm` import/usage (replace with `CargoSummaryBar`) |
+
+No database changes needed. All filtering is client-side on existing `carrier_rates` data.
 
