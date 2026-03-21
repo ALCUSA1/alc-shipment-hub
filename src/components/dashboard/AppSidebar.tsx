@@ -41,7 +41,6 @@ const navGroups = [
       { title: "Trucking", url: "/dashboard/trucking", icon: Truck },
       { title: "Warehouses", url: "/dashboard/warehouses", icon: Warehouse },
       { title: "Documents", url: "/dashboard/documents", icon: FileText },
-      { title: "Templates", url: "/dashboard/templates", icon: BookTemplate },
     ],
   },
   {
