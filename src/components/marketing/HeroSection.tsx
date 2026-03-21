@@ -1,22 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Globe, Search, Ship, Plane } from "lucide-react";
-import { motion } from "framer-motion";
+import { Globe, Search, Ship, Plane } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { PortSelector } from "@/components/shipment/PortSelector";
+import { RateResultsPanel } from "@/components/rate-search/RateResultsPanel";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const SERVICE_MODES = [
-  { key: "fcl", label: "FCL", icon: Ship },
-  { key: "air", label: "Air Freight", icon: Plane },
-];
-
 export function HeroSection() {
-  const navigate = useNavigate();
   const [mode, setMode] = useState<"ocean" | "air">("ocean");
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [results, setResults] = useState<any[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchDone, setSearchDone] = useState(false);
 
   const { data: ports = [] } = useQuery({
     queryKey: ["ports-hero"],
@@ -26,10 +23,36 @@ export function HeroSection() {
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!origin || !destination) return;
-    navigate(`/rates?origin=${origin}&destination=${destination}&mode=${mode}`);
+    setIsLoading(true);
+    setSearchDone(true);
+
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      let query = supabase
+        .from("carrier_rates")
+        .select("*")
+        .eq("origin_port", origin)
+        .eq("destination_port", destination)
+        .eq("mode", mode)
+        .gte("valid_until", today)
+        .order("base_rate", { ascending: true });
+
+      if (mode === "ocean") {
+        query = query.eq("container_type", "40hc");
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setResults(data || []);
+    } catch (err) {
+      console.error("Rate search error:", err);
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -45,36 +68,38 @@ export function HeroSection() {
         </svg>
       </div>
 
-      <div className="relative max-w-5xl mx-auto px-6 pt-24 md:pt-36 pb-16 md:pb-24 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8"
-        >
-          <Globe className="h-4 w-4" />
-          Shipment Coordination Workspace
-        </motion.div>
+      <div className="relative max-w-5xl mx-auto px-6 pt-24 md:pt-36 pb-16 md:pb-24">
+        <div className="text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8"
+          >
+            <Globe className="h-4 w-4" />
+            Shipment Coordination Workspace
+          </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-          className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6"
-        >
-          Coordinate freight, trucking,
-          <br />
-          <span className="text-gradient">and warehouses in one workspace.</span>
-        </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6"
+          >
+            Coordinate freight, trucking,
+            <br />
+            <span className="text-gradient">and warehouses in one workspace.</span>
+          </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-          className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed mb-10"
-        >
-          Search rates, book shipments, and track cargo — all from one platform.
-        </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+            className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed mb-10"
+          >
+            Search rates, book shipments, and track cargo — all from one platform.
+          </motion.p>
+        </div>
 
         {/* Embedded Rate Search */}
         <motion.div
@@ -141,13 +166,42 @@ export function HeroSection() {
               variant="electric"
               size="lg"
               className="h-10 px-6 text-sm whitespace-nowrap w-full sm:w-auto"
-              disabled={!origin || !destination}
+              disabled={!origin || !destination || isLoading}
             >
               <Search className="h-4 w-4 mr-2" />
-              Search Rates
+              {isLoading ? "Searching..." : "Search Rates"}
             </Button>
           </form>
         </motion.div>
+
+        {/* Inline Results */}
+        <AnimatePresence>
+          {searchDone && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-4xl mx-auto mt-8"
+            >
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-background rounded-2xl border">
+                  <div className="h-10 w-10 rounded-full border-2 border-accent border-t-transparent animate-spin mb-4" />
+                  <p className="text-sm text-muted-foreground">Searching carrier rates...</p>
+                </div>
+              ) : results ? (
+                <div className="bg-background rounded-2xl border shadow-lg p-6">
+                  <RateResultsPanel
+                    rates={results}
+                    origin={origin}
+                    destination={destination}
+                    containerSize="40hc"
+                  />
+                </div>
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
