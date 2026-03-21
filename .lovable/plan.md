@@ -1,86 +1,83 @@
 
 
-# Cogoport Feature Analysis — What We Can Implement
+# Cogoport Feature Analysis — Workspace, Onboarding & User Management
 
-## What Cogoport Offers (from the screenshots)
+## What the Screenshots Show
 
-Based on the three uploaded PDFs (homepage, rate search, and rate results), Cogoport is a **self-service freight booking platform** for shippers. Key features observed:
+### 1. Workspace Switcher
+- Users can belong to multiple organizations
+- A workspace selector lets them switch between "Personal Workspace" and company workspaces
+- Clean modal/page showing available workspaces
 
-### 1. Instant Rate Search (Hero Feature)
-- Origin/destination port selector with mode tabs (FCL vs Air/LCL)
-- Container size picker (20ft, 40ft, 40ft HC, 45ft HC)
-- Container type selector (Standard/Dry, Open Top, Flat Rack, ISO Tank, Open Side)
-- Weight per container and commodity input
-- "Book Freight Now" — single CTA to search
+### 2. Organization Onboarding
+- Post-signup flow to register a company
+- Fields: Company Name, Country, Registration Number, Referral Code (optional)
+- Organization type selection: **Importer/Exporter** (take logistics services) vs **Service Provider** (provide logistics services)
+- "Skip for now" option — users can explore before committing
+- Pending requests view for users joining existing orgs
 
-### 2. Rate Results Page
-- **Estimated price range** shown immediately (e.g. "$4,501/ctr - $5,157/ctr")
-- Spot rate vs contract rate toggle
-- Weekly rate calendar (rates by sailing week with transit times)
-- Rate breakdown: Origin Local, Destination Local, FCL Freight, Total
-- Shipping preferences: Direct vs Transshipment, carrier preference, spot vs own price
-
-### 3. Value-Add Features
-- **CogoAssured** — vetted partner guarantee program
-- **Pay Later** — credit terms / BNPL for freight
-- **CogoRewards** — loyalty points per shipment
-- **Refer & Earn** — referral program
-- **Freight Contracts** — lock in long-term rates
-
-### 4. Marketing / Trust Elements
-- Platform stats (30K+ shippers, 192 countries, 400K+ containers, 97% on-time B/L)
-- Industry verticals served
-- Focus lanes with specific route detail
-- "How it Works" — 4-step flow
-
----
+### 3. User Profile & Management
+- Personal info section with username, email, phone
+- Password & Security section (change/reset password)
+- Clean profile layout with sidebar navigation
 
 ## What Your Platform Already Has
-- Quote creation wizard with carrier rate selection
-- Port selector, container types, cargo details
-- Shipment workspace with full lifecycle management
-- Rate trends page
-- Trucking marketplace, warehouse coordination
-- Multi-portal system (shipper, forwarder, carrier, warehouse, driver)
+- **SignUp page**: Collects name, email, password, company name, and role (Shipper/Forwarder/Carrier/Driver/Warehouse)
+- **Account page**: Full profile with company details, FMC licensing, insurance, billing — very comprehensive
+- **Auth system**: Email-based auth with role assignment and admin approval flow
 
-## Recommended Features to Implement (prioritized)
+## What We Can Implement
 
-### A. Instant Rate Search Widget (High Impact)
-Add a prominent rate search component — similar to Cogoport's hero — where users enter origin, destination, container size/type, and get instant estimated rates from your `shipment_rates` table. This replaces the current multi-step quote wizard for quick lookups.
+### A. Organization Onboarding Wizard (High Value)
+A dedicated post-signup onboarding flow that guides new users through company setup step-by-step, rather than dumping them into the full Account page. Steps:
+1. Company basics (name, country, registration number)
+2. Organization type (maps to existing role system)
+3. Optional referral code
+4. Confirmation → redirect to dashboard
 
-**Scope**: New page or dashboard widget. Reuse existing `PortSelector`, add container config UI, query `shipment_rates` for matching lanes, display price range and weekly breakdown.
+**Scope**: New `src/pages/Onboarding.tsx` page, triggered after first login when company profile is incomplete.
 
-### B. Rate Breakdown Display
-When viewing rates, show a structured cost breakdown: base freight, origin charges, destination charges, surcharges, total. Currently rates show as a single number — breaking them out builds trust and matches industry expectations.
+### B. Workspace Switcher
+Allow users associated with multiple companies to switch context. Useful for forwarders managing multiple client accounts or users with both personal and company workspaces.
 
-**Scope**: Enhance `CarrierRateSelector` and quote detail views.
+**Scope**: New workspace concept would require a `user_workspaces` table linking users to multiple companies, plus a switcher component in the sidebar. This is a larger architectural change.
 
-### C. Shipping Preferences Panel
-Let users set preferences before booking: direct vs transshipment routing, preferred carriers, spot vs contract pricing. Filter rate results accordingly.
+### C. Enhanced Profile Page
+Add a cleaner profile section with:
+- Separate "Personal Information" card (name, email, phone)
+- "Password & Security" card (change/reset password UI)
+- Currently the Account page has this but it's buried in tabs
 
-**Scope**: New filter component on quote/rate pages.
+**Scope**: Refactor existing Account page layout.
 
-### D. Weekly Rate Calendar
-Display rates organized by sailing week with transit times and arrival windows (like Cogoport's "$4,501 — 22 Mar - 27 Mar — 19 Days — arrival 06 Apr - 12 Apr"). Helps users pick optimal sailing dates.
+## Recommendation
 
-**Scope**: New component using `shipment_rates` valid dates.
+Features A (Onboarding Wizard) and C (Enhanced Profile) are practical to build now. Feature B (Workspace Switcher) requires significant schema changes and is better suited for a later phase.
 
-### E. "How It Works" Flow Update
-Update the marketing page flow to match the 4-step pattern: Discover Rates → Book & Ship → Track & Manage Docs → Pay & Complete. Your existing `WorkflowSection` can be refined.
+### Implementation Plan
 
-**Scope**: Content update to existing marketing component.
+**Step 1 — Onboarding Page**
+- Create `src/pages/Onboarding.tsx` with a clean, centered card layout
+- Fields: Company Name, Country (reuse CountrySelector), Registration Number, Organization Type toggle
+- On submit: upsert into `companies` table, then redirect to dashboard
+- Add route in `App.tsx`, trigger redirect from `ProtectedRoute` when profile incomplete
 
----
+**Step 2 — Profile Cleanup**
+- Add a dedicated "Personal Information" section at the top of Account page
+- Add a "Password & Security" card with change password functionality using `supabase.auth.updateUser`
+- Keep existing company/compliance tabs but improve the layout hierarchy
 
-## Technical Approach
+**Step 3 — Skip for Now Flow**
+- Allow users to skip onboarding and land on dashboard with a banner prompting them to complete setup
+- Reuse existing `DashboardActionBanners` component
 
-| Feature | Files to Create/Modify | Database Changes |
-|---------|----------------------|-----------------|
-| Rate Search Widget | New `src/pages/RateSearch.tsx`, new `src/components/rate-search/` components | None — queries existing `shipment_rates` |
-| Rate Breakdown | Modify `CarrierRateSelector.tsx`, `NewQuote.tsx` | None — uses existing `surcharges` JSON |
-| Shipping Preferences | New `src/components/shipment/ShippingPreferences.tsx` | Optional: new `user_preferences` table |
-| Weekly Rate Calendar | New `src/components/rate-search/WeeklyRateCalendar.tsx` | None |
-| How It Works | Modify `WorkflowSection.tsx` | None |
+### Technical Details
 
-Estimated effort: 3-5 implementation messages depending on scope chosen.
+| Feature | Files | DB Changes |
+|---------|-------|-----------|
+| Onboarding page | New `Onboarding.tsx`, edit `App.tsx`, edit `ProtectedRoute.tsx` | None — uses existing `companies` + `profiles` tables |
+| Profile cleanup | Edit `Account.tsx` | None |
+| Skip flow | Edit `DashboardActionBanners.tsx` | None |
+
+No database migrations needed — all features work with existing schema.
 
