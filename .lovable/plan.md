@@ -1,83 +1,78 @@
 
 
-# Cogoport Feature Analysis — Workspace, Onboarding & User Management
+# Cogoport Homepage Analysis — Replicable Features
 
-## What the Screenshots Show
+## What Cogoport Does Well (from the screenshot + live site)
 
-### 1. Workspace Switcher
-- Users can belong to multiple organizations
-- A workspace selector lets them switch between "Personal Workspace" and company workspaces
-- Clean modal/page showing available workspaces
+### 1. Hero with Embedded Rate Search
+Instead of a generic hero with just text and a CTA button, Cogoport embeds the **rate search form directly in the hero section**. The user lands on the homepage and can immediately search rates without navigating anywhere. This is the single highest-impact conversion pattern on their site.
 
-### 2. Organization Onboarding
-- Post-signup flow to register a company
-- Fields: Company Name, Country, Registration Number, Referral Code (optional)
-- Organization type selection: **Importer/Exporter** (take logistics services) vs **Service Provider** (provide logistics services)
-- "Skip for now" option — users can explore before committing
-- Pending requests view for users joining existing orgs
+**Your current state**: Hero has text + "Start Shipping" button. Rate search exists at `/rates` but is a separate page.
 
-### 3. User Profile & Management
-- Personal info section with username, email, phone
-- Password & Security section (change/reset password)
-- Clean profile layout with sidebar navigation
+### 2. Streamlined 4-Step "How It Works"
+Cogoport uses 4 clear steps: **Discover Rates → Book & Ship → Track & Manage Docs → Pay & Complete**. Each step has a visual image alongside it.
 
-## What Your Platform Already Has
-- **SignUp page**: Collects name, email, password, company name, and role (Shipper/Forwarder/Carrier/Driver/Warehouse)
-- **Account page**: Full profile with company details, FMC licensing, insurance, billing — very comprehensive
-- **Auth system**: Email-based auth with role assignment and admin approval flow
+**Your current state**: 7-step workflow that's too granular for a marketing page.
 
-## What We Can Implement
+### 3. Guaranteed Bookings / Assured Service Section
+A "CogoAssured" section highlighting reliability guarantees, freight contracts, spot booking, pay later, and rewards — presented as a feature grid with icons and descriptions.
 
-### A. Organization Onboarding Wizard (High Value)
-A dedicated post-signup onboarding flow that guides new users through company setup step-by-step, rather than dumping them into the full Account page. Steps:
-1. Company basics (name, country, registration number)
-2. Organization type (maps to existing role system)
-3. Optional referral code
-4. Confirmation → redirect to dashboard
+**Your current state**: No equivalent trust/assurance section.
 
-**Scope**: New `src/pages/Onboarding.tsx` page, triggered after first login when company profile is incomplete.
+### 4. Service Mode Tabs
+Cogoport shows service categories as clickable tabs: FCL, LCL, Air, Rail, Trailer, FTL, LTL, Customs, CFS, Handling — making it clear they cover all modes.
 
-### B. Workspace Switcher
-Allow users associated with multiple companies to switch context. Useful for forwarders managing multiple client accounts or users with both personal and company workspaces.
+**Your current state**: Category section exists but doesn't use the same tab-style presentation.
 
-**Scope**: New workspace concept would require a `user_workspaces` table linking users to multiple companies, plus a switcher component in the sidebar. This is a larger architectural change.
+### 5. Focus Lanes with Route-Specific CTAs
+Cogoport shows specific trade lanes (China → India, Vietnam → India) with direct links to rate pages for those routes.
 
-### C. Enhanced Profile Page
-Add a cleaner profile section with:
-- Separate "Personal Information" card (name, email, phone)
-- "Password & Security" card (change/reset password UI)
-- Currently the Account page has this but it's buried in tabs
+**Your current state**: FocusLanesSection exists but links to `/signup` instead of pre-filled rate searches.
 
-**Scope**: Refactor existing Account page layout.
+---
 
-## Recommendation
+## Implementation Plan
 
-Features A (Onboarding Wizard) and C (Enhanced Profile) are practical to build now. Feature B (Workspace Switcher) requires significant schema changes and is better suited for a later phase.
+### Step 1 — Embed Rate Search in Hero
+Move the rate search form into the hero section of the homepage. Keep the existing `/rates` page but make the hero the primary entry point. When a user searches from the hero, redirect to `/rates` with query params pre-filled.
 
-### Implementation Plan
+**Files**: Edit `HeroSection.tsx` to embed a compact `RateSearchForm` variant, or add a mini search bar (origin, destination, container dropdown, "Search Rates" button) that navigates to `/rates?origin=X&dest=Y`.
 
-**Step 1 — Onboarding Page**
-- Create `src/pages/Onboarding.tsx` with a clean, centered card layout
-- Fields: Company Name, Country (reuse CountrySelector), Registration Number, Organization Type toggle
-- On submit: upsert into `companies` table, then redirect to dashboard
-- Add route in `App.tsx`, trigger redirect from `ProtectedRoute` when profile incomplete
+### Step 2 — Simplify "How It Works" to 4 Steps
+Condense the 7-step workflow into 4 steps matching the Cogoport pattern:
+1. **Discover Rates** — Search and compare instant pricing
+2. **Book & Ship** — Confirm booking with guaranteed reliability
+3. **Track & Manage** — Real-time tracking with automated documents
+4. **Pay & Complete** — Flexible payment options
 
-**Step 2 — Profile Cleanup**
-- Add a dedicated "Personal Information" section at the top of Account page
-- Add a "Password & Security" card with change password functionality using `supabase.auth.updateUser`
-- Keep existing company/compliance tabs but improve the layout hierarchy
+**Files**: Edit `WorkflowSection.tsx` — replace the 7 steps array with 4 steps, update layout to a 2x2 grid or horizontal cards instead of vertical list.
 
-**Step 3 — Skip for Now Flow**
-- Allow users to skip onboarding and land on dashboard with a banner prompting them to complete setup
-- Reuse existing `DashboardActionBanners` component
+### Step 3 — Add Service Assurance Section
+New section highlighting platform guarantees: Verified Partners, Freight Contracts, Spot Booking, Flexible Payments. Positioned between the workflow and features sections.
 
-### Technical Details
+**Files**: New `ServiceAssuranceSection.tsx` component, add to `Index.tsx`.
 
-| Feature | Files | DB Changes |
+### Step 4 — Link Focus Lanes to Pre-filled Rate Search
+Update `FocusLanesSection.tsx` so each lane links to `/rates?origin=CNSGH&destination=USLAX` instead of `/signup`, giving users instant value.
+
+**Files**: Edit `FocusLanesSection.tsx` — change link targets.
+
+### Step 5 — Add Service Mode Tabs
+Add a horizontal row of service mode pills/tabs (FCL, Air, LCL, Trucking, Warehousing, Customs) that link to relevant pages or filter content. Can be added near the hero or as part of the category section.
+
+**Files**: Edit `CategorySection.tsx` or add to hero area.
+
+---
+
+## Technical Details
+
+| Feature | Files | Complexity |
 |---------|-------|-----------|
-| Onboarding page | New `Onboarding.tsx`, edit `App.tsx`, edit `ProtectedRoute.tsx` | None — uses existing `companies` + `profiles` tables |
-| Profile cleanup | Edit `Account.tsx` | None |
-| Skip flow | Edit `DashboardActionBanners.tsx` | None |
+| Hero rate search | Edit `HeroSection.tsx`, `RateSearch.tsx` (accept URL params) | Medium |
+| 4-step workflow | Edit `WorkflowSection.tsx` | Low |
+| Service assurance | New `ServiceAssuranceSection.tsx`, edit `Index.tsx` | Low |
+| Focus lanes → rate search | Edit `FocusLanesSection.tsx` | Low |
+| Service mode tabs | Edit `CategorySection.tsx` | Low |
 
-No database migrations needed — all features work with existing schema.
+No database changes required. All features work with existing data.
 
