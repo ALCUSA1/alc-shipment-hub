@@ -264,8 +264,9 @@ const Account = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-6 max-w-3xl">
           <TabsTrigger value="profile" className="gap-1.5 text-xs"><User className="h-3.5 w-3.5" />Profile</TabsTrigger>
+          <TabsTrigger value="security" className="gap-1.5 text-xs"><Lock className="h-3.5 w-3.5" />Security</TabsTrigger>
           <TabsTrigger value="company" className="gap-1.5 text-xs"><Building2 className="h-3.5 w-3.5" />Company</TabsTrigger>
           <TabsTrigger value="compliance" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Compliance</TabsTrigger>
           <TabsTrigger value="insurance" className="gap-1.5 text-xs"><FileCheck className="h-3.5 w-3.5" />Insurance</TabsTrigger>
