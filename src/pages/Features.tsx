@@ -3,6 +3,8 @@ import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
 import { CTASection } from "@/components/marketing/CTASection";
 import { SEO } from "@/components/SEO";
+import { ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Features = () => (
   <MarketingLayout>
@@ -20,6 +22,13 @@ const Features = () => (
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Freight coordination, trucking, warehouse handling, and shipment tracking in one platform.
         </p>
+        <motion.div
+          className="mt-10"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+        >
+          <ChevronDown className="h-5 w-5 text-muted-foreground mx-auto" />
+        </motion.div>
       </div>
     </section>
     <FeaturesSection />

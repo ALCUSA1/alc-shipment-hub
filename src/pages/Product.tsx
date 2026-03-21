@@ -5,8 +5,9 @@ import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSectio
 import { CTASection } from "@/components/marketing/CTASection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { motion } from "framer-motion";
 
 const Product = () => (
   <MarketingLayout>
@@ -27,6 +28,13 @@ const Product = () => (
         <Button variant="electric" size="lg" className="text-base px-8 h-12" asChild>
           <Link to="/signup">Start Shipping <ArrowRight className="ml-2 h-4 w-4" /></Link>
         </Button>
+        <motion.div
+          className="mt-10"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+        >
+          <ChevronDown className="h-5 w-5 text-muted-foreground mx-auto" />
+        </motion.div>
       </div>
     </section>
     <FeaturesSection />
