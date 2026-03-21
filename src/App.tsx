@@ -58,6 +58,7 @@ import Pipeline from "./pages/Pipeline";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import PendingApproval from "./pages/PendingApproval";
+import Onboarding from "./pages/Onboarding";
 import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
 import Messages from "./pages/Messages";
@@ -127,6 +128,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/quote/approve" element={<QuoteApproval />} />
             <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             {/* Operations Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

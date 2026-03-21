@@ -13,8 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X } from "lucide-react";
+import { Building2, Shield, FileCheck, CreditCard, User, Loader2, Upload, X, Lock } from "lucide-react";
 import { BackButton } from "@/components/shared/BackButton";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface ProfileData {
   full_name: string;
@@ -203,6 +204,34 @@ const Account = () => {
     toast({ title: "Company information saved" });
   };
 
+  // Password change
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast({ title: "Password too short", description: "Must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    toast({ title: "Password updated", description: "Your password has been changed successfully." });
+  };
+
   const statusColor: Record<string, string> = {
     prospect: "bg-muted text-muted-foreground",
     pending_compliance: "bg-yellow-500/10 text-yellow-600",
@@ -235,8 +264,9 @@ const Account = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-6 max-w-3xl">
           <TabsTrigger value="profile" className="gap-1.5 text-xs"><User className="h-3.5 w-3.5" />Profile</TabsTrigger>
+          <TabsTrigger value="security" className="gap-1.5 text-xs"><Lock className="h-3.5 w-3.5" />Security</TabsTrigger>
           <TabsTrigger value="company" className="gap-1.5 text-xs"><Building2 className="h-3.5 w-3.5" />Company</TabsTrigger>
           <TabsTrigger value="compliance" className="gap-1.5 text-xs"><Shield className="h-3.5 w-3.5" />Compliance</TabsTrigger>
           <TabsTrigger value="insurance" className="gap-1.5 text-xs"><FileCheck className="h-3.5 w-3.5" />Insurance</TabsTrigger>
@@ -281,6 +311,46 @@ const Account = () => {
               <div><Label>Email</Label><Input value={user?.email || ""} disabled className="mt-1 opacity-60" /></div>
               <div><Label>Company Display Name</Label><Input value={profile.company_name} onChange={e => setProfile(p => ({ ...p, company_name: e.target.value }))} className="mt-1" /></div>
               <Button variant="electric" onClick={saveProfile} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />}Save Profile</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SECURITY TAB */}
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Password & Security</CardTitle>
+              <CardDescription>Change your password to keep your account secure</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-lg">
+              <div>
+                <Label>New Password</Label>
+                <PasswordInput
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="mt-1"
+                  minLength={6}
+                />
+              </div>
+              <div>
+                <Label>Confirm New Password</Label>
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="mt-1"
+                  minLength={6}
+                />
+              </div>
+              <Button
+                variant="electric"
+                onClick={handleChangePassword}
+                disabled={changingPassword || !newPassword || !confirmPassword}
+              >
+                {changingPassword && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                Update Password
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

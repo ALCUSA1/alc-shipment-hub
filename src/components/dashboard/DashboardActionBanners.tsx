@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
-import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck, Receipt } from "lucide-react";
+import { ArrowRight, Ship, FileText, Truck, CreditCard, Warehouse, UserCheck, Receipt, Building2 } from "lucide-react";
+import { useOnboardingCheck } from "@/hooks/useOnboardingCheck";
 import { motion } from "framer-motion";
 
 interface ActionBanner {
@@ -19,6 +20,7 @@ interface ActionBanner {
 
 export function DashboardActionBanners() {
   const { user } = useAuth();
+  const { needsOnboarding } = useOnboardingCheck();
 
   const { data: activeShipments } = useQuery({
     queryKey: ["guide-active-shipments"],
@@ -120,6 +122,22 @@ export function DashboardActionBanners() {
   });
 
   const banners: ActionBanner[] = [];
+
+  // Onboarding banner — show if user skipped onboarding
+  const skipped = user ? localStorage.getItem(`onboarding_skipped_${user.id}`) === "true" : false;
+  if (skipped && needsOnboarding) {
+    banners.push({
+      key: "onboarding",
+      label: "Complete your organization setup",
+      count: 1,
+      icon: Building2,
+      link: "/onboarding",
+      borderColor: "border-accent/30",
+      bgColor: "bg-accent/5",
+      textColor: "text-accent",
+      iconColor: "text-accent",
+    });
+  }
 
   const draftCount = (activeShipments || []).filter(s => s.status === "draft").length;
   if (draftCount > 0) {
