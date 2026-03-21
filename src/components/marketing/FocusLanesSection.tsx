@@ -5,12 +5,12 @@ import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/component
 import { motion } from "framer-motion";
 
 const lanes = [
-  { origin: "🇺🇸 United States", destination: "🇳🇬 West Africa", tag: "FCL · 28-35 days" },
-  { origin: "🇨🇳 China", destination: "🇺🇸 United States", tag: "FCL · 18-25 days" },
-  { origin: "🇮🇳 India", destination: "🇬🇧 United Kingdom", tag: "FCL · 22-28 days" },
-  { origin: "🇩🇪 Germany", destination: "🇧🇷 Brazil", tag: "FCL · 20-26 days" },
-  { origin: "🇻🇳 Vietnam", destination: "🇺🇸 United States", tag: "Air · 3-5 days" },
-  { origin: "🇺🇸 United States", destination: "🇦🇪 UAE", tag: "FCL · 30-38 days" },
+  { origin: "🇨🇳 Shanghai", destination: "🇺🇸 Los Angeles", tag: "FCL · 14-18 days" },
+  { origin: "🇨🇳 Shenzhen", destination: "🇳🇱 Rotterdam", tag: "FCL · 28-32 days" },
+  { origin: "🇰🇷 Busan", destination: "🇺🇸 Long Beach", tag: "FCL · 12-16 days" },
+  { origin: "🇻🇳 Ho Chi Minh", destination: "🇬🇧 Felixstowe", tag: "FCL · 26-30 days" },
+  { origin: "🇩🇪 Hamburg", destination: "🇺🇸 New York", tag: "FCL · 10-14 days" },
+  { origin: "🇸🇬 Singapore", destination: "🇦🇺 Sydney", tag: "FCL · 12-15 days" },
 ];
 
 export function FocusLanesSection() {
