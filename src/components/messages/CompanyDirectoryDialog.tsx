@@ -36,13 +36,14 @@ export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, curre
   const filtered = users.filter((u) => {
     if (u.user_id === currentUserId) return false;
 
-    const isSameCompany =
-      currentCompanyName &&
-      u.company_name?.toLowerCase() === currentCompanyName.toLowerCase();
+    // Only apply scope filtering when the current user has a company set
+    if (currentCompanyName) {
+      const isSameCompany =
+        u.company_name?.toLowerCase() === currentCompanyName.toLowerCase();
 
-    // Scope filtering
-    if (scope === "internal" && !isSameCompany) return false;
-    if (scope === "external" && isSameCompany) return false;
+      if (scope === "internal" && !isSameCompany) return false;
+      if (scope === "external" && isSameCompany) return false;
+    }
 
     // Search filtering
     const q = search.toLowerCase();
