@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, ArrowRight, Ship, Plane } from "lucide-react";
 import { PortSelector } from "@/components/shipment/PortSelector";
-import { OCEAN_PORTS, AIR_PORTS } from "@/lib/port-data";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const CONTAINER_SIZES = [
   { value: "20gp", label: "20' Standard" },
@@ -38,7 +39,13 @@ export function RateSearchForm({ onSearch, isLoading }: RateSearchFormProps) {
   const [containerSize, setContainerSize] = useState("40hc");
   const [containerType, setContainerType] = useState("dry");
 
-  const ports = mode === "ocean" ? OCEAN_PORTS : AIR_PORTS;
+  const { data: ports = [] } = useQuery({
+    queryKey: ["ports-rate-search"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      return data || [];
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
