@@ -1,83 +1,89 @@
 
 
-# Cogoport-Inspired Rate Results Enhancements
+## Plan: Hybrid Monetization — Amazon + YouTube Model
 
-## What to Build
+Implementing a three-pillar revenue model: marketplace commissions on transactions, freemium subscription tiers for platform access, and promoted/boosted content in the community feed.
 
-Five new UI patterns from the Cogoport screenshot that we don't yet have:
+---
 
-### 1. Sticky Price Sidebar
-A persistent cost breakdown card showing Origin Local, Destination Local, FCL Freight, and Total. Sticks to the right side as the user scrolls through rate cards. On mobile, this becomes a fixed bottom bar showing the total.
+### Pillar 1: Subscription Tiers (YouTube Model — Freemium)
 
-**File**: New `src/components/rate-search/PriceSummarySidebar.tsx`
-**Change in**: `RateResultsPanel.tsx` — wrap rate cards in a 2-column grid layout (cards left, sidebar right)
+**Create Stripe products and a Pricing page** with three tiers:
 
-### 2. Sailing Schedule Selector
-Weekly date range rows showing available sailing windows with prices per week. User picks a sailing week, which highlights the selected schedule. Shows "Sail By", "Transit time", and "Week of arrival" details below.
+| | Starter (Free) | Pro ($99/mo) | Enterprise ($299/mo) |
+|---|---|---|---|
+| Shipments/mo | 5 | Unlimited | Unlimited |
+| Rate searches | 10/mo | Unlimited | Unlimited |
+| Document generation | 3/mo | Unlimited | Unlimited |
+| Community posts | 2/mo | Unlimited | Unlimited |
+| Analytics | Basic | Advanced | Custom reports |
+| Partner network | View only | Full access | Priority matching |
+| Support | Community | Priority email | Dedicated rep |
+| Boosted posts | — | 3/mo included | Unlimited |
 
-**File**: New `src/components/rate-search/SailingScheduleSelector.tsx`
-**Change in**: `RateResultsPanel.tsx` — render above the rate cards, after summary header
+**Files to create:**
+- `src/pages/Pricing.tsx` — tier comparison table, FAQ accordion, CTA
+- `supabase/functions/create-checkout/index.ts` — Stripe checkout session
+- `supabase/functions/check-subscription/index.ts` — verify active subscription + tier
+- `supabase/functions/customer-portal/index.ts` — manage subscription via Stripe portal
 
-### 3. Shipping Preferences Panel
-A collapsible section with three preference controls:
-- Direct vs. Transshipment toggle
-- Carrier type preference (All / Major / NVOCC)
-- Spot vs. Contract toggle
+**Files to modify:**
+- `src/contexts/AuthContext.tsx` — add subscription state (tier, status, end date)
+- `src/components/marketing/MarketingNav.tsx` — add "Pricing" link
+- `src/App.tsx` — register `/pricing` route
 
-These filter the displayed rate cards client-side.
+---
 
-**File**: New `src/components/rate-search/ShippingPreferences.tsx`
-**Change in**: `RateResultsPanel.tsx` — render below sailing schedule
+### Pillar 2: Marketplace Commissions (Amazon Model)
 
-### 4. Inline Cargo Summary (replace bottom form)
-Replace the current bottom `CargoDetailsForm` with an inline compact cargo summary bar at the top (like Cogoport's "1 Ctr x 20ft Standard | 18 MT | Edit") with an edit popover. The "Edit" button opens a popover with the commodity/weight/container fields.
+**Add a platform fee layer to the existing Stripe Connect payment flow.** The `AdminPaymentSettings` already supports configurable platform fees — this pillar surfaces that value to users.
 
-**File**: New `src/components/rate-search/CargoSummaryBar.tsx`
-**Change in**: `RateResultsPanel.tsx` — replace `<CargoDetailsForm />` at bottom, add summary bar near top
+- `src/components/marketing/MarketingFeesSection.tsx` — transparent fee breakdown section on Pricing page showing: "2.5% platform fee on transactions — no hidden markups"
+- Gate premium payment features (saved ACH, multi-currency) behind Pro/Enterprise tiers
 
-### 5. Trust & Disclaimer Footer
-A small text block below rate cards with tax disclaimer ("Total cost including taxes, local charges...") and a savings callout ("Looking for savings? Apply coupons in the next step").
+---
 
-**File**: Inline in `RateResultsPanel.tsx`
+### Pillar 3: Promoted Content (Ad Revenue)
 
-## Layout Change
+**Add "Boost Post" functionality to the Community feed.**
 
-Current layout is single-column. New layout:
+**Database migration:**
+- Add columns to `feed_posts`: `is_boosted boolean default false`, `boost_expires_at timestamptz`, `boost_tier text` (standard/premium)
+- Create `boost_purchases` table to track boost transactions
 
-```text
-┌─────────────────────────────────────────────┐
-│  Route Map                                  │
-├─────────────────────────────────────────────┤
-│  Summary Header (route, badges, range)      │
-├─────────────────────────────────────────────┤
-│  Cargo Summary Bar  [1x40HC | 18MT | Edit]  │
-├─────────────────────────────────────────────┤
-│  Sailing Schedule Selector                  │
-├─────────────────────────────────────────────┤
-│  Shipping Preferences (collapsible)         │
-├──────────────────────────┬──────────────────┤
-│  Rate Cards (left col)   │  Sticky Price    │
-│  Card 1                  │  Sidebar (right) │
-│  Card 2                  │  - Origin Local  │
-│  Card 3                  │  - Dest Local    │
-│                          │  - FCL Freight   │
-│                          │  - Total         │
-│                          │  [Book Now]      │
-├──────────────────────────┴──────────────────┤
-│  Trust Disclaimer Footer                    │
-└─────────────────────────────────────────────┘
-```
+**Files to create:**
+- `src/components/community/BoostPostDialog.tsx` — boost options (Standard $25/7 days, Premium $75/30 days)
+- `supabase/functions/create-boost/index.ts` — Stripe one-time payment for boost
 
-## Files Summary
+**Files to modify:**
+- `src/pages/Community.tsx` — show boosted posts at top of feed with "Promoted" badge, add boost button on own posts
 
-| Action | File |
-|--------|------|
-| Create | `src/components/rate-search/PriceSummarySidebar.tsx` |
-| Create | `src/components/rate-search/SailingScheduleSelector.tsx` |
-| Create | `src/components/rate-search/ShippingPreferences.tsx` |
-| Create | `src/components/rate-search/CargoSummaryBar.tsx` |
-| Modify | `src/components/rate-search/RateResultsPanel.tsx` — new layout, integrate all components |
-| Delete reference | Remove `CargoDetailsForm` import/usage (replace with `CargoSummaryBar`) |
+---
 
-No database changes needed. All filtering is client-side on existing `carrier_rates` data.
+### Pillar 4: Landing Page Value Messaging
+
+**Show users exactly why the platform saves them money.**
+
+- `src/components/marketing/ValuePropositionSection.tsx` — 3 cards: "No Broker Markup", "Free Tier Available", "Transparent 2.5% Fee"
+- Add to `Index.tsx` after `PlatformStatsSection`
+- Link to `/pricing` from the hero CTA area
+
+---
+
+### Technical Details
+
+- Stripe products/prices created via Stripe tools (Pro: `$99/mo`, Enterprise: `$299/mo`)
+- Subscription state stored in AuthContext, checked on login + every 60s
+- Feature gating via a `useSubscription()` hook that returns tier + limits
+- Boosted posts use Stripe one-time payments, not subscriptions
+- All edge functions use existing `STRIPE_SECRET_KEY` secret
+
+### Implementation Order
+1. Create Stripe products/prices
+2. Build subscription edge functions
+3. Add subscription state to AuthContext
+4. Build Pricing page with tier table
+5. Add boost post flow to Community
+6. Add value proposition section to landing page
+7. Wire feature gating across the app
 
