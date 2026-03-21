@@ -212,16 +212,15 @@ const Trucking = () => {
               <CardContent>
                 <div className="space-y-2">
                   {completedQuotes.slice(0, 5).map((q: any) => (
-                    <Link
+                    <div
                       key={q.id}
-                      to={`/dashboard/shipments/${q.shipment_id}`}
-                      className="flex items-center justify-between p-2 rounded hover:bg-secondary/50 transition-colors"
+                      className="flex items-center justify-between p-2 rounded"
                     >
                       <span className="text-sm text-muted-foreground">{(q.shipments as any)?.shipment_ref || "—"}</span>
                       <Badge className={statusStyle[q.status] || "bg-secondary"} variant="outline">
                         {formatStatus(q.status)}
                       </Badge>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </CardContent>
