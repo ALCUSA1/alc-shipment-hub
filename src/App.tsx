@@ -12,6 +12,7 @@ import { AdminGate } from "@/components/admin/AdminGate";
 import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
 import Product from "./pages/Product";
+import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
 import Features from "./pages/Features";
 import Category from "./pages/Category";
