@@ -165,10 +165,14 @@ export function useChatDrawer() {
   const handleSelectUser = useCallback(
     async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
-      const isSameCompany =
-        currentCompanyName &&
-        selectedUser.company_name?.toLowerCase() === currentCompanyName.toLowerCase();
-      const scope: ConversationScope = isSameCompany ? "internal" : "external";
+      // When company names are set, determine scope from company match
+      // When company names are missing, preserve the current active scope tab
+      let scope: ConversationScope = activeScope;
+      if (currentCompanyName && selectedUser.company_name) {
+        const isSameCompany =
+          selectedUser.company_name.toLowerCase() === currentCompanyName.toLowerCase();
+        scope = isSameCompany ? "internal" : "external";
+      }
 
       const { data: myParticipations } = await supabase
         .from("conversation_participants")
@@ -206,7 +210,7 @@ export function useChatDrawer() {
       setActiveScope(scope);
       setActiveConversationId(conv.id);
     },
-    [user, currentCompanyName, currentUserName, queryClient]
+    [user, currentCompanyName, currentUserName, activeScope, queryClient]
   );
 
   const unreadCount = conversations.filter((c) => c.unread).length;
