@@ -30,12 +30,15 @@ interface RateSearchFormProps {
     mode: "ocean" | "air";
   }) => void;
   isLoading?: boolean;
+  defaultOrigin?: string;
+  defaultDestination?: string;
+  defaultMode?: "ocean" | "air";
 }
 
-export function RateSearchForm({ onSearch, isLoading }: RateSearchFormProps) {
-  const [mode, setMode] = useState<"ocean" | "air">("ocean");
-  const [origin, setOrigin] = useState("");
-  const [destination, setDestination] = useState("");
+export function RateSearchForm({ onSearch, isLoading, defaultOrigin, defaultDestination, defaultMode }: RateSearchFormProps) {
+  const [mode, setMode] = useState<"ocean" | "air">(defaultMode || "ocean");
+  const [origin, setOrigin] = useState(defaultOrigin || "");
+  const [destination, setDestination] = useState(defaultDestination || "");
   const [containerSize, setContainerSize] = useState("40hc");
   const [containerType, setContainerType] = useState("dry");
 

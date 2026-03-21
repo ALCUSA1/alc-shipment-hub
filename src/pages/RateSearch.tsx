@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { RateSearchForm } from "@/components/rate-search/RateSearchForm";
@@ -16,6 +17,7 @@ interface SearchParams {
 }
 
 const RateSearch = () => {
+  const [urlParams] = useSearchParams();
   const [results, setResults] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
@@ -35,7 +37,6 @@ const RateSearch = () => {
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
 
-      // Map container size to the container_type column format used in carrier_rates
       if (params.mode === "ocean") {
         query = query.eq("container_type", params.containerSize);
       }
@@ -51,6 +52,17 @@ const RateSearch = () => {
     }
   };
 
+  // Auto-search when arriving from hero with URL params
+  useEffect(() => {
+    const origin = urlParams.get("origin");
+    const destination = urlParams.get("destination");
+    const mode = (urlParams.get("mode") as "ocean" | "air") || "ocean";
+    if (origin && destination) {
+      handleSearch({ origin, destination, containerSize: "40hc", containerType: "dry", mode });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <MarketingLayout>
       <SEO
@@ -59,12 +71,11 @@ const RateSearch = () => {
         canonical="https://alcshipper.com/rates"
       />
 
-      {/* Hero search section */}
       <section className="relative bg-gray-light overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
           <svg className="w-full h-full" viewBox="0 0 1200 600">
-            <path d="M0,300 Q300,100 600,250 T1200,200" fill="none" stroke="hsl(217,95%,58%)" strokeWidth="2" />
-            <path d="M0,400 Q300,250 600,350 T1200,300" fill="none" stroke="hsl(213,67%,14%)" strokeWidth="1.5" />
+            <path d="M0,300 Q300,100 600,250 T1200,200" fill="none" stroke="hsl(var(--accent))" strokeWidth="2" />
+            <path d="M0,400 Q300,250 600,350 T1200,300" fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5" />
           </svg>
         </div>
 
@@ -83,7 +94,7 @@ const RateSearch = () => {
               Compare freight rates instantly.
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Search carrier rates for any route. Get real-time pricing with full cost breakdowns — base freight, origin charges, destination charges, and surcharges.
+              Search carrier rates for any route. Get real-time pricing with full cost breakdowns.
             </p>
           </motion.div>
 
@@ -93,12 +104,17 @@ const RateSearch = () => {
             transition={{ duration: 0.5, delay: 0.15 }}
             className="bg-background rounded-2xl border shadow-lg p-6 md:p-8"
           >
-            <RateSearchForm onSearch={handleSearch} isLoading={isLoading} />
+            <RateSearchForm
+              onSearch={handleSearch}
+              isLoading={isLoading}
+              defaultOrigin={urlParams.get("origin") || undefined}
+              defaultDestination={urlParams.get("destination") || undefined}
+              defaultMode={(urlParams.get("mode") as "ocean" | "air") || undefined}
+            />
           </motion.div>
         </div>
       </section>
 
-      {/* Results section */}
       {(results !== null || isLoading) && (
         <section className="max-w-5xl mx-auto px-6 py-12">
           {isLoading ? (
