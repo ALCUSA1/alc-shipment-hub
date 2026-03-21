@@ -62,9 +62,6 @@ export function HeroSection() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-          <Button variant="hero-outline" size="lg" className="text-base px-8 h-12">
-            Request Demo
-          </Button>
         </motion.div>
       </div>
     </section>
