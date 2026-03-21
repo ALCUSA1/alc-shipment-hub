@@ -1,7 +1,7 @@
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 
 const logos = [
-  "Cargill", "Bunge", "ADM", "Louis Dreyfus", "COFCO", "Olam", "Wilmar", "Glencore",
+  "Maersk", "CMA CGM", "Kuehne+Nagel", "DHL Global Forwarding", "Cargill", "COFCO", "DB Schenker", "Hapag-Lloyd", "Expeditors", "MSC",
 ];
 
 export function TrustedBySection() {
