@@ -210,7 +210,7 @@ export function useChatDrawer() {
       setActiveScope(scope);
       setActiveConversationId(conv.id);
     },
-    [user, currentCompanyName, currentUserName, queryClient]
+    [user, currentCompanyName, currentUserName, activeScope, queryClient]
   );
 
   const unreadCount = conversations.filter((c) => c.unread).length;
