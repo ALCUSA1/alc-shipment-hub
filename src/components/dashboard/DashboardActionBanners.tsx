@@ -20,6 +20,7 @@ interface ActionBanner {
 
 export function DashboardActionBanners() {
   const { user } = useAuth();
+  const { needsOnboarding } = useOnboardingCheck();
 
   const { data: activeShipments } = useQuery({
     queryKey: ["guide-active-shipments"],
