@@ -113,10 +113,9 @@ const Trucking = () => {
               ) : (
                 <div className="space-y-3">
                   {activeQuotes.map((q: any) => (
-                    <Link
+                    <div
                       key={q.id}
-                      to={`/dashboard/shipments/${q.shipment_id}`}
-                      className="block p-4 rounded-lg border hover:bg-secondary/50 transition-colors"
+                      className="p-4 rounded-lg border"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -162,7 +161,7 @@ const Trucking = () => {
                           </span>
                         )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
