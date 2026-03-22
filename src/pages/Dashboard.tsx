@@ -70,6 +70,7 @@ const Dashboard = () => {
   const [companyCount, setCompanyCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [templateCount, setTemplateCount] = useState(0);
+  const [pnlShipment, setPnlShipment] = useState<ShipmentRow | null>(null);
 
   useEffect(() => {
     if (!user) return;
