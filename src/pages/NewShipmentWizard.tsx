@@ -554,14 +554,14 @@ const NewShipmentWizard = () => {
               {step === 0 ? "Cancel" : "Previous"}
             </Button>
             <div className="flex gap-2">
-              {/* Save as Quote fork at step 3 (rate selection) */}
-              {step === 3 && selectedRate && (
+              {/* Save as Quote fork at step 2 (rate selection) */}
+              {step === 2 && selectedRate && (
                 <Button variant="outline" onClick={handleSaveAsQuote} disabled={submitting}>
                   <Bookmark className="mr-2 h-4 w-4" />
                   Save as Quote
                 </Button>
               )}
-              {step === 3 && rates.length === 0 && (
+              {step === 2 && rates.length === 0 && (
                 <Button variant="outline" onClick={() => setStep(step + 1)}>
                   Skip — Add Rate Later
                 </Button>
@@ -569,7 +569,7 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 3 && rates.length === 0)) || submitting}
+                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {step === 4 ? "Confirm Booking" : "Next"}
