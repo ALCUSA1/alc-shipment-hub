@@ -149,12 +149,26 @@ const NewShipmentWizard = () => {
   };
   const handlePrev = () => { if (step > 0) setStep(step - 1); };
 
-  // Save as quote (fork at step 3)
+  // Save as quote — create draft shipment first (quotes require shipment_id)
   const handleSaveAsQuote = async () => {
     if (!user) return;
     setSubmitting(true);
     try {
+      // Create draft shipment as anchor for the quote
+      const { data: shipRow, error: shipErr } = await supabase.from("shipments").insert({
+        user_id: user.id,
+        shipment_ref: "PENDING",
+        shipment_type: overview.shipmentType || "export",
+        origin_port: overview.originPort || null,
+        destination_port: overview.destinationPort || null,
+        incoterms: overview.incoterms || null,
+        company_id: overview.companyId || null,
+        status: "draft",
+      }).select("id").single();
+      if (shipErr) throw shipErr;
+
       const { error } = await supabase.from("quotes").insert({
+        shipment_id: shipRow.id,
         user_id: user.id,
         origin_port: overview.originPort || null,
         destination_port: overview.destinationPort || null,
