@@ -90,7 +90,13 @@ const NewShipmentWizard = () => {
     countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
   });
 
-  // Step 3: Rate selection
+  // Step 3: Compliance
+  const [compliance, setCompliance] = useState<ComplianceData>({
+    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
+    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+  });
+
+  // Step 4: Rate selection
   const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
   const [expandedRateId, setExpandedRateId] = useState<string | null>(null);
 
