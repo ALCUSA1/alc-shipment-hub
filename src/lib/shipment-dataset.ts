@@ -38,6 +38,8 @@ export interface CargoLine {
   pieces: string;
   chargeableWeight: string;
   rateClass: string;
+  // Container assignment
+  containerId: string;
 }
 
 export interface ContainerLine {
