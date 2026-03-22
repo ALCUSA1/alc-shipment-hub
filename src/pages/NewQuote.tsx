@@ -85,8 +85,7 @@ const NewQuote = () => {
     unitValue: "", totalValue: "", countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
   });
   const [complianceData, setComplianceData] = useState<ComplianceData>({
-    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
-    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+    ...EMPTY_COMPLIANCE,
   });
 
   // Quote-specific
