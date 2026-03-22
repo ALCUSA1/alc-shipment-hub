@@ -493,15 +493,19 @@ const NewShipmentWizard = () => {
                 <Row label="Value" value={cargo.totalValue ? `$${Number(cargo.totalValue).toLocaleString()}` : undefined} />
               </div>
 
-              {(compliance.exporterName || compliance.aesType || compliance.insuranceProvider) && (
+              {(compliance.exporterName || compliance.eeiExemptionCitation || compliance.insuranceProvider) && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Shield className="h-4 w-4 text-accent" /> Customs & Compliance
                   </h4>
                   <Row label="Exporter (USPPI)" value={compliance.exporterName} />
                   <Row label="EIN" value={compliance.exporterEin} />
-                  <Row label="AES Citation" value={compliance.aesType} />
-                  <Row label="Export License" value={compliance.exportLicense} />
+                  <Row label="Consignee" value={compliance.consigneeName} />
+                  <Row label="Port of Export" value={compliance.portOfExport} />
+                  <Row label="Port of Unlading" value={compliance.portOfUnlading} />
+                  <Row label="Method of Transport" value={compliance.methodOfTransportation} />
+                  <Row label="Exporting Carrier" value={compliance.exportingCarrier} />
+                  <Row label="EEI Citation" value={compliance.eeiExemptionCitation} />
                   <Row label="Insurance" value={compliance.insuranceProvider} />
                   <Row label="Policy #" value={compliance.insurancePolicy} />
                   <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />
