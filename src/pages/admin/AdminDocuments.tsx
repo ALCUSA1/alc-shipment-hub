@@ -10,7 +10,9 @@ import { format } from "date-fns";
 import { useCallback } from "react";
 
 const STATUSES = ["all", "pending", "approved", "rejected"];
-const DOC_TYPES = ["all", "bill_of_lading", "commercial_invoice", "packing_list", "certificate_of_origin", "customs_declaration", "insurance_certificate"];
+import { getDocLabel, DOC_TYPE_LABELS } from "@/lib/document-types";
+
+const DOC_TYPES = ["all", ...Object.keys(DOC_TYPE_LABELS)];
 
 const filters: FilterConfig[] = [
   { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1) })) },
