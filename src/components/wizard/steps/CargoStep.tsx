@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import type { ValidationErrors } from "@/lib/wizard-validation";
 
 export interface CargoData {
   commodity: string;
@@ -20,6 +21,7 @@ export interface CargoData {
 interface CargoStepProps {
   data: CargoData;
   onChange: (data: CargoData) => void;
+  errors?: ValidationErrors;
 }
 
 const CONTAINER_TYPES = [
@@ -54,7 +56,12 @@ const COUNTRIES = [
   "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-export function CargoStep({ data, onChange }: CargoStepProps) {
+function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <p className="text-[10px] text-destructive mt-0.5">{error}</p>;
+}
+
+export function CargoStep({ data, onChange, errors = {} }: CargoStepProps) {
   const set = (field: keyof CargoData, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -67,19 +74,21 @@ export function CargoStep({ data, onChange }: CargoStepProps) {
       {/* Container */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Container Type</Label>
+          <Label>Container Type <span className="text-destructive">*</span></Label>
           <Select value={data.containerType} onValueChange={(v) => set("containerType", v)}>
-            <SelectTrigger className="mt-1"><SelectValue placeholder="Select type" /></SelectTrigger>
+            <SelectTrigger className={`mt-1 ${errors.containerType ? "border-destructive" : ""}`}><SelectValue placeholder="Select type" /></SelectTrigger>
             <SelectContent>
               {CONTAINER_TYPES.map((ct) => (
                 <SelectItem key={ct.value} value={ct.value}>{ct.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <FieldError error={errors.containerType} />
         </div>
         <div>
-          <Label>Container Quantity</Label>
-          <Input type="number" placeholder="e.g. 2" className="mt-1" value={data.containerQuantity} onChange={(e) => set("containerQuantity", e.target.value)} />
+          <Label>Container Quantity <span className="text-destructive">*</span></Label>
+          <Input type="number" placeholder="e.g. 2" className={`mt-1 ${errors.containerQuantity ? "border-destructive" : ""}`} value={data.containerQuantity} onChange={(e) => set("containerQuantity", e.target.value)} />
+          <FieldError error={errors.containerQuantity} />
         </div>
       </div>
 
@@ -87,13 +96,15 @@ export function CargoStep({ data, onChange }: CargoStepProps) {
 
       {/* Commodity */}
       <div>
-        <Label>Commodity Description</Label>
-        <Input placeholder="e.g. Consumer Electronics — Laptops and Tablets" className="mt-1" value={data.commodity} onChange={(e) => set("commodity", e.target.value)} />
+        <Label>Commodity Description <span className="text-destructive">*</span></Label>
+        <Input placeholder="e.g. Consumer Electronics — Laptops and Tablets" className={`mt-1 ${errors.commodity ? "border-destructive" : ""}`} value={data.commodity} onChange={(e) => set("commodity", e.target.value)} />
+        <FieldError error={errors.commodity} />
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>HS Code</Label>
-          <Input placeholder="e.g. 8471.30" className="mt-1" value={data.hsCode} onChange={(e) => set("hsCode", e.target.value)} />
+          <Input placeholder="e.g. 8471.30" className={`mt-1 ${errors.hsCode ? "border-destructive" : ""}`} value={data.hsCode} onChange={(e) => set("hsCode", e.target.value)} />
+          <FieldError error={errors.hsCode} />
         </div>
         <div>
           <Label>Country of Origin</Label>
@@ -124,15 +135,18 @@ export function CargoStep({ data, onChange }: CargoStepProps) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>Number of Packages</Label>
-          <Input type="number" placeholder="e.g. 150" className="mt-1" value={data.numPackages} onChange={(e) => set("numPackages", e.target.value)} />
+          <Input type="number" placeholder="e.g. 150" className={`mt-1 ${errors.numPackages ? "border-destructive" : ""}`} value={data.numPackages} onChange={(e) => set("numPackages", e.target.value)} />
+          <FieldError error={errors.numPackages} />
         </div>
         <div>
-          <Label>Gross Weight (kg)</Label>
-          <Input type="number" placeholder="e.g. 5000" className="mt-1" value={data.grossWeight} onChange={(e) => set("grossWeight", e.target.value)} />
+          <Label>Gross Weight (kg) <span className="text-destructive">*</span></Label>
+          <Input type="number" placeholder="e.g. 5000" className={`mt-1 ${errors.grossWeight ? "border-destructive" : ""}`} value={data.grossWeight} onChange={(e) => set("grossWeight", e.target.value)} />
+          <FieldError error={errors.grossWeight} />
         </div>
         <div>
           <Label>Volume (CBM)</Label>
-          <Input type="number" placeholder="e.g. 25" className="mt-1" value={data.volume} onChange={(e) => set("volume", e.target.value)} />
+          <Input type="number" placeholder="e.g. 25" className={`mt-1 ${errors.volume ? "border-destructive" : ""}`} value={data.volume} onChange={(e) => set("volume", e.target.value)} />
+          <FieldError error={errors.volume} />
         </div>
       </div>
 
@@ -143,11 +157,13 @@ export function CargoStep({ data, onChange }: CargoStepProps) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Unit Value (USD)</Label>
-          <Input type="number" placeholder="e.g. 250.00" className="mt-1" value={data.unitValue} onChange={(e) => set("unitValue", e.target.value)} />
+          <Input type="number" placeholder="e.g. 250.00" className={`mt-1 ${errors.unitValue ? "border-destructive" : ""}`} value={data.unitValue} onChange={(e) => set("unitValue", e.target.value)} />
+          <FieldError error={errors.unitValue} />
         </div>
         <div>
           <Label>Total Declared Value (USD)</Label>
-          <Input type="number" placeholder="e.g. 37,500.00" className="mt-1" value={data.totalValue} onChange={(e) => set("totalValue", e.target.value)} />
+          <Input type="number" placeholder="e.g. 37,500.00" className={`mt-1 ${errors.totalValue ? "border-destructive" : ""}`} value={data.totalValue} onChange={(e) => set("totalValue", e.target.value)} />
+          <FieldError error={errors.totalValue} />
         </div>
       </div>
     </>
