@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { Layers, ArrowRight, Package, DollarSign, FileText, Truck, CheckCircle2, XCircle } from "lucide-react";
+import { Layers, ArrowRight, Package, DollarSign, FileText, Truck, CheckCircle2, XCircle, Receipt } from "lucide-react";
 
 interface PipelineItem {
   id: string;
@@ -21,6 +25,8 @@ interface PipelineItem {
   amount: number | null;
   date: string;
   link: string;
+  status: string;
+  shipmentId?: string; // for quotes linked to shipments
 }
 
 const STAGES = [
@@ -34,6 +40,7 @@ const STAGES = [
 
 const Pipeline = () => {
   const { user } = useAuth();
+  const [pnlItem, setPnlItem] = useState<PipelineItem | null>(null);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["pipeline", user?.id],
@@ -43,7 +50,7 @@ const Pipeline = () => {
       // Fetch pending/accepted quotes (not yet converted)
       const { data: quotes } = await supabase
         .from("quotes")
-        .select("id, status, origin_port, destination_port, customer_name, carrier, customer_price, created_at")
+        .select("id, status, origin_port, destination_port, customer_name, carrier, customer_price, created_at, shipment_id")
         .eq("user_id", user!.id)
         .in("status", ["pending", "accepted"]);
 
@@ -58,7 +65,9 @@ const Pipeline = () => {
           carrier: q.carrier,
           amount: q.customer_price,
           date: q.created_at,
-          link: "/dashboard/quotes",
+          link: q.shipment_id ? `/dashboard/shipments/${q.shipment_id}` : "/dashboard/quotes",
+          status: q.status,
+          shipmentId: q.shipment_id || undefined,
         });
       }
 
@@ -81,6 +90,7 @@ const Pipeline = () => {
           amount: null,
           date: s.created_at,
           link: `/dashboard/shipments/${s.id}`,
+          status: s.status,
         });
       }
 
@@ -90,6 +100,11 @@ const Pipeline = () => {
   });
 
   const stageItems = (stageKey: string) => items.filter((i) => i.stage === stageKey);
+
+  // Determine the shipment ID for P&L: for shipments it's the item id, for quotes it's the linked shipmentId
+  const pnlShipmentId = pnlItem
+    ? pnlItem.type === "shipment" ? pnlItem.id : pnlItem.shipmentId
+    : undefined;
 
   return (
     <DashboardLayout>
@@ -146,31 +161,41 @@ const Pipeline = () => {
                     </div>
                   ) : (
                     cards.map((item) => (
-                      <Link
-                        key={item.id}
-                        to={item.link}
-                        className="block border rounded-lg p-3 bg-card hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-mono font-semibold text-foreground">{item.ref}</span>
-                          <Badge variant="outline" className="text-[10px]">
-                            {item.type === "quote" ? "Quote" : "Shipment"}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">{item.route}</p>
-                        {item.customer && (
-                          <p className="text-xs font-medium text-foreground truncate">{item.customer}</p>
+                      <div key={item.id} className="border rounded-lg p-3 bg-card hover:shadow-md transition-shadow group relative">
+                        <Link to={item.link} className="block">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-mono font-semibold text-foreground">{item.ref}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {item.type === "quote" ? "Quote" : "Shipment"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">{item.route}</p>
+                          {item.customer && (
+                            <p className="text-xs font-medium text-foreground truncate">{item.customer}</p>
+                          )}
+                          {item.carrier && (
+                            <p className="text-[10px] text-muted-foreground">{item.carrier}</p>
+                          )}
+                          {item.amount != null && (
+                            <p className="text-xs font-semibold text-foreground mt-1">${item.amount.toLocaleString()}</p>
+                          )}
+                          <p className="text-[10px] text-muted-foreground mt-2">
+                            {format(new Date(item.date), "MMM d, yyyy")}
+                          </p>
+                        </Link>
+                        {/* P&L Button — visible for shipments or quotes linked to a shipment */}
+                        {(item.type === "shipment" || item.shipmentId) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-8 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-accent"
+                            title="Edit P&L"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPnlItem(item); }}
+                          >
+                            <Receipt className="h-3.5 w-3.5" />
+                          </Button>
                         )}
-                        {item.carrier && (
-                          <p className="text-[10px] text-muted-foreground">{item.carrier}</p>
-                        )}
-                        {item.amount != null && (
-                          <p className="text-xs font-semibold text-foreground mt-1">${item.amount.toLocaleString()}</p>
-                        )}
-                        <p className="text-[10px] text-muted-foreground mt-2">
-                          {format(new Date(item.date), "MMM d, yyyy")}
-                        </p>
-                      </Link>
+                      </div>
                     ))
                   )}
                 </div>
@@ -179,6 +204,25 @@ const Pipeline = () => {
           </div>
         </>
       )}
+
+      {/* P&L Dialog */}
+      <Dialog open={!!pnlItem} onOpenChange={(open) => !open && setPnlItem(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-accent" />
+              P&L — {pnlItem?.ref}
+            </DialogTitle>
+          </DialogHeader>
+          {pnlShipmentId && (
+            <ShipmentPnL
+              shipmentId={pnlShipmentId}
+              quoteAmount={pnlItem?.amount}
+              shipmentStatus={pnlItem?.status}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
