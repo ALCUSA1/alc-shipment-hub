@@ -655,7 +655,7 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Shipping Line Schedule - read-only view for delivered */}
+          {/* Shipping Line Schedule - read-only for delivered OR in_transit+ */}
           {isDelivered ? (
             <Card>
               <CardHeader>
@@ -678,6 +678,7 @@ const ShipmentDetail = () => {
               eta={shipment.eta}
               vessel={shipment.vessel}
               voyage={shipment.voyage}
+              readOnly={scheduleReadOnly}
             />
           )}
 
