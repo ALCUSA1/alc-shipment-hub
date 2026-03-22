@@ -253,7 +253,7 @@ const CRM = () => {
                 <Separator />
                 <h3 className="text-sm font-medium text-foreground">Address</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><Label>Street</Label><Input value={selected.address} onChange={e => setSelected(s => s ? { ...s, address: e.target.value } : s)} className="mt-1" /></div>
+                  <div className="md:col-span-2"><Label>Street</Label><AddressAutocomplete value={selected.address || ""} onChange={v => setSelected(s => s ? { ...s, address: v } : s)} onAddressSelect={(addr) => setSelected(s => s ? { ...s, address: addr.street, city: addr.city, state: addr.state, zip: addr.postalCode, country: addr.country } : s)} placeholder="Search address..." /></div>
                   <div><Label>City</Label><Input value={selected.city} onChange={e => setSelected(s => s ? { ...s, city: e.target.value } : s)} className="mt-1" /></div>
                   <div><Label>State</Label><Input value={selected.state} onChange={e => setSelected(s => s ? { ...s, state: e.target.value } : s)} className="mt-1" /></div>
                   <div><Label>ZIP</Label><Input value={selected.zip} onChange={e => setSelected(s => s ? { ...s, zip: e.target.value } : s)} className="mt-1" /></div>
