@@ -17,7 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Ship, Check, Clock, ChevronDown, ChevronUp, FileText,
   CheckCircle2, Bookmark, ArrowRight, Loader2, Package,
-  MapPin, AlertCircle,
+  MapPin, AlertCircle, Shield,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
