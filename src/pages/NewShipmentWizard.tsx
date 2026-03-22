@@ -452,10 +452,27 @@ const NewShipmentWizard = () => {
         )}
 
         {/* ── Step 3: Customs & Compliance ── */}
-        {step === 3 && (
+        {step === 3 && (() => {
+          const selectedCompany = companies.find((c: any) => c.id === overview.companyId);
+          const autoFill: AutoFillSource = {
+            originPort: overview.originPort,
+            destinationPort: overview.destinationPort,
+            carrier: selectedRate?.carrier,
+            containerType: cargo.containerType,
+            shipmentType: overview.shipmentType,
+            companyName: selectedCompany?.company_name,
+            companyEin: selectedCompany?.ein,
+            companyAddress: selectedCompany ? [selectedCompany.address, selectedCompany.city, selectedCompany.state, selectedCompany.zip, selectedCompany.country].filter(Boolean).join(", ") : undefined,
+            companyContactName: selectedCompany?.company_contact_name,
+            companyPhone: selectedCompany?.phone,
+            companyEmail: selectedCompany?.email,
+            insuranceProvider: selectedCompany?.cargo_insurance_provider,
+            insurancePolicy: selectedCompany?.cargo_insurance_policy,
+          };
+          return (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} />
+              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} />
               <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
                 <p className="text-xs text-muted-foreground">
                   <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
