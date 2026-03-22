@@ -303,6 +303,74 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
+  const { data: customsFilingsForBanners } = useQuery({
+    queryKey: ["customs_banners", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("customs_filings").select("id, status").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: paymentsForBanners } = useQuery({
+    queryKey: ["payments_banners", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("payments").select("id, status").eq("shipment_id", id!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Build AI context object
+  const shipmentContext = useMemo(() => {
+    if (!shipment) return {};
+    return {
+      ref: shipment.shipment_ref,
+      status: shipment.status,
+      mode: shipment.mode || "ocean",
+      type: shipment.shipment_type,
+      origin: shipment.origin_port,
+      destination: shipment.destination_port,
+      etd: shipment.etd,
+      eta: shipment.eta,
+      vessel: shipment.vessel,
+      voyage: shipment.voyage,
+      booking_ref: shipment.booking_ref,
+      pickup: shipment.pickup_location,
+      delivery: shipment.delivery_location,
+      airline: (shipment as any).airline,
+      flight: (shipment as any).flight_number,
+      mawb: (shipment as any).mawb_number,
+      cargo: (cargo || []).map(c => ({
+        commodity: c.commodity,
+        hs_code: c.hs_code,
+        weight: c.gross_weight,
+        volume: c.volume,
+        packages: c.num_packages,
+      })),
+      containers: (containers || []).map(c => ({
+        type: c.container_type,
+        number: c.container_number,
+        quantity: c.quantity,
+      })),
+      parties: (parties || []).map(p => ({
+        role: p.role,
+        company: p.company_name,
+        contact: p.contact_name,
+      })),
+      documents: (documents || []).map(d => ({ type: d.doc_type, status: d.status })),
+      tracking: (trackingEvents || []).map(t => ({ milestone: t.milestone, date: t.event_date, location: t.location })),
+      cutoffs: {
+        cy: (shipment as any).cy_cutoff,
+        si: (shipment as any).si_cutoff,
+        vgm: (shipment as any).vgm_cutoff,
+        doc: (shipment as any).doc_cutoff,
+      },
+    };
+  }, [shipment, cargo, containers, parties, documents, trackingEvents]);
+
   // Booking is now handled by CarrierRateSelector
 
   if (isLoading) {
