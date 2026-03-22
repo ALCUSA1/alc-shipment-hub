@@ -21,18 +21,26 @@ serve(async (req) => {
     const { action, input, mapboxId } = await req.json();
 
     if (action === 'autocomplete') {
-      const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(input)}&types=address,place&limit=5&language=en&access_token=${token}`;
+      // Use Mapbox Geocoding v5 (forward geocoding) — stable and well-supported
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?autocomplete=true&types=address,place&limit=5&access_token=${token}`;
       const res = await fetch(url);
       const data = await res.json();
 
-      // Transform to match frontend expectations
-      const predictions = (data.suggestions || []).map((s: any) => ({
-        place_id: s.mapbox_id,
-        description: s.full_address || s.name,
+      if (data.message) {
+        console.error('Mapbox error:', data.message);
+        return new Response(JSON.stringify({ predictions: [], error: data.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const predictions = (data.features || []).map((f: any) => ({
+        place_id: f.id,
+        description: f.place_name,
         structured_formatting: {
-          main_text: s.name,
-          secondary_text: s.place_formatted || s.full_address || '',
+          main_text: f.text,
+          secondary_text: f.place_name.replace(f.text + ', ', ''),
         },
+        _feature: f, // pass full feature for details
       }));
 
       return new Response(JSON.stringify({ predictions }), {
@@ -41,7 +49,11 @@ serve(async (req) => {
     }
 
     if (action === 'details') {
-      const url = `https://api.mapbox.com/search/searchbox/v1/retrieve/${encodeURIComponent(mapboxId)}?access_token=${token}`;
+      // For Geocoding v5, we can re-geocode the mapboxId or use the feature directly
+      // The mapboxId here is the feature id like "address.1234"
+      // We'll do a reverse lookup or just parse the stored data
+      // Actually, the frontend already has the description — let's do a forward geocode
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(mapboxId)}.json?types=address&limit=1&access_token=${token}`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -52,17 +64,20 @@ serve(async (req) => {
         });
       }
 
-      const ctx = feature.properties?.context || {};
+      // Parse context array for structured address components
+      const ctx = feature.context || [];
+      const getCtx = (prefix: string) => ctx.find((c: any) => c.id?.startsWith(prefix))?.text || '';
+
       const result = {
-        formatted_address: feature.properties?.full_address || feature.properties?.name,
-        name: feature.properties?.name,
+        formatted_address: feature.place_name,
+        name: feature.text,
         address_components: [
-          { types: ['street_number'], long_name: feature.properties?.address || '' },
-          { types: ['route'], long_name: ctx.street?.name || '' },
-          { types: ['locality'], long_name: ctx.place?.name || '' },
-          { types: ['administrative_area_level_1'], long_name: ctx.region?.name || '' },
-          { types: ['postal_code'], long_name: ctx.postcode?.name || '' },
-          { types: ['country'], long_name: ctx.country?.name || '' },
+          { types: ['street_number'], long_name: feature.address || '' },
+          { types: ['route'], long_name: feature.text || '' },
+          { types: ['locality'], long_name: getCtx('place') },
+          { types: ['administrative_area_level_1'], long_name: getCtx('region') },
+          { types: ['postal_code'], long_name: getCtx('postcode') },
+          { types: ['country'], long_name: getCtx('country') },
         ],
       };
 
@@ -75,6 +90,7 @@ serve(async (req) => {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
+    console.error('Error:', err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
