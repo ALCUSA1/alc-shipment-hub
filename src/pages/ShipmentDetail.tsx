@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
