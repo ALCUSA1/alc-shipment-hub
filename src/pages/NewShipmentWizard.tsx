@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
 import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ComplianceStep, type ComplianceData, type AutoFillSource, EMPTY_COMPLIANCE } from "@/components/wizard/steps/ComplianceStep";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
