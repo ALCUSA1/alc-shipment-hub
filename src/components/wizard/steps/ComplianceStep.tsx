@@ -249,10 +249,10 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide">4. Ultimate Consignee</h4>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Consignee Name" className="col-span-2">
-            <Input className="mt-1 h-8 text-xs" value={data.consigneeName} onChange={(e) => set("consigneeName", e.target.value)} />
+          <Field label="Consignee Name *" className="col-span-2" error={errors.consigneeName}>
+            <Input className={`mt-1 h-8 text-xs ${errors.consigneeName ? "border-destructive" : ""}`} value={data.consigneeName} onChange={(e) => set("consigneeName", e.target.value)} />
           </Field>
-          <Field label="Consignee Type">
+          <Field label="Consignee Type *" error={errors.consigneeType}>
             <Select value={data.consigneeType} onValueChange={(v) => set("consigneeType", v)}>
               <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
