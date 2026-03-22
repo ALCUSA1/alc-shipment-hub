@@ -60,7 +60,7 @@ const CONTAINER_LABELS: Record<string, string> = {
   "45hc": "45ft High Cube",
 };
 
-export function PriceSummarySidebar({ selectedRate, containerSize }: PriceSummarySidebarProps) {
+export function PriceSummarySidebar({ selectedRate, containerSize, origin, destination, mode }: PriceSummarySidebarProps) {
   if (!selectedRate) {
     return (
       <div className="sticky top-24 rounded-xl border bg-card p-5 space-y-4">
