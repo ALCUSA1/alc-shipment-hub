@@ -134,13 +134,19 @@ function AutoBadge() {
   );
 }
 
-function Field({ label, auto, children, className }: { label: string; auto?: boolean; children: React.ReactNode; className?: string }) {
+function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <p className="text-[10px] text-destructive mt-0.5">{error}</p>;
+}
+
+function Field({ label, auto, children, className, error }: { label: string; auto?: boolean; children: React.ReactNode; className?: string; error?: string }) {
   return (
     <div className={className}>
       <Label className="text-[10px] text-muted-foreground flex items-center">
         {label}{auto && <AutoBadge />}
       </Label>
       {children}
+      <FieldError error={error} />
     </div>
   );
 }
