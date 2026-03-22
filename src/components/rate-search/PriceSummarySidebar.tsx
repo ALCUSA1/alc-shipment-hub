@@ -118,7 +118,14 @@ export function PriceSummarySidebar({ selectedRate, containerSize, origin, desti
       </p>
 
       <Button variant="electric" className="w-full" asChild>
-        <Link to="/signup">
+        <Link to={(() => {
+          const params = new URLSearchParams();
+          if (origin) params.set("origin", origin);
+          if (destination) params.set("destination", destination);
+          if (containerSize) params.set("container", containerSize);
+          if (mode) params.set("mode", mode);
+          return `/dashboard/shipments/new?${params.toString()}`;
+        })()}>
           Book Now
           <ArrowRight className="h-4 w-4 ml-1" />
         </Link>

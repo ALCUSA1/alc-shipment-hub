@@ -328,7 +328,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
 
                     <div className="flex justify-end mt-3">
                       <Button variant="electric" size="sm" asChild>
-                        <Link to="/signup">
+                        <Link to={buildBookingLink(origin, destination, containerSize, mode)}>
                           Book Now
                           <ArrowRight className="h-3.5 w-3.5 ml-1" />
                         </Link>
