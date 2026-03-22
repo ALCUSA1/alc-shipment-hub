@@ -70,7 +70,94 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-// CARRIERS list removed — now handled by CarrierRateSelector
+// Vessel Booking Summary (collapsed read-only view for booked shipments)
+function VesselBookingSummary({ shipmentId }: { shipmentId: string }) {
+  const { data: bookings } = useQuery({
+    queryKey: ["vessel-bookings", shipmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vessel_bookings")
+        .select("*, booking_legs(*)")
+        .eq("shipment_id", shipmentId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!shipmentId,
+  });
+
+  if (!bookings?.length) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Ship className="h-4 w-4 text-accent" />
+          Booking Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {bookings.map((b: any) => {
+            const sortedLegs = [...(b.booking_legs || [])].sort((a: any, bk: any) => a.leg_order - bk.leg_order);
+            return (
+              <div key={b.id} className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs font-medium text-foreground">{b.booking_number || "No booking #"}</span>
+                    {b.carrier && <span className="text-[10px] text-muted-foreground">• {b.carrier}</span>}
+                  </div>
+                  <Badge variant="outline" className="text-[9px]">{b.status}</Badge>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {b.container_count}× {b.container_type || "N/A"}
+                </p>
+                {sortedLegs.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {sortedLegs.map((leg: any) => (
+                      <div key={leg.id} className="flex items-center gap-2 text-[10px]">
+                        <MapPin className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                        <span className="text-foreground">{leg.origin_port || "?"}</span>
+                        <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                        <span className="text-foreground">{leg.destination_port || "?"}</span>
+                        {leg.vessel_name && <span className="text-muted-foreground">• {leg.vessel_name}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// AI-translated EDI message for unknown codes
+function AiTranslatedMessage({ messageType, direction, carrier, status }: {
+  messageType: string; direction: string; carrier: string; status: string;
+}) {
+  const { data: translation } = useQuery({
+    queryKey: ["edi-translate", messageType, direction],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("translate-edi", {
+        body: { message_type: messageType, direction, carrier, status },
+      });
+      if (error) return null;
+      return data?.translation as string | null;
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  if (!translation) return null;
+
+  return (
+    <p className="text-xs text-accent mt-1 italic">{translation}</p>
+  );
+}
 
 const ShipmentDetail = () => {
   const { id } = useParams();
