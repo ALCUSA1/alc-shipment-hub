@@ -947,6 +947,9 @@ const ShipmentDetail = () => {
           <div data-guide="documents">
             <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
           </div>
+
+          {/* AI Shipment Assistant */}
+          <AiShipmentAssistant shipmentContext={shipmentContext} />
         </motion.div>
       </div>
 
