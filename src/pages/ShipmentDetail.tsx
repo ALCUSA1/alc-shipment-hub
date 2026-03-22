@@ -162,6 +162,7 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
+  const { data: parties } = useQuery({
     queryKey: ["parties", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("shipment_parties").select("*").eq("shipment_id", id!);
