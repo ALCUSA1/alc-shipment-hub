@@ -65,7 +65,7 @@ import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Security from "./pages/Security";
 import Templates from "./pages/Templates";
-import Community from "./pages/Community";
+import Spark from "./pages/Spark";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
 import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
 import ForwarderShipments from "./pages/forwarder/ForwarderShipments";
