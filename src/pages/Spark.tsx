@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,11 +16,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, MessageCircle, Share2, Send, Globe, Users2, Megaphone,
   TrendingUp, Newspaper, Loader2, MoreHorizontal, Trash2,
-  Sparkles, Flame, Zap, Image as ImageIcon, Hash
+  Sparkles, Flame, Zap, Image as ImageIcon, Hash, Pin, PinOff,
+  Bell, BellOff, Plus, AtSign
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover, PopoverContent, PopoverTrigger
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 
 const POST_TYPES = [
   { value: "update", label: "Update", icon: Globe, color: "text-primary" },
@@ -37,8 +43,78 @@ const TRENDING_TOPICS = [
   { tag: "AirFreight", count: 9 },
 ];
 
+/* ─── Mention Popover ─── */
+function MentionPopover({
+  open,
+  search,
+  anchorRef,
+  onSelect,
+}: {
+  open: boolean;
+  search: string;
+  anchorRef: React.RefObject<HTMLTextAreaElement>;
+  onSelect: (name: string) => void;
+}) {
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["mention-users", search],
+    queryFn: async () => {
+      const query = supabase
+        .from("profiles")
+        .select("user_id, full_name, company_name, avatar_url")
+        .limit(8);
+      if (search) {
+        query.ilike("full_name", `%${search}%`);
+      }
+      const { data } = await query;
+      return data || [];
+    },
+    enabled: open,
+  });
+
+  if (!open) return null;
+
+  return (
+    <div className="absolute left-0 bottom-full mb-1 z-50 w-72 bg-popover border border-border rounded-xl shadow-xl overflow-hidden">
+      <div className="px-3 py-2 border-b border-border/50 flex items-center gap-2">
+        <Plus className="h-3.5 w-3.5 text-primary" />
+        <span className="text-xs font-medium text-muted-foreground">Tag someone</span>
+      </div>
+      <ScrollArea className="max-h-48">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        ) : users.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">No users found</p>
+        ) : (
+          users.map((u: any) => (
+            <button
+              key={u.user_id}
+              onClick={() => onSelect(u.full_name || "User")}
+              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-accent/10 transition-colors text-left"
+            >
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={u.avatar_url || ""} />
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                  {(u.full_name || "U")[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">{u.full_name || "User"}</p>
+                {u.company_name && (
+                  <p className="text-[10px] text-muted-foreground truncate">{u.company_name}</p>
+                )}
+              </div>
+            </button>
+          ))
+        )}
+      </ScrollArea>
+    </div>
+  );
+}
+
 /* ─── Hero Banner ─── */
-function CommunityHero() {
+function SparkHero() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -46,7 +122,6 @@ function CommunityHero() {
       transition={{ duration: 0.5 }}
       className="relative overflow-hidden rounded-2xl mb-6 bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.85)] to-[hsl(220,80%,25%)]"
     >
-      {/* Decorative circles */}
       <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/5 blur-sm" />
       <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/5 blur-sm" />
       <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-white/[0.03]" />
@@ -61,10 +136,10 @@ function CommunityHero() {
           </Badge>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">
-          Community Hub
+          Spark
         </h1>
         <p className="text-white/70 text-sm md:text-base max-w-lg leading-relaxed">
-          Connect with logistics professionals, share market insights, promote your services, 
+          Connect with logistics professionals, share market insights, promote your services,
           and stay ahead of industry trends — all in one place.
         </p>
         <div className="flex items-center gap-4 mt-6">
@@ -150,6 +225,45 @@ function TrendingSidebar() {
   );
 }
 
+/* ─── Render Content with +mentions ─── */
+function RichContent({ content }: { content: string }) {
+  // Parse +Name mentions and render them as highlighted
+  const parts = content.split(/(\+[A-Za-z\s]+(?=\s|$|[.,!?]))/g);
+  return (
+    <p className="text-sm text-foreground whitespace-pre-wrap mb-4 leading-relaxed pl-14">
+      {parts.map((part, i) =>
+        part.startsWith("+") ? (
+          <span key={i} className="inline-flex items-center gap-0.5 text-primary font-semibold bg-primary/5 rounded px-1 py-0.5 text-[13px]">
+            <AtSign className="h-3 w-3 inline" />
+            {part.slice(1).trim()}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </p>
+  );
+}
+
+/* ─── Media Gallery ─── */
+function MediaGallery({ urls }: { urls: string[] }) {
+  if (!urls || urls.length === 0) return null;
+  return (
+    <div className={`grid gap-2 mb-3 ml-14 ${urls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+      {urls.map((url, i) => (
+        <div key={i} className="relative rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+          <img
+            src={url}
+            alt={`Post media ${i + 1}`}
+            className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Post Composer ─── */
 function PostComposer() {
   const { user } = useAuth();
@@ -157,9 +271,12 @@ function PostComposer() {
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("update");
   const [isFocused, setIsFocused] = useState(false);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: profile } = useQuery({
-    queryKey: ["community-profile", user?.id],
+    queryKey: ["spark-profile", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
@@ -170,6 +287,34 @@ function PostComposer() {
     },
     enabled: !!user,
   });
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setContent(val);
+    // Detect "+" trigger for mentions
+    const cursorPos = e.target.selectionStart;
+    const textBefore = val.slice(0, cursorPos);
+    const lastPlus = textBefore.lastIndexOf("+");
+    if (lastPlus >= 0) {
+      const afterPlus = textBefore.slice(lastPlus + 1);
+      if (!afterPlus.includes(" ") || afterPlus.split(" ").length <= 2) {
+        setMentionOpen(true);
+        setMentionSearch(afterPlus);
+        return;
+      }
+    }
+    setMentionOpen(false);
+  };
+
+  const handleMentionSelect = (name: string) => {
+    const cursorPos = textareaRef.current?.selectionStart || content.length;
+    const textBefore = content.slice(0, cursorPos);
+    const lastPlus = textBefore.lastIndexOf("+");
+    const newContent = content.slice(0, lastPlus) + "+" + name + " " + content.slice(cursorPos);
+    setContent(newContent);
+    setMentionOpen(false);
+    textareaRef.current?.focus();
+  };
 
   const createPost = useMutation({
     mutationFn: async () => {
@@ -207,14 +352,21 @@ function PostComposer() {
                 {(profile?.full_name || "U")[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <Textarea
-                placeholder="Share an update, rate insight, or promote a service..."
+                ref={textareaRef}
+                placeholder="Share an update, rate insight, or promote a service… Use + to tag someone"
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={handleContentChange}
                 onFocus={() => setIsFocused(true)}
-                onBlur={() => !content && setIsFocused(false)}
+                onBlur={() => { if (!content) setIsFocused(false); }}
                 className="min-h-[80px] resize-none border-0 bg-muted/40 focus-visible:ring-0 rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50"
+              />
+              <MentionPopover
+                open={mentionOpen}
+                search={mentionSearch}
+                anchorRef={textareaRef}
+                onSelect={handleMentionSelect}
               />
             </div>
           </div>
@@ -242,10 +394,24 @@ function PostComposer() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary" title="Add image">
                     <ImageIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-muted-foreground hover:text-primary"
+                    title="Tag someone (+)"
+                    onClick={() => {
+                      setContent(content + "+");
+                      setMentionOpen(true);
+                      setMentionSearch("");
+                      textareaRef.current?.focus();
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary" title="Add hashtag">
                     <Hash className="h-4 w-4" />
                   </Button>
                 </div>
@@ -272,7 +438,7 @@ function PostComposer() {
 }
 
 /* ─── Post Card ─── */
-function PostCard({ post, currentUserId, index }: { post: any; currentUserId: string; index: number }) {
+function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentUserId: string; index: number; isAdmin?: boolean }) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -302,7 +468,7 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
   });
 
   const { data: myProfile } = useQuery({
-    queryKey: ["community-profile", currentUserId],
+    queryKey: ["spark-profile", currentUserId],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
@@ -386,6 +552,19 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
     },
   });
 
+  const togglePin = useMutation({
+    mutationFn: async () => {
+      await supabase
+        .from("feed_posts")
+        .update({ is_pinned: !post.is_pinned })
+        .eq("id", post.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
+      toast({ title: post.is_pinned ? "Post unpinned" : "Post pinned" });
+    },
+  });
+
   const typeInfo = POST_TYPES.find((t) => t.value === post.post_type) || POST_TYPES[0];
   const TypeIcon = typeInfo.icon;
 
@@ -395,7 +574,14 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
     >
-      <Card className="mb-4 hover:shadow-md transition-shadow duration-300 border-border/50 overflow-hidden group">
+      <Card className={`mb-4 hover:shadow-md transition-shadow duration-300 border-border/50 overflow-hidden group ${post.is_pinned ? "ring-1 ring-amber-400/30" : ""}`}>
+        {/* Pinned indicator */}
+        {post.is_pinned && (
+          <div className="flex items-center gap-1.5 px-5 pt-3 pb-0">
+            <Pin className="h-3 w-3 text-amber-500 fill-amber-500" />
+            <span className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider">Pinned</span>
+          </div>
+        )}
         {/* Accent top bar by post type */}
         <div className={`h-0.5 w-full ${
           post.post_type === "promotion" ? "bg-amber-500/60" :
@@ -430,7 +616,7 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
                 </div>
               </div>
             </div>
-            {post.user_id === currentUserId && (
+            {(post.user_id === currentUserId || isAdmin) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -438,26 +624,49 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={() => deletePost.mutate()}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete
-                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => togglePin.mutate()}>
+                      {post.is_pinned ? (
+                        <><PinOff className="h-4 w-4 mr-2" /> Unpin</>
+                      ) : (
+                        <><Pin className="h-4 w-4 mr-2" /> Pin to top</>
+                      )}
+                    </DropdownMenuItem>
+                  )}
+                  {post.user_id === currentUserId && (
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => deletePost.mutate()}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </div>
 
-          {/* Content */}
-          <p className="text-sm text-foreground whitespace-pre-wrap mb-4 leading-relaxed pl-14">
-            {post.content}
-          </p>
+          {/* Content with mentions */}
+          <RichContent content={post.content} />
+
+          {/* Media gallery */}
+          <MediaGallery urls={post.media_urls || []} />
 
           {/* Original post reference */}
           {post.original_post_id && (
             <div className="border rounded-xl p-3 mb-3 ml-14 bg-muted/20 border-border/40">
               <p className="text-xs text-muted-foreground italic">Shared post</p>
+            </div>
+          )}
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 ml-14 mb-3">
+              {post.tags.map((tag: string) => (
+                <Badge key={tag} variant="secondary" className="text-[10px] bg-primary/5 text-primary border-primary/10 cursor-pointer hover:bg-primary/10">
+                  #{tag}
+                </Badge>
+              ))}
             </div>
           )}
 
@@ -517,7 +726,7 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
                           <span className="text-[10px] text-muted-foreground">· {c.company_name}</span>
                         )}
                       </div>
-                      <p className="text-xs text-foreground mt-0.5 leading-relaxed">{c.content}</p>
+                      <RichContent content={c.content} />
                       <span className="text-[10px] text-muted-foreground">
                         {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
                       </span>
@@ -526,7 +735,7 @@ function PostCard({ post, currentUserId, index }: { post: any; currentUserId: st
                 ))}
                 <div className="flex items-center gap-2">
                   <Textarea
-                    placeholder="Write a comment..."
+                    placeholder="Write a comment… use + to tag"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     className="min-h-[36px] h-9 text-xs resize-none py-2 rounded-full border-border/50 bg-muted/30"
@@ -568,9 +777,24 @@ function EmptyFeed({ icon: Icon, title, subtitle }: { icon: any; title: string; 
 }
 
 /* ─── Main Page ─── */
-const Community = () => {
+const Spark = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState("all");
+
+  // Check if user has admin role for pinning
+  const { data: userRoles = [] } = useQuery({
+    queryKey: ["user-roles-spark", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user!.id);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+  const isAdmin = userRoles.some((r: any) => r.role === "admin");
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["feed-posts", tab],
@@ -587,10 +811,35 @@ const Community = () => {
     enabled: !!user,
   });
 
+  // Real-time subscription for new posts
+  useEffect(() => {
+    const channel = supabase
+      .channel("spark-feed")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "feed_posts" },
+        (payload) => {
+          const newPost = payload.new as any;
+          if (newPost.user_id !== user?.id) {
+            toast({
+              title: "New post on Spark",
+              description: `${newPost.author_name || "Someone"} shared a ${newPost.post_type || "post"}`,
+            });
+          }
+          queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto">
-        <CommunityHero />
+        <SparkHero />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
           {/* Main feed column */}
@@ -614,13 +863,13 @@ const Community = () => {
                   </div>
                 ) : posts.length === 0 ? (
                   <EmptyFeed
-                    icon={Megaphone}
-                    title="No posts yet"
-                    subtitle="Be the first to share an update with the community!"
+                    icon={Sparkles}
+                    title="No sparks yet"
+                    subtitle="Be the first to share an update with the network!"
                   />
                 ) : (
                   posts.map((post: any, i: number) => (
-                    <PostCard key={post.id} post={post} currentUserId={user!.id} index={i} />
+                    <PostCard key={post.id} post={post} currentUserId={user!.id} index={i} isAdmin={isAdmin} />
                   ))
                 )}
               </TabsContent>
@@ -646,4 +895,4 @@ const Community = () => {
   );
 };
 
-export default Community;
+export default Spark;
