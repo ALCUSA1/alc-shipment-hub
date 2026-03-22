@@ -155,6 +155,7 @@ const NewShipment = () => {
           chargeableWeight: (c as any).chargeable_weight?.toString() || "",
           rateClass: (c as any).rate_class || "",
           containerId: "",
+        })),
         containers: (containerRes.data || []).map(c => ({
           id: crypto.randomUUID(),
           containerNumber: "", containerType: c.container_type || "",
