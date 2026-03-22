@@ -1,89 +1,84 @@
 
 
-## Plan: Hybrid Monetization — Amazon + YouTube Model
+## Plan: Unified Shipment Flow with Optional Quote
 
-Implementing a three-pillar revenue model: marketplace commissions on transactions, freemium subscription tiers for platform access, and promoted/boosted content in the community feed.
+### The Problem
+Currently the flow is: Quote → Approve → Convert to Shipment → Track. This forces every user through a quoting pipeline, even direct shippers who just want to book. The quote step should be optional, not mandatory.
 
----
+### The New Flow (5-step guided wizard)
 
-### Pillar 1: Subscription Tiers (YouTube Model — Freemium)
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Dashboard CTA: "New Shipment"                              │
+│  (replaces "New Quote" as primary action)                   │
+└──────────────────────┬──────────────────────────────────────┘
+                       ▼
+         ┌─────────────────────────┐
+Step 1   │  Route & Basics         │  Origin, destination, mode,
+         │                         │  shipment type (import/export),
+         │                         │  incoterms, customer (optional)
+         └────────────┬────────────┘
+                      ▼
+         ┌─────────────────────────┐
+Step 2   │  Cargo                  │  Container type/count, commodity,
+         │                         │  weight, dimensions, hazmat flag
+         └────────────┬────────────┘
+                      ▼
+         ┌─────────────────────────┐
+Step 3   │  Select Rate            │  Show matching carrier rates inline.
+         │                         │  User picks one. If no rates match,
+         │                         │  allow manual entry.
+         │                         │
+         │  ┌─ FORK ────────────┐  │
+         │  │ "Book Now"        │──┼──► Step 4 (Review & Confirm)
+         │  │ "Save as Quote"   │──┼──► Saves as quote, redirects to
+         │  └───────────────────┘  │    Quotes page for margin/approval
+         └────────────┬────────────┘
+                      ▼
+         ┌─────────────────────────┐
+Step 4   │  Review & Confirm       │  Summary of route, cargo, rate,
+         │                         │  estimated charges. One-click
+         │                         │  "Confirm Booking" button.
+         └────────────┬────────────┘
+                      ▼
+         ┌─────────────────────────┐
+Step 5   │  Booking Created        │  Success screen with shipment ref,
+         │                         │  next actions (upload docs, assign
+         │                         │  trucking, etc.), link to workspace.
+         └─────────────────────────┘
+```
 
-**Create Stripe products and a Pricing page** with three tiers:
+### Key UX Decisions
 
-| | Starter (Free) | Pro ($99/mo) | Enterprise ($299/mo) |
-|---|---|---|---|
-| Shipments/mo | 5 | Unlimited | Unlimited |
-| Rate searches | 10/mo | Unlimited | Unlimited |
-| Document generation | 3/mo | Unlimited | Unlimited |
-| Community posts | 2/mo | Unlimited | Unlimited |
-| Analytics | Basic | Advanced | Custom reports |
-| Partner network | View only | Full access | Priority matching |
-| Support | Community | Priority email | Dedicated rep |
-| Boosted posts | — | 3/mo included | Unlimited |
+1. **"New Shipment" becomes the primary CTA** on the dashboard, sidebar, and empty states. "New Quote" becomes secondary (accessible from Quotes page or as the fork in Step 3).
 
-**Files to create:**
-- `src/pages/Pricing.tsx` — tier comparison table, FAQ accordion, CTA
-- `supabase/functions/create-checkout/index.ts` — Stripe checkout session
-- `supabase/functions/check-subscription/index.ts` — verify active subscription + tier
-- `supabase/functions/customer-portal/index.ts` — manage subscription via Stripe portal
+2. **The fork at Step 3** is the critical moment: forwarders who need customer approval click "Save as Quote" (adds margin step, sends to customer). Direct shippers click "Book Now" and skip the quote entirely.
 
-**Files to modify:**
-- `src/contexts/AuthContext.tsx` — add subscription state (tier, status, end date)
-- `src/components/marketing/MarketingNav.tsx` — add "Pricing" link
-- `src/App.tsx` — register `/pricing` route
+3. **Progressive disclosure**: Steps 4-5 only appear for "Book Now" path. The quote path exits early and enters the existing quote approval flow.
 
----
+4. **Customer is optional**: Direct shippers shipping their own goods don't need to select a customer. Forwarders do. The field is present but not required.
 
-### Pillar 2: Marketplace Commissions (Amazon Model)
+5. **Pre-fill from rate search**: If user came from the homepage rate search, origin/destination/mode are pre-filled and Step 1 is partially complete.
 
-**Add a platform fee layer to the existing Stripe Connect payment flow.** The `AdminPaymentSettings` already supports configurable platform fees — this pillar surfaces that value to users.
+### What Changes
 
-- `src/components/marketing/MarketingFeesSection.tsx` — transparent fee breakdown section on Pricing page showing: "2.5% platform fee on transactions — no hidden markups"
-- Gate premium payment features (saved ACH, multi-currency) behind Pro/Enterprise tiers
+**New file:**
+- `src/pages/NewShipmentWizard.tsx` — 5-step wizard replacing the current full-workspace approach for initial creation
 
----
+**Modified files:**
+- `src/pages/Dashboard.tsx` — Change primary CTA from "New Quote" to "New Shipment", update the welcome flow cards (1. Add Customer → 2. Create Shipment → 3. Track & Deliver)
+- `src/components/dashboard/AppSidebar.tsx` — No structural change needed (Shipments link already exists)
+- `src/App.tsx` — Route the new wizard at `/dashboard/shipments/new` (already exists, just swap the component)
+- `src/pages/NewShipment.tsx` — Refactor into the new wizard flow, reuse existing workspace sections as sub-components
 
-### Pillar 3: Promoted Content (Ad Revenue)
+**Existing reusable pieces:**
+- `CarrierRateSelector` — already shows matching rates
+- `PortSelector` — origin/destination port picker
+- `CargoStep` — cargo details from the quote wizard
+- `WizardShell` — step progress bar component
 
-**Add "Boost Post" functionality to the Community feed.**
-
-**Database migration:**
-- Add columns to `feed_posts`: `is_boosted boolean default false`, `boost_expires_at timestamptz`, `boost_tier text` (standard/premium)
-- Create `boost_purchases` table to track boost transactions
-
-**Files to create:**
-- `src/components/community/BoostPostDialog.tsx` — boost options (Standard $25/7 days, Premium $75/30 days)
-- `supabase/functions/create-boost/index.ts` — Stripe one-time payment for boost
-
-**Files to modify:**
-- `src/pages/Community.tsx` — show boosted posts at top of feed with "Promoted" badge, add boost button on own posts
-
----
-
-### Pillar 4: Landing Page Value Messaging
-
-**Show users exactly why the platform saves them money.**
-
-- `src/components/marketing/ValuePropositionSection.tsx` — 3 cards: "No Broker Markup", "Free Tier Available", "Transparent 2.5% Fee"
-- Add to `Index.tsx` after `PlatformStatsSection`
-- Link to `/pricing` from the hero CTA area
-
----
-
-### Technical Details
-
-- Stripe products/prices created via Stripe tools (Pro: `$99/mo`, Enterprise: `$299/mo`)
-- Subscription state stored in AuthContext, checked on login + every 60s
-- Feature gating via a `useSubscription()` hook that returns tier + limits
-- Boosted posts use Stripe one-time payments, not subscriptions
-- All edge functions use existing `STRIPE_SECRET_KEY` secret
-
-### Implementation Order
-1. Create Stripe products/prices
-2. Build subscription edge functions
-3. Add subscription state to AuthContext
-4. Build Pricing page with tier table
-5. Add boost post flow to Community
-6. Add value proposition section to landing page
-7. Wire feature gating across the app
+### What Stays the Same
+- The full workspace (`/dashboard/shipments/:id`) remains for editing after creation
+- The quote flow (`/dashboard/quotes/new`) stays available for users who specifically want to quote
+- All existing shipment data models, tables, and RLS policies are unchanged
 
