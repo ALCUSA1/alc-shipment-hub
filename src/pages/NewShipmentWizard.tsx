@@ -248,8 +248,22 @@ const NewShipmentWizard = () => {
         requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
       );
 
+      // Insert customs filing if compliance data provided
+      if (compliance.exporterName || compliance.exporterEin || compliance.aesType) {
+        await supabase.from("customs_filings").insert({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          exporter_name: compliance.exporterName || null,
+          exporter_ein: compliance.exporterEin || null,
+          aes_citation: compliance.aesType || null,
+          port_of_export: overview.originPort || null,
+          port_of_unlading: overview.destinationPort || null,
+          status: "draft",
+        });
+      }
+
       toast({ title: "Shipment booked!", description: `${row.shipment_ref} created with ${selectedRate.carrier}.` });
-      setStep(4); // Go to success step
+      setStep(5); // Go to success step
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
     } finally {
