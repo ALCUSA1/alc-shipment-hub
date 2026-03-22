@@ -134,7 +134,7 @@ const NewShipmentWizard = () => {
       const { data } = await query;
       return (data as CarrierRate[]) || [];
     },
-    enabled: !!(overview.originPort && overview.destinationPort) && step >= 2,
+    enabled: !!(overview.originPort && overview.destinationPort) && step >= 3,
   });
 
   const bestRateId = rates.length > 0
