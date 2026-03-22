@@ -17,10 +17,15 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Ship, Check, Clock, ChevronDown, ChevronUp, FileText,
   CheckCircle2, Bookmark, ArrowRight, Loader2, Package,
-  MapPin, AlertCircle, Shield,
+  MapPin, AlertCircle, Shield, AlertTriangle, XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
+import {
+  overviewSchema, cargoSchema, complianceSchema,
+  validateStep, checkComplianceGating,
+  type ValidationErrors, type GatingIssue, type CompanyCredentials,
+} from "@/lib/wizard-validation";
 
 /* ── Wizard Steps ── */
 const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Customs & Compliance", "Review & Confirm", "Booking Created"];
