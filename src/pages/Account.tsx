@@ -377,7 +377,7 @@ const Account = () => {
               <Separator />
               <h3 className="text-sm font-medium text-foreground">Address</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2"><Label>Street Address</Label><Input value={company.address} onChange={e => setCompany(c => ({ ...c, address: e.target.value }))} className="mt-1" /></div>
+                <div className="md:col-span-2"><Label>Street Address</Label><AddressAutocomplete value={company.address} onChange={v => setCompany(c => ({ ...c, address: v }))} onAddressSelect={(addr) => setCompany(c => ({ ...c, address: addr.street, city: addr.city, state: addr.state, zip: addr.postalCode, country: addr.country }))} placeholder="Search address..." /></div>
                 <div><Label>City</Label><Input value={company.city} onChange={e => setCompany(c => ({ ...c, city: e.target.value }))} className="mt-1" /></div>
                 <div><Label>State</Label><Input value={company.state} onChange={e => setCompany(c => ({ ...c, state: e.target.value }))} className="mt-1" /></div>
                 <div><Label>ZIP Code</Label><Input value={company.zip} onChange={e => setCompany(c => ({ ...c, zip: e.target.value }))} className="mt-1" /></div>

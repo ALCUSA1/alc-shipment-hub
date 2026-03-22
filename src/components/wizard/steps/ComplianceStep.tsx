@@ -287,7 +287,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
               </Field>
             </div>
             <Field label="Agent Address">
-              <Input className="mt-1 h-8 text-xs" value={data.agentAddress} onChange={(e) => set("agentAddress", e.target.value)} />
+              <AddressAutocomplete value={data.agentAddress} onChange={(v) => set("agentAddress", v)} className="h-8 text-xs" />
             </Field>
           </div>
         )}

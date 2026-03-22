@@ -125,7 +125,7 @@ export function ExecutionSection({ data, onChange }: Props) {
           </div>
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-[10px] text-muted-foreground">Location</Label><Input className="mt-1 h-9 text-sm" value={data.warehouseLocation} onChange={(e) => set("warehouseLocation", e.target.value)} placeholder="Facility name or address" /></div>
+              <div><Label className="text-[10px] text-muted-foreground">Location</Label><AddressAutocomplete value={data.warehouseLocation} onChange={(v) => set("warehouseLocation", v)} placeholder="Facility name or address" className="h-9 text-sm" /></div>
               <div><Label className="text-[10px] text-muted-foreground">Cargo Arrival</Label><Input type="date" className="mt-1 h-9 text-sm" value={data.cargoArrivalDate} onChange={(e) => set("cargoArrivalDate", e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">

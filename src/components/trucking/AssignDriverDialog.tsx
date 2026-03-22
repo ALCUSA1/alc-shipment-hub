@@ -146,7 +146,7 @@ export function AssignDriverDialog({
 
           <div>
             <Label>Delivery Address</Label>
-            <Input value={form.delivery_address} onChange={(e) => update("delivery_address", e.target.value)} className="mt-1" />
+            <AddressAutocomplete value={form.delivery_address} onChange={(v) => update("delivery_address", v)} placeholder="Search delivery address..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

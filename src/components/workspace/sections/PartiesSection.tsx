@@ -118,7 +118,7 @@ function CompactPartyCard({
                 <div><Label className="text-[11px] text-muted-foreground">Company</Label><Input className="mt-1 h-9 text-sm" value={party.companyName} onChange={(e) => set("companyName", e.target.value)} placeholder="Company name" /></div>
                 <div><Label className="text-[11px] text-muted-foreground">Contact</Label><Input className="mt-1 h-9 text-sm" value={party.contactName} onChange={(e) => set("contactName", e.target.value)} placeholder="Full name" /></div>
               </div>
-              <div><Label className="text-[11px] text-muted-foreground">Address</Label><Input className="mt-1 h-9 text-sm" value={party.address} onChange={(e) => set("address", e.target.value)} placeholder="Street address" /></div>
+              <div><Label className="text-[11px] text-muted-foreground">Address</Label><AddressAutocomplete value={party.address} onChange={(v) => set("address", v)} onAddressSelect={(addr) => { set("address", addr.street); set("city", addr.city); set("state", addr.state); set("postalCode", addr.postalCode); set("country", addr.country); }} placeholder="Street address" className="h-9 text-sm" /></div>
               <div className="grid grid-cols-4 gap-2">
                 <div><Label className="text-[10px] text-muted-foreground">City</Label><Input className="mt-1 h-8 text-xs" value={party.city} onChange={(e) => set("city", e.target.value)} /></div>
                 <div><Label className="text-[10px] text-muted-foreground">State</Label><Input className="mt-1 h-8 text-xs" value={party.state} onChange={(e) => set("state", e.target.value)} /></div>

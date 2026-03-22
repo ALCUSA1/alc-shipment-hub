@@ -73,7 +73,7 @@ function PartyCard({ label, party, onChange, description, autoFilled }: { label:
       </div>
       <div>
         <Label className="text-xs">Address</Label>
-        <Input placeholder="Full address" className="mt-1 h-9 text-sm" value={party.address} onChange={(e) => set("address", e.target.value)} />
+        <AddressAutocomplete value={party.address} onChange={(v) => set("address", v)} placeholder="Full address" className="h-9 text-sm" />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
