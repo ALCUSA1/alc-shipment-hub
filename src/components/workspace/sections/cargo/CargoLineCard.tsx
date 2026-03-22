@@ -42,7 +42,8 @@ export function CargoLineCard({
             <Select
               value=""
               onValueChange={(v) => {
-                if (v) onMoveToContainer(v);
+                if (v === "__unassign__") onMoveToContainer("");
+                else if (v) onMoveToContainer(v);
               }}
             >
               <SelectTrigger className="h-6 text-[10px] w-auto min-w-0 gap-1 border-none bg-secondary/60 hover:bg-secondary px-1.5">
