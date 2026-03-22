@@ -528,6 +528,21 @@ const ShipmentDetail = () => {
         </div>
       </div>
 
+      {/* AI Intelligence Summary */}
+      <div className="mb-6">
+        <AiShipmentSummary shipmentContext={shipmentContext} shipmentId={id!} />
+      </div>
+
+      {/* AI Smart Banners */}
+      <div className="mb-4">
+        <AiSmartBanners
+          shipment={shipment}
+          documents={documents}
+          payments={paymentsForBanners}
+          customsFilings={customsFilingsForBanners}
+        />
+      </div>
+
       {/* Smart Next Action */}
       <div className="mb-6">
         <ShipmentNextAction shipmentId={id!} shipmentStatus={shipment.status} />
