@@ -145,14 +145,15 @@ const NewShipmentWizard = () => {
   const canProceed = (() => {
     if (step === 0) return !!(overview.originPort && overview.destinationPort);
     if (step === 1) return !!(cargo.containerType);
-    if (step === 2) return !!selectedRate;
-    if (step === 3) return true;
+    if (step === 2) return true; // Compliance is optional but encouraged
+    if (step === 3) return !!selectedRate;
+    if (step === 4) return true;
     return false;
   })();
 
   const handleNext = () => {
     if (step < STEPS.length - 1) setStep(step + 1);
-    if (step === 3) handleSubmit();
+    if (step === 4) handleSubmit();
   };
   const handlePrev = () => { if (step > 0) setStep(step - 1); };
 
