@@ -380,11 +380,11 @@ const Dashboard = () => {
             <div className="text-center py-10">
               <Package className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-1">No shipments yet</p>
-              <p className="text-xs text-muted-foreground/60">Create a quote to generate your first shipment</p>
+              <p className="text-xs text-muted-foreground/60">Create your first shipment to get started</p>
               <Button variant="electric" size="sm" className="mt-4" asChild>
-                <Link to="/dashboard/quotes/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Quote
+                <Link to="/dashboard/shipments/new">
+                  <Ship className="mr-2 h-4 w-4" />
+                  New Shipment
                 </Link>
               </Button>
             </div>
