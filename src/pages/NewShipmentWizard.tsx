@@ -310,8 +310,17 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 2: Select Rate ── */}
+        {/* ── Step 2: Customs & Compliance ── */}
         {step === 2 && (
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <ComplianceStep data={compliance} onChange={setCompliance} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 3: Select Rate ── */}
+        {step === 3 && (
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
