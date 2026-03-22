@@ -612,8 +612,11 @@ const ShipmentDetail = () => {
             vesselDeparted={["in_transit", "arrived", "delivered", "completed"].includes(shipment.status)}
           />
 
-          {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {/* Vessel Bookings - collapsed summary for booked+, hidden for delivered */}
+          {!isAirShipment && isBooked && !isDelivered && (
+            <VesselBookingSummary shipmentId={id!} />
+          )}
+          {!isDelivered && !isBooked && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
           {!isDelivered && isAirShipment && (
             <AirBookingPanel
               shipmentId={id!}
