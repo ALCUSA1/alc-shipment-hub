@@ -229,8 +229,8 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
             <Input className={`mt-1 h-8 text-xs ${errors.exporterEin ? "border-destructive" : ""}`} value={data.exporterEin} onChange={(e) => set("exporterEin", e.target.value)} placeholder="XX-XXXXXXX" />
           </Field>
         </div>
-        <Field label="USPPI Address" auto={isAuto("exporterAddress")}>
-          <Input className="mt-1 h-8 text-xs" value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
+        <Field label="USPPI Address *" auto={isAuto("exporterAddress")} error={errors.exporterAddress}>
+          <Input className={`mt-1 h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Contact Name" auto={isAuto("exporterContactName")}>
