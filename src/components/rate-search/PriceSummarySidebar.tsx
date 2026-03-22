@@ -48,6 +48,9 @@ function categorizeSurcharges(surcharges: Surcharge[]) {
 interface PriceSummarySidebarProps {
   selectedRate: CarrierRate | null;
   containerSize: string;
+  origin?: string;
+  destination?: string;
+  mode?: string;
 }
 
 const CONTAINER_LABELS: Record<string, string> = {
