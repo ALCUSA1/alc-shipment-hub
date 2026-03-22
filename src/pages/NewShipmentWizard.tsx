@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
 
 /* ── Wizard Steps ── */
-const STEPS = ["Route & Basics", "Cargo", "Customs & Compliance", "Select Rate", "Review & Confirm", "Booking Created"];
+const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Customs & Compliance", "Review & Confirm", "Booking Created"];
 
 /* ── Rate helpers ── */
 interface Surcharge { code: string; description: string; amount: number; }
