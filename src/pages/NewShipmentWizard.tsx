@@ -275,9 +275,9 @@ const NewShipmentWizard = () => {
         </div>
 
         {/* Stepper */}
-        {step < 4 && (
+        {step < 5 && (
           <div className="flex items-center gap-1 mb-8">
-            {STEPS.slice(0, 4).map((s, i) => (
+            {STEPS.slice(0, 5).map((s, i) => (
               <div key={i} className="flex-1 flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
                   i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
