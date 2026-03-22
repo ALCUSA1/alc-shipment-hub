@@ -263,7 +263,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
           </Field>
         </div>
         <Field label="Consignee Address *" error={errors.consigneeAddress}>
-          <Input className={`mt-1 h-8 text-xs ${errors.consigneeAddress ? "border-destructive" : ""}`} value={data.consigneeAddress} onChange={(e) => set("consigneeAddress", e.target.value)} placeholder="Full address including country code" />
+          <AddressAutocomplete value={data.consigneeAddress} onChange={(v) => set("consigneeAddress", v)} placeholder="Full address including country code" className={`h-8 text-xs ${errors.consigneeAddress ? "border-destructive" : ""}`} />
         </Field>
       </div>
 
