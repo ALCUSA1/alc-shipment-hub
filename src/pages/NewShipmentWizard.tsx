@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
 import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
+import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +17,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Ship, Check, Clock, ChevronDown, ChevronUp, FileText,
   CheckCircle2, Bookmark, ArrowRight, Loader2, Package,
-  MapPin, AlertCircle,
+  MapPin, AlertCircle, Shield,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
 
 /* ── Wizard Steps ── */
-const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Review & Confirm", "Booking Created"];
+const STEPS = ["Route & Basics", "Cargo", "Customs & Compliance", "Select Rate", "Review & Confirm", "Booking Created"];
 
 /* ── Rate helpers ── */
 interface Surcharge { code: string; description: string; amount: number; }
@@ -89,7 +90,13 @@ const NewShipmentWizard = () => {
     countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
   });
 
-  // Step 3: Rate selection
+  // Step 3: Compliance
+  const [compliance, setCompliance] = useState<ComplianceData>({
+    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
+    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+  });
+
+  // Step 4: Rate selection
   const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
   const [expandedRateId, setExpandedRateId] = useState<string | null>(null);
 
@@ -127,7 +134,7 @@ const NewShipmentWizard = () => {
       const { data } = await query;
       return (data as CarrierRate[]) || [];
     },
-    enabled: !!(overview.originPort && overview.destinationPort) && step >= 2,
+    enabled: !!(overview.originPort && overview.destinationPort) && step >= 3,
   });
 
   const bestRateId = rates.length > 0
@@ -138,14 +145,15 @@ const NewShipmentWizard = () => {
   const canProceed = (() => {
     if (step === 0) return !!(overview.originPort && overview.destinationPort);
     if (step === 1) return !!(cargo.containerType);
-    if (step === 2) return !!selectedRate;
-    if (step === 3) return true;
+    if (step === 2) return true; // Compliance is optional but encouraged
+    if (step === 3) return !!selectedRate;
+    if (step === 4) return true;
     return false;
   })();
 
   const handleNext = () => {
     if (step < STEPS.length - 1) setStep(step + 1);
-    if (step === 3) handleSubmit();
+    if (step === 4) handleSubmit();
   };
   const handlePrev = () => { if (step > 0) setStep(step - 1); };
 
@@ -240,8 +248,22 @@ const NewShipmentWizard = () => {
         requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
       );
 
+      // Insert customs filing if compliance data provided
+      if (compliance.exporterName || compliance.exporterEin || compliance.aesType) {
+        await supabase.from("customs_filings").insert({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          exporter_name: compliance.exporterName || null,
+          exporter_ein: compliance.exporterEin || null,
+          aes_citation: compliance.aesType || null,
+          port_of_export: overview.originPort || null,
+          port_of_unlading: overview.destinationPort || null,
+          status: "draft",
+        });
+      }
+
       toast({ title: "Shipment booked!", description: `${row.shipment_ref} created with ${selectedRate.carrier}.` });
-      setStep(4); // Go to success step
+      setStep(5); // Go to success step
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
     } finally {
@@ -267,9 +289,9 @@ const NewShipmentWizard = () => {
         </div>
 
         {/* Stepper */}
-        {step < 4 && (
+        {step < 5 && (
           <div className="flex items-center gap-1 mb-8">
-            {STEPS.slice(0, 4).map((s, i) => (
+            {STEPS.slice(0, 5).map((s, i) => (
               <div key={i} className="flex-1 flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
                   i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
@@ -302,8 +324,17 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 2: Select Rate ── */}
+        {/* ── Step 2: Customs & Compliance ── */}
         {step === 2 && (
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <ComplianceStep data={compliance} onChange={setCompliance} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 3: Select Rate ── */}
+        {step === 3 && (
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
@@ -410,8 +441,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 3: Review & Confirm ── */}
-        {step === 3 && (
+        {/* ── Step 4: Review & Confirm ── */}
+        {step === 4 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
@@ -436,6 +467,21 @@ const NewShipmentWizard = () => {
                 <Row label="Volume" value={cargo.volume ? `${cargo.volume} CBM` : undefined} />
                 <Row label="Value" value={cargo.totalValue ? `$${Number(cargo.totalValue).toLocaleString()}` : undefined} />
               </div>
+
+              {(compliance.exporterName || compliance.aesType || compliance.insuranceProvider) && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-accent" /> Customs & Compliance
+                  </h4>
+                  <Row label="Exporter (USPPI)" value={compliance.exporterName} />
+                  <Row label="EIN" value={compliance.exporterEin} />
+                  <Row label="AES Citation" value={compliance.aesType} />
+                  <Row label="Export License" value={compliance.exportLicense} />
+                  <Row label="Insurance" value={compliance.insuranceProvider} />
+                  <Row label="Policy #" value={compliance.insurancePolicy} />
+                  <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />
+                </div>
+              )}
 
               {selectedRate && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
@@ -469,8 +515,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 4: Success ── */}
-        {step === 4 && (
+        {/* ── Step 5: Success ── */}
+        {step === 5 && (
           <Card className="border-accent/20">
             <CardContent className="pt-8 pb-8 text-center space-y-4">
               <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
@@ -486,7 +532,6 @@ const NewShipmentWizard = () => {
                   View All Shipments
                 </Button>
                 <Button variant="electric" onClick={() => {
-                  // Navigate to the most recent shipment
                   navigate("/dashboard/shipments");
                 }}>
                   Open Workspace <ArrowRight className="ml-2 h-4 w-4" />
@@ -497,20 +542,20 @@ const NewShipmentWizard = () => {
         )}
 
         {/* ── Navigation Buttons ── */}
-        {step < 4 && (
+        {step < 5 && (
           <div className="flex justify-between mt-6">
             <Button variant="outline" onClick={step === 0 ? () => navigate(-1) : handlePrev}>
               {step === 0 ? "Cancel" : "Previous"}
             </Button>
             <div className="flex gap-2">
-              {/* Save as Quote fork at step 2 */}
-              {step === 2 && selectedRate && (
+              {/* Save as Quote fork at step 3 (rate selection) */}
+              {step === 3 && selectedRate && (
                 <Button variant="outline" onClick={handleSaveAsQuote} disabled={submitting}>
                   <Bookmark className="mr-2 h-4 w-4" />
                   Save as Quote
                 </Button>
               )}
-              {step === 2 && rates.length === 0 && (
+              {step === 3 && rates.length === 0 && (
                 <Button variant="outline" onClick={() => setStep(step + 1)}>
                   Skip — Add Rate Later
                 </Button>
@@ -518,11 +563,11 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
+                disabled={(!canProceed && !(step === 3 && rates.length === 0)) || submitting}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {step === 3 ? "Confirm Booking" : "Next"}
-                {step < 3 && <ArrowRight className="ml-2 h-4 w-4" />}
+                {step === 4 ? "Confirm Booking" : "Next"}
+                {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </div>
           </div>
