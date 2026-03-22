@@ -239,8 +239,8 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
           <Field label="Phone" auto={isAuto("exporterPhone")}>
             <Input className="mt-1 h-8 text-xs" value={data.exporterPhone} onChange={(e) => set("exporterPhone", e.target.value)} />
           </Field>
-          <Field label="Email" auto={isAuto("exporterEmail")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterEmail} onChange={(e) => set("exporterEmail", e.target.value)} />
+          <Field label="Email" auto={isAuto("exporterEmail")} error={errors.exporterEmail}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterEmail ? "border-destructive" : ""}`} value={data.exporterEmail} onChange={(e) => set("exporterEmail", e.target.value)} />
           </Field>
         </div>
       </div>
