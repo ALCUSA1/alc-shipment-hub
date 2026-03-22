@@ -719,7 +719,7 @@ const ShipmentDetail = () => {
             mawbNumber={(shipment as any).mawb_number}
           />
 
-          {/* Carrier Communications (formerly EDI Messages) */}
+          {/* Carrier Communications */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -730,28 +730,36 @@ const ShipmentDetail = () => {
             <CardContent>
               {ediMessages && ediMessages.length > 0 ? (
                 <div className="space-y-3">
-                  {ediMessages.map((msg) => (
-                    <div key={msg.id} className="flex items-start justify-between py-2 border-b last:border-0">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px]">{msg.message_type}</Badge>
-                          <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
-                            {msg.direction === "inbound" ? "← IN" : "→ OUT"}
-                          </Badge>
+                  {ediMessages.map((msg) => {
+                    const translated = translateEdiMessage(msg.message_type, msg.direction, msg.carrier);
+                    return (
+                      <div key={msg.id} className="py-2.5 border-b last:border-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
+                                {msg.direction === "inbound" ? "← Received" : "→ Sent"}
+                              </Badge>
+                              {msg.status === "error" && (
+                                <Badge variant="destructive" className="text-[10px]">Error</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-foreground font-medium">{translated.label}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{translated.description}</p>
+                            {!translated.isKnown && (
+                              <AiTranslatedMessage messageType={msg.message_type} direction={msg.direction} carrier={msg.carrier} status={msg.status} />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground ml-3 shrink-0">
+                            {format(new Date(msg.created_at), "MMM d, HH:mm")}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">{msg.carrier}</p>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className={`text-[10px] ${msg.status === "error" ? "border-destructive text-destructive" : ""}`}>
-                          {msg.status}
-                        </Badge>
-                        <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(msg.created_at), "MMM d, HH:mm")}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No EDI messages yet.</p>
+                <p className="text-sm text-muted-foreground">No carrier communications yet.</p>
               )}
             </CardContent>
           </Card>
