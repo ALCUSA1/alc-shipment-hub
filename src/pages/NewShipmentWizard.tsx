@@ -113,7 +113,7 @@ const NewShipmentWizard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name")
+        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
