@@ -474,7 +474,80 @@ const ShipmentDetail = () => {
                   <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
                 </div>
               </div>
-              {firstCargo && (
+              {/* Per-Container Commodity Contents */}
+              {containers && containers.length > 0 && (
+                <>
+                  <Separator className="my-5" />
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Package className="h-4 w-4 text-accent" />
+                    Container Contents
+                  </h4>
+                  <div className="space-y-4">
+                    {containers.map((container, ci) => {
+                      const commodities = (containerCommodities || []).filter(
+                        cc => cc.container_id === container.id
+                      );
+                      return (
+                        <div key={container.id} className="rounded-lg border bg-muted/20 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 border-b">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-3.5 w-3.5 text-accent" />
+                              <span className="text-xs font-semibold text-foreground">
+                                {container.container_type?.toUpperCase() || "Container"}
+                                {container.container_number && (
+                                  <span className="ml-1.5 font-mono text-muted-foreground">#{container.container_number}</span>
+                                )}
+                              </span>
+                              {container.seal_number && (
+                                <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                                  Seal: {container.seal_number}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">
+                              {commodities.length} item{commodities.length !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <div className="p-3">
+                            {commodities.length > 0 ? (
+                              <div className="space-y-2">
+                                {commodities.map((cc, li) => (
+                                  <div key={cc.id} className="flex items-start justify-between text-xs py-1.5 border-b border-border/30 last:border-0">
+                                    <div className="space-y-0.5">
+                                      <p className="font-medium text-foreground">
+                                        {cc.commodity_description || "Untitled commodity"}
+                                      </p>
+                                      <div className="flex gap-3 text-muted-foreground text-[10px]">
+                                        {cc.hs_code && <span>HS: {cc.hs_code}</span>}
+                                        {cc.hts_code && <span>HTS: {cc.hts_code}</span>}
+                                        {cc.country_of_manufacture && <span>Origin: {cc.country_of_manufacture}</span>}
+                                      </div>
+                                    </div>
+                                    <div className="text-right text-muted-foreground space-y-0.5">
+                                      {cc.quantity && <p>{cc.quantity} {cc.unit_of_measure || "pcs"}</p>}
+                                      {cc.gross_weight_kg && <p>{cc.gross_weight_kg} kg</p>}
+                                      {cc.hazardous && (
+                                        <Badge variant="destructive" className="text-[9px] px-1 py-0">DG</Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground/60 italic text-center py-2">
+                                No commodities assigned
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Flat Cargo Info (fallback when no containers) */}
+              {(!containers || containers.length === 0) && firstCargo && (
                 <>
                   <Separator className="my-5" />
                   <h4 className="text-sm font-semibold text-foreground mb-3">Cargo Information</h4>

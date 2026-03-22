@@ -425,9 +425,48 @@ const NewShipment = () => {
 
       const inserts: PromiseLike<any>[] = [];
       if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts).then());
-      if (containerInserts.length) inserts.push(supabase.from("containers").insert(containerInserts).then());
       if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts).then());
       if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts).then());
+
+      // Insert containers and get back IDs for commodity mapping
+      let containerIdMap: Record<string, string> = {};
+      if (containerInserts.length) {
+        const { data: insertedContainers } = await supabase
+          .from("containers")
+          .insert(containerInserts)
+          .select("id, container_type, container_number");
+        if (insertedContainers) {
+          // Map local container IDs to DB IDs by matching order
+          ds.containers.filter(c => c.containerType).forEach((localContainer, idx) => {
+            if (insertedContainers[idx]) {
+              containerIdMap[localContainer.id] = insertedContainers[idx].id;
+            }
+          });
+        }
+      }
+
+      // Persist container_commodities linkage
+      const commodityInserts = ds.cargoLines
+        .filter(c => c.containerId && containerIdMap[c.containerId] && (c.commodity || c.hsCode))
+        .map((c, idx) => ({
+          container_id: containerIdMap[c.containerId],
+          shipment_id: shipmentId,
+          line_sequence: idx + 1,
+          commodity_description: c.commodity || null,
+          hs_code: c.hsCode || null,
+          hts_code: c.htsCode || null,
+          schedule_b_number: c.scheduleBCode || null,
+          gross_weight_kg: c.grossWeight ? parseFloat(c.grossWeight) : null,
+          net_weight_kg: c.netWeight ? parseFloat(c.netWeight) : null,
+          value_usd: null,
+          quantity: c.numPackages ? parseFloat(c.numPackages) : null,
+          unit_of_measure: c.packageType || null,
+          country_of_manufacture: c.countryOfOrigin || null,
+          hazardous: c.dangerousGoods,
+        }));
+      if (commodityInserts.length) {
+        inserts.push(supabase.from("container_commodities").insert(commodityInserts).then());
+      }
 
       if (comp.exporterName || comp.exporterEin) {
         inserts.push(supabase.from("customs_filings").insert({
