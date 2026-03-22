@@ -931,6 +931,71 @@ export type Database = {
           },
         ]
       }
+      compliance_reviews: {
+        Row: {
+          admin_notes: string | null
+          aes_type: string | null
+          created_at: string
+          export_license: string | null
+          exporter_ein: string | null
+          exporter_name: string | null
+          id: string
+          insurance_coverage: string | null
+          insurance_policy: string | null
+          insurance_provider: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shipment_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          aes_type?: string | null
+          created_at?: string
+          export_license?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          id?: string
+          insurance_coverage?: string | null
+          insurance_policy?: string | null
+          insurance_provider?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shipment_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          aes_type?: string | null
+          created_at?: string
+          export_license?: string | null
+          exporter_ein?: string | null
+          exporter_name?: string | null
+          id?: string
+          insurance_coverage?: string | null
+          insurance_policy?: string | null
+          insurance_provider?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_reviews_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       container_commodities: {
         Row: {
           commodity_description: string | null

@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
 
 /* ── Wizard Steps ── */
-const STEPS = ["Route & Basics", "Cargo", "Customs & Compliance", "Select Rate", "Review & Confirm", "Booking Created"];
+const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Customs & Compliance", "Review & Confirm", "Booking Created"];
 
 /* ── Rate helpers ── */
 interface Surcharge { code: string; description: string; amount: number; }
@@ -134,7 +134,7 @@ const NewShipmentWizard = () => {
       const { data } = await query;
       return (data as CarrierRate[]) || [];
     },
-    enabled: !!(overview.originPort && overview.destinationPort) && step >= 3,
+    enabled: !!(overview.originPort && overview.destinationPort) && step >= 2,
   });
 
   const bestRateId = rates.length > 0
@@ -145,8 +145,8 @@ const NewShipmentWizard = () => {
   const canProceed = (() => {
     if (step === 0) return !!(overview.originPort && overview.destinationPort);
     if (step === 1) return !!(cargo.containerType);
-    if (step === 2) return true; // Compliance is optional but encouraged
-    if (step === 3) return !!selectedRate;
+    if (step === 2) return !!selectedRate; // Select Rate
+    if (step === 3) return true; // Compliance is optional but encouraged
     if (step === 4) return true;
     return false;
   })();
@@ -262,6 +262,22 @@ const NewShipmentWizard = () => {
         });
       }
 
+      // Submit compliance review for admin approval
+      if (compliance.exporterName || compliance.exporterEin || compliance.aesType || compliance.insuranceProvider) {
+        await supabase.from("compliance_reviews").insert({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          exporter_name: compliance.exporterName || null,
+          exporter_ein: compliance.exporterEin || null,
+          aes_type: compliance.aesType || null,
+          export_license: compliance.exportLicense || null,
+          insurance_provider: compliance.insuranceProvider || null,
+          insurance_policy: compliance.insurancePolicy || null,
+          insurance_coverage: compliance.insuranceCoverage || null,
+          status: "pending_review",
+        });
+      }
+
       toast({ title: "Shipment booked!", description: `${row.shipment_ref} created with ${selectedRate.carrier}.` });
       setStep(5); // Go to success step
     } catch (err: any) {
@@ -324,17 +340,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 2: Customs & Compliance ── */}
+        {/* ── Step 2: Select Rate ── */}
         {step === 2 && (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 3: Select Rate ── */}
-        {step === 3 && (
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
@@ -437,6 +444,21 @@ const NewShipmentWizard = () => {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 3: Customs & Compliance ── */}
+        {step === 3 && (
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <ComplianceStep data={compliance} onChange={setCompliance} />
+              <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
+                <p className="text-xs text-muted-foreground">
+                  <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
+                  Compliance details will be sent to our team for validation. You can proceed with your booking — we'll review in the background and notify you of any issues.
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -548,14 +570,14 @@ const NewShipmentWizard = () => {
               {step === 0 ? "Cancel" : "Previous"}
             </Button>
             <div className="flex gap-2">
-              {/* Save as Quote fork at step 3 (rate selection) */}
-              {step === 3 && selectedRate && (
+              {/* Save as Quote fork at step 2 (rate selection) */}
+              {step === 2 && selectedRate && (
                 <Button variant="outline" onClick={handleSaveAsQuote} disabled={submitting}>
                   <Bookmark className="mr-2 h-4 w-4" />
                   Save as Quote
                 </Button>
               )}
-              {step === 3 && rates.length === 0 && (
+              {step === 2 && rates.length === 0 && (
                 <Button variant="outline" onClick={() => setStep(step + 1)}>
                   Skip — Add Rate Later
                 </Button>
@@ -563,7 +585,7 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 3 && rates.length === 0)) || submitting}
+                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {step === 4 ? "Confirm Booking" : "Next"}
