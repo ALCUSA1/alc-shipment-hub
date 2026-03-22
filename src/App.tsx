@@ -20,7 +20,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
-import NewShipment from "./pages/NewShipment";
+import NewShipmentWizard from "./pages/NewShipmentWizard";
 import ShipmentDetail from "./pages/ShipmentDetail";
 import Quotes from "./pages/Quotes";
 import NewQuote from "./pages/NewQuote";
