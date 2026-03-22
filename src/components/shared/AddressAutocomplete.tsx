@@ -76,7 +76,7 @@ export function AddressAutocomplete({
 
     try {
       const { data } = await supabase.functions.invoke("places-autocomplete", {
-        body: { action: "details", mapboxId: prediction.place_id },
+        body: { action: "details", mapboxId: prediction.description },
       });
       if (data?.result) {
         const components = data.result.address_components || [];
