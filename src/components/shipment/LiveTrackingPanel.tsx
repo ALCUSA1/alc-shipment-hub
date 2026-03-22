@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, MapPin, Navigation, Plane, Ship, Wifi } from "lucide-react";
+import { Loader2, RefreshCw, MapPin, Navigation, Plane, Ship, Wifi, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +19,24 @@ interface LiveTrackingPanelProps {
   mawbNumber?: string | null;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  maersk: "Maersk API",
+  cmacgm: "CMA CGM API",
+  msc: "MSC API",
+  hapag_lloyd: "Hapag-Lloyd API",
+  e2open: "e2open",
+  manual: "Manual",
+};
+
+const SOURCE_COLORS: Record<string, string> = {
+  maersk: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+  cmacgm: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  msc: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  hapag_lloyd: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  e2open: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  manual: "bg-secondary text-secondary-foreground",
+};
+
 export function LiveTrackingPanel({
   shipmentId,
   mode,
@@ -30,6 +48,7 @@ export function LiveTrackingPanel({
   mawbNumber,
 }: LiveTrackingPanelProps) {
   const [syncing, setSyncing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const queryClient = useQueryClient();
 
   const { data: trackingEvents = [] } = useQuery({
@@ -46,6 +65,7 @@ export function LiveTrackingPanel({
   });
 
   const latestEvent = trackingEvents[0];
+  const latestSource = latestEvent?.source || "manual";
 
   const handleSync = async () => {
     setSyncing(true);
@@ -55,6 +75,8 @@ export function LiveTrackingPanel({
       });
 
       if (error) throw error;
+
+      setLastSynced(new Date());
 
       if (data.new_events > 0) {
         toast({ title: "Tracking Updated", description: `${data.new_events} new event(s) found.` });
@@ -124,6 +146,19 @@ export function LiveTrackingPanel({
           </Badge>
         </div>
 
+        {/* Source & Last Synced */}
+        <div className="flex items-center justify-between gap-2">
+          <Badge className={`text-[10px] ${SOURCE_COLORS[latestSource] || SOURCE_COLORS.manual}`} variant="secondary">
+            {SOURCE_LABELS[latestSource] || latestSource}
+          </Badge>
+          {lastSynced && (
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Synced {formatDistanceToNow(lastSynced, { addSuffix: true })}
+            </span>
+          )}
+        </div>
+
         {/* Latest Position */}
         {latestEvent ? (
           <div className="space-y-3">
@@ -155,6 +190,11 @@ export function LiveTrackingPanel({
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
                       <span className="text-foreground truncate">{event.milestone}</span>
+                      {event.source && event.source !== "manual" && (
+                        <Badge className={`text-[8px] px-1 py-0 ${SOURCE_COLORS[event.source] || ""}`} variant="secondary">
+                          {SOURCE_LABELS[event.source] || event.source}
+                        </Badge>
+                      )}
                     </div>
                     <span className="text-muted-foreground shrink-0 ml-2">
                       {format(new Date(event.event_date), "MMM d")}
@@ -177,7 +217,7 @@ export function LiveTrackingPanel({
         {/* Info footer */}
         <p className="text-[10px] text-muted-foreground/50 text-center pt-2 border-t border-border/30">
           {isOcean
-            ? "Data sourced from carrier tracking APIs & AIS"
+            ? "Data sourced from carrier APIs (Maersk, CMA CGM, MSC, Hapag-Lloyd)"
             : "Data sourced from aviation tracking APIs"}
         </p>
       </CardContent>

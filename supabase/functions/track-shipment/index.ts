@@ -9,13 +9,14 @@ const corsHeaders = {
 /**
  * track-shipment Edge Function
  *
- * Fetches live tracking data for a shipment from external APIs:
- * - Ocean: Container tracking via carrier APIs / AIS data
- * - Air: Flight tracking via aviation APIs
+ * Fetches live tracking data from direct carrier APIs:
+ * - Maersk (api.maersk.com)
+ * - CMA CGM (api-portal.cma-cgm.com)
+ * - MSC (digital.msc.com)
+ * - Hapag-Lloyd (api.hlag.com)
  *
+ * Falls back to e2open if configured, then manual entry.
  * Updates tracking_events and shipment status automatically.
- *
- * Accepts: { shipment_id } or { tracking_mode: "bulk" } for cron batch processing
  */
 
 interface TrackingResult {
@@ -25,37 +26,316 @@ interface TrackingResult {
   notes: string | null;
   vessel_position?: { lat: number; lng: number } | null;
   eta_updated?: string | null;
+  source: string;
+  raw_event_code?: string | null;
 }
 
-// Simulated carrier tracking API responses
-// In production, replace with real API calls to:
-// - MarineTraffic, VesselFinder, or carrier APIs (Maersk, MSC, CMA CGM, etc.)
-// - FlightAware, AviationStack for air shipments
-async function fetchOceanTracking(
+// ─── DCSA Event Code → Milestone Mapping ────────────────────────────────────
+const DCSA_EVENT_MAP: Record<string, string> = {
+  BKCF: "Booking Confirmed",
+  RECE: "Cargo Received at Origin",
+  LOAD: "Container Loaded",
+  DEPA: "Vessel Departed",
+  ARRI: "Port Arrival",
+  DISC: "Container Discharged",
+  GATE: "Gate Out",
+  DLIV: "Delivered",
+  TRAN: "In Transit",
+  CUST: "Customs Clearance",
+};
+
+function mapDcsaEvent(code: string): string {
+  return DCSA_EVENT_MAP[code?.toUpperCase()] || code;
+}
+
+// ─── Carrier API Adapters ────────────────────────────────────────────────────
+
+async function fetchMaerskTracking(
   bookingRef: string | null,
-  containerNumbers: string[],
-  carrier: string | null
+  containerNumbers: string[]
 ): Promise<TrackingResult[]> {
-  // Placeholder: In production, call carrier tracking APIs
-  // Example for Maersk: GET https://api.maersk.com/track/{bookingRef}
-  // Example for MSC: GET https://www.msc.com/api/tracking?query={containerNumber}
-  console.log(`🚢 Tracking ocean shipment: booking=${bookingRef}, containers=${containerNumbers.join(",")}, carrier=${carrier}`);
+  const apiKey = Deno.env.get("MAERSK_API_KEY");
+  if (!apiKey) {
+    console.log("⚠️ MAERSK_API_KEY not configured, skipping Maersk tracking");
+    return [];
+  }
 
-  // Return empty — real implementation would return parsed tracking events
-  return [];
+  const ref = containerNumbers[0] || bookingRef;
+  if (!ref) return [];
+
+  try {
+    const response = await fetch(
+      `https://api.maersk.com/track-and-trace?containerNumber=${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          "Consumer-Key": apiKey,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Maersk API error [${response.status}]: ${await response.text()}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const events: TrackingResult[] = [];
+
+    // Maersk returns an array of containers, each with transport events
+    const containers = Array.isArray(data) ? data : data?.containers || [data];
+    for (const container of containers) {
+      const transportEvents = container?.events || container?.transportEvents || [];
+      for (const event of transportEvents) {
+        const eventCode = event.eventType || event.transportEventTypeCode || "";
+        events.push({
+          milestone: mapDcsaEvent(eventCode),
+          location: event.location?.facilityName || event.location?.city || event.locationName || null,
+          event_date: event.eventDateTime || event.eventCreatedDateTime || new Date().toISOString(),
+          notes: event.description || null,
+          source: "maersk",
+          raw_event_code: eventCode,
+          vessel_position: event.vessel?.position
+            ? { lat: event.vessel.position.latitude, lng: event.vessel.position.longitude }
+            : null,
+          eta_updated: container?.schedule?.estimatedArrival || null,
+        });
+      }
+    }
+
+    console.log(`🚢 Maersk: ${events.length} events for ${ref}`);
+    return events;
+  } catch (err) {
+    console.error("Maersk tracking error:", err);
+    return [];
+  }
 }
 
+async function fetchCmaCgmTracking(
+  bookingRef: string | null,
+  containerNumbers: string[]
+): Promise<TrackingResult[]> {
+  const apiKey = Deno.env.get("CMA_CGM_API_KEY");
+  if (!apiKey) {
+    console.log("⚠️ CMA_CGM_API_KEY not configured, skipping CMA CGM tracking");
+    return [];
+  }
+
+  const ref = containerNumbers[0] || bookingRef;
+  if (!ref) return [];
+
+  try {
+    const response = await fetch(
+      `https://apis.cma-cgm.net/tracking/v1/events?equipmentReference=${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          KeyId: apiKey,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`CMA CGM API error [${response.status}]: ${await response.text()}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const rawEvents = Array.isArray(data) ? data : data?.events || [];
+    const events: TrackingResult[] = rawEvents.map((event: any) => {
+      const code = event.eventType || event.transportEventTypeCode || "";
+      return {
+        milestone: mapDcsaEvent(code),
+        location: event.eventLocation?.locationName || event.eventLocation?.city || null,
+        event_date: event.eventDateTime || event.eventCreatedDateTime || new Date().toISOString(),
+        notes: event.eventClassifierCode || null,
+        source: "cmacgm",
+        raw_event_code: code,
+        eta_updated: null,
+      };
+    });
+
+    console.log(`🚢 CMA CGM: ${events.length} events for ${ref}`);
+    return events;
+  } catch (err) {
+    console.error("CMA CGM tracking error:", err);
+    return [];
+  }
+}
+
+async function fetchMscTracking(
+  bookingRef: string | null,
+  containerNumbers: string[]
+): Promise<TrackingResult[]> {
+  const apiKey = Deno.env.get("MSC_API_KEY");
+  if (!apiKey) {
+    console.log("⚠️ MSC_API_KEY not configured, skipping MSC tracking");
+    return [];
+  }
+
+  const ref = containerNumbers[0] || bookingRef;
+  if (!ref) return [];
+
+  try {
+    const response = await fetch(
+      `https://digital.msc.com/api/tracking/v1/events?containerNumber=${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`MSC API error [${response.status}]: ${await response.text()}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const rawEvents = Array.isArray(data) ? data : data?.events || [];
+    const events: TrackingResult[] = rawEvents.map((event: any) => {
+      const code = event.eventType || event.eventCode || "";
+      return {
+        milestone: mapDcsaEvent(code),
+        location: event.location?.name || event.location?.city || null,
+        event_date: event.eventDateTime || new Date().toISOString(),
+        notes: event.description || null,
+        source: "msc",
+        raw_event_code: code,
+        eta_updated: null,
+      };
+    });
+
+    console.log(`🚢 MSC: ${events.length} events for ${ref}`);
+    return events;
+  } catch (err) {
+    console.error("MSC tracking error:", err);
+    return [];
+  }
+}
+
+async function fetchHapagLloydTracking(
+  bookingRef: string | null,
+  containerNumbers: string[]
+): Promise<TrackingResult[]> {
+  const apiKey = Deno.env.get("HAPAG_LLOYD_API_KEY");
+  if (!apiKey) {
+    console.log("⚠️ HAPAG_LLOYD_API_KEY not configured, skipping Hapag-Lloyd tracking");
+    return [];
+  }
+
+  const ref = containerNumbers[0] || bookingRef;
+  if (!ref) return [];
+
+  try {
+    const response = await fetch(
+      `https://api.hlag.com/hlag/v1/track/container/${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          "X-IBM-Client-Id": apiKey,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Hapag-Lloyd API error [${response.status}]: ${await response.text()}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const rawEvents = data?.events || data?.trackingEvents || [];
+    const events: TrackingResult[] = rawEvents.map((event: any) => {
+      const code = event.eventType || event.statusCode || "";
+      return {
+        milestone: mapDcsaEvent(code),
+        location: event.location?.name || event.location?.city || event.portName || null,
+        event_date: event.eventDateTime || event.date || new Date().toISOString(),
+        notes: event.description || null,
+        source: "hapag_lloyd",
+        raw_event_code: code,
+        eta_updated: event.estimatedArrival || null,
+      };
+    });
+
+    console.log(`🚢 Hapag-Lloyd: ${events.length} events for ${ref}`);
+    return events;
+  } catch (err) {
+    console.error("Hapag-Lloyd tracking error:", err);
+    return [];
+  }
+}
+
+async function fetchE2openTracking(
+  bookingRef: string | null,
+  containerNumbers: string[]
+): Promise<TrackingResult[]> {
+  const apiKey = Deno.env.get("E2OPEN_API_KEY");
+  if (!apiKey) return [];
+
+  const ref = containerNumbers[0] || bookingRef;
+  if (!ref) return [];
+
+  try {
+    const response = await fetch(
+      `https://api.e2open.com/tracking/v1/shipments?reference=${encodeURIComponent(ref)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const rawEvents = data?.events || [];
+    return rawEvents.map((event: any) => ({
+      milestone: event.milestone || event.description || "Unknown",
+      location: event.location || null,
+      event_date: event.eventDate || new Date().toISOString(),
+      notes: event.notes || null,
+      source: "e2open",
+      raw_event_code: event.eventCode || null,
+      eta_updated: event.etaUpdated || null,
+    }));
+  } catch (err) {
+    console.error("e2open tracking error:", err);
+    return [];
+  }
+}
+
+// Air tracking (aviation APIs)
 async function fetchAirTracking(
   mawbNumber: string | null,
   airline: string | null,
   flightNumber: string | null
 ): Promise<TrackingResult[]> {
-  // Placeholder: In production, call aviation tracking APIs
-  // Example: GET https://aeroapi.flightaware.com/aeroapi/flights/{flightNumber}
-  console.log(`✈️ Tracking air shipment: MAWB=${mawbNumber}, airline=${airline}, flight=${flightNumber}`);
-
+  // Placeholder for aviation tracking APIs (FlightAware, AviationStack)
+  console.log(`✈️ Air tracking: MAWB=${mawbNumber}, airline=${airline}, flight=${flightNumber}`);
   return [];
 }
+
+// ─── Carrier Detection ──────────────────────────────────────────────────────
+
+const CARRIER_PATTERNS: Record<string, string[]> = {
+  maersk: ["maersk", "sealand", "safmarine", "mll"],
+  cmacgm: ["cma", "cgm", "anl", "apl"],
+  msc: ["msc", "mediterranean"],
+  hapag_lloyd: ["hapag", "hlag", "hapag-lloyd"],
+};
+
+function detectCarrier(carrierName: string | null, vessel: string | null): string | null {
+  const searchText = `${carrierName || ""} ${vessel || ""}`.toLowerCase();
+  for (const [key, patterns] of Object.entries(CARRIER_PATTERNS)) {
+    if (patterns.some((p) => searchText.includes(p))) return key;
+  }
+  return null;
+}
+
+// ─── Main Handler ────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -69,11 +349,11 @@ Deno.serve(async (req) => {
 
     const { shipment_id, tracking_mode } = await req.json();
 
-    // Bulk mode: process all active shipments
+    // Bulk mode
     if (tracking_mode === "bulk") {
       const { data: activeShipments, error } = await supabase
         .from("shipments")
-        .select("id, mode, booking_ref, vessel, voyage, origin_port, destination_port, mawb_number, airline, flight_number, status, shipment_ref")
+        .select("id, mode, booking_ref, vessel, voyage, origin_port, destination_port, mawb_number, airline, flight_number, status, shipment_ref, carrier")
         .in("status", ["booked", "booking_confirmed", "cargo_received", "in_transit"])
         .limit(100);
 
@@ -114,8 +394,8 @@ Deno.serve(async (req) => {
     const events = await processShipment(supabase, shipment);
 
     return new Response(
-      JSON.stringify({ 
-        shipment_id, 
+      JSON.stringify({
+        shipment_id,
         shipment_ref: shipment.shipment_ref,
         new_events: events.length,
         events,
@@ -138,13 +418,15 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
   // Get existing tracking events to avoid duplicates
   const { data: existingEvents } = await supabase
     .from("tracking_events")
-    .select("milestone")
+    .select("milestone, source, raw_event_code")
     .eq("shipment_id", shipment.id);
 
-  const existingMilestones = new Set((existingEvents || []).map((e: any) => e.milestone));
+  const existingKeys = new Set(
+    (existingEvents || []).map((e: any) => `${e.milestone}|${e.source || ""}|${e.raw_event_code || ""}`)
+  );
 
-  // Fetch from external tracking APIs
-  let trackingResults: TrackingResult[];
+  let trackingResults: TrackingResult[] = [];
+
   if (isAir) {
     trackingResults = await fetchAirTracking(
       shipment.mawb_number,
@@ -152,18 +434,34 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
       shipment.flight_number
     );
   } else {
-    const containerNumbers = (shipment.containers || []).map((c: any) => c.container_number).filter(Boolean);
-    trackingResults = await fetchOceanTracking(
-      shipment.booking_ref,
-      containerNumbers,
-      shipment.vessel
-    );
+    const containerNumbers = (shipment.containers || [])
+      .map((c: any) => c.container_number)
+      .filter(Boolean);
+
+    const carrierKey = detectCarrier(shipment.carrier, shipment.vessel);
+
+    // Try direct carrier API first
+    if (carrierKey === "maersk") {
+      trackingResults = await fetchMaerskTracking(shipment.booking_ref, containerNumbers);
+    } else if (carrierKey === "cmacgm") {
+      trackingResults = await fetchCmaCgmTracking(shipment.booking_ref, containerNumbers);
+    } else if (carrierKey === "msc") {
+      trackingResults = await fetchMscTracking(shipment.booking_ref, containerNumbers);
+    } else if (carrierKey === "hapag_lloyd") {
+      trackingResults = await fetchHapagLloydTracking(shipment.booking_ref, containerNumbers);
+    }
+
+    // Fallback to e2open if no direct results
+    if (trackingResults.length === 0) {
+      trackingResults = await fetchE2openTracking(shipment.booking_ref, containerNumbers);
+    }
   }
 
-  // Filter out already-recorded milestones
-  const newEvents = trackingResults.filter((r) => !existingMilestones.has(r.milestone));
+  // Deduplicate
+  const newEvents = trackingResults.filter(
+    (r) => !existingKeys.has(`${r.milestone}|${r.source}|${r.raw_event_code || ""}`)
+  );
 
-  // Insert new tracking events
   if (newEvents.length > 0) {
     const inserts = newEvents.map((e) => ({
       shipment_id: shipment.id,
@@ -171,14 +469,14 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
       location: e.location,
       event_date: e.event_date,
       notes: e.notes,
+      source: e.source,
+      raw_event_code: e.raw_event_code || null,
     }));
 
     const { error: insertErr } = await supabase.from("tracking_events").insert(inserts);
-    if (insertErr) {
-      console.error("Failed to insert tracking events:", insertErr);
-    }
+    if (insertErr) console.error("Failed to insert tracking events:", insertErr);
 
-    // Update ETA if tracking data provides an updated one
+    // Update ETA if available
     const lastEvent = newEvents[newEvents.length - 1];
     if (lastEvent.eta_updated) {
       await supabase
@@ -187,7 +485,7 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
         .eq("id", shipment.id);
     }
 
-    // Auto-advance shipment status based on milestones
+    // Auto-advance status
     const milestoneStatusMap: Record<string, string> = {
       "Booking Confirmed": "booking_confirmed",
       "Cargo Received": "cargo_received",
@@ -198,7 +496,9 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
       "In Transit": "in_transit",
       "Port Arrival": "arrived",
       "Arrived at Destination": "arrived",
+      "Container Discharged": "arrived",
       "Customs Clearance": "customs_clearance",
+      "Gate Out": "delivered",
       "Delivered": "delivered",
     };
 
