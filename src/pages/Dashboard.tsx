@@ -440,6 +440,24 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* P&L Edit Dialog */}
+      <Dialog open={!!pnlShipment} onOpenChange={(open) => !open && setPnlShipment(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-accent" />
+              P&L — {pnlShipment?.shipment_ref}
+            </DialogTitle>
+          </DialogHeader>
+          {pnlShipment && (
+            <ShipmentPnL
+              shipmentId={pnlShipment.id}
+              shipmentStatus={pnlShipment.status}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
