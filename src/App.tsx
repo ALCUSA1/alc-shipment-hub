@@ -155,6 +155,7 @@ const App = () => (
             <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
             <Route path="/dashboard/spark" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
+            <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />

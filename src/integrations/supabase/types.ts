@@ -2231,35 +2231,53 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about: string | null
           avatar_url: string | null
           company_name: string | null
+          cover_url: string | null
           created_at: string
           full_name: string | null
           id: string
           logo_url: string | null
+          portfolio_urls: string[] | null
           role: string | null
+          services: string[] | null
+          social_links: Json | null
+          tagline: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          about?: string | null
           avatar_url?: string | null
           company_name?: string | null
+          cover_url?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           logo_url?: string | null
+          portfolio_urls?: string[] | null
           role?: string | null
+          services?: string[] | null
+          social_links?: Json | null
+          tagline?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          about?: string | null
           avatar_url?: string | null
           company_name?: string | null
+          cover_url?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           logo_url?: string | null
+          portfolio_urls?: string[] | null
           role?: string | null
+          services?: string[] | null
+          social_links?: Json | null
+          tagline?: string | null
           updated_at?: string
           user_id?: string
         }
