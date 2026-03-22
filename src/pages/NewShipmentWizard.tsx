@@ -248,28 +248,32 @@ const NewShipmentWizard = () => {
       );
 
       // Insert customs filing if compliance data provided
-      if (compliance.exporterName || compliance.exporterEin || compliance.aesType) {
+      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation) {
         await supabase.from("customs_filings").insert({
           shipment_id: shipmentId,
           user_id: user.id,
           exporter_name: compliance.exporterName || null,
           exporter_ein: compliance.exporterEin || null,
-          aes_citation: compliance.aesType || null,
-          port_of_export: overview.originPort || null,
-          port_of_unlading: overview.destinationPort || null,
+          aes_citation: compliance.eeiExemptionCitation || null,
+          consignee_name: compliance.consigneeName || null,
+          consignee_address: compliance.consigneeAddress || null,
+          port_of_export: compliance.portOfExport || overview.originPort || null,
+          port_of_unlading: compliance.portOfUnlading || overview.destinationPort || null,
+          country_of_destination: compliance.countryOfDestination || null,
+          mode_of_transport: compliance.methodOfTransportation || null,
           status: "draft",
         });
       }
 
       // Submit compliance review for admin approval
-      if (compliance.exporterName || compliance.exporterEin || compliance.aesType || compliance.insuranceProvider) {
+      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation || compliance.insuranceProvider) {
         await supabase.from("compliance_reviews").insert({
           shipment_id: shipmentId,
           user_id: user.id,
           exporter_name: compliance.exporterName || null,
           exporter_ein: compliance.exporterEin || null,
-          aes_type: compliance.aesType || null,
-          export_license: compliance.exportLicense || null,
+          aes_type: compliance.eeiExemptionCitation || null,
+          export_license: compliance.eeiExemptionCitation || null,
           insurance_provider: compliance.insuranceProvider || null,
           insurance_policy: compliance.insurancePolicy || null,
           insurance_coverage: compliance.insuranceCoverage || null,
