@@ -30,7 +30,7 @@ const navGroups = [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
       { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
-      { title: "Community", url: "/dashboard/community", icon: Megaphone },
+      { title: "Spark", url: "/dashboard/spark", icon: Megaphone },
     ],
   },
   {
