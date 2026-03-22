@@ -9,28 +9,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+import { DOC_TYPE_LABELS } from "@/lib/document-types";
+
 interface DocumentChecklistProps {
   shipmentId: string;
   userId: string;
 }
-
-const DOC_TYPE_LABELS: Record<string, string> = {
-  bill_of_lading: "Bill of Lading",
-  commercial_invoice: "Commercial Invoice",
-  packing_list: "Packing List",
-  certificate_of_origin: "Certificate of Origin",
-  shipper_letter_of_instruction: "Shipper's Letter of Instruction",
-  dock_receipt: "Dock Receipt",
-  insurance_certificate: "Insurance Certificate",
-  aes_filing: "AES Filing / ITN",
-  seaway_bill: "Seaway Bill (SWB)",
-  // Air-specific
-  mawb: "Master Air Waybill (MAWB)",
-  hawb: "House Air Waybill (HAWB)",
-  known_shipper_declaration: "Known Shipper Declaration",
-  dg_declaration_air: "Shipper's DG Declaration (IATA)",
-  cargo_manifest: "Cargo Manifest",
-};
 
 export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps) {
   const queryClient = useQueryClient();
