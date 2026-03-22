@@ -185,10 +185,16 @@ const Dashboard = () => {
               Pipeline
             </Link>
           </Button>
-          <Button variant="electric" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link to="/dashboard/quotes/new">
               <Plus className="mr-2 h-4 w-4" />
               New Quote
+            </Link>
+          </Button>
+          <Button variant="electric" size="sm" asChild>
+            <Link to="/dashboard/shipments/new">
+              <Ship className="mr-2 h-4 w-4" />
+              New Shipment
             </Link>
           </Button>
         </div>
@@ -205,7 +211,7 @@ const Dashboard = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground mb-1">Welcome to ALC Shipper Portal</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Follow this flow: <strong>Quote → Approve → Convert to Shipment → Track & Deliver</strong>
+                  Get started: <strong>Add Customer → Create Shipment → Track & Deliver</strong>
                 </p>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <Link to="/dashboard/crm" className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-md transition-all">
@@ -215,19 +221,19 @@ const Dashboard = () => {
                     </div>
                     <p className="text-xs text-muted-foreground">Go to CRM and add your first customer account.</p>
                   </Link>
-                  <Link to="/dashboard/quotes/new" className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-md transition-all">
+                  <Link to="/dashboard/shipments/new" className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-md transition-all">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="h-6 w-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">2</span>
-                      <span className="text-sm font-medium text-foreground">Create a Quote</span>
+                      <span className="text-sm font-medium text-foreground">Create Shipment</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Pick a route, carrier rate, add margin, and send.</p>
+                    <p className="text-xs text-muted-foreground">Pick route, cargo, select a rate — book directly or save as quote.</p>
                   </Link>
-                  <Link to="/dashboard/quotes" className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-md transition-all">
+                  <Link to="/dashboard/shipments" className="group rounded-xl border border-border bg-card p-4 hover:border-accent/40 hover:shadow-md transition-all">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="h-6 w-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold">3</span>
-                      <span className="text-sm font-medium text-foreground">Convert to Shipment</span>
+                      <span className="text-sm font-medium text-foreground">Track & Deliver</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Once approved, convert into a tracked shipment.</p>
+                    <p className="text-xs text-muted-foreground">Monitor shipments, upload docs, and manage delivery.</p>
                   </Link>
                 </div>
               </div>

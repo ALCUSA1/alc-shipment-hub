@@ -20,7 +20,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
-import NewShipment from "./pages/NewShipment";
+import NewShipmentWizard from "./pages/NewShipmentWizard";
 import ShipmentDetail from "./pages/ShipmentDetail";
 import Quotes from "./pages/Quotes";
 import NewQuote from "./pages/NewQuote";
@@ -135,7 +135,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipment /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
             <Route path="/dashboard/quotes" element={<RoleGate><Quotes /></RoleGate>} />
             <Route path="/dashboard/quotes/new" element={<ProtectedRoute><NewQuote /></ProtectedRoute>} />
