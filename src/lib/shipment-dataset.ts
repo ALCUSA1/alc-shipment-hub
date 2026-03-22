@@ -197,6 +197,7 @@ export const emptyCargoLine = (): CargoLine => ({
   grossWeight: "", netWeight: "", volume: "", dimensions: "",
   countryOfOrigin: "", dangerousGoods: false, specialInstructions: "",
   pieces: "", chargeableWeight: "", rateClass: "",
+  containerId: "",
 });
 
 export const emptyContainerLine = (): ContainerLine => ({
