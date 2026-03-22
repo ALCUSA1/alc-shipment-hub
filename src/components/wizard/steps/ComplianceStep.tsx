@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Zap, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { ValidationErrors } from "@/lib/wizard-validation";
 
 export interface ComplianceData {
   // USPPI
