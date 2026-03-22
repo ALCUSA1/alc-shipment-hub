@@ -271,6 +271,9 @@ const ShipmentDetail = () => {
   const firstCargo = cargo?.[0];
   const companyName = (shipment as any).companies?.company_name as string | undefined;
   const isDelivered = shipment.status === "delivered" || shipment.status === "completed";
+  const isBooked = ["booked", "in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
+  const isInTransitOrBeyond = ["in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
+  const scheduleReadOnly = isInTransitOrBeyond;
 
   return (
     <DashboardLayout>
