@@ -44,3 +44,12 @@ verify_jwt = false
 
 [functions.track-shipment]
 verify_jwt = false
+
+[functions.shipment-assistant]
+verify_jwt = false
+
+[functions.shipment-summary]
+verify_jwt = false
+
+[functions.translate-edi]
+verify_jwt = false

@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DocumentGenerator } from "@/components/shipment/DocumentGenerator";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { AiShipmentAssistant } from "@/components/shipment/AiShipmentAssistant";
+import { AiShipmentSummary } from "@/components/shipment/AiShipmentSummary";
+import { AiSmartBanners } from "@/components/shipment/AiSmartBanners";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { AirBookingPanel } from "@/components/shipment/AirBookingPanel";
