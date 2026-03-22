@@ -11,18 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, MessageCircle, Share2, Send, Globe, Users2, Megaphone,
   TrendingUp, Newspaper, Loader2, MoreHorizontal, Trash2,
   Sparkles, Flame, Zap, Image as ImageIcon, Hash, Pin, PinOff,
   Plus, AtSign, ExternalLink, MapPin, Building2, Briefcase,
-  Search, ArrowLeft, Edit3, Globe2, Phone, Mail
+  Search, ArrowLeft, Edit3, Globe2, Phone, Mail, Handshake,
+  ShoppingCart, Star, Calendar, Check, X, Clock, Award, Video,
+  Mic, ChevronRight, DollarSign, Ship, Package, MapPinned
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -33,6 +37,13 @@ const POST_TYPES = [
   { value: "promotion", label: "Promotion", icon: Megaphone, color: "text-amber-500" },
   { value: "rate_alert", label: "Rate Alert", icon: TrendingUp, color: "text-emerald-500" },
   { value: "article", label: "Article", icon: Newspaper, color: "text-violet-500" },
+];
+
+const EVENT_TYPES = [
+  { value: "webinar", label: "Webinar", icon: Video },
+  { value: "trade_show", label: "Trade Show", icon: Building2 },
+  { value: "announcement", label: "Announcement", icon: Megaphone },
+  { value: "networking", label: "Networking", icon: Users2 },
 ];
 
 /* ─── Types ─── */
@@ -129,26 +140,111 @@ function RichContent({ content, className = "" }: { content: string; className?:
   );
 }
 
-/* ─── Company Brand Hero ─── */
-function BrandHero({ profile, company, isOwner, onEdit }: {
-  profile: CompanyProfile; company: CompanyData | null; isOwner: boolean; onEdit?: () => void;
+/* ─── Star Rating ─── */
+function StarRating({ value, onChange, size = "md" }: { value: number; onChange?: (v: number) => void; size?: "sm" | "md" }) {
+  const sz = size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5";
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button key={star} type="button" onClick={() => onChange?.(star)}
+          className={`${onChange ? "cursor-pointer hover:scale-110" : "cursor-default"} transition-transform`}>
+          <Star className={`${sz} ${star <= value ? "text-amber-400 fill-amber-400" : "text-muted-foreground/30"}`} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Company Brand Hero (with Partnership) ─── */
+function BrandHero({ profile, company, isOwner, ownCompanyId, onEdit }: {
+  profile: CompanyProfile; company: CompanyData | null; isOwner: boolean; ownCompanyId: string | null; onEdit?: () => void;
 }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const location = [company?.city, company?.state, company?.country].filter(Boolean).join(", ");
+
+  // Partnership status
+  const { data: partnershipStatus } = useQuery({
+    queryKey: ["partnership-status", ownCompanyId, company?.id],
+    queryFn: async () => {
+      if (!ownCompanyId || !company?.id || ownCompanyId === company.id) return null;
+      const { data } = await supabase.from("partnership_requests").select("*")
+        .or(`and(requester_company_id.eq.${ownCompanyId},target_company_id.eq.${company.id}),and(requester_company_id.eq.${company.id},target_company_id.eq.${ownCompanyId})`)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !isOwner && !!ownCompanyId && !!company?.id,
+  });
+
+  const sendRequest = useMutation({
+    mutationFn: async () => {
+      await supabase.from("partnership_requests").insert({
+        requester_company_id: ownCompanyId!,
+        target_company_id: company!.id,
+        requester_user_id: user!.id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["partnership-status"] });
+      toast({ title: "Partnership request sent!" });
+    },
+    onError: () => toast({ title: "Failed to send request", variant: "destructive" }),
+  });
+
+  const respondRequest = useMutation({
+    mutationFn: async (accept: boolean) => {
+      await supabase.from("partnership_requests")
+        .update({ status: accept ? "accepted" : "declined", responded_at: new Date().toISOString() })
+        .eq("id", partnershipStatus?.id);
+    },
+    onSuccess: (_, accept) => {
+      queryClient.invalidateQueries({ queryKey: ["partnership-status"] });
+      queryClient.invalidateQueries({ queryKey: ["partner-count"] });
+      toast({ title: accept ? "Partnership accepted!" : "Request declined" });
+    },
+  });
+
+  const getConnectButton = () => {
+    if (isOwner || !ownCompanyId) return null;
+    if (!partnershipStatus) {
+      return (
+        <Button size="sm" className="rounded-full px-5 gap-1.5 shadow-sm" onClick={() => sendRequest.mutate()}
+          disabled={sendRequest.isPending}>
+          {sendRequest.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Handshake className="h-3.5 w-3.5" />} Connect
+        </Button>
+      );
+    }
+    if (partnershipStatus.status === "accepted") {
+      return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-3 py-1"><Check className="h-3 w-3 mr-1" /> Partner</Badge>;
+    }
+    if (partnershipStatus.status === "pending") {
+      // If I'm the target, show accept/decline
+      if (partnershipStatus.target_company_id === ownCompanyId) {
+        return (
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="rounded-full px-3 gap-1 text-xs" onClick={() => respondRequest.mutate(false)}>
+              <X className="h-3 w-3" /> Decline
+            </Button>
+            <Button size="sm" className="rounded-full px-3 gap-1 text-xs" onClick={() => respondRequest.mutate(true)}>
+              <Check className="h-3 w-3" /> Accept
+            </Button>
+          </div>
+        );
+      }
+      return <Badge variant="secondary" className="px-3 py-1 text-xs"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
+    }
+    return null;
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      {/* Cover Image */}
       <div className="relative h-48 md:h-56 rounded-t-2xl overflow-hidden bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.8)] to-[hsl(220,80%,20%)]">
-        {profile.cover_url && (
-          <img src={profile.cover_url} alt="Cover" className="w-full h-full object-cover" />
-        )}
+        {profile.cover_url && <img src={profile.cover_url} alt="Cover" className="w-full h-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        {/* Decorative elements when no cover */}
         {!profile.cover_url && (
           <>
             <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/5 blur-sm" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/5 blur-sm" />
-            <div className="absolute top-1/3 right-1/4 w-32 h-32 rounded-full bg-white/[0.03]" />
           </>
         )}
         {isOwner && (
@@ -159,11 +255,9 @@ function BrandHero({ profile, company, isOwner, onEdit }: {
         )}
       </div>
 
-      {/* Profile info bar */}
       <Card className="rounded-t-none border-t-0 border-border/50">
         <CardContent className="px-6 pb-6 pt-0">
           <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-12 relative z-10">
-            {/* Logo / Avatar */}
             <div className="h-24 w-24 rounded-2xl border-4 border-background bg-card shadow-xl overflow-hidden shrink-0 flex items-center justify-center">
               {profile.logo_url ? (
                 <img src={profile.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
@@ -173,63 +267,34 @@ function BrandHero({ profile, company, isOwner, onEdit }: {
                 </div>
               )}
             </div>
-
             <div className="flex-1 min-w-0 pt-2">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                    {profile.company_name || "My Company"}
-                  </h1>
-                  {profile.tagline && (
-                    <p className="text-sm text-muted-foreground mt-0.5">{profile.tagline}</p>
-                  )}
+                  <h1 className="text-2xl font-bold text-foreground tracking-tight">{profile.company_name || "My Company"}</h1>
+                  {profile.tagline && <p className="text-sm text-muted-foreground mt-0.5">{profile.tagline}</p>}
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     {company?.company_type && (
                       <Badge variant="secondary" className="text-[10px] bg-primary/5 text-primary border-primary/10">
-                        <Briefcase className="h-3 w-3 mr-1" />
-                        {company.company_type}
+                        <Briefcase className="h-3 w-3 mr-1" />{company.company_type}
                       </Badge>
                     )}
-                    {company?.industry && (
-                      <Badge variant="secondary" className="text-[10px] bg-muted/60">
-                        {company.industry}
-                      </Badge>
-                    )}
-                    {location && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> {location}
-                      </span>
-                    )}
+                    {company?.industry && <Badge variant="secondary" className="text-[10px] bg-muted/60">{company.industry}</Badge>}
+                    {location && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> {location}</span>}
                   </div>
                 </div>
-                {!isOwner && (
-                  <Button size="sm" className="rounded-full px-5 gap-1.5 shadow-sm">
-                    <Send className="h-3.5 w-3.5" /> Connect
-                  </Button>
-                )}
+                {getConnectButton()}
               </div>
             </div>
           </div>
-
-          {/* Quick contact row */}
           <div className="flex items-center gap-4 mt-4 flex-wrap">
             {company?.website && (
               <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
-                target="_blank" rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline flex items-center gap-1">
+                target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                 <Globe2 className="h-3 w-3" /> {company.website}
               </a>
             )}
-            {company?.phone && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {company.phone}
-              </span>
-            )}
-            {company?.email && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Mail className="h-3 w-3" /> {company.email}
-              </span>
-            )}
+            {company?.phone && <span className="text-xs text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> {company.phone}</span>}
+            {company?.email && <span className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" /> {company.email}</span>}
           </div>
         </CardContent>
       </Card>
@@ -249,34 +314,24 @@ function AboutSection({ profile, company }: { profile: CompanyProfile; company: 
           ) : (
             <p className="text-sm text-muted-foreground/50 italic">No description yet.</p>
           )}
-
-          {/* Services */}
           {profile.services && profile.services.length > 0 && (
             <div className="mt-5">
               <h4 className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-2">Services</h4>
               <div className="flex flex-wrap gap-2">
                 {profile.services.map((s) => (
-                  <Badge key={s} variant="secondary" className="text-xs bg-primary/5 text-primary border-primary/10 px-3 py-1">
-                    {s}
-                  </Badge>
+                  <Badge key={s} variant="secondary" className="text-xs bg-primary/5 text-primary border-primary/10 px-3 py-1">{s}</Badge>
                 ))}
               </div>
             </div>
           )}
-
-          {/* Port Coverage */}
           {company?.port_coverage && company.port_coverage.length > 0 && (
             <div className="mt-5">
               <h4 className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-2">Port Coverage</h4>
               <div className="flex flex-wrap gap-2">
-                {company.port_coverage.map((p) => (
-                  <Badge key={p} variant="outline" className="text-xs px-3 py-1">{p}</Badge>
-                ))}
+                {company.port_coverage.map((p) => <Badge key={p} variant="outline" className="text-xs px-3 py-1">{p}</Badge>)}
               </div>
             </div>
           )}
-
-          {/* Service Area */}
           {company?.service_area && (
             <div className="mt-4">
               <h4 className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1">Service Area</h4>
@@ -286,6 +341,171 @@ function AboutSection({ profile, company }: { profile: CompanyProfile; company: 
         </CardContent>
       </Card>
     </motion.div>
+  );
+}
+
+/* ─── Partners Card (sidebar) ─── */
+function PartnersCard({ companyId }: { companyId: string }) {
+  const { data: partners = [] } = useQuery({
+    queryKey: ["partner-count", companyId],
+    queryFn: async () => {
+      const { data } = await supabase.from("partnership_requests").select("requester_company_id, target_company_id")
+        .eq("status", "accepted")
+        .or(`requester_company_id.eq.${companyId},target_company_id.eq.${companyId}`);
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  if (partners.length === 0) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+      <Card className="border-border/50 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Handshake className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-foreground">Partners</h3>
+            <Badge variant="secondary" className="text-[10px] ml-auto">{partners.length}</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">{partners.length} verified partner{partners.length !== 1 ? "s" : ""} in the network</p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ─── Reviews Card (sidebar) ─── */
+function ReviewsCard({ companyId, onWriteReview }: { companyId: string; onWriteReview?: () => void }) {
+  const { data: reviews = [] } = useQuery({
+    queryKey: ["company-reviews", companyId],
+    queryFn: async () => {
+      const { data } = await supabase.from("company_reviews").select("*")
+        .eq("reviewed_company_id", companyId).order("created_at", { ascending: false }).limit(5);
+      return data || [];
+    },
+    enabled: !!companyId,
+  });
+
+  const avg = reviews.length > 0 ? reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length : 0;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <Card className="border-border/50 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">Reviews</h3>
+            {onWriteReview && <Button size="sm" variant="ghost" className="text-xs gap-1 h-7" onClick={onWriteReview}><Edit3 className="h-3 w-3" /> Write</Button>}
+          </div>
+          {reviews.length > 0 ? (
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                <StarRating value={Math.round(avg)} size="sm" />
+                <span className="text-sm font-semibold text-foreground">{avg.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">({reviews.length})</span>
+              </div>
+              <div className="space-y-3">
+                {reviews.slice(0, 3).map((r: any) => (
+                  <div key={r.id} className="border-t border-border/30 pt-2.5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <StarRating value={r.rating} size="sm" />
+                      {r.transaction_type && <Badge variant="secondary" className="text-[9px]">{r.transaction_type}</Badge>}
+                    </div>
+                    {r.title && <p className="text-xs font-medium text-foreground">{r.title}</p>}
+                    {r.content && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.content}</p>}
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground/50 italic">No reviews yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ─── Write Review Dialog ─── */
+function WriteReviewDialog({ open, onOpenChange, targetCompanyId, targetCompanyName }: {
+  open: boolean; onOpenChange: (o: boolean) => void; targetCompanyId: string; targetCompanyName: string;
+}) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [txnType, setTxnType] = useState("shipment");
+
+  const { data: ownCompany } = useQuery({
+    queryKey: ["spark-own-company-review", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user && open,
+  });
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      await supabase.from("company_reviews").insert({
+        reviewer_user_id: user!.id,
+        reviewer_company_id: ownCompany?.id || null,
+        reviewed_company_id: targetCompanyId,
+        rating, title: title.trim() || null, content: content.trim() || null,
+        transaction_type: txnType,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-reviews", targetCompanyId] });
+      toast({ title: "Review submitted!" });
+      onOpenChange(false);
+      setRating(5); setTitle(""); setContent("");
+    },
+    onError: () => toast({ title: "Failed to submit", variant: "destructive" }),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Review {targetCompanyName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div>
+            <Label className="text-xs mb-1.5 block">Rating</Label>
+            <StarRating value={rating} onChange={setRating} />
+          </div>
+          <div>
+            <Label className="text-xs mb-1.5 block">Transaction type</Label>
+            <Select value={txnType} onValueChange={setTxnType}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="shipment">Shipment</SelectItem>
+                <SelectItem value="trucking">Trucking</SelectItem>
+                <SelectItem value="warehousing">Warehousing</SelectItem>
+                <SelectItem value="customs">Customs</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs mb-1.5 block">Title (optional)</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Brief summary…" className="h-9" maxLength={100} />
+          </div>
+          <div>
+            <Label className="text-xs mb-1.5 block">Review</Label>
+            <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Share your experience…" className="min-h-[80px]" maxLength={1000} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => submit.mutate()} disabled={submit.isPending} className="gap-1.5">
+            {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />} Submit Review
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -315,18 +535,9 @@ function TeamSection({ userId }: { userId: string }) {
   const { data: team = [] } = useQuery({
     queryKey: ["spark-team", userId],
     queryFn: async () => {
-      // Get company name, then find other profiles with same company
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("company_name")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data: ownerProfile } = await supabase.from("profiles").select("company_name").eq("user_id", userId).maybeSingle();
       if (!ownerProfile?.company_name) return [];
-      const { data } = await supabase
-        .from("profiles")
-        .select("user_id, full_name, avatar_url, role")
-        .eq("company_name", ownerProfile.company_name)
-        .limit(12);
+      const { data } = await supabase.from("profiles").select("user_id, full_name, avatar_url, role").eq("company_name", ownerProfile.company_name).limit(12);
       return data || [];
     },
   });
@@ -399,18 +610,14 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
   const createPost = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("feed_posts").insert({
-        user_id: user!.id,
-        content,
-        post_type: postType,
+        user_id: user!.id, content, post_type: postType,
         author_name: profile?.full_name || user!.email?.split("@")[0],
-        author_avatar_url: profile?.avatar_url,
-        company_name: profile?.company_name,
+        author_avatar_url: profile?.avatar_url, company_name: profile?.company_name,
       });
       if (error) throw error;
     },
     onSuccess: () => {
-      setContent("");
-      setIsFocused(false);
+      setContent(""); setIsFocused(false);
       queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
       toast({ title: "Post published!" });
     },
@@ -423,20 +630,13 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 ring-2 ring-primary/10">
             <AvatarImage src={profile?.avatar_url || ""} />
-            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-semibold">
-              {(profile?.full_name || "U")[0]}
-            </AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-semibold">{(profile?.full_name || "U")[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              placeholder="Share an update, insight, or promote a service… Use + to tag"
-              value={content}
-              onChange={handleContentChange}
-              onFocus={() => setIsFocused(true)}
+            <Textarea ref={textareaRef} placeholder="Share an update, insight, or promote a service… Use + to tag"
+              value={content} onChange={handleContentChange} onFocus={() => setIsFocused(true)}
               onBlur={() => { if (!content) setIsFocused(false); }}
-              className="min-h-[72px] resize-none border-0 bg-muted/40 focus-visible:ring-0 rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50"
-            />
+              className="min-h-[72px] resize-none border-0 bg-muted/40 focus-visible:ring-0 rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50" />
             <MentionPopover open={mentionOpen} search={mentionSearch} onSelect={handleMentionSelect} />
           </div>
         </div>
@@ -463,8 +663,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
               </div>
               <Button size="sm" disabled={!content.trim() || createPost.isPending} onClick={() => createPost.mutate()}
                 className="rounded-full px-5 gap-2 shadow-md shadow-primary/20">
-                {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                Publish
+                {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />} Publish
               </Button>
             </motion.div>
           )}
@@ -657,26 +856,19 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["spark-directory", search],
     queryFn: async () => {
-      const query = supabase
-        .from("companies")
-        .select("id, company_name, company_type, industry, city, state, country, user_id")
-        .order("company_name");
+      const query = supabase.from("companies").select("id, company_name, company_type, industry, city, state, country, user_id").order("company_name");
       if (search) query.ilike("company_name", `%${search}%`);
       const { data } = await query.limit(50);
       return data || [];
     },
   });
 
-  // Get logos for directory companies
   const userIds = companies.map((c: any) => c.user_id);
   const { data: logos = [] } = useQuery({
     queryKey: ["spark-dir-logos", userIds.join(",")],
     queryFn: async () => {
       if (userIds.length === 0) return [];
-      const { data } = await supabase
-        .from("profiles")
-        .select("user_id, logo_url, tagline")
-        .in("user_id", userIds);
+      const { data } = await supabase.from("profiles").select("user_id, logo_url, tagline").in("user_id", userIds);
       return data || [];
     },
     enabled: userIds.length > 0,
@@ -691,7 +883,6 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
         <Input placeholder="Search companies…" value={search} onChange={(e) => setSearch(e.target.value)}
           className="pl-10 h-10 rounded-xl bg-muted/40 border-border/50" />
       </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
       ) : companies.length === 0 ? (
@@ -708,31 +899,18 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
             const location = [c.city, c.state, c.country].filter(Boolean).join(", ");
             return (
               <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Card className="border-border/50 hover:shadow-md transition-all cursor-pointer group"
-                  onClick={() => onSelectCompany(c.id)}>
+                <Card className="border-border/50 hover:shadow-md transition-all cursor-pointer group" onClick={() => onSelectCompany(c.id)}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="h-12 w-12 rounded-xl bg-muted/50 border border-border/30 flex items-center justify-center shrink-0 overflow-hidden">
-                        {profileData?.logo_url ? (
-                          <img src={profileData.logo_url} alt="" className="w-full h-full object-contain p-1.5" />
-                        ) : (
-                          <Building2 className="h-5 w-5 text-muted-foreground/40" />
-                        )}
+                        {profileData?.logo_url ? <img src={profileData.logo_url} alt="" className="w-full h-full object-contain p-1.5" /> : <Building2 className="h-5 w-5 text-muted-foreground/40" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
-                          {c.company_name}
-                        </h4>
-                        {profileData?.tagline && (
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{profileData.tagline}</p>
-                        )}
+                        <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{c.company_name}</h4>
+                        {profileData?.tagline && <p className="text-xs text-muted-foreground truncate mt-0.5">{profileData.tagline}</p>}
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           <Badge variant="secondary" className="text-[10px] bg-muted/60 px-1.5 py-0">{c.company_type}</Badge>
-                          {location && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <MapPin className="h-2.5 w-2.5" /> {location}
-                            </span>
-                          )}
+                          {location && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" /> {location}</span>}
                         </div>
                       </div>
                       <ExternalLink className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary/50 transition-colors shrink-0 mt-1" />
@@ -748,64 +926,642 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
   );
 }
 
-/* ─── Main Page ─── */
+/* ─── RFQ Marketplace Tab ─── */
+function MarketplaceTab() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showCreate, setShowCreate] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedRfq, setSelectedRfq] = useState<any>(null);
+  const [bidDialogOpen, setBidDialogOpen] = useState(false);
+  const [bidRfqId, setBidRfqId] = useState<string | null>(null);
+
+  // Form state
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
+  const [cargoType, setCargoType] = useState("");
+  const [containerType, setContainerType] = useState("20ft");
+  const [deadline, setDeadline] = useState("");
+
+  // Bid form state
+  const [bidAmount, setBidAmount] = useState("");
+  const [bidTransit, setBidTransit] = useState("");
+  const [bidNotes, setBidNotes] = useState("");
+
+  const { data: ownCompany } = useQuery({
+    queryKey: ["spark-own-company-rfq", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, company_name").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: rfqs = [], isLoading } = useQuery({
+    queryKey: ["rfq-posts", search],
+    queryFn: async () => {
+      let query = supabase.from("rfq_posts").select("*").order("created_at", { ascending: false });
+      if (search) query = query.or(`title.ilike.%${search}%,origin.ilike.%${search}%,destination.ilike.%${search}%`);
+      const { data } = await query.limit(50);
+      return data || [];
+    },
+  });
+
+  const createRfq = useMutation({
+    mutationFn: async () => {
+      await supabase.from("rfq_posts").insert({
+        user_id: user!.id, company_id: ownCompany?.id || null,
+        company_name: ownCompany?.company_name || null,
+        title: title.trim(), description: description.trim() || null,
+        origin: origin.trim() || null, destination: destination.trim() || null,
+        cargo_type: cargoType.trim() || null, container_type: containerType,
+        deadline: deadline || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rfq-posts"] });
+      setShowCreate(false);
+      setTitle(""); setDescription(""); setOrigin(""); setDestination(""); setCargoType(""); setDeadline("");
+      toast({ title: "RFQ posted!" });
+    },
+    onError: () => toast({ title: "Failed to post RFQ", variant: "destructive" }),
+  });
+
+  const submitBid = useMutation({
+    mutationFn: async () => {
+      await supabase.from("rfq_bids").insert({
+        rfq_id: bidRfqId!, bidder_user_id: user!.id,
+        bidder_company_id: ownCompany?.id || null,
+        bidder_company_name: ownCompany?.company_name || null,
+        amount: parseFloat(bidAmount), transit_days: bidTransit ? parseInt(bidTransit) : null,
+        notes: bidNotes.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rfq-bids"] });
+      setBidDialogOpen(false);
+      setBidAmount(""); setBidTransit(""); setBidNotes("");
+      toast({ title: "Bid submitted!" });
+    },
+    onError: () => toast({ title: "Failed to submit bid", variant: "destructive" }),
+  });
+
+  // Get bids for selected RFQ (only if user owns it)
+  const { data: bids = [] } = useQuery({
+    queryKey: ["rfq-bids", selectedRfq?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("rfq_bids").select("*").eq("rfq_id", selectedRfq!.id).order("amount", { ascending: true });
+      return data || [];
+    },
+    enabled: !!selectedRfq,
+  });
+
+  const closeRfq = useMutation({
+    mutationFn: async (rfqId: string) => {
+      await supabase.from("rfq_posts").update({ status: "closed" }).eq("id", rfqId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rfq-posts"] });
+      setSelectedRfq(null);
+      toast({ title: "RFQ closed" });
+    },
+  });
+
+  if (selectedRfq) {
+    const isMyRfq = selectedRfq.user_id === user?.id;
+    return (
+      <div>
+        <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => setSelectedRfq(null)}>
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Marketplace
+        </Button>
+        <Card className="border-border/50">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-foreground">{selectedRfq.title}</h3>
+                  <Badge className={selectedRfq.status === "open" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground"}>
+                    {selectedRfq.status}
+                  </Badge>
+                </div>
+                {selectedRfq.company_name && <p className="text-sm text-muted-foreground">{selectedRfq.company_name}</p>}
+              </div>
+              {isMyRfq && selectedRfq.status === "open" && (
+                <Button size="sm" variant="outline" onClick={() => closeRfq.mutate(selectedRfq.id)} className="text-xs gap-1">
+                  <X className="h-3 w-3" /> Close RFQ
+                </Button>
+              )}
+            </div>
+            {selectedRfq.description && <p className="text-sm text-muted-foreground mb-4">{selectedRfq.description}</p>}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {selectedRfq.origin && (
+                <div className="bg-muted/30 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Origin</p>
+                  <p className="text-sm font-medium text-foreground">{selectedRfq.origin}</p>
+                </div>
+              )}
+              {selectedRfq.destination && (
+                <div className="bg-muted/30 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Destination</p>
+                  <p className="text-sm font-medium text-foreground">{selectedRfq.destination}</p>
+                </div>
+              )}
+              {selectedRfq.cargo_type && (
+                <div className="bg-muted/30 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Cargo</p>
+                  <p className="text-sm font-medium text-foreground">{selectedRfq.cargo_type}</p>
+                </div>
+              )}
+              {selectedRfq.container_type && (
+                <div className="bg-muted/30 rounded-xl p-3">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Container</p>
+                  <p className="text-sm font-medium text-foreground">{selectedRfq.container_type}</p>
+                </div>
+              )}
+            </div>
+            {selectedRfq.deadline && (
+              <p className="text-xs text-muted-foreground mb-4">
+                <Clock className="h-3 w-3 inline mr-1" />Deadline: {format(new Date(selectedRfq.deadline), "MMM d, yyyy")}
+              </p>
+            )}
+
+            {/* Bids section */}
+            {isMyRfq ? (
+              <div className="mt-6">
+                <h4 className="font-semibold text-foreground mb-3">Bids ({bids.length})</h4>
+                {bids.length === 0 ? (
+                  <p className="text-sm text-muted-foreground/50 italic">No bids yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {bids.map((bid: any) => (
+                      <Card key={bid.id} className="border-border/40">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{bid.bidder_company_name || "Anonymous"}</p>
+                            {bid.notes && <p className="text-xs text-muted-foreground mt-0.5">{bid.notes}</p>}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-foreground">${Number(bid.amount).toLocaleString()}</p>
+                            {bid.transit_days && <p className="text-xs text-muted-foreground">{bid.transit_days} days transit</p>}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : selectedRfq.status === "open" ? (
+              <Button className="mt-4 gap-1.5" onClick={() => { setBidRfqId(selectedRfq.id); setBidDialogOpen(true); }}>
+                <DollarSign className="h-4 w-4" /> Submit Bid
+              </Button>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        {/* Bid Dialog */}
+        <Dialog open={bidDialogOpen} onOpenChange={setBidDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Submit Bid</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-xs mb-1.5 block">Amount (USD)</Label>
+                <Input type="number" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} placeholder="0.00" className="h-9" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Transit days (optional)</Label>
+                <Input type="number" value={bidTransit} onChange={(e) => setBidTransit(e.target.value)} placeholder="e.g. 14" className="h-9" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Notes</Label>
+                <Textarea value={bidNotes} onChange={(e) => setBidNotes(e.target.value)} placeholder="Additional details…" className="min-h-[60px]" maxLength={500} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button disabled={!bidAmount || submitBid.isPending} onClick={() => submitBid.mutate()} className="gap-1.5">
+                {submitBid.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Submit
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search RFQs…" value={search} onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 h-10 rounded-xl bg-muted/40 border-border/50" />
+        </div>
+        <Button size="sm" className="gap-1.5 rounded-full px-5" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4" /> Post RFQ
+        </Button>
+      </div>
+
+      {/* Create RFQ Dialog */}
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>Post a Request for Quote</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Title *</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. 40ft FCL Los Angeles → Shanghai" className="h-9" maxLength={200} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Origin</Label>
+                <Input value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Port / City" className="h-9" maxLength={100} />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Destination</Label>
+                <Input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Port / City" className="h-9" maxLength={100} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Cargo type</Label>
+                <Input value={cargoType} onChange={(e) => setCargoType(e.target.value)} placeholder="e.g. Electronics" className="h-9" maxLength={100} />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Container</Label>
+                <Select value={containerType} onValueChange={setContainerType}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20ft">20ft</SelectItem>
+                    <SelectItem value="40ft">40ft</SelectItem>
+                    <SelectItem value="40ft HC">40ft HC</SelectItem>
+                    <SelectItem value="LCL">LCL</SelectItem>
+                    <SelectItem value="Air">Air</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Deadline</Label>
+              <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="h-9" />
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Description</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Additional requirements…" className="min-h-[60px]" maxLength={1000} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button disabled={!title.trim() || createRfq.isPending} onClick={() => createRfq.mutate()} className="gap-1.5">
+              {createRfq.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />} Post RFQ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* RFQ List */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
+      ) : rfqs.length === 0 ? (
+        <Card className="border-dashed border-2 border-border/40">
+          <CardContent className="py-12 text-center">
+            <ShoppingCart className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No RFQs posted yet. Be the first!</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {rfqs.map((rfq: any, i: number) => (
+            <motion.div key={rfq.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+              <Card className="border-border/50 hover:shadow-md transition-all cursor-pointer group" onClick={() => setSelectedRfq(rfq)}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{rfq.title}</h4>
+                        <Badge className={rfq.status === "open" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]" : "text-[10px]"}>
+                          {rfq.status}
+                        </Badge>
+                      </div>
+                      {rfq.company_name && <p className="text-xs text-muted-foreground">{rfq.company_name}</p>}
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        {rfq.origin && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPinned className="h-3 w-3" /> {rfq.origin}</span>}
+                        {rfq.origin && rfq.destination && <ChevronRight className="h-3 w-3 text-muted-foreground/40" />}
+                        {rfq.destination && <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPinned className="h-3 w-3" /> {rfq.destination}</span>}
+                        {rfq.container_type && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{rfq.container_type}</Badge>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(rfq.created_at), { addSuffix: true })}</p>
+                      {rfq.deadline && <p className="text-[10px] text-muted-foreground mt-0.5">Due: {format(new Date(rfq.deadline), "MMM d")}</p>}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Events Tab ─── */
+function EventsTab() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showCreate, setShowCreate] = useState(false);
+  const [filterType, setFilterType] = useState("all");
+
+  // Form
+  const [eTitle, setETitle] = useState("");
+  const [eDesc, setEDesc] = useState("");
+  const [eType, setEType] = useState("announcement");
+  const [eDate, setEDate] = useState("");
+  const [eLocation, setELocation] = useState("");
+  const [eVirtual, setEVirtual] = useState(false);
+  const [eRsvpLink, setERsvpLink] = useState("");
+
+  const { data: ownCompany } = useQuery({
+    queryKey: ["spark-own-company-events", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, company_name").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ["spark-events", filterType],
+    queryFn: async () => {
+      let query = supabase.from("spark_events").select("*").order("event_date", { ascending: true, nullsFirst: false });
+      if (filterType !== "all") query = query.eq("event_type", filterType);
+      const { data } = await query.limit(50);
+      return data || [];
+    },
+  });
+
+  // RSVP counts
+  const eventIds = events.map((e: any) => e.id);
+  const { data: rsvpData = [] } = useQuery({
+    queryKey: ["spark-rsvps", eventIds.join(",")],
+    queryFn: async () => {
+      if (eventIds.length === 0) return [];
+      const { data } = await supabase.from("spark_event_rsvps").select("event_id, user_id").in("event_id", eventIds);
+      return data || [];
+    },
+    enabled: eventIds.length > 0,
+  });
+
+  const rsvpCounts = new Map<string, number>();
+  const myRsvps = new Set<string>();
+  rsvpData.forEach((r: any) => {
+    rsvpCounts.set(r.event_id, (rsvpCounts.get(r.event_id) || 0) + 1);
+    if (r.user_id === user?.id) myRsvps.add(r.event_id);
+  });
+
+  const createEvent = useMutation({
+    mutationFn: async () => {
+      await supabase.from("spark_events").insert({
+        user_id: user!.id, company_id: ownCompany?.id || null,
+        company_name: ownCompany?.company_name || null,
+        title: eTitle.trim(), description: eDesc.trim() || null,
+        event_type: eType, event_date: eDate || null,
+        location: eLocation.trim() || null, is_virtual: eVirtual,
+        rsvp_link: eRsvpLink.trim() || null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["spark-events"] });
+      setShowCreate(false);
+      setETitle(""); setEDesc(""); setEDate(""); setELocation(""); setERsvpLink("");
+      toast({ title: "Event created!" });
+    },
+    onError: () => toast({ title: "Failed to create event", variant: "destructive" }),
+  });
+
+  const toggleRsvp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (myRsvps.has(eventId)) {
+        await supabase.from("spark_event_rsvps").delete().eq("event_id", eventId).eq("user_id", user!.id);
+      } else {
+        await supabase.from("spark_event_rsvps").insert({
+          event_id: eventId, user_id: user!.id,
+          company_name: ownCompany?.company_name || null,
+        });
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["spark-rsvps"] }),
+  });
+
+  const deleteEvent = useMutation({
+    mutationFn: async (eventId: string) => {
+      await supabase.from("spark_events").delete().eq("id", eventId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["spark-events"] });
+      toast({ title: "Event deleted" });
+    },
+  });
+
+  const getEventIcon = (type: string) => {
+    const found = EVENT_TYPES.find((t) => t.value === type);
+    return found ? found.icon : Megaphone;
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-[140px] h-9 text-xs border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Events</SelectItem>
+              {EVENT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button size="sm" className="gap-1.5 rounded-full px-5" onClick={() => setShowCreate(true)}>
+          <Plus className="h-4 w-4" /> Create Event
+        </Button>
+      </div>
+
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Title *</Label>
+              <Input value={eTitle} onChange={(e) => setETitle(e.target.value)} placeholder="Event name" className="h-9" maxLength={200} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Type</Label>
+                <Select value={eType} onValueChange={setEType}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {EVENT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Date</Label>
+                <Input type="datetime-local" value={eDate} onChange={(e) => setEDate(e.target.value)} className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Location</Label>
+                <Input value={eLocation} onChange={(e) => setELocation(e.target.value)} placeholder="City or venue" className="h-9" maxLength={200} />
+              </div>
+              <div className="flex items-end gap-2 pb-0.5">
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={eVirtual} onChange={(e) => setEVirtual(e.target.checked)}
+                    className="rounded border-border" />
+                  <Video className="h-3.5 w-3.5 text-muted-foreground" /> Virtual event
+                </label>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">RSVP Link (optional)</Label>
+              <Input value={eRsvpLink} onChange={(e) => setERsvpLink(e.target.value)} placeholder="https://…" className="h-9" maxLength={500} />
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Description</Label>
+              <Textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder="Event details…" className="min-h-[60px]" maxLength={2000} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button disabled={!eTitle.trim() || createEvent.isPending} onClick={() => createEvent.mutate()} className="gap-1.5">
+              {createEvent.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />} Create Event
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
+      ) : events.length === 0 ? (
+        <Card className="border-dashed border-2 border-border/40">
+          <CardContent className="py-12 text-center">
+            <Calendar className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No events yet. Create the first one!</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {events.map((ev: any, i: number) => {
+            const EvIcon = getEventIcon(ev.event_type);
+            const count = rsvpCounts.get(ev.id) || 0;
+            const hasRsvp = myRsvps.has(ev.id);
+            const isOwner = ev.user_id === user?.id;
+            const isPast = ev.event_date && new Date(ev.event_date) < new Date();
+
+            return (
+              <motion.div key={ev.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Card className={`border-border/50 hover:shadow-md transition-all ${isPast ? "opacity-60" : ""}`}>
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <EvIcon className="h-4 w-4 text-primary" />
+                        </div>
+                        <Badge variant="secondary" className="text-[10px]">{EVENT_TYPES.find((t) => t.value === ev.event_type)?.label || ev.event_type}</Badge>
+                      </div>
+                      {isOwner && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteEvent.mutate(ev.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
+                    <h4 className="font-semibold text-foreground mb-1">{ev.title}</h4>
+                    {ev.company_name && <p className="text-xs text-muted-foreground mb-2">{ev.company_name}</p>}
+                    {ev.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{ev.description}</p>}
+                    <div className="space-y-1.5 mb-4">
+                      {ev.event_date && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3" /> {format(new Date(ev.event_date), "MMM d, yyyy 'at' h:mm a")}
+                        </p>
+                      )}
+                      {ev.location && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="h-3 w-3" /> {ev.location}
+                        </p>
+                      )}
+                      {ev.is_virtual && (
+                        <p className="text-xs text-primary flex items-center gap-1.5"><Video className="h-3 w-3" /> Virtual event</p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between border-t border-border/40 pt-3">
+                      <span className="text-xs text-muted-foreground">{count} attending</span>
+                      <div className="flex items-center gap-2">
+                        {ev.rsvp_link && (
+                          <a href={ev.rsvp_link} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="outline" className="text-xs gap-1 h-8 rounded-full">
+                              <ExternalLink className="h-3 w-3" /> Link
+                            </Button>
+                          </a>
+                        )}
+                        <Button size="sm" variant={hasRsvp ? "secondary" : "default"}
+                          className={`text-xs gap-1 h-8 rounded-full ${hasRsvp ? "" : ""}`}
+                          onClick={() => toggleRsvp.mutate(ev.id)} disabled={toggleRsvp.isPending}>
+                          {hasRsvp ? <><Check className="h-3 w-3" /> Going</> : <><Plus className="h-3 w-3" /> RSVP</>}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   ─── Main Page ───
+   ═══════════════════════════════════════ */
 const Spark = () => {
   const { user } = useAuth();
   const { companyId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mainTab, setMainTab] = useState<"page" | "directory">("page");
+  const [mainTab, setMainTab] = useState<"page" | "directory" | "marketplace" | "events">("page");
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
-  // If viewing another company's page
   const isViewingOther = !!companyId;
 
-  // Get the target company data
   const { data: targetCompany } = useQuery({
     queryKey: ["spark-company", companyId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("id", companyId!)
-        .maybeSingle();
+      const { data } = await supabase.from("companies").select("*").eq("id", companyId!).maybeSingle();
       return data as CompanyData | null;
     },
     enabled: !!companyId,
   });
 
-  // Get own company
   const { data: ownCompany } = useQuery({
     queryKey: ["spark-own-company", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("user_id", user!.id)
-        .maybeSingle();
+      const { data } = await supabase.from("companies").select("*").eq("user_id", user!.id).maybeSingle();
       return data as CompanyData | null;
     },
-    enabled: !!user && !isViewingOther,
+    enabled: !!user,
   });
 
   const viewingUserId = isViewingOther ? targetCompany?.user_id : user?.id;
   const activeCompany = isViewingOther ? targetCompany : ownCompany;
   const isOwner = !isViewingOther;
 
-  // Get profile for the viewed user
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["spark-full-profile", viewingUserId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", viewingUserId!)
-        .maybeSingle();
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", viewingUserId!).maybeSingle();
       return data as CompanyProfile | null;
     },
     enabled: !!viewingUserId,
   });
 
-  // Admin check
   const { data: userRoles = [] } = useQuery({
     queryKey: ["user-roles-spark", user?.id],
     queryFn: async () => { const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id); return data || []; },
@@ -813,18 +1569,14 @@ const Spark = () => {
   });
   const isAdmin = userRoles.some((r: any) => r.role === "admin");
 
-  // Company posts
   const companyName = profile?.company_name;
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["feed-posts", companyName],
     queryFn: async () => {
       let query = supabase.from("feed_posts").select("*")
         .order("is_pinned", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (companyName) {
-        query = query.eq("company_name", companyName);
-      }
+        .order("created_at", { ascending: false }).limit(50);
+      if (companyName) query = query.eq("company_name", companyName);
       const { data, error } = await query;
       if (error) throw error;
       return data;
@@ -832,7 +1584,6 @@ const Spark = () => {
     enabled: !!user && !!companyName,
   });
 
-  // Realtime
   useEffect(() => {
     const channel = supabase.channel("spark-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "feed_posts" }, (payload) => {
@@ -841,7 +1592,15 @@ const Spark = () => {
           toast({ title: "New post on Spark", description: `${newPost.author_name || "Someone"} shared a ${newPost.post_type || "post"}` });
         }
         queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
-      }).subscribe();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "partnership_requests" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["partnership-status"] });
+        queryClient.invalidateQueries({ queryKey: ["partner-count"] });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rfq_posts" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["rfq-posts"] });
+      })
+      .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user?.id, queryClient]);
 
@@ -850,7 +1609,7 @@ const Spark = () => {
     setMainTab("page");
   };
 
-  if (profileLoading) {
+  if (profileLoading && (mainTab === "page" || isViewingOther)) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center py-32"><Loader2 className="h-8 w-8 animate-spin text-primary/40" /></div>
@@ -881,31 +1640,38 @@ const Spark = () => {
             </div>
           </div>
           {!isViewingOther && (
-            <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "page" | "directory")}>
+            <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as any)}>
               <TabsList className="bg-muted/50 p-1 rounded-full">
-                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-5 data-[state=active]:shadow-sm">
+                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
                   <Building2 className="h-3.5 w-3.5" /> My Page
                 </TabsTrigger>
-                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-5 data-[state=active]:shadow-sm">
+                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
                   <Search className="h-3.5 w-3.5" /> Explore
+                </TabsTrigger>
+                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                  <ShoppingCart className="h-3.5 w-3.5" /> Marketplace
+                </TabsTrigger>
+                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                  <Calendar className="h-3.5 w-3.5" /> Events
                 </TabsTrigger>
               </TabsList>
             </Tabs>
           )}
         </div>
 
-        {/* Directory view */}
+        {/* Tab content */}
         {mainTab === "directory" && !isViewingOther ? (
           <CompanyDirectory onSelectCompany={handleSelectCompany} />
+        ) : mainTab === "marketplace" && !isViewingOther ? (
+          <MarketplaceTab />
+        ) : mainTab === "events" && !isViewingOther ? (
+          <EventsTab />
         ) : (
           <>
-            {/* Brand Hero */}
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
-              onEdit={() => navigate("/dashboard/account")} />
+              ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
-            {/* Content grid */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 mt-5">
-              {/* Feed column */}
               <div>
                 {isOwner && <PostComposer profile={displayProfile} />}
                 {postsLoading ? (
@@ -926,13 +1692,29 @@ const Spark = () => {
                 )}
               </div>
 
-              {/* Right sidebar */}
               <div className="space-y-5 hidden lg:block">
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
+                {activeCompany?.id && <PartnersCard companyId={activeCompany.id} />}
+                {activeCompany?.id && (
+                  <ReviewsCard
+                    companyId={activeCompany.id}
+                    onWriteReview={!isOwner ? () => setReviewDialogOpen(true) : undefined}
+                  />
+                )}
                 <PortfolioSection urls={displayProfile.portfolio_urls || []} />
                 <TeamSection userId={viewingUserId || ""} />
               </div>
             </div>
+
+            {/* Review Dialog */}
+            {activeCompany && (
+              <WriteReviewDialog
+                open={reviewDialogOpen}
+                onOpenChange={setReviewDialogOpen}
+                targetCompanyId={activeCompany.id}
+                targetCompanyName={activeCompany.company_name}
+              />
+            )}
           </>
         )}
       </div>
