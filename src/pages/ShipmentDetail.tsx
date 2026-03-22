@@ -152,7 +152,16 @@ const ShipmentDetail = () => {
     enabled: !!id,
   });
 
-  const { data: parties } = useQuery({
+  const { data: containerCommodities } = useQuery({
+    queryKey: ["container_commodities", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("container_commodities").select("*").eq("shipment_id", id!).order("line_sequence");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
     queryKey: ["parties", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("shipment_parties").select("*").eq("shipment_id", id!);
