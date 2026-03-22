@@ -415,11 +415,20 @@ const Dashboard = () => {
                         {s.etd && <span className="ml-2">· ETD {format(new Date(s.etd), "MMM d")}</span>}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="secondary" className={`text-[10px] ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
                         {s.status === "delivered" && <CheckCircle2 className="h-3 w-3 mr-1" />}
                         {statusLabel[s.status] || s.status}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-accent"
+                        title="Edit P&L"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPnlShipment(s); }}
+                      >
+                        <Receipt className="h-3.5 w-3.5" />
+                      </Button>
                       <span className="text-[10px] text-muted-foreground/60 hidden sm:block w-16 text-right">
                         {formatDistanceToNow(new Date(s.updated_at || s.created_at), { addSuffix: true })}
                       </span>
