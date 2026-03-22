@@ -16,7 +16,7 @@ const DOC_TYPES = ["all", ...Object.keys(DOC_TYPE_LABELS)];
 
 const filters: FilterConfig[] = [
   { key: "status", label: "Status", options: STATUSES.map(s => ({ value: s, label: s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1) })) },
-  { key: "docType", label: "Doc Type", options: DOC_TYPES.map(t => ({ value: t, label: t === "all" ? "All Types" : t.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) })) },
+  { key: "docType", label: "Doc Type", options: DOC_TYPES.map(t => ({ value: t, label: t === "all" ? "All Types" : getDocLabel(t) })) },
 ];
 
 const AdminDocuments = () => {
