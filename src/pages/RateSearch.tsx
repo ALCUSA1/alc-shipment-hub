@@ -133,6 +133,7 @@ const RateSearch = () => {
                 origin={searchParams.origin}
                 destination={searchParams.destination}
                 containerSize={searchParams.containerSize}
+                mode={searchParams.mode}
               />
             </motion.div>
           ) : null}
