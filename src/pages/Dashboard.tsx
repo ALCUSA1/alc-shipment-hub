@@ -185,10 +185,16 @@ const Dashboard = () => {
               Pipeline
             </Link>
           </Button>
-          <Button variant="electric" size="sm" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link to="/dashboard/quotes/new">
               <Plus className="mr-2 h-4 w-4" />
               New Quote
+            </Link>
+          </Button>
+          <Button variant="electric" size="sm" asChild>
+            <Link to="/dashboard/shipments/new">
+              <Ship className="mr-2 h-4 w-4" />
+              New Shipment
             </Link>
           </Button>
         </div>
