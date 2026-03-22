@@ -3548,7 +3548,9 @@ export type Database = {
           location: string | null
           milestone: string
           notes: string | null
+          raw_event_code: string | null
           shipment_id: string
+          source: string | null
         }
         Insert: {
           created_at?: string
@@ -3557,7 +3559,9 @@ export type Database = {
           location?: string | null
           milestone: string
           notes?: string | null
+          raw_event_code?: string | null
           shipment_id: string
+          source?: string | null
         }
         Update: {
           created_at?: string
@@ -3566,7 +3570,9 @@ export type Database = {
           location?: string | null
           milestone?: string
           notes?: string | null
+          raw_event_code?: string | null
           shipment_id?: string
+          source?: string | null
         }
         Relationships: [
           {
