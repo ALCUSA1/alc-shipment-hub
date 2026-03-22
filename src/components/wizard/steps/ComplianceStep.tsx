@@ -86,6 +86,7 @@ interface ComplianceStepProps {
   data: ComplianceData;
   onChange: (data: ComplianceData) => void;
   autoFillSource?: AutoFillSource;
+  errors?: ValidationErrors;
 }
 
 const FILING_OPTIONS = [
