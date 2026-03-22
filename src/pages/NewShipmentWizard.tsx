@@ -481,7 +481,8 @@ const NewShipmentWizard = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+          );
+        })()}
 
         {/* ── Step 4: Review & Confirm ── */}
         {step === 4 && (
