@@ -565,7 +565,7 @@ const NewShipmentWizard = () => {
           return (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} />
+              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} errors={attemptedNext ? stepErrors : {}} />
               <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
                 <p className="text-xs text-muted-foreground">
                   <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
