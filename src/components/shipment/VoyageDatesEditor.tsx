@@ -15,9 +15,10 @@ interface VoyageDatesEditorProps {
   eta: string | null;
   vessel: string | null;
   voyage: string | null;
+  readOnly?: boolean;
 }
 
-export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage }: VoyageDatesEditorProps) {
+export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage, readOnly = false }: VoyageDatesEditorProps) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
