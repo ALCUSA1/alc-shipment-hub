@@ -7,8 +7,10 @@ import { ShieldCheck, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
+import ComplianceReviewPanel from "@/components/admin/ComplianceReviewPanel";
 
 const STATUSES = ["all", "prospect", "pending_compliance", "active", "suspended", "inactive"];
 
