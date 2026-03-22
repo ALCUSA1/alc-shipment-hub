@@ -40,7 +40,6 @@ serve(async (req) => {
           main_text: f.text,
           secondary_text: f.place_name.replace(f.text + ', ', ''),
         },
-        _feature: f, // pass full feature for details
       }));
 
       return new Response(JSON.stringify({ predictions }), {
