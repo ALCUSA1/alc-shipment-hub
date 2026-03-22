@@ -281,8 +281,8 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
               <Field label="Agent Name">
                 <Input className="mt-1 h-8 text-xs" value={data.agentName} onChange={(e) => set("agentName", e.target.value)} />
               </Field>
-              <Field label="Agent EIN">
-                <Input className="mt-1 h-8 text-xs" value={data.agentEin} onChange={(e) => set("agentEin", e.target.value)} />
+              <Field label="Agent EIN" error={errors.agentEin}>
+                <Input className={`mt-1 h-8 text-xs ${errors.agentEin ? "border-destructive" : ""}`} value={data.agentEin} onChange={(e) => set("agentEin", e.target.value)} />
               </Field>
             </div>
             <Field label="Agent Address">
