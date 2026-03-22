@@ -101,7 +101,7 @@ const AdminDocuments = () => {
               ) : filtered.map((d: any) => (
                 <tr key={d.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{(d.shipments as any)?.shipment_ref || "—"}</td>
-                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{d.doc_type.replace(/_/g, " ")}</td>
+                  <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{getDocLabel(d.doc_type)}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{format(new Date(d.created_at), "MMM d, yyyy")}</td>
                   <td className="px-4 py-3 text-center"><Badge variant="outline" className="text-[10px]">{d.status}</Badge></td>
                 </tr>
