@@ -11,29 +11,76 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'Google Places API key not configured' }), {
+    const token = Deno.env.get('MAPBOX_ACCESS_TOKEN');
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Mapbox access token not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { action, input, placeId } = await req.json();
+    const { action, input, mapboxId } = await req.json();
 
     if (action === 'autocomplete') {
-      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=address&key=${apiKey}`;
+      // Use Mapbox Geocoding v5 (forward geocoding) — stable and well-supported
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?autocomplete=true&types=address,place&limit=5&access_token=${token}`;
       const res = await fetch(url);
       const data = await res.json();
-      return new Response(JSON.stringify(data), {
+
+      if (data.message) {
+        console.error('Mapbox error:', data.message);
+        return new Response(JSON.stringify({ predictions: [], error: data.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const predictions = (data.features || []).map((f: any) => ({
+        place_id: f.id,
+        description: f.place_name,
+        structured_formatting: {
+          main_text: f.text,
+          secondary_text: f.place_name.replace(f.text + ', ', ''),
+        },
+      }));
+
+      return new Response(JSON.stringify({ predictions }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     if (action === 'details') {
-      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=formatted_address,address_components,name,geometry&key=${apiKey}`;
+      // For Geocoding v5, we can re-geocode the mapboxId or use the feature directly
+      // The mapboxId here is the feature id like "address.1234"
+      // We'll do a reverse lookup or just parse the stored data
+      // Actually, the frontend already has the description — let's do a forward geocode
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(mapboxId)}.json?types=address&limit=1&access_token=${token}`;
       const res = await fetch(url);
       const data = await res.json();
-      return new Response(JSON.stringify(data), {
+
+      const feature = data.features?.[0];
+      if (!feature) {
+        return new Response(JSON.stringify({ result: null }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Parse context array for structured address components
+      const ctx = feature.context || [];
+      const getCtx = (prefix: string) => ctx.find((c: any) => c.id?.startsWith(prefix))?.text || '';
+
+      const result = {
+        formatted_address: feature.place_name,
+        name: feature.text,
+        address_components: [
+          { types: ['street_number'], long_name: feature.address || '' },
+          { types: ['route'], long_name: feature.text || '' },
+          { types: ['locality'], long_name: getCtx('place') },
+          { types: ['administrative_area_level_1'], long_name: getCtx('region') },
+          { types: ['postal_code'], long_name: getCtx('postcode') },
+          { types: ['country'], long_name: getCtx('country') },
+        ],
+      };
+
+      return new Response(JSON.stringify({ result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -42,6 +89,7 @@ serve(async (req) => {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
+    console.error('Error:', err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
