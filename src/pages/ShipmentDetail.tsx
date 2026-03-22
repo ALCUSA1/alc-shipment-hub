@@ -27,7 +27,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy, BookmarkPlus } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy, BookmarkPlus, Anchor, MapPin, Calendar, Hash, ArrowRight } from "lucide-react";
+import { translateEdiMessage } from "@/lib/edi-translations";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +43,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -69,7 +70,94 @@ const statusColor: Record<string, string> = {
 const formatStatus = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-// CARRIERS list removed — now handled by CarrierRateSelector
+// Vessel Booking Summary (collapsed read-only view for booked shipments)
+function VesselBookingSummary({ shipmentId }: { shipmentId: string }) {
+  const { data: bookings } = useQuery({
+    queryKey: ["vessel-bookings", shipmentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vessel_bookings")
+        .select("*, booking_legs(*)")
+        .eq("shipment_id", shipmentId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!shipmentId,
+  });
+
+  if (!bookings?.length) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Ship className="h-4 w-4 text-accent" />
+          Booking Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {bookings.map((b: any) => {
+            const sortedLegs = [...(b.booking_legs || [])].sort((a: any, bk: any) => a.leg_order - bk.leg_order);
+            return (
+              <div key={b.id} className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs font-medium text-foreground">{b.booking_number || "No booking #"}</span>
+                    {b.carrier && <span className="text-[10px] text-muted-foreground">• {b.carrier}</span>}
+                  </div>
+                  <Badge variant="outline" className="text-[9px]">{b.status}</Badge>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  {b.container_count}× {b.container_type || "N/A"}
+                </p>
+                {sortedLegs.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {sortedLegs.map((leg: any) => (
+                      <div key={leg.id} className="flex items-center gap-2 text-[10px]">
+                        <MapPin className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                        <span className="text-foreground">{leg.origin_port || "?"}</span>
+                        <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
+                        <span className="text-foreground">{leg.destination_port || "?"}</span>
+                        {leg.vessel_name && <span className="text-muted-foreground">• {leg.vessel_name}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// AI-translated EDI message for unknown codes
+function AiTranslatedMessage({ messageType, direction, carrier, status }: {
+  messageType: string; direction: string; carrier: string; status: string;
+}) {
+  const { data: translation } = useQuery({
+    queryKey: ["edi-translate", messageType, direction],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("translate-edi", {
+        body: { message_type: messageType, direction, carrier, status },
+      });
+      if (error) return null;
+      return data?.translation as string | null;
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  if (!translation) return null;
+
+  return (
+    <p className="text-xs text-accent mt-1 italic">{translation}</p>
+  );
+}
 
 const ShipmentDetail = () => {
   const { id } = useParams();
@@ -270,6 +358,9 @@ const ShipmentDetail = () => {
   const firstCargo = cargo?.[0];
   const companyName = (shipment as any).companies?.company_name as string | undefined;
   const isDelivered = shipment.status === "delivered" || shipment.status === "completed";
+  const isBooked = ["booked", "in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
+  const isInTransitOrBeyond = ["in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
+  const scheduleReadOnly = isInTransitOrBeyond;
 
   return (
     <DashboardLayout>
@@ -592,13 +683,13 @@ const ShipmentDetail = () => {
             </Card>
           )}
 
-          {/* Demurrage & Detention (Ocean only) */}
-          {!isAirShipment && (
+          {/* Demurrage & Detention (Ocean only, after delivered) */}
+          {!isAirShipment && isDelivered && (
             <DemurrageTracker shipmentId={id!} shipmentStatus={shipment.status} />
           )}
 
-          {/* Detention Timeline (Ocean only) */}
-          {!isAirShipment && (
+          {/* Detention Timeline (Ocean only, after delivered) */}
+          {!isAirShipment && isDelivered && (
             <DetentionTimeline eta={shipment.eta} />
           )}
 
@@ -608,8 +699,11 @@ const ShipmentDetail = () => {
             vesselDeparted={["in_transit", "arrived", "delivered", "completed"].includes(shipment.status)}
           />
 
-          {/* Vessel Bookings - read-only for delivered */}
-          {!isDelivered && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {/* Vessel Bookings - collapsed summary for booked+, hidden for delivered */}
+          {!isAirShipment && isBooked && !isDelivered && (
+            <VesselBookingSummary shipmentId={id!} />
+          )}
+          {!isDelivered && !isBooked && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
           {!isDelivered && isAirShipment && (
             <AirBookingPanel
               shipmentId={id!}
@@ -648,7 +742,7 @@ const ShipmentDetail = () => {
 
         {/* Sidebar */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Shipping Line Schedule - read-only view for delivered */}
+          {/* Shipping Line Schedule - read-only for delivered OR in_transit+ */}
           {isDelivered ? (
             <Card>
               <CardHeader>
@@ -671,6 +765,7 @@ const ShipmentDetail = () => {
               eta={shipment.eta}
               vessel={shipment.vessel}
               voyage={shipment.voyage}
+              readOnly={scheduleReadOnly}
             />
           )}
 
@@ -688,8 +783,8 @@ const ShipmentDetail = () => {
             />
           )}
 
-          {/* Carrier Rate Selection & Booking - hide for delivered */}
-          {!isDelivered && !isAirShipment && (
+          {/* Carrier Rate Selection & Booking - hide once booked */}
+          {!isBooked && !isAirShipment && (
             <CarrierRateSelector
               shipmentId={id!}
               shipmentRef={shipment.shipment_ref}
@@ -711,7 +806,7 @@ const ShipmentDetail = () => {
             mawbNumber={(shipment as any).mawb_number}
           />
 
-          {/* Carrier Communications (formerly EDI Messages) */}
+          {/* Carrier Communications */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -722,28 +817,36 @@ const ShipmentDetail = () => {
             <CardContent>
               {ediMessages && ediMessages.length > 0 ? (
                 <div className="space-y-3">
-                  {ediMessages.map((msg) => (
-                    <div key={msg.id} className="flex items-start justify-between py-2 border-b last:border-0">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px]">{msg.message_type}</Badge>
-                          <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
-                            {msg.direction === "inbound" ? "← IN" : "→ OUT"}
-                          </Badge>
+                  {ediMessages.map((msg) => {
+                    const translated = translateEdiMessage(msg.message_type, msg.direction, msg.carrier);
+                    return (
+                      <div key={msg.id} className="py-2.5 border-b last:border-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
+                                {msg.direction === "inbound" ? "← Received" : "→ Sent"}
+                              </Badge>
+                              {msg.status === "error" && (
+                                <Badge variant="destructive" className="text-[10px]">Error</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-foreground font-medium">{translated.label}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{translated.description}</p>
+                            {!translated.isKnown && (
+                              <AiTranslatedMessage messageType={msg.message_type} direction={msg.direction} carrier={msg.carrier} status={msg.status} />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground ml-3 shrink-0">
+                            {format(new Date(msg.created_at), "MMM d, HH:mm")}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">{msg.carrier}</p>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className={`text-[10px] ${msg.status === "error" ? "border-destructive text-destructive" : ""}`}>
-                          {msg.status}
-                        </Badge>
-                        <p className="text-[10px] text-muted-foreground mt-1">{format(new Date(msg.created_at), "MMM d, HH:mm")}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No EDI messages yet.</p>
+                <p className="text-sm text-muted-foreground">No carrier communications yet.</p>
               )}
             </CardContent>
           </Card>

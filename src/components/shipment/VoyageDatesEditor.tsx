@@ -15,9 +15,10 @@ interface VoyageDatesEditorProps {
   eta: string | null;
   vessel: string | null;
   voyage: string | null;
+  readOnly?: boolean;
 }
 
-export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage }: VoyageDatesEditorProps) {
+export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage, readOnly = false }: VoyageDatesEditorProps) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -59,12 +60,12 @@ export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage }: Voya
             <Ship className="h-4 w-4 text-accent" />
             Shipping Line Schedule
           </CardTitle>
-          {!editing ? (
+          {!editing && !readOnly ? (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleStartEdit}>
               <Pencil className="h-3 w-3 mr-1" />
               Edit
             </Button>
-          ) : (
+          ) : !editing && readOnly ? null : (
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditing(false)}>
                 <X className="h-3 w-3 mr-1" />
