@@ -427,8 +427,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 3: Review & Confirm ── */}
-        {step === 3 && (
+        {/* ── Step 4: Review & Confirm ── */}
+        {step === 4 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
@@ -453,6 +453,21 @@ const NewShipmentWizard = () => {
                 <Row label="Volume" value={cargo.volume ? `${cargo.volume} CBM` : undefined} />
                 <Row label="Value" value={cargo.totalValue ? `$${Number(cargo.totalValue).toLocaleString()}` : undefined} />
               </div>
+
+              {(compliance.exporterName || compliance.aesType || compliance.insuranceProvider) && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-accent" /> Customs & Compliance
+                  </h4>
+                  <Row label="Exporter (USPPI)" value={compliance.exporterName} />
+                  <Row label="EIN" value={compliance.exporterEin} />
+                  <Row label="AES Citation" value={compliance.aesType} />
+                  <Row label="Export License" value={compliance.exportLicense} />
+                  <Row label="Insurance" value={compliance.insuranceProvider} />
+                  <Row label="Policy #" value={compliance.insurancePolicy} />
+                  <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />
+                </div>
+              )}
 
               {selectedRate && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
@@ -486,8 +501,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 4: Success ── */}
-        {step === 4 && (
+        {/* ── Step 5: Success ── */}
+        {step === 5 && (
           <Card className="border-accent/20">
             <CardContent className="pt-8 pb-8 text-center space-y-4">
               <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
@@ -503,7 +518,6 @@ const NewShipmentWizard = () => {
                   View All Shipments
                 </Button>
                 <Button variant="electric" onClick={() => {
-                  // Navigate to the most recent shipment
                   navigate("/dashboard/shipments");
                 }}>
                   Open Workspace <ArrowRight className="ml-2 h-4 w-4" />
@@ -514,20 +528,20 @@ const NewShipmentWizard = () => {
         )}
 
         {/* ── Navigation Buttons ── */}
-        {step < 4 && (
+        {step < 5 && (
           <div className="flex justify-between mt-6">
             <Button variant="outline" onClick={step === 0 ? () => navigate(-1) : handlePrev}>
               {step === 0 ? "Cancel" : "Previous"}
             </Button>
             <div className="flex gap-2">
-              {/* Save as Quote fork at step 2 */}
-              {step === 2 && selectedRate && (
+              {/* Save as Quote fork at step 3 (rate selection) */}
+              {step === 3 && selectedRate && (
                 <Button variant="outline" onClick={handleSaveAsQuote} disabled={submitting}>
                   <Bookmark className="mr-2 h-4 w-4" />
                   Save as Quote
                 </Button>
               )}
-              {step === 2 && rates.length === 0 && (
+              {step === 3 && rates.length === 0 && (
                 <Button variant="outline" onClick={() => setStep(step + 1)}>
                   Skip — Add Rate Later
                 </Button>
@@ -535,11 +549,11 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
+                disabled={(!canProceed && !(step === 3 && rates.length === 0)) || submitting}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {step === 3 ? "Confirm Booking" : "Next"}
-                {step < 3 && <ArrowRight className="ml-2 h-4 w-4" />}
+                {step === 4 ? "Confirm Booking" : "Next"}
+                {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </div>
           </div>
