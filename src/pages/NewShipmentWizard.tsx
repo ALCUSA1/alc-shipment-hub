@@ -262,6 +262,22 @@ const NewShipmentWizard = () => {
         });
       }
 
+      // Submit compliance review for admin approval
+      if (compliance.exporterName || compliance.exporterEin || compliance.aesType || compliance.insuranceProvider) {
+        await supabase.from("compliance_reviews").insert({
+          shipment_id: shipmentId,
+          user_id: user.id,
+          exporter_name: compliance.exporterName || null,
+          exporter_ein: compliance.exporterEin || null,
+          aes_type: compliance.aesType || null,
+          export_license: compliance.exportLicense || null,
+          insurance_provider: compliance.insuranceProvider || null,
+          insurance_policy: compliance.insurancePolicy || null,
+          insurance_coverage: compliance.insuranceCoverage || null,
+          status: "pending_review",
+        });
+      }
+
       toast({ title: "Shipment booked!", description: `${row.shipment_ref} created with ${selectedRate.carrier}.` });
       setStep(5); // Go to success step
     } catch (err: any) {
