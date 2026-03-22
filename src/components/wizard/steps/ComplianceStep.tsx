@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Zap, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { ValidationErrors } from "@/lib/wizard-validation";
 
 export interface ComplianceData {
   // USPPI
@@ -85,6 +86,7 @@ interface ComplianceStepProps {
   data: ComplianceData;
   onChange: (data: ComplianceData) => void;
   autoFillSource?: AutoFillSource;
+  errors?: ValidationErrors;
 }
 
 const FILING_OPTIONS = [
@@ -132,18 +134,24 @@ function AutoBadge() {
   );
 }
 
-function Field({ label, auto, children, className }: { label: string; auto?: boolean; children: React.ReactNode; className?: string }) {
+function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return <p className="text-[10px] text-destructive mt-0.5">{error}</p>;
+}
+
+function Field({ label, auto, children, className, error }: { label: string; auto?: boolean; children: React.ReactNode; className?: string; error?: string }) {
   return (
     <div className={className}>
       <Label className="text-[10px] text-muted-foreground flex items-center">
         {label}{auto && <AutoBadge />}
       </Label>
       {children}
+      <FieldError error={error} />
     </div>
   );
 }
 
-export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceStepProps) {
+export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: ComplianceStepProps) {
   const set = (field: keyof ComplianceData, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -214,15 +222,15 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide">1. U.S. Principal Party in Interest (USPPI)</h4>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="USPPI Name" auto={isAuto("exporterName")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterName} onChange={(e) => set("exporterName", e.target.value)} placeholder="Legal entity name" />
+          <Field label="USPPI Name *" auto={isAuto("exporterName")} error={errors.exporterName}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterName ? "border-destructive" : ""}`} value={data.exporterName} onChange={(e) => set("exporterName", e.target.value)} placeholder="Legal entity name" />
           </Field>
-          <Field label="USPPI EIN (IRS) or ID Number" auto={isAuto("exporterEin")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterEin} onChange={(e) => set("exporterEin", e.target.value)} placeholder="XX-XXXXXXX" />
+          <Field label="USPPI EIN (IRS) or ID Number *" auto={isAuto("exporterEin")} error={errors.exporterEin}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterEin ? "border-destructive" : ""}`} value={data.exporterEin} onChange={(e) => set("exporterEin", e.target.value)} placeholder="XX-XXXXXXX" />
           </Field>
         </div>
-        <Field label="USPPI Address" auto={isAuto("exporterAddress")}>
-          <Input className="mt-1 h-8 text-xs" value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
+        <Field label="USPPI Address *" auto={isAuto("exporterAddress")} error={errors.exporterAddress}>
+          <Input className={`mt-1 h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Contact Name" auto={isAuto("exporterContactName")}>
@@ -231,8 +239,8 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
           <Field label="Phone" auto={isAuto("exporterPhone")}>
             <Input className="mt-1 h-8 text-xs" value={data.exporterPhone} onChange={(e) => set("exporterPhone", e.target.value)} />
           </Field>
-          <Field label="Email" auto={isAuto("exporterEmail")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterEmail} onChange={(e) => set("exporterEmail", e.target.value)} />
+          <Field label="Email" auto={isAuto("exporterEmail")} error={errors.exporterEmail}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterEmail ? "border-destructive" : ""}`} value={data.exporterEmail} onChange={(e) => set("exporterEmail", e.target.value)} />
           </Field>
         </div>
       </div>
@@ -241,10 +249,10 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide">4. Ultimate Consignee</h4>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Consignee Name" className="col-span-2">
-            <Input className="mt-1 h-8 text-xs" value={data.consigneeName} onChange={(e) => set("consigneeName", e.target.value)} />
+          <Field label="Consignee Name *" className="col-span-2" error={errors.consigneeName}>
+            <Input className={`mt-1 h-8 text-xs ${errors.consigneeName ? "border-destructive" : ""}`} value={data.consigneeName} onChange={(e) => set("consigneeName", e.target.value)} />
           </Field>
-          <Field label="Consignee Type">
+          <Field label="Consignee Type *" error={errors.consigneeType}>
             <Select value={data.consigneeType} onValueChange={(v) => set("consigneeType", v)}>
               <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
@@ -253,8 +261,8 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
             </Select>
           </Field>
         </div>
-        <Field label="Consignee Address">
-          <Input className="mt-1 h-8 text-xs" value={data.consigneeAddress} onChange={(e) => set("consigneeAddress", e.target.value)} placeholder="Full address including country code" />
+        <Field label="Consignee Address *" error={errors.consigneeAddress}>
+          <Input className={`mt-1 h-8 text-xs ${errors.consigneeAddress ? "border-destructive" : ""}`} value={data.consigneeAddress} onChange={(e) => set("consigneeAddress", e.target.value)} placeholder="Full address including country code" />
         </Field>
       </div>
 
@@ -273,8 +281,8 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
               <Field label="Agent Name">
                 <Input className="mt-1 h-8 text-xs" value={data.agentName} onChange={(e) => set("agentName", e.target.value)} />
               </Field>
-              <Field label="Agent EIN">
-                <Input className="mt-1 h-8 text-xs" value={data.agentEin} onChange={(e) => set("agentEin", e.target.value)} />
+              <Field label="Agent EIN" error={errors.agentEin}>
+                <Input className={`mt-1 h-8 text-xs ${errors.agentEin ? "border-destructive" : ""}`} value={data.agentEin} onChange={(e) => set("agentEin", e.target.value)} />
               </Field>
             </div>
             <Field label="Agent Address">
@@ -288,20 +296,20 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide">Filing & Transportation</h4>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Filing Option" auto={isAuto("filingOption")}>
+          <Field label="Filing Option *" auto={isAuto("filingOption")} error={errors.filingOption}>
             <Select value={data.filingOption} onValueChange={(v) => set("filingOption", v)}>
-              <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={`mt-1 h-8 text-xs ${errors.filingOption ? "border-destructive" : ""}`}><SelectValue /></SelectTrigger>
               <SelectContent>
                 {FILING_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Date of Exportation" auto={isAuto("dateOfExportation")}>
-            <Input type="date" className="mt-1 h-8 text-xs" value={data.dateOfExportation} onChange={(e) => set("dateOfExportation", e.target.value)} />
+          <Field label="Date of Exportation *" auto={isAuto("dateOfExportation")} error={errors.dateOfExportation}>
+            <Input type="date" className={`mt-1 h-8 text-xs ${errors.dateOfExportation ? "border-destructive" : ""}`} value={data.dateOfExportation} onChange={(e) => set("dateOfExportation", e.target.value)} />
           </Field>
-          <Field label="Method of Transportation" auto={isAuto("methodOfTransportation")}>
+          <Field label="Method of Transportation *" auto={isAuto("methodOfTransportation")} error={errors.methodOfTransportation}>
             <Select value={data.methodOfTransportation} onValueChange={(v) => set("methodOfTransportation", v)}>
-              <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={`mt-1 h-8 text-xs ${errors.methodOfTransportation ? "border-destructive" : ""}`}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 {TRANSPORT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
               </SelectContent>
@@ -309,8 +317,8 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
           </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Exporting Carrier" auto={isAuto("exportingCarrier")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exportingCarrier} onChange={(e) => set("exportingCarrier", e.target.value)} placeholder="e.g. CCNI ANGOL V.533W" />
+          <Field label="Exporting Carrier *" auto={isAuto("exportingCarrier")} error={errors.exportingCarrier}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exportingCarrier ? "border-destructive" : ""}`} value={data.exportingCarrier} onChange={(e) => set("exportingCarrier", e.target.value)} placeholder="e.g. CCNI ANGOL V.533W" />
           </Field>
           <Field label="Carrier ID Code" auto={isAuto("carrierIdCode")}>
             <Input className="mt-1 h-8 text-xs" value={data.carrierIdCode} onChange={(e) => set("carrierIdCode", e.target.value)} placeholder="e.g. HLCU" />
@@ -320,24 +328,24 @@ export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceSte
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Port of Export" auto={isAuto("portOfExport")}>
-            <Input className="mt-1 h-8 text-xs" value={data.portOfExport} onChange={(e) => set("portOfExport", e.target.value)} placeholder="e.g. 1703 — SAVANNAH, GA" />
+          <Field label="Port of Export *" auto={isAuto("portOfExport")} error={errors.portOfExport}>
+            <Input className={`mt-1 h-8 text-xs ${errors.portOfExport ? "border-destructive" : ""}`} value={data.portOfExport} onChange={(e) => set("portOfExport", e.target.value)} placeholder="e.g. 1703 — SAVANNAH, GA" />
           </Field>
-          <Field label="Port of Unlading" auto={isAuto("portOfUnlading")}>
-            <Input className="mt-1 h-8 text-xs" value={data.portOfUnlading} onChange={(e) => set("portOfUnlading", e.target.value)} placeholder="e.g. 55224 — HO CHI MINH" />
+          <Field label="Port of Unlading *" auto={isAuto("portOfUnlading")} error={errors.portOfUnlading}>
+            <Input className={`mt-1 h-8 text-xs ${errors.portOfUnlading ? "border-destructive" : ""}`} value={data.portOfUnlading} onChange={(e) => set("portOfUnlading", e.target.value)} placeholder="e.g. 55224 — HO CHI MINH" />
           </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="State of Origin">
+          <Field label="State of Origin *" error={errors.stateOfOrigin}>
             <Select value={data.stateOfOrigin} onValueChange={(v) => set("stateOfOrigin", v)}>
-              <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue placeholder="Select state" /></SelectTrigger>
+              <SelectTrigger className={`mt-1 h-8 text-xs ${errors.stateOfOrigin ? "border-destructive" : ""}`}><SelectValue placeholder="Select state" /></SelectTrigger>
               <SelectContent>
                 {US_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Country of Destination" auto={isAuto("countryOfDestination")}>
-            <Input className="mt-1 h-8 text-xs" value={data.countryOfDestination} onChange={(e) => set("countryOfDestination", e.target.value)} placeholder="e.g. VN" />
+          <Field label="Country of Destination *" auto={isAuto("countryOfDestination")} error={errors.countryOfDestination}>
+            <Input className={`mt-1 h-8 text-xs ${errors.countryOfDestination ? "border-destructive" : ""}`} value={data.countryOfDestination} onChange={(e) => set("countryOfDestination", e.target.value)} placeholder="e.g. VN" />
           </Field>
           <Field label="Shipment Ref #">
             <Input className="mt-1 h-8 text-xs" value={data.shipmentRefNumber} onChange={(e) => set("shipmentRefNumber", e.target.value)} />

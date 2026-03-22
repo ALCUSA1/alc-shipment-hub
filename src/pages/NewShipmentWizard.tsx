@@ -17,10 +17,15 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Ship, Check, Clock, ChevronDown, ChevronUp, FileText,
   CheckCircle2, Bookmark, ArrowRight, Loader2, Package,
-  MapPin, AlertCircle, Shield,
+  MapPin, AlertCircle, Shield, AlertTriangle, XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Json } from "@/integrations/supabase/types";
+import {
+  overviewSchema, cargoSchema, complianceSchema,
+  validateStep, checkComplianceGating,
+  type ValidationErrors, type GatingIssue, type CompanyCredentials,
+} from "@/lib/wizard-validation";
 
 /* ── Wizard Steps ── */
 const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Customs & Compliance", "Review & Confirm", "Booking Created"];
@@ -99,6 +104,11 @@ const NewShipmentWizard = () => {
   const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
   const [expandedRateId, setExpandedRateId] = useState<string | null>(null);
 
+  // Validation state
+  const [stepErrors, setStepErrors] = useState<ValidationErrors>({});
+  const [gatingIssues, setGatingIssues] = useState<GatingIssue[]>([]);
+  const [attemptedNext, setAttemptedNext] = useState(false);
+
   // Queries
   const { data: ports = [] } = useQuery({
     queryKey: ["ports"],
@@ -113,7 +123,7 @@ const NewShipmentWizard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy")
+        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy, fmc_license_status, fmc_license_expiry, cargo_insurance_expiry, sam_expiry, general_liability_expiry")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -140,21 +150,79 @@ const NewShipmentWizard = () => {
     ? rates.reduce((best, r) => getTotalRate(r) < getTotalRate(best) ? r : best, rates[0]).id
     : null;
 
-  // Step validation
-  const canProceed = (() => {
-    if (step === 0) return !!(overview.originPort && overview.destinationPort);
-    if (step === 1) return !!(cargo.containerType);
-    if (step === 2) return !!selectedRate; // Select Rate
-    if (step === 3) return true; // Compliance is optional but encouraged
-    if (step === 4) return true;
-    return false;
-  })();
+  // Selected company for gating checks
+  const selectedCompany = companies.find((c: any) => c.id === overview.companyId) as (CompanyCredentials & Record<string, any>) | undefined;
+
+  // Validate current step
+  const validateCurrentStep = (): boolean => {
+    let result: { valid: boolean; errors: ValidationErrors };
+    switch (step) {
+      case 0:
+        result = validateStep(overviewSchema, overview);
+        break;
+      case 1:
+        result = validateStep(cargoSchema, cargo);
+        break;
+      case 2:
+        // Rate selection — no zod, just need a rate selected (or skip)
+        return !!selectedRate || rates.length === 0;
+      case 3:
+        result = validateStep(complianceSchema, compliance);
+        break;
+      default:
+        return true;
+    }
+    setStepErrors(result.errors);
+    return result.valid;
+  };
+
+  // Check compliance gating when company changes
+  const updateGating = () => {
+    if (selectedCompany) {
+      const issues = checkComplianceGating(selectedCompany);
+      setGatingIssues(issues);
+      return issues;
+    }
+    setGatingIssues([]);
+    return [];
+  };
+
+  const hasBlockingGating = gatingIssues.some(i => i.severity === "error");
 
   const handleNext = () => {
-    if (step < STEPS.length - 1) setStep(step + 1);
-    if (step === 4) handleSubmit();
+    setAttemptedNext(true);
+
+    // Validate current step
+    if (!validateCurrentStep()) {
+      toast({ title: "Please fix the errors below", description: "Required fields are missing or have invalid values.", variant: "destructive" });
+      return;
+    }
+
+    // On step 0, check compliance gating for selected company
+    if (step === 0) {
+      const issues = updateGating();
+      if (issues.some(i => i.severity === "error")) {
+        toast({ title: "Compliance issue detected", description: "The selected customer has expired credentials. Please resolve before proceeding.", variant: "destructive" });
+        return;
+      }
+    }
+
+    // Clear errors on successful validation
+    setStepErrors({});
+    setAttemptedNext(false);
+
+    if (step === 4) {
+      handleSubmit();
+    } else {
+      setStep(step + 1);
+    }
   };
-  const handlePrev = () => { if (step > 0) setStep(step - 1); };
+
+  const handlePrev = () => {
+    setStepErrors({});
+    setAttemptedNext(false);
+    if (step > 0) setStep(step - 1);
+  };
 
   // Save as quote — create draft shipment first (quotes require shipment_id)
   const handleSaveAsQuote = async () => {
@@ -329,7 +397,32 @@ const NewShipmentWizard = () => {
         {step === 0 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />
+              <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} errors={attemptedNext ? stepErrors : {}} />
+              {/* Compliance Gating Warnings */}
+              {gatingIssues.length > 0 && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                  <h4 className="text-xs font-semibold text-destructive flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Compliance Issues for Selected Customer
+                  </h4>
+                  {gatingIssues.map((issue, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs">
+                      {issue.severity === "error" ? (
+                        <XCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="h-3.5 w-3.5 text-yellow-500 shrink-0 mt-0.5" />
+                      )}
+                      <span className={issue.severity === "error" ? "text-destructive" : "text-yellow-700 dark:text-yellow-400"}>
+                        {issue.message}
+                      </span>
+                    </div>
+                  ))}
+                  {hasBlockingGating && (
+                    <p className="text-[10px] text-destructive/80 mt-1">
+                      Resolve expired credentials in CRM before proceeding.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -338,7 +431,7 @@ const NewShipmentWizard = () => {
         {step === 1 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <CargoStep data={cargo} onChange={setCargo} />
+              <CargoStep data={cargo} onChange={setCargo} errors={attemptedNext ? stepErrors : {}} />
             </CardContent>
           </Card>
         )}
@@ -472,7 +565,7 @@ const NewShipmentWizard = () => {
           return (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} />
+              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} errors={attemptedNext ? stepErrors : {}} />
               <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
                 <p className="text-xs text-muted-foreground">
                   <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
@@ -610,7 +703,7 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
+                disabled={submitting || hasBlockingGating}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {step === 4 ? "Confirm Booking" : "Next"}
