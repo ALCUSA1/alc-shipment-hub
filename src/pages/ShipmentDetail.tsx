@@ -27,7 +27,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy, BookmarkPlus } from "lucide-react";
+import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy, BookmarkPlus, Anchor, MapPin, Calendar, Hash, ArrowRight } from "lucide-react";
+import { translateEdiMessage } from "@/lib/edi-translations";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
