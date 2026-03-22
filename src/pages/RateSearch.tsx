@@ -27,29 +27,43 @@ const RateSearch = () => {
     setSearchParams(params);
 
     try {
-      const today = new Date().toISOString().split("T")[0];
-      let query = supabase
-        .from("carrier_rates")
-        .select("*")
-        .eq("origin_port", params.origin)
-        .eq("destination_port", params.destination)
-        .eq("mode", params.mode)
-        .gte("valid_until", today)
-        .order("base_rate", { ascending: true });
+      // Trigger live rate sync from carrier APIs in background
+      supabase.functions.invoke("sync-carrier-rates", {
+        body: { origin: params.origin, destination: params.destination },
+      }).then((res) => {
+        if (res.data?.rates_upserted > 0) {
+          // Re-fetch if new rates were synced
+          fetchRates(params);
+        }
+      }).catch((err) => console.log("Rate sync skipped:", err));
 
-      if (params.mode === "ocean") {
-        query = query.eq("container_type", params.containerSize);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setResults(data || []);
+      await fetchRates(params);
     } catch (err) {
       console.error("Rate search error:", err);
       setResults([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchRates = async (params: SearchParams) => {
+    const today = new Date().toISOString().split("T")[0];
+    let query = supabase
+      .from("carrier_rates")
+      .select("*")
+      .eq("origin_port", params.origin)
+      .eq("destination_port", params.destination)
+      .eq("mode", params.mode)
+      .gte("valid_until", today)
+      .order("base_rate", { ascending: true });
+
+    if (params.mode === "ocean") {
+      query = query.eq("container_type", params.containerSize);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    setResults(data || []);
   };
 
   // Auto-search when arriving from hero with URL params
