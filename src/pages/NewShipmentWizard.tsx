@@ -302,12 +302,30 @@ const NewShipmentWizard = () => {
         });
       }
 
-      // Insert container
+      // Insert container and get its ID for commodity mapping
+      let insertedContainerId: string | null = null;
       if (cargo.containerType) {
-        await supabase.from("containers").insert({
+        const { data: containerRow } = await supabase.from("containers").insert({
           shipment_id: shipmentId,
           container_type: cargo.containerType,
           quantity: cargo.containerQuantity ? parseInt(cargo.containerQuantity) : 1,
+        }).select("id").single();
+        insertedContainerId = containerRow?.id || null;
+      }
+
+      // Insert container_commodities linking cargo to container
+      if (insertedContainerId && (cargo.commodity || cargo.hsCode)) {
+        await supabase.from("container_commodities").insert({
+          container_id: insertedContainerId,
+          shipment_id: shipmentId,
+          line_sequence: 1,
+          commodity_description: cargo.commodity || null,
+          hs_code: cargo.hsCode || null,
+          gross_weight_kg: cargo.grossWeight ? parseFloat(cargo.grossWeight) : null,
+          value_usd: cargo.totalValue ? parseFloat(cargo.totalValue) : null,
+          country_of_manufacture: cargo.countryOfOrigin || null,
+          quantity: cargo.numPackages ? parseFloat(cargo.numPackages) : null,
+          hazardous: false,
         });
       }
 
