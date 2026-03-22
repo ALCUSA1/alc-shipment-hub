@@ -48,6 +48,9 @@ function categorizeSurcharges(surcharges: Surcharge[]) {
 interface PriceSummarySidebarProps {
   selectedRate: CarrierRate | null;
   containerSize: string;
+  origin?: string;
+  destination?: string;
+  mode?: string;
 }
 
 const CONTAINER_LABELS: Record<string, string> = {
@@ -57,7 +60,7 @@ const CONTAINER_LABELS: Record<string, string> = {
   "45hc": "45ft High Cube",
 };
 
-export function PriceSummarySidebar({ selectedRate, containerSize }: PriceSummarySidebarProps) {
+export function PriceSummarySidebar({ selectedRate, containerSize, origin, destination, mode }: PriceSummarySidebarProps) {
   if (!selectedRate) {
     return (
       <div className="sticky top-24 rounded-xl border bg-card p-5 space-y-4">
@@ -115,7 +118,14 @@ export function PriceSummarySidebar({ selectedRate, containerSize }: PriceSummar
       </p>
 
       <Button variant="electric" className="w-full" asChild>
-        <Link to="/signup">
+        <Link to={(() => {
+          const params = new URLSearchParams();
+          if (origin) params.set("origin", origin);
+          if (destination) params.set("destination", destination);
+          if (containerSize) params.set("container", containerSize);
+          if (mode) params.set("mode", mode);
+          return `/dashboard/shipments/new?${params.toString()}`;
+        })()}>
           Book Now
           <ArrowRight className="h-4 w-4 ml-1" />
         </Link>

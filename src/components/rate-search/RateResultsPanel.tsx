@@ -104,9 +104,19 @@ interface RateResultsPanelProps {
   origin: string;
   destination: string;
   containerSize: string;
+  mode?: string;
 }
 
-export function RateResultsPanel({ rates, origin, destination, containerSize }: RateResultsPanelProps) {
+function buildBookingLink(origin: string, destination: string, containerSize: string, mode?: string) {
+  const params = new URLSearchParams();
+  if (origin) params.set("origin", origin);
+  if (destination) params.set("destination", destination);
+  if (containerSize) params.set("container", containerSize);
+  if (mode) params.set("mode", mode);
+  return `/dashboard/shipments/new?${params.toString()}`;
+}
+
+export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
   const [filters, setFilters] = useState<ShippingFilters>({
@@ -318,7 +328,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize }: 
 
                     <div className="flex justify-end mt-3">
                       <Button variant="electric" size="sm" asChild>
-                        <Link to="/signup">
+                        <Link to={buildBookingLink(origin, destination, containerSize, mode)}>
                           Book Now
                           <ArrowRight className="h-3.5 w-3.5 ml-1" />
                         </Link>
@@ -333,7 +343,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize }: 
 
         {/* Sticky Price Sidebar — hidden on mobile */}
         <div className="hidden lg:block">
-          <PriceSummarySidebar selectedRate={selectedRate || null} containerSize={containerSize} />
+          <PriceSummarySidebar selectedRate={selectedRate || null} containerSize={containerSize} origin={origin} destination={destination} mode={mode} />
         </div>
       </div>
 

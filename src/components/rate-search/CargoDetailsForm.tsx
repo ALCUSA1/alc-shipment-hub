@@ -58,7 +58,7 @@ export function CargoDetailsForm() {
 
       <div className="flex justify-end pt-2">
         <Button variant="electric" asChild>
-          <Link to="/signup">
+          <Link to="/dashboard/shipments/new">
             Proceed to Book
             <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
