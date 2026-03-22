@@ -678,7 +678,7 @@ const NewShipmentWizard = () => {
               <Button
                 variant="electric"
                 onClick={handleNext}
-                disabled={(!canProceed && !(step === 2 && rates.length === 0)) || submitting}
+                disabled={submitting || hasBlockingGating}
               >
                 {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {step === 4 ? "Confirm Booking" : "Next"}
