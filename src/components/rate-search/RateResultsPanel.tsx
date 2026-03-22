@@ -104,9 +104,19 @@ interface RateResultsPanelProps {
   origin: string;
   destination: string;
   containerSize: string;
+  mode?: string;
 }
 
-export function RateResultsPanel({ rates, origin, destination, containerSize }: RateResultsPanelProps) {
+function buildBookingLink(origin: string, destination: string, containerSize: string, mode?: string) {
+  const params = new URLSearchParams();
+  if (origin) params.set("origin", origin);
+  if (destination) params.set("destination", destination);
+  if (containerSize) params.set("container", containerSize);
+  if (mode) params.set("mode", mode);
+  return `/dashboard/shipments/new?${params.toString()}`;
+}
+
+export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
   const [filters, setFilters] = useState<ShippingFilters>({
