@@ -1,28 +1,39 @@
 
-# Unified Shipment Flow — Implemented
 
-## What Was Built
+## Current State
 
-A 5-step guided wizard at `/dashboard/shipments/new` replacing the quote-first flow:
+The database already has a `container_commodities` table with full AES-level detail (HS code, Schedule B, value, weight, ECCN, license codes, etc.) linked to both `container_id` and `shipment_id`. However, **no UI component reads from or writes to this table**. The workspace `CargoSection` currently shows cargo lines and containers as two independent lists with no mapping between them.
 
-1. **Route & Basics** — Origin/destination ports, shipment type, incoterms, customer (optional)
-2. **Cargo** — Container type/count, commodity, weight, dimensions, value
-3. **Select Rate** — Matching carrier rates inline with "Book Now" or "Save as Quote" fork
-4. **Review & Confirm** — Summary of route, cargo, rate, documents to generate
-5. **Booking Created** — Success screen with next actions
+## Plan
 
-### Key UX Changes
-- "New Shipment" is now the primary CTA on the dashboard (electric button)
-- "New Quote" is still accessible as a secondary action
-- Welcome cards updated: Add Customer → Create Shipment → Track & Deliver
-- The fork at Step 3 lets forwarders save as quote, direct shippers book immediately
-- Pre-fill support via URL params (`?origin=XXX&destination=YYY`)
+### 1. Add container assignment to cargo lines
 
-### Files
-| Action | File |
-|--------|------|
-| Created | `src/pages/NewShipmentWizard.tsx` |
-| Modified | `src/pages/Dashboard.tsx` — New CTA + updated welcome cards |
-| Modified | `src/App.tsx` — Route swap to NewShipmentWizard |
-| Preserved | `src/pages/NewShipment.tsx` — Full workspace still available for editing |
-| Preserved | `src/pages/NewQuote.tsx` — Quote flow unchanged |
+In the workspace `CargoSection`, add a "Container" dropdown to each cargo line that lets users assign it to one of the shipment's containers. This creates the visual and data link between "what's in this container."
+
+### 2. Build a Container Contents view
+
+Add a collapsible sub-section under each container card in the Equipment area showing the commodity lines assigned to it, with key fields (commodity, HS code, weight, value). This gives a per-container packing manifest.
+
+### 3. Persist to `container_commodities` table
+
+When saving from the workspace, map assigned cargo lines into `container_commodities` rows — writing `container_id`, `shipment_id`, `commodity_description`, `hs_code`, `hts_code`, `schedule_b_number`, `gross_weight_kg`, `value_usd`, and other relevant fields. On load, query `container_commodities` to restore assignments.
+
+### 4. Wire into the shipment wizard submission
+
+Update `NewShipmentWizard.tsx` so that when a shipment is booked, if there's only one container type, all cargo lines are auto-assigned to it and written to `container_commodities` alongside the existing `cargo` table inserts.
+
+### Technical details
+
+- **No schema changes needed** — `container_commodities` table already exists with all required columns and RLS policies.
+- **Data model**: Each `container_commodities` row references a `container_id` and `shipment_id`. Multiple commodity lines per container are supported via `line_sequence`.
+- **CargoLine type** in `shipment-dataset.ts` needs a new optional `containerId` field.
+- **Reads**: Query `container_commodities` joined with containers when loading the workspace.
+- **Writes**: Upsert on save; delete removed assignments.
+
+### Files to modify
+
+- `src/lib/shipment-dataset.ts` — add `containerId` to `CargoLine`
+- `src/components/workspace/sections/CargoSection.tsx` — add container assignment dropdown per cargo line + container contents view
+- `src/pages/NewShipmentWizard.tsx` — insert into `container_commodities` on booking
+- `src/pages/ShipmentDetail.tsx` — fetch `container_commodities` and pass to workspace
+
