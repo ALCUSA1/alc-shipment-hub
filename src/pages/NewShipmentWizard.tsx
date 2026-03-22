@@ -397,7 +397,32 @@ const NewShipmentWizard = () => {
         {step === 0 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} />
+              <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} errors={attemptedNext ? stepErrors : {}} />
+              {/* Compliance Gating Warnings */}
+              {gatingIssues.length > 0 && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                  <h4 className="text-xs font-semibold text-destructive flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Compliance Issues for Selected Customer
+                  </h4>
+                  {gatingIssues.map((issue, i) => (
+                    <div key={i} className="flex items-start gap-2 text-xs">
+                      {issue.severity === "error" ? (
+                        <XCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="h-3.5 w-3.5 text-yellow-500 shrink-0 mt-0.5" />
+                      )}
+                      <span className={issue.severity === "error" ? "text-destructive" : "text-yellow-700 dark:text-yellow-400"}>
+                        {issue.message}
+                      </span>
+                    </div>
+                  ))}
+                  {hasBlockingGating && (
+                    <p className="text-[10px] text-destructive/80 mt-1">
+                      Resolve expired credentials in CRM before proceeding.
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -406,7 +431,7 @@ const NewShipmentWizard = () => {
         {step === 1 && (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <CargoStep data={cargo} onChange={setCargo} />
+              <CargoStep data={cargo} onChange={setCargo} errors={attemptedNext ? stepErrors : {}} />
             </CardContent>
           </Card>
         )}
