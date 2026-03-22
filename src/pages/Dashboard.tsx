@@ -9,10 +9,12 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { canAccessRoute } from "@/lib/permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { format, subMonths, startOfMonth, endOfMonth, formatDistanceToNow } from "date-fns";
 import {
   Package, DollarSign, Truck, Warehouse, Clock, ArrowRight, TrendingUp,
-  ContactRound, Plus, Layers, FileText, Zap, Ship, Plane, CheckCircle2
+  ContactRound, Plus, Layers, FileText, Zap, Ship, Plane, CheckCircle2, Receipt
 } from "lucide-react";
 
 import {
@@ -68,6 +70,7 @@ const Dashboard = () => {
   const [companyCount, setCompanyCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [templateCount, setTemplateCount] = useState(0);
+  const [pnlShipment, setPnlShipment] = useState<ShipmentRow | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -412,11 +415,20 @@ const Dashboard = () => {
                         {s.etd && <span className="ml-2">· ETD {format(new Date(s.etd), "MMM d")}</span>}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="secondary" className={`text-[10px] ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
                         {s.status === "delivered" && <CheckCircle2 className="h-3 w-3 mr-1" />}
                         {statusLabel[s.status] || s.status}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-accent"
+                        title="Edit P&L"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPnlShipment(s); }}
+                      >
+                        <Receipt className="h-3.5 w-3.5" />
+                      </Button>
                       <span className="text-[10px] text-muted-foreground/60 hidden sm:block w-16 text-right">
                         {formatDistanceToNow(new Date(s.updated_at || s.created_at), { addSuffix: true })}
                       </span>
@@ -428,6 +440,24 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* P&L Edit Dialog */}
+      <Dialog open={!!pnlShipment} onOpenChange={(open) => !open && setPnlShipment(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-accent" />
+              P&L — {pnlShipment?.shipment_ref}
+            </DialogTitle>
+          </DialogHeader>
+          {pnlShipment && (
+            <ShipmentPnL
+              shipmentId={pnlShipment.id}
+              shipmentStatus={pnlShipment.status}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
