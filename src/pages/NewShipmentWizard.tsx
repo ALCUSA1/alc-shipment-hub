@@ -324,17 +324,8 @@ const NewShipmentWizard = () => {
           </Card>
         )}
 
-        {/* ── Step 2: Customs & Compliance ── */}
+        {/* ── Step 2: Select Rate ── */}
         {step === 2 && (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 3: Select Rate ── */}
-        {step === 3 && (
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-1">
@@ -437,6 +428,21 @@ const NewShipmentWizard = () => {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Step 3: Customs & Compliance ── */}
+        {step === 3 && (
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <ComplianceStep data={compliance} onChange={setCompliance} />
+              <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
+                <p className="text-xs text-muted-foreground">
+                  <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
+                  Compliance details will be sent to our team for validation. You can proceed with your booking — we'll review in the background and notify you of any issues.
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
