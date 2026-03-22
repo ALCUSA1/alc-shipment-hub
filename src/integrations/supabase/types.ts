@@ -931,6 +931,71 @@ export type Database = {
           },
         ]
       }
+      company_reviews: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewed_company_id: string
+          reviewer_company_id: string | null
+          reviewer_user_id: string
+          title: string | null
+          transaction_type: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewed_company_id: string
+          reviewer_company_id?: string | null
+          reviewer_user_id: string
+          title?: string | null
+          transaction_type?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewed_company_id?: string
+          reviewer_company_id?: string | null
+          reviewer_user_id?: string
+          title?: string | null
+          transaction_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_reviews_reviewed_company_id_fkey"
+            columns: ["reviewed_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewed_company_id_fkey"
+            columns: ["reviewed_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewer_company_id_fkey"
+            columns: ["reviewer_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewer_company_id_fkey"
+            columns: ["reviewer_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_reviews: {
         Row: {
           admin_notes: string | null
@@ -2103,6 +2168,68 @@ export type Database = {
         }
         Relationships: []
       }
+      partnership_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          requester_company_id: string
+          requester_user_id: string
+          responded_at: string | null
+          status: string
+          target_company_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_company_id: string
+          requester_user_id: string
+          responded_at?: string | null
+          status?: string
+          target_company_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_company_id?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          status?: string
+          target_company_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnership_requests_requester_company_id_fkey"
+            columns: ["requester_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partnership_requests_requester_company_id_fkey"
+            columns: ["requester_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partnership_requests_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partnership_requests_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -2482,6 +2609,150 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rfq_bids: {
+        Row: {
+          amount: number
+          bidder_company_id: string | null
+          bidder_company_name: string | null
+          bidder_user_id: string
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          rfq_id: string
+          status: string
+          transit_days: number | null
+        }
+        Insert: {
+          amount: number
+          bidder_company_id?: string | null
+          bidder_company_name?: string | null
+          bidder_user_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          rfq_id: string
+          status?: string
+          transit_days?: number | null
+        }
+        Update: {
+          amount?: number
+          bidder_company_id?: string | null
+          bidder_company_name?: string | null
+          bidder_user_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          rfq_id?: string
+          status?: string
+          transit_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfq_bids_bidder_company_id_fkey"
+            columns: ["bidder_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_bids_bidder_company_id_fkey"
+            columns: ["bidder_company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_bids_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfq_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rfq_posts: {
+        Row: {
+          awarded_to: string | null
+          cargo_type: string | null
+          company_id: string | null
+          company_name: string | null
+          container_type: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          destination: string | null
+          id: string
+          origin: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          awarded_to?: string | null
+          cargo_type?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          container_type?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          destination?: string | null
+          id?: string
+          origin?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          awarded_to?: string | null
+          cargo_type?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          container_type?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          destination?: string | null
+          id?: string
+          origin?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfq_posts_awarded_to_fkey"
+            columns: ["awarded_to"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_posts_awarded_to_fkey"
+            columns: ["awarded_to"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_posts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_posts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shipment_amendments: {
         Row: {
@@ -3554,6 +3825,98 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spark_event_rsvps: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spark_event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spark_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spark_events: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          created_at: string
+          description: string | null
+          event_date: string | null
+          event_type: string
+          id: string
+          is_virtual: boolean
+          location: string | null
+          rsvp_link: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          is_virtual?: boolean
+          location?: string | null
+          rsvp_link?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          is_virtual?: boolean
+          location?: string | null
+          rsvp_link?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spark_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spark_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
         ]
