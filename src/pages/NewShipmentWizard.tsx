@@ -92,8 +92,7 @@ const NewShipmentWizard = () => {
 
   // Step 3: Compliance
   const [compliance, setCompliance] = useState<ComplianceData>({
-    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
-    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+    ...EMPTY_COMPLIANCE,
   });
 
   // Step 4: Rate selection

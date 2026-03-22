@@ -4,7 +4,7 @@ import { WizardShell } from "@/components/wizard/WizardShell";
 import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
 import { PartiesStep, type PartiesData, emptyParty } from "@/components/wizard/steps/PartiesStep";
 import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ComplianceStep, type ComplianceData, EMPTY_COMPLIANCE } from "@/components/wizard/steps/ComplianceStep";
 import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
