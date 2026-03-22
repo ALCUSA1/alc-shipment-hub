@@ -87,7 +87,7 @@ export function ReviewStep({ overview, parties, cargo, compliance, companies }: 
           <h4 className="text-sm font-semibold text-foreground">Compliance & Insurance</h4>
           <Row label="Exporter (USPPI)" value={compliance.exporterName} />
           <Row label="EIN" value={compliance.exporterEin} />
-          <Row label="AES Citation" value={compliance.aesType} />
+          <Row label="AES Citation" value={compliance.eeiExemptionCitation} />
           <Row label="Insurance" value={compliance.insuranceProvider} />
           <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />
         </div>

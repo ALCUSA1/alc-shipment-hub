@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
 import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ComplianceStep, type ComplianceData, type AutoFillSource, EMPTY_COMPLIANCE } from "@/components/wizard/steps/ComplianceStep";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,8 +92,7 @@ const NewShipmentWizard = () => {
 
   // Step 3: Compliance
   const [compliance, setCompliance] = useState<ComplianceData>({
-    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
-    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+    ...EMPTY_COMPLIANCE,
   });
 
   // Step 4: Rate selection
@@ -114,7 +113,7 @@ const NewShipmentWizard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name")
+        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -249,28 +248,32 @@ const NewShipmentWizard = () => {
       );
 
       // Insert customs filing if compliance data provided
-      if (compliance.exporterName || compliance.exporterEin || compliance.aesType) {
+      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation) {
         await supabase.from("customs_filings").insert({
           shipment_id: shipmentId,
           user_id: user.id,
           exporter_name: compliance.exporterName || null,
           exporter_ein: compliance.exporterEin || null,
-          aes_citation: compliance.aesType || null,
-          port_of_export: overview.originPort || null,
-          port_of_unlading: overview.destinationPort || null,
+          aes_citation: compliance.eeiExemptionCitation || null,
+          consignee_name: compliance.consigneeName || null,
+          consignee_address: compliance.consigneeAddress || null,
+          port_of_export: compliance.portOfExport || overview.originPort || null,
+          port_of_unlading: compliance.portOfUnlading || overview.destinationPort || null,
+          country_of_destination: compliance.countryOfDestination || null,
+          mode_of_transport: compliance.methodOfTransportation || null,
           status: "draft",
         });
       }
 
       // Submit compliance review for admin approval
-      if (compliance.exporterName || compliance.exporterEin || compliance.aesType || compliance.insuranceProvider) {
+      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation || compliance.insuranceProvider) {
         await supabase.from("compliance_reviews").insert({
           shipment_id: shipmentId,
           user_id: user.id,
           exporter_name: compliance.exporterName || null,
           exporter_ein: compliance.exporterEin || null,
-          aes_type: compliance.aesType || null,
-          export_license: compliance.exportLicense || null,
+          aes_type: compliance.eeiExemptionCitation || null,
+          export_license: compliance.eeiExemptionCitation || null,
           insurance_provider: compliance.insuranceProvider || null,
           insurance_policy: compliance.insurancePolicy || null,
           insurance_coverage: compliance.insuranceCoverage || null,
@@ -449,10 +452,27 @@ const NewShipmentWizard = () => {
         )}
 
         {/* ── Step 3: Customs & Compliance ── */}
-        {step === 3 && (
+        {step === 3 && (() => {
+          const selectedCompany = companies.find((c: any) => c.id === overview.companyId);
+          const autoFill: AutoFillSource = {
+            originPort: overview.originPort,
+            destinationPort: overview.destinationPort,
+            carrier: selectedRate?.carrier,
+            containerType: cargo.containerType,
+            shipmentType: overview.shipmentType,
+            companyName: selectedCompany?.company_name,
+            companyEin: selectedCompany?.ein,
+            companyAddress: selectedCompany ? [selectedCompany.address, selectedCompany.city, selectedCompany.state, selectedCompany.zip, selectedCompany.country].filter(Boolean).join(", ") : undefined,
+            companyContactName: selectedCompany?.company_contact_name,
+            companyPhone: selectedCompany?.phone,
+            companyEmail: selectedCompany?.email,
+            insuranceProvider: selectedCompany?.cargo_insurance_provider,
+            insurancePolicy: selectedCompany?.cargo_insurance_policy,
+          };
+          return (
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} />
+              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} />
               <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
                 <p className="text-xs text-muted-foreground">
                   <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
@@ -461,7 +481,8 @@ const NewShipmentWizard = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+          );
+        })()}
 
         {/* ── Step 4: Review & Confirm ── */}
         {step === 4 && (
@@ -490,15 +511,19 @@ const NewShipmentWizard = () => {
                 <Row label="Value" value={cargo.totalValue ? `$${Number(cargo.totalValue).toLocaleString()}` : undefined} />
               </div>
 
-              {(compliance.exporterName || compliance.aesType || compliance.insuranceProvider) && (
+              {(compliance.exporterName || compliance.eeiExemptionCitation || compliance.insuranceProvider) && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Shield className="h-4 w-4 text-accent" /> Customs & Compliance
                   </h4>
                   <Row label="Exporter (USPPI)" value={compliance.exporterName} />
                   <Row label="EIN" value={compliance.exporterEin} />
-                  <Row label="AES Citation" value={compliance.aesType} />
-                  <Row label="Export License" value={compliance.exportLicense} />
+                  <Row label="Consignee" value={compliance.consigneeName} />
+                  <Row label="Port of Export" value={compliance.portOfExport} />
+                  <Row label="Port of Unlading" value={compliance.portOfUnlading} />
+                  <Row label="Method of Transport" value={compliance.methodOfTransportation} />
+                  <Row label="Exporting Carrier" value={compliance.exportingCarrier} />
+                  <Row label="EEI Citation" value={compliance.eeiExemptionCitation} />
                   <Row label="Insurance" value={compliance.insuranceProvider} />
                   <Row label="Policy #" value={compliance.insurancePolicy} />
                   <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />

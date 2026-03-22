@@ -4,7 +4,7 @@ import { WizardShell } from "@/components/wizard/WizardShell";
 import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
 import { PartiesStep, type PartiesData, emptyParty } from "@/components/wizard/steps/PartiesStep";
 import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData } from "@/components/wizard/steps/ComplianceStep";
+import { ComplianceStep, type ComplianceData, EMPTY_COMPLIANCE } from "@/components/wizard/steps/ComplianceStep";
 import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,8 +85,7 @@ const NewQuote = () => {
     unitValue: "", totalValue: "", countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
   });
   const [complianceData, setComplianceData] = useState<ComplianceData>({
-    exporterEin: "", exporterName: "", aesType: "", exportLicense: "",
-    insuranceProvider: "", insurancePolicy: "", insuranceCoverage: "",
+    ...EMPTY_COMPLIANCE,
   });
 
   // Quote-specific
@@ -220,7 +219,7 @@ const NewQuote = () => {
         await supabase.from("customs_filings").insert({
           shipment_id: shipment.id, user_id: user.id,
           exporter_name: complianceData.exporterName || null, exporter_ein: complianceData.exporterEin || null,
-          aes_citation: complianceData.aesType || null, consignee_name: partiesData.consignee.companyName || null,
+           aes_citation: complianceData.eeiExemptionCitation || null, consignee_name: partiesData.consignee.companyName || null,
           consignee_address: partiesData.consignee.address || null,
           port_of_export: overview.originPort || null, port_of_unlading: overview.destinationPort || null,
         });
@@ -316,7 +315,7 @@ const NewQuote = () => {
         await supabase.from("customs_filings").insert({
           shipment_id: shipment.id, user_id: user.id,
           exporter_name: complianceData.exporterName || null, exporter_ein: complianceData.exporterEin || null,
-          aes_citation: complianceData.aesType || null, consignee_name: partiesData.consignee.companyName || null,
+          aes_citation: complianceData.eeiExemptionCitation || null, consignee_name: partiesData.consignee.companyName || null,
           consignee_address: partiesData.consignee.address || null,
           port_of_export: overview.originPort || null, port_of_unlading: overview.destinationPort || null,
         });
