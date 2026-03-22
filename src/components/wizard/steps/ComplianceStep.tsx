@@ -151,7 +151,7 @@ function Field({ label, auto, children, className, error }: { label: string; aut
   );
 }
 
-export function ComplianceStep({ data, onChange, autoFillSource }: ComplianceStepProps) {
+export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: ComplianceStepProps) {
   const set = (field: keyof ComplianceData, value: string) =>
     onChange({ ...data, [field]: value });
 
