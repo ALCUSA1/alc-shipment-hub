@@ -104,6 +104,11 @@ const NewShipmentWizard = () => {
   const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
   const [expandedRateId, setExpandedRateId] = useState<string | null>(null);
 
+  // Validation state
+  const [stepErrors, setStepErrors] = useState<ValidationErrors>({});
+  const [gatingIssues, setGatingIssues] = useState<GatingIssue[]>([]);
+  const [attemptedNext, setAttemptedNext] = useState(false);
+
   // Queries
   const { data: ports = [] } = useQuery({
     queryKey: ["ports"],
@@ -118,7 +123,7 @@ const NewShipmentWizard = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy")
+        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy, fmc_license_status, fmc_license_expiry, cargo_insurance_expiry, sam_expiry, general_liability_expiry")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -145,21 +150,79 @@ const NewShipmentWizard = () => {
     ? rates.reduce((best, r) => getTotalRate(r) < getTotalRate(best) ? r : best, rates[0]).id
     : null;
 
-  // Step validation
-  const canProceed = (() => {
-    if (step === 0) return !!(overview.originPort && overview.destinationPort);
-    if (step === 1) return !!(cargo.containerType);
-    if (step === 2) return !!selectedRate; // Select Rate
-    if (step === 3) return true; // Compliance is optional but encouraged
-    if (step === 4) return true;
-    return false;
-  })();
+  // Selected company for gating checks
+  const selectedCompany = companies.find((c: any) => c.id === overview.companyId) as (CompanyCredentials & Record<string, any>) | undefined;
+
+  // Validate current step
+  const validateCurrentStep = (): boolean => {
+    let result: { valid: boolean; errors: ValidationErrors };
+    switch (step) {
+      case 0:
+        result = validateStep(overviewSchema, overview);
+        break;
+      case 1:
+        result = validateStep(cargoSchema, cargo);
+        break;
+      case 2:
+        // Rate selection — no zod, just need a rate selected (or skip)
+        return !!selectedRate || rates.length === 0;
+      case 3:
+        result = validateStep(complianceSchema, compliance);
+        break;
+      default:
+        return true;
+    }
+    setStepErrors(result.errors);
+    return result.valid;
+  };
+
+  // Check compliance gating when company changes
+  const updateGating = () => {
+    if (selectedCompany) {
+      const issues = checkComplianceGating(selectedCompany);
+      setGatingIssues(issues);
+      return issues;
+    }
+    setGatingIssues([]);
+    return [];
+  };
+
+  const hasBlockingGating = gatingIssues.some(i => i.severity === "error");
 
   const handleNext = () => {
-    if (step < STEPS.length - 1) setStep(step + 1);
-    if (step === 4) handleSubmit();
+    setAttemptedNext(true);
+
+    // Validate current step
+    if (!validateCurrentStep()) {
+      toast({ title: "Please fix the errors below", description: "Required fields are missing or have invalid values.", variant: "destructive" });
+      return;
+    }
+
+    // On step 0, check compliance gating for selected company
+    if (step === 0) {
+      const issues = updateGating();
+      if (issues.some(i => i.severity === "error")) {
+        toast({ title: "Compliance issue detected", description: "The selected customer has expired credentials. Please resolve before proceeding.", variant: "destructive" });
+        return;
+      }
+    }
+
+    // Clear errors on successful validation
+    setStepErrors({});
+    setAttemptedNext(false);
+
+    if (step === 4) {
+      handleSubmit();
+    } else {
+      setStep(step + 1);
+    }
   };
-  const handlePrev = () => { if (step > 0) setStep(step - 1); };
+
+  const handlePrev = () => {
+    setStepErrors({});
+    setAttemptedNext(false);
+    if (step > 0) setStep(step - 1);
+  };
 
   // Save as quote — create draft shipment first (quotes require shipment_id)
   const handleSaveAsQuote = async () => {
