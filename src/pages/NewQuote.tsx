@@ -315,7 +315,7 @@ const NewQuote = () => {
         await supabase.from("customs_filings").insert({
           shipment_id: shipment.id, user_id: user.id,
           exporter_name: complianceData.exporterName || null, exporter_ein: complianceData.exporterEin || null,
-          aes_citation: complianceData.aesType || null, consignee_name: partiesData.consignee.companyName || null,
+          aes_citation: complianceData.eeiExemptionCitation || null, consignee_name: partiesData.consignee.companyName || null,
           consignee_address: partiesData.consignee.address || null,
           port_of_export: overview.originPort || null, port_of_unlading: overview.destinationPort || null,
         });
