@@ -222,11 +222,11 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wide">1. U.S. Principal Party in Interest (USPPI)</h4>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="USPPI Name" auto={isAuto("exporterName")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterName} onChange={(e) => set("exporterName", e.target.value)} placeholder="Legal entity name" />
+          <Field label="USPPI Name *" auto={isAuto("exporterName")} error={errors.exporterName}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterName ? "border-destructive" : ""}`} value={data.exporterName} onChange={(e) => set("exporterName", e.target.value)} placeholder="Legal entity name" />
           </Field>
-          <Field label="USPPI EIN (IRS) or ID Number" auto={isAuto("exporterEin")}>
-            <Input className="mt-1 h-8 text-xs" value={data.exporterEin} onChange={(e) => set("exporterEin", e.target.value)} placeholder="XX-XXXXXXX" />
+          <Field label="USPPI EIN (IRS) or ID Number *" auto={isAuto("exporterEin")} error={errors.exporterEin}>
+            <Input className={`mt-1 h-8 text-xs ${errors.exporterEin ? "border-destructive" : ""}`} value={data.exporterEin} onChange={(e) => set("exporterEin", e.target.value)} placeholder="XX-XXXXXXX" />
           </Field>
         </div>
         <Field label="USPPI Address" auto={isAuto("exporterAddress")}>
