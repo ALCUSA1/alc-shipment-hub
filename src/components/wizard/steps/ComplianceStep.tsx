@@ -231,7 +231,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
           </Field>
         </div>
         <Field label="USPPI Address *" auto={isAuto("exporterAddress")} error={errors.exporterAddress}>
-          <Input className={`mt-1 h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
+          <AddressAutocomplete value={data.exporterAddress} onChange={(v) => set("exporterAddress", v)} placeholder="Street, City, State, ZIP, Country" className={`h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} />
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Contact Name" auto={isAuto("exporterContactName")}>
