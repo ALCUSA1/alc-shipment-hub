@@ -1,44 +1,41 @@
 
-# Unified Shipment Flow — Implemented
 
-## What Was Built
+## Fix Documents Page: Add Category-Based Organization
 
-A 5-step guided wizard at `/dashboard/shipments/new` replacing the quote-first flow:
+### Problem
+The Documents page currently shows a flat grid of document cards with no categorization. Users need documents organized by category for quick navigation.
 
-1. **Route & Basics** — Origin/destination ports, shipment type, incoterms, customer (optional)
-2. **Cargo** — Container type/count, commodity, weight, dimensions, value
-3. **Select Rate** — Matching carrier rates inline with "Book Now" or "Save as Quote" fork
-4. **Customs & Compliance** — AES filing, insurance, exporter details with 3-layer validation
-5. **Review & Confirm** — Summary of route, cargo, rate, documents to generate
-6. **Booking Created** — Success screen with next actions
+### Categories
+Based on the uploaded reference and existing doc types in the codebase:
 
-### Container ↔ Commodity Tracking (Implemented)
+| Category | Doc Types |
+|----------|-----------|
+| **Invoicing** | `commercial_invoice` |
+| **Bills of Lading & Waybills** | `bill_of_lading`, `seaway_bill`, `mawb`, `hawb` |
+| **Insurance & Company** | `insurance_certificate`, `known_shipper_declaration`, `certificate_of_origin`, `cargo_manifest` |
+| **AES / Customs** | `customs_declaration`, `aes_filing`, `dg_declaration_air` |
+| **Shipping Instructions** | `packing_list`, `shipper_letter_of_instruction`, `dock_receipt` |
 
-Each cargo line can now be assigned to a specific container via a dropdown in the workspace `CargoSection`. The system:
-- Shows a **Container Contents** collapsible under each container card listing assigned commodities (HS code, weight, volume)
-- Persists assignments to `container_commodities` table on booking
-- Auto-assigns cargo to the container when only one container exists (wizard flow)
-- Fetches `container_commodities` in `ShipmentDetail` for display
+### Changes
 
-### Key UX Changes
-- "New Shipment" is the primary CTA on the dashboard (electric button)
-- "New Quote" is still accessible as a secondary action
-- Welcome cards: Add Customer → Create Shipment → Track & Deliver
-- Fork at Step 3 lets forwarders save as quote, direct shippers book immediately
-- Pre-fill support via URL params (`?origin=XXX&destination=YYY&container=ZZZ&mode=MMM`)
-- 3-layer validation: field-level (Zod), compliance gating, admin approval workflow
+**`src/pages/Documents.tsx`** — Full redesign:
+- Define a `DOC_CATEGORIES` mapping that groups doc types into named categories with icons
+- Add tab-based or accordion-based category navigation at the top
+- Filter documents by selected category
+- Add a count badge per category showing how many documents exist
+- Add a human-readable label map (reuse `DOC_TYPE_LABELS` from `DocumentChecklist.tsx`)
+- Include an "All" tab to show everything (default view)
 
-### Files
-| Action | File |
-|--------|------|
-| Created | `src/pages/NewShipmentWizard.tsx` |
-| Created | `src/lib/wizard-validation.ts` |
-| Created | `src/components/workspace/sections/cargo/ContainerCard.tsx` |
-| Created | `src/components/workspace/sections/cargo/CargoLineCard.tsx` |
-| Modified | `src/lib/shipment-dataset.ts` — Added `containerId` to `CargoLine` |
-| Modified | `src/components/workspace/sections/CargoSection.tsx` — Refactored into sub-components, added container assignment + contents view |
-| Modified | `src/pages/ShipmentDetail.tsx` — Fetches `container_commodities` |
-| Modified | `src/pages/Dashboard.tsx` — New CTA + updated welcome cards |
-| Modified | `src/App.tsx` — Route swap to NewShipmentWizard |
-| Preserved | `src/pages/NewShipment.tsx` — Full workspace still available for editing |
-| Preserved | `src/pages/NewQuote.tsx` — Quote flow unchanged |
+### Technical details
+- Extract `DOC_TYPE_LABELS` into a shared constant in `src/lib/document-types.ts` so both `DocumentChecklist` and `Documents` page can use it
+- Use existing `Tabs` component from the UI library for category switching
+- No database or schema changes needed — categorization is purely client-side grouping by `doc_type`
+
+### Files to create
+- `src/lib/document-types.ts` — shared labels and category mapping
+
+### Files to modify
+- `src/pages/Documents.tsx` — add category tabs and grouped display
+- `src/components/shipment/DocumentChecklist.tsx` — import labels from shared file
+- `src/pages/admin/AdminDocuments.tsx` — import doc type labels from shared file
+
