@@ -343,7 +343,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
 
         {/* Sticky Price Sidebar — hidden on mobile */}
         <div className="hidden lg:block">
-          <PriceSummarySidebar selectedRate={selectedRate || null} containerSize={containerSize} />
+          <PriceSummarySidebar selectedRate={selectedRate || null} containerSize={containerSize} origin={origin} destination={destination} mode={mode} />
         </div>
       </div>
 

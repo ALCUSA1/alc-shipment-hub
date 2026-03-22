@@ -76,10 +76,12 @@ const NewShipmentWizard = () => {
   // Pre-fill from rate search URL params
   const prefillOrigin = searchParams.get("origin") || "";
   const prefillDest = searchParams.get("destination") || "";
+  const prefillContainer = searchParams.get("container") || "40hc";
+  const prefillMode = searchParams.get("mode") || "";
 
   // Step 1: Overview
   const [overview, setOverview] = useState<OverviewData>({
-    shipmentType: "export",
+    shipmentType: prefillMode === "air" ? "export" : "export",
     originPort: prefillOrigin,
     destinationPort: prefillDest,
     pickupLocation: "",
@@ -92,7 +94,7 @@ const NewShipmentWizard = () => {
   const [cargo, setCargo] = useState<CargoData>({
     commodity: "", hsCode: "", numPackages: "", packageType: "",
     grossWeight: "", volume: "", unitValue: "", totalValue: "",
-    countryOfOrigin: "", containerType: "40hc", containerQuantity: "1",
+    countryOfOrigin: "", containerType: prefillContainer, containerQuantity: "1",
   });
 
   // Step 3: Compliance
