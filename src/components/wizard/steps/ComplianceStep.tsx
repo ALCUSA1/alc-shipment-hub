@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { AddressAutocomplete, type StructuredAddress } from "@/components/shared/AddressAutocomplete";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -230,7 +231,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
           </Field>
         </div>
         <Field label="USPPI Address *" auto={isAuto("exporterAddress")} error={errors.exporterAddress}>
-          <Input className={`mt-1 h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} value={data.exporterAddress} onChange={(e) => set("exporterAddress", e.target.value)} placeholder="Street, City, State, ZIP, Country" />
+          <AddressAutocomplete value={data.exporterAddress} onChange={(v) => set("exporterAddress", v)} placeholder="Street, City, State, ZIP, Country" className={`h-8 text-xs ${errors.exporterAddress ? "border-destructive" : ""}`} />
         </Field>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Contact Name" auto={isAuto("exporterContactName")}>
@@ -262,7 +263,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
           </Field>
         </div>
         <Field label="Consignee Address *" error={errors.consigneeAddress}>
-          <Input className={`mt-1 h-8 text-xs ${errors.consigneeAddress ? "border-destructive" : ""}`} value={data.consigneeAddress} onChange={(e) => set("consigneeAddress", e.target.value)} placeholder="Full address including country code" />
+          <AddressAutocomplete value={data.consigneeAddress} onChange={(v) => set("consigneeAddress", v)} placeholder="Full address including country code" className={`h-8 text-xs ${errors.consigneeAddress ? "border-destructive" : ""}`} />
         </Field>
       </div>
 
@@ -286,7 +287,7 @@ export function ComplianceStep({ data, onChange, autoFillSource, errors = {} }: 
               </Field>
             </div>
             <Field label="Agent Address">
-              <Input className="mt-1 h-8 text-xs" value={data.agentAddress} onChange={(e) => set("agentAddress", e.target.value)} />
+              <AddressAutocomplete value={data.agentAddress} onChange={(v) => set("agentAddress", v)} className="h-8 text-xs" />
             </Field>
           </div>
         )}

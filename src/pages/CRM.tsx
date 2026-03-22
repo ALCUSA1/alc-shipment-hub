@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AddressAutocomplete, type StructuredAddress } from "@/components/shared/AddressAutocomplete";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -252,7 +253,7 @@ const CRM = () => {
                 <Separator />
                 <h3 className="text-sm font-medium text-foreground">Address</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><Label>Street</Label><Input value={selected.address} onChange={e => setSelected(s => s ? { ...s, address: e.target.value } : s)} className="mt-1" /></div>
+                  <div className="md:col-span-2"><Label>Street</Label><AddressAutocomplete value={selected.address || ""} onChange={v => setSelected(s => s ? { ...s, address: v } : s)} onAddressSelect={(addr) => setSelected(s => s ? { ...s, address: addr.street, city: addr.city, state: addr.state, zip: addr.postalCode, country: addr.country } : s)} placeholder="Search address..." /></div>
                   <div><Label>City</Label><Input value={selected.city} onChange={e => setSelected(s => s ? { ...s, city: e.target.value } : s)} className="mt-1" /></div>
                   <div><Label>State</Label><Input value={selected.state} onChange={e => setSelected(s => s ? { ...s, state: e.target.value } : s)} className="mt-1" /></div>
                   <div><Label>ZIP</Label><Input value={selected.zip} onChange={e => setSelected(s => s ? { ...s, zip: e.target.value } : s)} className="mt-1" /></div>
@@ -396,7 +397,7 @@ const CRM = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div><Label>Billing Email</Label><Input value={selected.billing_email} onChange={e => setSelected(s => s ? { ...s, billing_email: e.target.value } : s)} className="mt-1" /></div>
-                  <div className="md:col-span-2"><Label>Billing Address</Label><Textarea value={selected.billing_address} onChange={e => setSelected(s => s ? { ...s, billing_address: e.target.value } : s)} className="mt-1" rows={2} /></div>
+                  <div className="md:col-span-2"><Label>Billing Address</Label><AddressAutocomplete value={selected.billing_address || ""} onChange={v => setSelected(s => s ? { ...s, billing_address: v } : s)} placeholder="Search billing address..." /></div>
                   <div>
                     <Label>Credit Terms</Label>
                     <Select value={selected.credit_terms} onValueChange={v => setSelected(s => s ? { ...s, credit_terms: v } : s)}>

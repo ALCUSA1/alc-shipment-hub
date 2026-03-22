@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AddressAutocomplete } from "@/components/shared/AddressAutocomplete";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -130,7 +131,7 @@ export function AssignDriverDialog({
 
           <div>
             <Label>Pickup Address</Label>
-            <Input value={form.pickup_address} onChange={(e) => update("pickup_address", e.target.value)} className="mt-1" />
+            <AddressAutocomplete value={form.pickup_address} onChange={(v) => update("pickup_address", v)} placeholder="Search pickup address..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -145,7 +146,7 @@ export function AssignDriverDialog({
 
           <div>
             <Label>Delivery Address</Label>
-            <Input value={form.delivery_address} onChange={(e) => update("delivery_address", e.target.value)} className="mt-1" />
+            <AddressAutocomplete value={form.delivery_address} onChange={(v) => update("delivery_address", v)} placeholder="Search delivery address..." />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
