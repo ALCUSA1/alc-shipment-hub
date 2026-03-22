@@ -97,7 +97,7 @@ const ComplianceReviewPanel = () => {
         .eq("id", dialogId);
       if (error) throw error;
       toast.success(
-        dialogAction === "rejected"
+        dialogAction === "reject"
           ? "Compliance review rejected"
           : "More information requested from user"
       );

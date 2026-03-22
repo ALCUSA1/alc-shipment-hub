@@ -83,6 +83,14 @@ const AdminCompliance = () => {
         <p className="text-sm text-[hsl(220,10%,50%)]">FMC licenses, bonds, insurance, customs filings across all customers</p>
       </div>
 
+      {/* Compliance Review Approvals */}
+      <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5 mb-6">
+        <h2 className="text-sm font-semibold text-white mb-4">Shipment Compliance Reviews</h2>
+        <ComplianceReviewPanel />
+      </div>
+
+      <Separator className="mb-6 bg-[hsl(220,15%,15%)]" />
+
       <div className="grid sm:grid-cols-4 gap-4 mb-6">
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">Companies Shown</p>
