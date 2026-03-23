@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, ArrowRightLeft } from "lucide-react";
 import type { CargoLine, ContainerLine } from "@/lib/shipment-dataset";
+import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
 import { PACKAGE_TYPES, RATE_CLASSES } from "../CargoSection";
 
 interface Props {
