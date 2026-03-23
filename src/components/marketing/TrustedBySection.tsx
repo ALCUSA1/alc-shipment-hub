@@ -94,10 +94,10 @@ export function TrustedBySection() {
                 Industry Partners
               </span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
               Trusted by global trade leaders
             </h3>
-            <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
+            <p className="text-sm text-white/50 mt-3 max-w-lg mx-auto">
               Ship with the world's leading carriers and commodity traders — all through one platform
             </p>
           </div>
