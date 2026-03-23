@@ -1945,6 +1945,42 @@ export type Database = {
         }
         Relationships: []
       }
+      hs_code_reference: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          description: string
+          duty_rate: string | null
+          id: string
+          indent: number
+          special_rate: string | null
+          unit_of_quantity: string | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          description?: string
+          duty_rate?: string | null
+          id?: string
+          indent?: number
+          special_rate?: string | null
+          unit_of_quantity?: string | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string
+          duty_rate?: string | null
+          id?: string
+          indent?: number
+          special_rate?: string | null
+          unit_of_quantity?: string | null
+        }
+        Relationships: []
+      }
       hs_codes: {
         Row: {
           category: string | null
