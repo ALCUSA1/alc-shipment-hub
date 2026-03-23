@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
 import type { ValidationErrors } from "@/lib/wizard-validation";
 
 export interface CargoData {
