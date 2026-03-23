@@ -1945,6 +1945,45 @@ export type Database = {
         }
         Relationships: []
       }
+      hs_codes: {
+        Row: {
+          category: string | null
+          code: string
+          country_notes: string | null
+          created_at: string
+          description: string
+          duty_rate: string | null
+          id: string
+          updated_at: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          country_notes?: string | null
+          created_at?: string
+          description?: string
+          duty_rate?: string | null
+          id?: string
+          updated_at?: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          country_notes?: string | null
+          created_at?: string
+          description?: string
+          duty_rate?: string | null
+          id?: string
+          updated_at?: string
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_type: string
