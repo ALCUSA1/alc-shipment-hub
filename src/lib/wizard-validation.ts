@@ -18,7 +18,7 @@ export const cargoSchema = z.object({
     .refine(v => !v || (Number(v) > 0 && Number.isInteger(Number(v))), "Must be a positive whole number"),
   commodity: z.string().min(1, "Commodity description is required"),
   hsCode: z.string().optional()
-    .refine(v => !v || /^[0-9]{4}(\.[0-9]{1,6})?$/.test(v), "HS code format: XXXX or XXXX.XX"),
+    .refine(v => !v || /^[0-9]{4}(\.[0-9]{1,4}){0,3}$/.test(v), "HS code format: e.g. 6309, 6309.00, 6309.00.00"),
   numPackages: z.string().optional()
     .refine(v => !v || Number(v) > 0, "Must be a positive number"),
   packageType: z.string().optional(),
