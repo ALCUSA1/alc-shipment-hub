@@ -41,7 +41,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
         {doubled.map((item, i) => (
           <div
             key={`${item.name}-${i}`}
-            className="flex items-center gap-3 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-foreground/20 hover:bg-foreground/10"
+            className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10"
           >
             <img
               src={item.logo}
@@ -49,7 +49,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
               className="h-6 w-6 object-contain md:h-8 md:w-8"
               loading="lazy"
             />
-            <span className="whitespace-nowrap text-xs font-semibold text-foreground/60 transition-colors duration-300 hover:text-foreground/90 md:text-sm">
+            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
               {item.name}
             </span>
           </div>
@@ -61,7 +61,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
         {doubled.map((item, i) => (
           <div
             key={`${item.name}-dup-${i}`}
-            className="flex items-center gap-3 rounded-full border border-foreground/10 bg-foreground/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-foreground/20 hover:bg-foreground/10"
+            className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10"
           >
             <img
               src={item.logo}
@@ -69,7 +69,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
               className="h-6 w-6 object-contain md:h-8 md:w-8"
               loading="lazy"
             />
-            <span className="whitespace-nowrap text-xs font-semibold text-foreground/60 transition-colors duration-300 hover:text-foreground/90 md:text-sm">
+            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
               {item.name}
             </span>
           </div>
@@ -81,7 +81,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
 
 export function TrustedBySection() {
   return (
-    <section className="relative py-20 px-6 overflow-hidden bg-[hsl(220,10%,70%)]">
+    <section className="relative py-20 px-6 overflow-hidden bg-[hsl(220,12%,14%)]">
       {/* Subtle radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(217,95%,58%,0.04),transparent_70%)]" />
 
@@ -94,10 +94,10 @@ export function TrustedBySection() {
                 Industry Partners
               </span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
               Trusted by global trade leaders
             </h3>
-            <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
+            <p className="text-sm text-white/50 mt-3 max-w-lg mx-auto">
               Ship with the world's leading carriers and commodity traders — all through one platform
             </p>
           </div>
@@ -110,8 +110,8 @@ export function TrustedBySection() {
       </div>
 
       {/* Top/bottom border gradients */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
     </section>
   );
 }
