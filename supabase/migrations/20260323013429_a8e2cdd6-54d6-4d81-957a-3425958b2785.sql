@@ -1,0 +1,1 @@
+CREATE POLICY "Ports are viewable by everyone" ON public.ports FOR SELECT TO anon USING (true);
