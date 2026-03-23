@@ -1,20 +1,31 @@
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { Star } from "lucide-react";
 
+import maerskLogo from "@/assets/logos/maersk.png";
+import cmaCgmLogo from "@/assets/logos/cma-cgm.png";
+import kuehneNagelLogo from "@/assets/logos/kuehne-nagel.png";
+import dhlLogo from "@/assets/logos/dhl.png";
+import cargillLogo from "@/assets/logos/cargill.png";
+import cofcoLogo from "@/assets/logos/cofco.png";
+import dbSchenkerLogo from "@/assets/logos/db-schenker.png";
+import hapagLloydLogo from "@/assets/logos/hapag-lloyd.png";
+import expeditorsLogo from "@/assets/logos/expeditors.png";
+import mscLogo from "@/assets/logos/msc.png";
+
 const row1 = [
-  { name: "Maersk", logo: "https://logo.clearbit.com/maersk.com" },
-  { name: "CMA CGM", logo: "https://logo.clearbit.com/cma-cgm.com" },
-  { name: "Kuehne+Nagel", logo: "https://logo.clearbit.com/kuehne-nagel.com" },
-  { name: "DHL Global Forwarding", logo: "https://logo.clearbit.com/dhl.com" },
-  { name: "Cargill", logo: "https://logo.clearbit.com/cargill.com" },
+  { name: "Maersk", logo: maerskLogo },
+  { name: "CMA CGM", logo: cmaCgmLogo },
+  { name: "Kuehne+Nagel", logo: kuehneNagelLogo },
+  { name: "DHL Global Forwarding", logo: dhlLogo },
+  { name: "Cargill", logo: cargillLogo },
 ];
 
 const row2 = [
-  { name: "COFCO", logo: "https://logo.clearbit.com/cofcointernational.com" },
-  { name: "DB Schenker", logo: "https://logo.clearbit.com/dbschenker.com" },
-  { name: "Hapag-Lloyd", logo: "https://logo.clearbit.com/hapag-lloyd.com" },
-  { name: "Expeditors", logo: "https://logo.clearbit.com/expeditors.com" },
-  { name: "MSC", logo: "https://logo.clearbit.com/msc.com" },
+  { name: "COFCO", logo: cofcoLogo },
+  { name: "DB Schenker", logo: dbSchenkerLogo },
+  { name: "Hapag-Lloyd", logo: hapagLloydLogo },
+  { name: "Expeditors", logo: expeditorsLogo },
+  { name: "MSC", logo: mscLogo },
 ];
 
 function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: boolean }) {
@@ -35,7 +46,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
             <img
               src={item.logo}
               alt={item.name}
-              className="h-6 w-6 object-contain grayscale transition-all duration-300 group-hover:grayscale-0 md:h-8 md:w-8"
+              className="h-6 w-6 object-contain md:h-8 md:w-8"
               loading="lazy"
             />
             <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
@@ -55,7 +66,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
             <img
               src={item.logo}
               alt={item.name}
-              className="h-6 w-6 object-contain grayscale transition-all duration-300 group-hover:grayscale-0 md:h-8 md:w-8"
+              className="h-6 w-6 object-contain md:h-8 md:w-8"
               loading="lazy"
             />
             <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
