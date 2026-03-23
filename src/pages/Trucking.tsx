@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Truck, MapPin, Calendar, Package, DollarSign, User, Clock } from "lucide-react";
-
+import { useState } from "react";
 
 const statusStyle: Record<string, string> = {
   available: "bg-accent/10 text-accent border-accent/20",
@@ -21,8 +21,11 @@ const statusStyle: Record<string, string> = {
 
 const formatStatus = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+type FilterType = "all" | "active" | "accepted" | "pending";
+
 const Trucking = () => {
   const { user } = useAuth();
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["trucking-quotes-dashboard", user?.id],
@@ -61,6 +64,35 @@ const Trucking = () => {
     pending: quotes.filter((q: any) => ["available", "submitted", "accepted_by_carrier"].includes(q.status)).length,
   };
 
+  const getFilteredQuotes = () => {
+    switch (activeFilter) {
+      case "active":
+        return activeQuotes;
+      case "accepted":
+        return quotes.filter((q: any) => q.status === "accepted");
+      case "pending":
+        return quotes.filter((q: any) => ["available", "submitted", "accepted_by_carrier"].includes(q.status));
+      default:
+        return activeQuotes;
+    }
+  };
+
+  const filteredQuotes = getFilteredQuotes();
+
+  const filterLabel: Record<FilterType, string> = {
+    all: "Active pickup and delivery requests",
+    active: "Active pickup and delivery requests",
+    accepted: "Accepted trucking quotes",
+    pending: "Pending trucking quotes (available, submitted, awaiting carrier)",
+  };
+
+  const statCards: { label: string; value: number; icon: any; filter: FilterType }[] = [
+    { label: "Total Quotes", value: stats.total, icon: Truck, filter: "all" },
+    { label: "Active", value: stats.active, icon: Clock, filter: "active" },
+    { label: "Accepted", value: stats.accepted, icon: Package, filter: "accepted" },
+    { label: "Pending", value: stats.pending, icon: DollarSign, filter: "pending" },
+  ];
+
   return (
     <DashboardLayout>
       <div className="mb-6 flex items-center gap-3">
@@ -71,15 +103,14 @@ const Trucking = () => {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — clickable to filter */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Quotes", value: stats.total, icon: Truck },
-          { label: "Active", value: stats.active, icon: Clock },
-          { label: "Accepted", value: stats.accepted, icon: Package },
-          { label: "Pending", value: stats.pending, icon: DollarSign },
-        ].map((s) => (
-          <Card key={s.label}>
+        {statCards.map((s) => (
+          <Card
+            key={s.label}
+            className={`cursor-pointer transition-all ${activeFilter === s.filter ? "ring-2 ring-accent" : "hover:shadow-md"}`}
+            onClick={() => setActiveFilter(s.filter)}
+          >
             <CardContent className="pt-5 pb-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.label}</span>
@@ -92,31 +123,30 @@ const Trucking = () => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Active Trucking Quotes */}
+        {/* Filtered Trucking Quotes */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Trucking Quotes</CardTitle>
-              <CardDescription>Active pickup and delivery requests</CardDescription>
+              <CardTitle className="text-base">
+                {activeFilter === "all" ? "Trucking Quotes" : `${formatStatus(activeFilter)} Quotes`}
+              </CardTitle>
+              <CardDescription>{filterLabel[activeFilter]}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
                 </div>
-              ) : activeQuotes.length === 0 ? (
+              ) : filteredQuotes.length === 0 ? (
                 <div className="text-center py-12">
                   <Truck className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No active trucking quotes.</p>
+                  <p className="text-sm text-muted-foreground">No {activeFilter !== "all" ? formatStatus(activeFilter).toLowerCase() : "active"} trucking quotes.</p>
                   <p className="text-xs text-muted-foreground mt-1">Trucking requests are created from the shipment detail page.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {activeQuotes.map((q: any) => (
-                    <div
-                      key={q.id}
-                      className="p-4 rounded-lg border"
-                    >
+                  {filteredQuotes.map((q: any) => (
+                    <div key={q.id} className="p-4 rounded-lg border">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <span className="text-sm font-medium text-foreground">
@@ -182,10 +212,7 @@ const Trucking = () => {
               ) : (
                 <div className="space-y-3">
                   {assignments.map((a: any) => (
-                    <div
-                      key={a.id}
-                      className="p-3 rounded-lg border"
-                    >
+                    <div key={a.id} className="p-3 rounded-lg border">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium text-foreground">{a.driver_name || "Unassigned"}</span>
                         <Badge variant="outline" className="text-[10px]">{formatStatus(a.status)}</Badge>
@@ -202,7 +229,6 @@ const Trucking = () => {
             </CardContent>
           </Card>
 
-          {/* Completed section */}
           {completedQuotes.length > 0 && (
             <Card className="mt-4">
               <CardHeader>
@@ -212,10 +238,7 @@ const Trucking = () => {
               <CardContent>
                 <div className="space-y-2">
                   {completedQuotes.slice(0, 5).map((q: any) => (
-                    <div
-                      key={q.id}
-                      className="flex items-center justify-between p-2 rounded"
-                    >
+                    <div key={q.id} className="flex items-center justify-between p-2 rounded">
                       <span className="text-sm text-muted-foreground">{(q.shipments as any)?.shipment_ref || "—"}</span>
                       <Badge className={statusStyle[q.status] || "bg-secondary"} variant="outline">
                         {formatStatus(q.status)}
