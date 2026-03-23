@@ -69,7 +69,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
               className="h-6 w-6 object-contain md:h-8 md:w-8"
               loading="lazy"
             />
-            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
+            <span className="whitespace-nowrap text-xs font-semibold text-foreground/60 transition-colors duration-300 hover:text-foreground/90 md:text-sm">
               {item.name}
             </span>
           </div>
