@@ -1,76 +1,106 @@
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 
-const logos = [
-  { name: "Maersk", initials: "MK" },
-  { name: "CMA CGM", initials: "CC" },
-  { name: "Kuehne+Nagel", initials: "KN" },
-  { name: "DHL Global Forwarding", initials: "DHL" },
-  { name: "Cargill", initials: "CG" },
-  { name: "COFCO", initials: "CO" },
-  { name: "DB Schenker", initials: "DBS" },
-  { name: "Hapag-Lloyd", initials: "HL" },
-  { name: "Expeditors", initials: "EX" },
-  { name: "MSC", initials: "MSC" },
+const row1 = [
+  { name: "Maersk", logo: "https://logo.clearbit.com/maersk.com" },
+  { name: "CMA CGM", logo: "https://logo.clearbit.com/cma-cgm.com" },
+  { name: "Kuehne+Nagel", logo: "https://logo.clearbit.com/kuehne-nagel.com" },
+  { name: "DHL Global Forwarding", logo: "https://logo.clearbit.com/dhl.com" },
+  { name: "Cargill", logo: "https://logo.clearbit.com/cargill.com" },
 ];
+
+const row2 = [
+  { name: "COFCO", logo: "https://logo.clearbit.com/cofcointernational.com" },
+  { name: "DB Schenker", logo: "https://logo.clearbit.com/dbschenker.com" },
+  { name: "Hapag-Lloyd", logo: "https://logo.clearbit.com/hapag-lloyd.com" },
+  { name: "Expeditors", logo: "https://logo.clearbit.com/expeditors.com" },
+  { name: "MSC", logo: "https://logo.clearbit.com/msc.com" },
+];
+
+function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: boolean }) {
+  const doubled = [...items, ...items];
+  return (
+    <div
+      className="group relative flex overflow-hidden py-3"
+      style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
+    >
+      <div
+        className={`flex shrink-0 gap-6 ${reverse ? "animate-scroll-reverse" : "animate-scroll"} group-hover:[animation-play-state:paused]`}
+      >
+        {doubled.map((item, i) => (
+          <div
+            key={`${item.name}-${i}`}
+            className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10"
+          >
+            <img
+              src={item.logo}
+              alt={item.name}
+              className="h-6 w-6 object-contain grayscale transition-all duration-300 group-hover:grayscale-0 md:h-8 md:w-8"
+              loading="lazy"
+            />
+            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
+              {item.name}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div
+        className={`flex shrink-0 gap-6 ${reverse ? "animate-scroll-reverse" : "animate-scroll"} group-hover:[animation-play-state:paused]`}
+      >
+        {doubled.map((item, i) => (
+          <div
+            key={`${item.name}-dup-${i}`}
+            className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10"
+          >
+            <img
+              src={item.logo}
+              alt={item.name}
+              className="h-6 w-6 object-contain grayscale transition-all duration-300 group-hover:grayscale-0 md:h-8 md:w-8"
+              loading="lazy"
+            />
+            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
+              {item.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function TrustedBySection() {
   return (
-    <section className="relative py-20 px-6 overflow-hidden bg-background">
-      {/* Decorative top border gradient */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+    <section className="relative py-20 px-6 overflow-hidden bg-[hsl(220,20%,8%)]">
+      {/* Subtle radial glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(217,95%,58%,0.06),transparent_70%)]" />
 
       <div className="container-narrow relative z-10">
         <ScrollReveal>
-          <div className="text-center mb-14">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 mb-5">
               <Star className="h-3.5 w-3.5 text-accent fill-accent" />
               <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-accent">
                 Industry Partners
               </span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
               Trusted by global trade leaders
             </h3>
-            <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto">
-              Powering logistics for the world's leading shipping, freight, and supply-chain companies
+            <p className="text-sm text-white/50 mt-3 max-w-lg mx-auto">
+              Ship with the world's leading carriers and commodity traders — all through one platform
             </p>
           </div>
         </ScrollReveal>
 
-        {/* Logo grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {logos.map((logo, i) => (
-            <motion.div
-              key={logo.name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06, duration: 0.4, ease: "easeOut" }}
-              whileHover={{ y: -4, scale: 1.03 }}
-              className="group relative"
-            >
-              <div className="relative flex flex-col items-center justify-center h-24 rounded-2xl border border-border bg-card shadow-sm overflow-hidden transition-shadow duration-500 hover:shadow-xl hover:shadow-accent/10 hover:border-accent/30">
-                {/* Accent glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-accent/0 to-accent/0 group-hover:from-accent/5 group-hover:to-transparent transition-all duration-500" />
-
-                {/* Initials badge */}
-                <div className="relative w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center mb-2 group-hover:bg-accent/20 transition-colors duration-300">
-                  <span className="text-xs font-black text-accent tracking-tight">{logo.initials}</span>
-                </div>
-
-                <span className="relative text-[11px] font-semibold text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center px-2 leading-tight">
-                  {logo.name}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+        <div className="space-y-2">
+          <MarqueeRow items={row1} />
+          <MarqueeRow items={row2} reverse />
         </div>
       </div>
 
-      {/* Decorative bottom border gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+      {/* Top/bottom border gradients */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
     </section>
   );
 }
