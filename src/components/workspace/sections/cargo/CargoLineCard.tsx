@@ -84,7 +84,7 @@ export function CargoLineCard({
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <div><Label className="text-[10px] text-muted-foreground">HS Code</Label><Input className="mt-1 h-7 text-[11px]" value={c.hsCode} onChange={(e) => onUpdate("hsCode", e.target.value)} placeholder="8471.30" /></div>
+        <div><Label className="text-[10px] text-muted-foreground">HS Code</Label><HsCodeAutocomplete value={c.hsCode} commodity={c.commodity} onChange={(v) => onUpdate("hsCode", v)} className="mt-1 h-7 text-[11px]" placeholder="8471.30" /></div>
         <div><Label className="text-[10px] text-muted-foreground">Origin</Label><Input className="mt-1 h-7 text-[11px]" value={c.countryOfOrigin} onChange={(e) => onUpdate("countryOfOrigin", e.target.value)} placeholder="US" /></div>
         <div><Label className="text-[10px] text-muted-foreground">Marks</Label><Input className="mt-1 h-7 text-[11px]" value={c.marksAndNumbers} onChange={(e) => onUpdate("marksAndNumbers", e.target.value)} /></div>
       </div>
