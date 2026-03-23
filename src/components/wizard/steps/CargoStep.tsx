@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
 import type { ValidationErrors } from "@/lib/wizard-validation";
 
 export interface CargoData {
@@ -103,7 +104,13 @@ export function CargoStep({ data, onChange, errors = {} }: CargoStepProps) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label>HS Code</Label>
-          <Input placeholder="e.g. 8471.30" className={`mt-1 ${errors.hsCode ? "border-destructive" : ""}`} value={data.hsCode} onChange={(e) => set("hsCode", e.target.value)} />
+          <HsCodeAutocomplete
+            value={data.hsCode}
+            commodity={data.commodity}
+            onChange={(v) => set("hsCode", v)}
+            className={`mt-1 ${errors.hsCode ? "border-destructive" : ""}`}
+            placeholder="e.g. 8471.30"
+          />
           <FieldError error={errors.hsCode} />
         </div>
         <div>
