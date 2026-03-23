@@ -81,7 +81,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
 
 export function TrustedBySection() {
   return (
-    <section className="relative py-20 px-6 overflow-hidden bg-[hsl(220,14%,18%)]">
+    <section className="relative py-20 px-6 overflow-hidden bg-[hsl(220,12%,25%)]">
       {/* Subtle radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(217,95%,58%,0.08),transparent_70%)]" />
 
