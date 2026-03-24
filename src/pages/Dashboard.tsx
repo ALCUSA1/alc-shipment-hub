@@ -17,6 +17,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area, CartesianGrid,
 } from "recharts";
+import { SpendingSummary } from "@/components/dashboard/SpendingSummary";
 
 const statusColor: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
