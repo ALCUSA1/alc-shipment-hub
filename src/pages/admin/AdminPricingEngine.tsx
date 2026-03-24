@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { RuleCategoryPanel } from "@/components/admin/pricing-rules/RuleCategoryPanel";
 import { SimulationPanel } from "@/components/admin/pricing-rules/SimulationPanel";
+import { AutonomousPricingPanel } from "@/components/admin/AutonomousPricingPanel";
 
 /* ─── Constants ─── */
 const SHIPMENT_TYPES = [
@@ -278,8 +279,9 @@ const AdminPricingEngine = () => {
             { value: "calculator", label: "Calculator", icon: Calculator },
             { value: "rules", label: "Margin Rules", icon: Target },
             { value: "splits", label: "Revenue Split Rules", icon: Users },
-            { value: "brain", label: "Pricing Rules Brain", icon: Brain },
+           { value: "brain", label: "Pricing Rules Brain", icon: Brain },
             { value: "simulation", label: "Simulation", icon: Play },
+            { value: "autonomous", label: "Autonomous Pricing", icon: Zap },
           ].map(tab => (
             <TabsTrigger
               key={tab.value}
@@ -837,6 +839,11 @@ const AdminPricingEngine = () => {
         {/* ── Simulation ── */}
         <TabsContent value="simulation" className="mt-0">
           <SimulationPanel />
+        </TabsContent>
+
+        {/* ── Autonomous Pricing ── */}
+        <TabsContent value="autonomous" className="mt-0">
+          <AutonomousPricingPanel />
         </TabsContent>
       </Tabs>
     </AdminLayout>

@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   GitBranch, FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3, CreditCard, Calculator
+  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3, CreditCard, Calculator, Brain
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,6 +57,7 @@ const navGroups = [
       { title: "Financials", url: "/admin/financials", icon: DollarSign },
       { title: "Profit Intelligence", url: "/admin/profit", icon: TrendingUp },
       { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: Activity },
+      { title: "Learning Insights", url: "/admin/learning-insights", icon: Brain },
       { title: "Compliance", url: "/admin/compliance", icon: ShieldCheck },
       { title: "API & Integrations", url: "/admin/api-health", icon: Radio },
       { title: "System Health", url: "/admin/system", icon: Server },

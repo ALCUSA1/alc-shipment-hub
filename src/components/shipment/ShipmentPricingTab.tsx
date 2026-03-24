@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { AiPricingRecommendation } from "./AiPricingRecommendation";
 import { DealScorePanel } from "./DealScorePanel";
 import { RateIntelligencePanel } from "./RateIntelligencePanel";
+import { DynamicMarginPanel } from "./DynamicMarginPanel";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -585,6 +586,15 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Dynamic Margin Engine */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <DynamicMarginPanel
+              shipmentType={shipmentType || mode || "fcl"}
+              carrierBuyRate={carrierBuyRate}
+              currentMargin={calc.adjustedMargin}
+            />
           </div>
 
           {/* Rate Intelligence */}
