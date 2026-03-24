@@ -139,15 +139,6 @@ function TrendingSidebar() {
     staleTime: 30_000,
   });
 
-  const { data: eventCount = 0 } = useQuery({
-    queryKey: ["spark-trending-events"],
-    queryFn: async () => {
-      const { count } = await supabase.from("spark_events").select("id", { count: "exact", head: true })
-        .gte("event_date", new Date().toISOString());
-      return count || 0;
-    },
-    staleTime: 30_000,
-  });
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
