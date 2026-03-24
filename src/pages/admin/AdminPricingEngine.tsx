@@ -840,6 +840,11 @@ const AdminPricingEngine = () => {
         <TabsContent value="simulation" className="mt-0">
           <SimulationPanel />
         </TabsContent>
+
+        {/* ── Autonomous Pricing ── */}
+        <TabsContent value="autonomous" className="mt-0">
+          <AutonomousPricingPanel />
+        </TabsContent>
       </Tabs>
     </AdminLayout>
   );
