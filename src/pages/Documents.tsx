@@ -198,8 +198,8 @@ const Documents = () => {
       <div className="flex items-center gap-3 mb-4">
         <BackButton />
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">Documents</h1>
-          <p className="text-sm text-muted-foreground">Shipping documents organized by shipment — generate PDFs on demand</p>
+          <h1 className="text-2xl font-bold text-foreground">Document Vault</h1>
+          <p className="text-sm text-muted-foreground">Search, filter, and download shipping documents</p>
         </div>
         {shipmentGroups.length > 0 && (
           <div className="flex gap-1">
@@ -208,6 +208,24 @@ const Documents = () => {
           </div>
         )}
       </div>
+
+      {/* Search Bar */}
+      {documents && documents.length > 0 && (
+        <div className="relative mb-5">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search documents by name, type, shipment reference..."
+            className="pl-10 pr-9"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
