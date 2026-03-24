@@ -64,7 +64,8 @@ export default function Support() {
         category: form.category.toLowerCase(),
         subject: form.subject,
         description: form.description,
-      });
+        priority: form.priority,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
