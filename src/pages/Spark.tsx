@@ -1064,10 +1064,21 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
               onClick={() => setShowComments(!showComments)}>
               <MessageCircle className="h-3.5 w-3.5" /> Comment
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
-              onClick={() => sharePost.mutate()} disabled={sharePost.isPending}>
-              <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8">
+                  <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => sharePost.mutate()}>
+                  <Rocket className="h-4 w-4 mr-2" /> Share on Spark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setExternalShareOpen(true)}>
+                  <ExternalLink className="h-4 w-4 mr-2" /> Share Externally
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8 ml-auto"
               title="Bookmark">
               <Bookmark className="h-3.5 w-3.5" />
