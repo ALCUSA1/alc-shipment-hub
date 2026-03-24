@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { AiPricingRecommendation } from "./AiPricingRecommendation";
 import { DealScorePanel } from "./DealScorePanel";
 import { RateIntelligencePanel } from "./RateIntelligencePanel";
+import { DynamicMarginPanel } from "./DynamicMarginPanel";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
