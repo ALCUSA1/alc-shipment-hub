@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { RuleCategoryPanel } from "@/components/admin/pricing-rules/RuleCategoryPanel";
 import { SimulationPanel } from "@/components/admin/pricing-rules/SimulationPanel";
+import { AutonomousPricingPanel } from "@/components/admin/AutonomousPricingPanel";
 
 /* ─── Constants ─── */
 const SHIPMENT_TYPES = [
