@@ -1,15 +1,16 @@
 import {
-  LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut,
-  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Bell, BarChart3, Megaphone, Wallet, Target
+  LayoutDashboard, Package, Inbox, ContactRound, Users, Settings, LogOut,
+  Calculator, TrendingUp, Bell, BarChart3, DollarSign, Plus, Search,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { canAccessRoute } from "@/lib/permissions";
 import alcLogo from "@/assets/alc-logo.png";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -21,43 +22,29 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 
 const navGroups = [
   {
-    label: "Overview",
+    label: "Workflow",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-      { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
-      { title: "Spark", url: "/dashboard/spark", icon: Megaphone },
-      { title: "Opportunities", url: "/dashboard/opportunities", icon: Target },
-      { title: "Earnings", url: "/dashboard/earnings", icon: Wallet },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { title: "Quotes", url: "/dashboard/quotes", icon: DollarSign },
       { title: "Shipments", url: "/dashboard/shipments", icon: Package },
-      { title: "Trucking", url: "/dashboard/trucking", icon: Truck },
-      { title: "Warehouses", url: "/dashboard/warehouses", icon: Warehouse },
-      { title: "Documents", url: "/dashboard/documents", icon: FileText },
+      { title: "Requests", url: "/dashboard/quotes", icon: Inbox },
+      { title: "Customers", url: "/dashboard/crm", icon: ContactRound },
+      { title: "Partners", url: "/dashboard/partners", icon: Users },
+      { title: "Financials", url: "/dashboard/accounting", icon: DollarSign },
     ],
   },
   {
-    label: "Finance & Sales",
+    label: "Intelligence",
     items: [
-      { title: "Accounting", url: "/dashboard/accounting", icon: Calculator },
+      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
       { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp },
-      { title: "CRM", url: "/dashboard/crm", icon: ContactRound },
-      { title: "Partners", url: "/dashboard/partners", icon: Users },
     ],
   },
   {
     label: "Settings",
     items: [
-      { title: "Team", url: "/dashboard/team", icon: UsersRound },
       { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
       { title: "Account", url: "/dashboard/account", icon: Settings },
     ],
@@ -98,8 +85,19 @@ export function AppSidebar() {
         <img src={logoSrc} alt="Logo" className="h-7 w-auto shrink-0 max-w-[28px] object-contain" />
         {!collapsed && <span className="font-bold text-sm text-sidebar-foreground truncate">{companyLabel}</span>}
       </div>
-      <SidebarContent className="pt-2">
-        {navGroups.map((group, gi) => {
+
+      {/* New Shipment CTA */}
+      <div className="px-3 pt-4 pb-2">
+        <Button variant="electric" size={collapsed ? "icon" : "sm"} className="w-full" asChild>
+          <Link to="/dashboard/shipments/new">
+            <Plus className="h-4 w-4" />
+            {!collapsed && <span className="ml-2">New Shipment</span>}
+          </Link>
+        </Button>
+      </div>
+
+      <SidebarContent className="pt-1">
+        {navGroups.map((group) => {
           const visibleItems = group.items.filter((item) => canAccessRoute(item.url, roles));
           if (visibleItems.length === 0) return null;
 
