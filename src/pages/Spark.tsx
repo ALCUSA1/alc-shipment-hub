@@ -1677,7 +1677,6 @@ const Spark = () => {
                     { value: "page", label: "My Page", icon: Building2 },
                     { value: "directory", label: "Explore", icon: Search },
                     { value: "rfqs", label: "RFQs", icon: Package },
-                    { value: "events", label: "Events", icon: Calendar },
                   ].map((tab) => (
                     <button key={tab.value}
                       onClick={() => setMainTab(tab.value as any)}
