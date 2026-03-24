@@ -290,7 +290,7 @@ const Dashboard = () => {
             {/* Shipment Volume + Financial Overview — side by side */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Shipment Volume */}
-              <Card className="overflow-hidden border-border/60">
+              <Card className="border-border/60">
                 <CardHeader className="pb-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

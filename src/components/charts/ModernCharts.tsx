@@ -111,7 +111,7 @@ export function GlassAreaChart({
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ left: -10, right: 8, top: 12, bottom: 4 }}>
+      <AreaChart data={data} margin={{ left: -10, right: 8, top: 20, bottom: 4 }}>
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity={0.4} />
