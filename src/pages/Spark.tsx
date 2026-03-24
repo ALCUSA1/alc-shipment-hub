@@ -1977,8 +1977,8 @@ const Spark = () => {
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 mt-5">
-              <div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-6">
+              <div className="space-y-4">
                 {isOwner && <PostComposer profile={displayProfile} />}
                 {postsLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
