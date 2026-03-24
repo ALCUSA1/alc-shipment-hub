@@ -201,6 +201,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-emerald-50",
       textColor: "text-emerald-700",
       iconColor: "text-emerald-600",
+      sortOrder: 1,
     });
   }
 
