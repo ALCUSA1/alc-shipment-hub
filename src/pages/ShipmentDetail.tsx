@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentGenerator } from "@/components/shipment/DocumentGenerator";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
 import { AiShipmentAssistant } from "@/components/shipment/AiShipmentAssistant";
@@ -7,7 +8,6 @@ import { AiSmartBanners } from "@/components/shipment/AiSmartBanners";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { AirBookingPanel } from "@/components/shipment/AirBookingPanel";
-import { AirlineRateSelector } from "@/components/shipment/AirlineRateSelector";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { TruckingPanel } from "@/components/shipment/TruckingPanel";
 import { WarehousePanel } from "@/components/shipment/WarehousePanel";
@@ -21,124 +21,57 @@ import { AmendmentPanel } from "@/components/shipment/AmendmentPanel";
 import { ShipmentChargesPanel } from "@/components/shipment/ShipmentChargesPanel";
 import { DetentionTimeline } from "@/components/shipment/DetentionTimeline";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ShipmentNextAction } from "@/components/shipment/ShipmentNextAction";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, FileText, Users, Clock, Check, Circle, Loader2, Radio, Trash2, Ship, Copy, BookmarkPlus, Anchor, MapPin, Calendar, Hash, ArrowRight } from "lucide-react";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Package, FileText, Users, Clock, Check, Circle, Loader2, Radio,
+  Trash2, Ship, Copy, BookmarkPlus, MapPin, ArrowRight, DollarSign,
+  MessageSquare, Activity, BarChart3, AlertTriangle,
+} from "lucide-react";
 import { translateEdiMessage } from "@/lib/edi-translations";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 
+const statusColor: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  pending_pricing: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  quote_ready: "bg-accent/10 text-accent",
+  awaiting_approval: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  booked: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  in_transit: "bg-accent/10 text-accent",
+  arrived: "bg-blue-100 text-blue-700",
+  delivered: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  closed: "bg-muted text-muted-foreground",
+  cancelled: "bg-destructive/10 text-destructive",
+};
+
+const formatStatus = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
 const OCEAN_MILESTONES = [
   "Booking Confirmed", "Cargo Received", "Container Loaded",
   "Vessel Departed", "In Transit", "Port Arrival", "Customs Clearance", "Delivered",
 ];
-
 const AIR_MILESTONES = [
   "Booking Confirmed", "Cargo Received at Origin", "Security Screening",
   "Flight Departed", "In Transit", "Arrived at Destination", "Customs Clearance", "Delivered",
 ];
 
-const statusColor: Record<string, string> = {
-  "in_transit": "bg-accent/10 text-accent",
-  "booking_confirmed": "bg-yellow-100 text-yellow-700",
-  "cargo_received": "bg-blue-100 text-blue-700",
-  "delivered": "bg-green-100 text-green-700",
-  "draft": "bg-secondary text-muted-foreground",
-  "pending": "bg-secondary text-muted-foreground",
-};
-
-const formatStatus = (s: string) =>
-  s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-// Vessel Booking Summary (collapsed read-only view for booked shipments)
-function VesselBookingSummary({ shipmentId }: { shipmentId: string }) {
-  const { data: bookings } = useQuery({
-    queryKey: ["vessel-bookings", shipmentId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vessel_bookings")
-        .select("*, booking_legs(*)")
-        .eq("shipment_id", shipmentId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!shipmentId,
-  });
-
-  if (!bookings?.length) return null;
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Ship className="h-4 w-4 text-accent" />
-          Booking Summary
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {bookings.map((b: any) => {
-            const sortedLegs = [...(b.booking_legs || [])].sort((a: any, bk: any) => a.leg_order - bk.leg_order);
-            return (
-              <div key={b.id} className="rounded-lg border border-border bg-muted/30 p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Hash className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs font-medium text-foreground">{b.booking_number || "No booking #"}</span>
-                    {b.carrier && <span className="text-[10px] text-muted-foreground">• {b.carrier}</span>}
-                  </div>
-                  <Badge variant="outline" className="text-[9px]">{b.status}</Badge>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  {b.container_count}× {b.container_type || "N/A"}
-                </p>
-                {sortedLegs.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {sortedLegs.map((leg: any) => (
-                      <div key={leg.id} className="flex items-center gap-2 text-[10px]">
-                        <MapPin className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
-                        <span className="text-foreground">{leg.origin_port || "?"}</span>
-                        <ArrowRight className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
-                        <span className="text-foreground">{leg.destination_port || "?"}</span>
-                        {leg.vessel_name && <span className="text-muted-foreground">• {leg.vessel_name}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// AI-translated EDI message for unknown codes
 function AiTranslatedMessage({ messageType, direction, carrier, status }: {
   messageType: string; direction: string; carrier: string; status: string;
 }) {
@@ -154,21 +87,38 @@ function AiTranslatedMessage({ messageType, direction, carrier, status }: {
     staleTime: Infinity,
     retry: false,
   });
-
   if (!translation) return null;
+  return <p className="text-xs text-accent mt-1 italic">{translation}</p>;
+}
 
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <p className="text-xs text-accent mt-1 italic">{translation}</p>
+    <div>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="text-sm text-foreground mt-0.5">{value}</p>
+    </div>
   );
 }
+
+const WORKSPACE_TABS = [
+  { id: "overview", label: "Overview", icon: Package },
+  { id: "pricing", label: "Pricing", icon: DollarSign },
+  { id: "documents", label: "Documents", icon: FileText },
+  { id: "tracking", label: "Tracking & Milestones", icon: Clock },
+  { id: "parties", label: "Parties", icon: Users },
+  { id: "financials", label: "Financials", icon: BarChart3 },
+  { id: "activity", label: "Activity Log", icon: Activity },
+];
 
 const ShipmentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [deleting, setDeleting] = useState(false);
   const [showDocGen, setShowDocGen] = useState(false);
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
 
   const handleDelete = async () => {
     if (!id) return;
@@ -185,10 +135,9 @@ const ShipmentDetail = () => {
     }
   };
 
-  // Realtime subscriptions for live updates
+  // Realtime subscriptions
   useEffect(() => {
     if (!id) return;
-
     const channel = supabase
       .channel(`shipment-realtime-${id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'shipments', filter: `id=eq.${id}` }, () => {
@@ -205,18 +154,13 @@ const ShipmentDetail = () => {
         queryClient.invalidateQueries({ queryKey: ["edi_messages", id] });
       })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [id, queryClient]);
 
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["shipment", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("shipments")
-        .select("*, companies(company_name)")
-        .eq("id", id!)
-        .single();
+      const { data, error } = await supabase.from("shipments").select("*, companies(company_name)").eq("id", id!).single();
       if (error) throw error;
       return data;
     },
@@ -225,153 +169,77 @@ const ShipmentDetail = () => {
 
   const { data: cargo } = useQuery({
     queryKey: ["cargo", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("cargo").select("*").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("cargo").select("*").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: containers } = useQuery({
     queryKey: ["containers", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("containers").select("*").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("containers").select("*").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: containerCommodities } = useQuery({
     queryKey: ["container_commodities", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("container_commodities").select("*").eq("shipment_id", id!).order("line_sequence");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("container_commodities").select("*").eq("shipment_id", id!).order("line_sequence"); return data; },
     enabled: !!id,
   });
 
   const { data: parties } = useQuery({
     queryKey: ["parties", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("shipment_parties").select("*").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("shipment_parties").select("*").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: trackingEvents } = useQuery({
     queryKey: ["tracking_events", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("tracking_events").select("*").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("tracking_events").select("*").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: documents } = useQuery({
     queryKey: ["documents", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("documents").select("*").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("documents").select("*").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: quotes } = useQuery({
     queryKey: ["shipment-quotes", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("quotes").select("amount, status").eq("shipment_id", id!).eq("status", "accepted");
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("quotes").select("amount, status").eq("shipment_id", id!).eq("status", "accepted"); return data; },
     enabled: !!id,
   });
 
   const { data: ediMessages } = useQuery({
     queryKey: ["edi_messages", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("edi_messages").select("*").eq("shipment_id", id!).order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("edi_messages").select("*").eq("shipment_id", id!).order("created_at", { ascending: false }); return data; },
     enabled: !!id,
   });
 
   const { data: customsFilingsForBanners } = useQuery({
     queryKey: ["customs_banners", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("customs_filings").select("id, status").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("customs_filings").select("id, status").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
   const { data: paymentsForBanners } = useQuery({
     queryKey: ["payments_banners", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("payments").select("id, status").eq("shipment_id", id!);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () => { const { data } = await supabase.from("payments").select("id, status").eq("shipment_id", id!); return data; },
     enabled: !!id,
   });
 
-  // Build AI context object
   const shipmentContext = useMemo(() => {
     if (!shipment) return {};
     return {
-      ref: shipment.shipment_ref,
-      status: shipment.status,
-      mode: shipment.mode || "ocean",
-      type: shipment.shipment_type,
-      origin: shipment.origin_port,
-      destination: shipment.destination_port,
-      etd: shipment.etd,
-      eta: shipment.eta,
-      vessel: shipment.vessel,
-      voyage: shipment.voyage,
-      booking_ref: shipment.booking_ref,
-      pickup: shipment.pickup_location,
-      delivery: shipment.delivery_location,
-      airline: (shipment as any).airline,
-      flight: (shipment as any).flight_number,
-      mawb: (shipment as any).mawb_number,
-      cargo: (cargo || []).map(c => ({
-        commodity: c.commodity,
-        hs_code: c.hs_code,
-        weight: c.gross_weight,
-        volume: c.volume,
-        packages: c.num_packages,
-      })),
-      containers: (containers || []).map(c => ({
-        type: c.container_type,
-        number: c.container_number,
-        quantity: c.quantity,
-      })),
-      parties: (parties || []).map(p => ({
-        role: p.role,
-        company: p.company_name,
-        contact: p.contact_name,
-      })),
+      ref: shipment.shipment_ref, status: shipment.status, mode: shipment.mode || "ocean",
+      type: shipment.shipment_type, origin: shipment.origin_port, destination: shipment.destination_port,
+      etd: shipment.etd, eta: shipment.eta, vessel: shipment.vessel, voyage: shipment.voyage,
+      cargo: (cargo || []).map(c => ({ commodity: c.commodity, hs_code: c.hs_code, weight: c.gross_weight, volume: c.volume })),
+      containers: (containers || []).map(c => ({ type: c.container_type, number: c.container_number, quantity: c.quantity })),
+      parties: (parties || []).map(p => ({ role: p.role, company: p.company_name })),
       documents: (documents || []).map(d => ({ type: d.doc_type, status: d.status })),
       tracking: (trackingEvents || []).map(t => ({ milestone: t.milestone, date: t.event_date, location: t.location })),
-      cutoffs: {
-        cy: (shipment as any).cy_cutoff,
-        si: (shipment as any).si_cutoff,
-        vgm: (shipment as any).vgm_cutoff,
-        doc: (shipment as any).doc_cutoff,
-      },
     };
   }, [shipment, cargo, containers, parties, documents, trackingEvents]);
-
-  // Booking is now handled by CarrierRateSelector
 
   if (isLoading) {
     return (
@@ -379,7 +247,6 @@ const ShipmentDetail = () => {
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-64 w-full" />
         </div>
       </DashboardLayout>
     );
@@ -390,229 +257,112 @@ const ShipmentDetail = () => {
       <DashboardLayout>
         <div className="text-center py-20">
           <h2 className="text-xl font-semibold text-foreground mb-2">Shipment not found</h2>
-          <p className="text-muted-foreground mb-6">The shipment you're looking for doesn't exist.</p>
-          <Button variant="electric" asChild>
-            <Link to="/dashboard/shipments">Back to Shipments</Link>
-          </Button>
+          <Button variant="electric" asChild><Link to="/dashboard/shipments">Back to Shipments</Link></Button>
         </div>
       </DashboardLayout>
     );
   }
 
-  // Build milestones from tracking events
-  const completedMilestones = new Map(
-    (trackingEvents || []).map((e) => [e.milestone, e])
-  );
-
+  const completedMilestones = new Map((trackingEvents || []).map((e) => [e.milestone, e]));
   const isAirShipment = shipment.mode === "air";
   const MILESTONES_ORDER = isAirShipment ? AIR_MILESTONES : OCEAN_MILESTONES;
   const milestones = MILESTONES_ORDER.map((label) => {
     const event = completedMilestones.get(label);
-    return {
-      label,
-      date: event ? format(new Date(event.event_date), "MMM d, yyyy") : null,
-      location: event?.location || null,
-      completed: !!event,
-    };
+    return { label, date: event ? format(new Date(event.event_date), "MMM d, yyyy") : null, location: event?.location || null, completed: !!event };
   });
-
-  const currentMilestoneIndex = (() => {
-    let last = -1;
-    milestones.forEach((m, i) => { if (m.completed) last = i; });
-    return last;
-  })();
-
-  const containersSummary = (containers || [])
-    .map((c) => `${c.quantity}x${c.container_type}`)
-    .join(", ") || "—";
-
+  const currentMilestoneIndex = (() => { let last = -1; milestones.forEach((m, i) => { if (m.completed) last = i; }); return last; })();
+  const containersSummary = (containers || []).map((c) => `${c.quantity}x${c.container_type}`).join(", ") || "—";
   const firstCargo = cargo?.[0];
   const companyName = (shipment as any).companies?.company_name as string | undefined;
-  const isDelivered = shipment.status === "delivered" || shipment.status === "completed";
-  const isBooked = ["booked", "in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
-  const isInTransitOrBeyond = ["in_transit", "arrived", "delivered", "completed"].includes(shipment.status);
-  const scheduleReadOnly = isInTransitOrBeyond;
+  const isDelivered = shipment.status === "delivered" || shipment.status === "completed" || shipment.status === "closed";
+  const isBooked = ["booked", "in_transit", "arrived", "delivered", "completed", "closed"].includes(shipment.status);
+  const isInTransitOrBeyond = ["in_transit", "arrived", "delivered", "completed", "closed"].includes(shipment.status);
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-8">
-        <div className="mb-4 -ml-2">
-          <BackButton />
-        </div>
+      {/* Workspace Header */}
+      <div className="mb-6">
+        <div className="mb-3 -ml-2"><BackButton /></div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-foreground">{shipment.shipment_ref}</h1>
               {isDelivered ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
-                  <Check className="h-3.5 w-3.5" />
-                  Delivered
+                  <Check className="h-3.5 w-3.5" /> Delivered
                 </span>
               ) : (
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[shipment.status] || "bg-secondary text-muted-foreground"}`}>
+                <Badge className={`text-xs ${statusColor[shipment.status] || "bg-secondary text-muted-foreground"}`}>
                   {formatStatus(shipment.status)}
-                </span>
+                </Badge>
               )}
             </div>
             <p className="text-sm text-muted-foreground">
               {companyName && <span className="font-medium text-foreground mr-2">{companyName}</span>}
-              {isAirShipment && shipment.mawb_number && <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded mr-2">MAWB: {shipment.mawb_number}</span>}
               {shipment.origin_port || "—"} → {shipment.destination_port || "—"}
+              <span className="mx-2 text-border">|</span>
+              <span className="text-xs">{isAirShipment ? "Air" : "Ocean"} • {formatStatus(shipment.shipment_type)}</span>
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {shipment.status === "draft" && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Draft
-                  </Button>
+                  <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4" />Delete</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete draft shipment?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete shipment <strong>{shipment.shipment_ref}</strong> and all associated cargo, containers, parties, and quotes. This action cannot be undone.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>This will permanently delete {shipment.shipment_ref}.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Delete
+                    <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground">
+                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
             <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/shipments/new?clone=${id}`)}>
-              <Copy className="mr-2 h-4 w-4" />
-              Clone
-            </Button>
-            <Button variant="outline" size="sm" onClick={async () => {
-              if (!user || !shipment) return;
-              try {
-                const { error } = await supabase.from("shipment_templates").insert({
-                  user_id: user.id,
-                  name: `${shipment.shipment_ref} Template`,
-                  shipment_type: shipment.shipment_type,
-                  mode: shipment.mode || "ocean",
-                  origin_port: shipment.origin_port,
-                  destination_port: shipment.destination_port,
-                  pickup_location: shipment.pickup_location,
-                  delivery_location: shipment.delivery_location,
-                  commodity: firstCargo?.commodity || null,
-                  hs_code: firstCargo?.hs_code || null,
-                  container_type: containers?.[0]?.container_type || null,
-                  container_count: containers?.length || 1,
-                  incoterm: (shipment as any).incoterm || null,
-                  parties: JSON.stringify((parties || []).map(p => ({ role: p.role, company_name: p.company_name, contact_name: p.contact_name }))),
-                  cargo: JSON.stringify((cargo || []).map(c => ({ commodity: c.commodity, hs_code: c.hs_code, gross_weight: c.gross_weight, volume: c.volume }))),
-                });
-                if (error) throw error;
-                toast({ title: "Template saved", description: "Shipment saved as reusable template." });
-              } catch (err: any) {
-                toast({ title: "Failed to save template", description: err.message, variant: "destructive" });
-              }
-            }}>
-              <BookmarkPlus className="mr-2 h-4 w-4" />
-              Save Template
+              <Copy className="mr-2 h-4 w-4" />Clone
             </Button>
             <Button variant="electric" size="sm" onClick={() => setShowDocGen(true)}>
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Documents
+              <FileText className="mr-2 h-4 w-4" />Generate Docs
             </Button>
           </div>
         </div>
       </div>
 
-      {/* AI Intelligence Summary */}
-      <div className="mb-6">
-        <AiShipmentSummary shipmentContext={shipmentContext} shipmentId={id!} />
-      </div>
-
-      {/* AI Smart Banners */}
+      {/* Smart Next Action Banner */}
       <div className="mb-4">
-        <AiSmartBanners
-          shipment={shipment}
-          documents={documents}
-          payments={paymentsForBanners}
-          customsFilings={customsFilingsForBanners}
-        />
-      </div>
-
-      {/* Smart Next Action */}
-      <div className="mb-6">
         <ShipmentNextAction shipmentId={id!} shipmentStatus={shipment.status} />
       </div>
 
-      {/* Milestone Timeline */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4 text-accent" />
-              Shipment Tracking
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <div className="absolute top-4 left-4 right-4 h-0.5 bg-border hidden md:block" />
-              <div className="absolute top-4 left-4 h-0.5 bg-emerald-500 hidden md:block" style={{
-                width: currentMilestoneIndex >= 0
-                  ? `${(currentMilestoneIndex / (milestones.length - 1)) * 100}%`
-                  : '0%',
-                maxWidth: 'calc(100% - 2rem)',
-              }} />
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                {milestones.map((milestone, i) => {
-                  const isActive = i === currentMilestoneIndex;
-                  const isCompleted = milestone.completed;
-                  return (
-                    <motion.div
-                      key={milestone.label}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.4 }}
-                      className="flex flex-col items-center text-center relative"
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 mb-3 transition-all ${
-                        isCompleted
-                          ? isActive
-                            ? "bg-emerald-500 text-white ring-4 ring-emerald-500/25 shadow-lg shadow-emerald-500/20"
-                            : "bg-emerald-500 text-white shadow-sm"
-                          : "bg-secondary border-2 border-border text-muted-foreground"
-                      }`}>
-                        {isCompleted ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : <Circle className="h-3 w-3" />}
-                      </div>
-                      <p className={`text-xs font-medium leading-tight mb-1 ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
-                        {milestone.label}
-                      </p>
-                      {milestone.date && <p className="text-[10px] text-muted-foreground">{milestone.date}</p>}
-                      {milestone.location && <p className="text-[10px] text-muted-foreground/60">{milestone.location}</p>}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      {/* Tabbed Workspace */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-1 bg-transparent p-0 border-b border-border rounded-none pb-0">
+          {WORKSPACE_TABS.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-accent data-[state=active]:text-accent rounded-none px-4 pb-3 text-sm gap-1.5"
+            >
+              <tab.icon className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Shipment Details */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="lg:col-span-2 space-y-6">
+        {/* ── OVERVIEW TAB ── */}
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          <AiShipmentSummary shipmentContext={shipmentContext} shipmentId={id!} />
+          <AiSmartBanners shipment={shipment} documents={documents} payments={paymentsForBanners} customsFilings={customsFilingsForBanners} />
+
+          {/* Shipment Details Card */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Package className="h-4 w-4 text-accent" />
-                Shipment Details
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-accent" />Shipment Details</CardTitle></CardHeader>
             <CardContent>
-              {/* General Info */}
               <div className="grid sm:grid-cols-3 gap-x-8 gap-y-4 mb-6">
                 <InfoRow label="Shipment Type" value={formatStatus(shipment.shipment_type)} />
                 <InfoRow label="Mode" value={isAirShipment ? "Air" : "Ocean"} />
@@ -623,8 +373,6 @@ const ShipmentDetail = () => {
                   <>
                     <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
                     <InfoRow label="Flight" value={(shipment as any).flight_number || "TBD"} />
-                    <InfoRow label="MAWB" value={(shipment as any).mawb_number || "TBD"} />
-                    <InfoRow label="HAWB" value={(shipment as any).hawb_number || "—"} />
                   </>
                 ) : (
                   <>
@@ -633,243 +381,48 @@ const ShipmentDetail = () => {
                   </>
                 )}
               </div>
-
               <Separator className="my-5" />
-
-              {/* Origin ↔ Destination side by side */}
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-4 p-4 rounded-lg bg-muted/40 border border-border">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Origin</h4>
                   <InfoRow label={isAirShipment ? "Airport" : "Port"} value={shipment.origin_port || "—"} />
-                  <InfoRow label="Pickup Location" value={shipment.pickup_location || "—"} />
                   <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
                 </div>
                 <div className="space-y-4 p-4 rounded-lg bg-muted/40 border border-border">
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Destination</h4>
                   <InfoRow label={isAirShipment ? "Airport" : "Port"} value={shipment.destination_port || "—"} />
-                  <InfoRow label="Delivery Location" value={shipment.delivery_location || "—"} />
                   <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
                 </div>
               </div>
-              {/* Per-Container Commodity Contents */}
-              {containers && containers.length > 0 && (
+              {/* Cargo summary */}
+              {firstCargo && (
                 <>
                   <Separator className="my-5" />
-                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Package className="h-4 w-4 text-accent" />
-                    Container Contents
-                  </h4>
-                  <div className="space-y-4">
-                    {containers.map((container, ci) => {
-                      const commodities = (containerCommodities || []).filter(
-                        cc => cc.container_id === container.id
-                      );
-                      return (
-                        <div key={container.id} className="rounded-lg border bg-muted/20 overflow-hidden">
-                          <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 border-b">
-                            <div className="flex items-center gap-2">
-                              <Package className="h-3.5 w-3.5 text-accent" />
-                              <span className="text-xs font-semibold text-foreground">
-                                {container.container_type?.toUpperCase() || "Container"}
-                                {container.container_number && (
-                                  <span className="ml-1.5 font-mono text-muted-foreground">#{container.container_number}</span>
-                                )}
-                              </span>
-                              {container.seal_number && (
-                                <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                                  Seal: {container.seal_number}
-                                </Badge>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-muted-foreground">
-                              {commodities.length} item{commodities.length !== 1 ? "s" : ""}
-                            </span>
-                          </div>
-                          <div className="p-3">
-                            {commodities.length > 0 ? (
-                              <div className="space-y-2">
-                                {commodities.map((cc, li) => (
-                                  <div key={cc.id} className="flex items-start justify-between text-xs py-1.5 border-b border-border/30 last:border-0">
-                                    <div className="space-y-0.5">
-                                      <p className="font-medium text-foreground">
-                                        {cc.commodity_description || "Untitled commodity"}
-                                      </p>
-                                      <div className="flex gap-3 text-muted-foreground text-[10px]">
-                                        {cc.hs_code && <span>HS: {cc.hs_code}</span>}
-                                        {cc.hts_code && <span>HTS: {cc.hts_code}</span>}
-                                        {cc.country_of_manufacture && <span>Origin: {cc.country_of_manufacture}</span>}
-                                      </div>
-                                    </div>
-                                    <div className="text-right text-muted-foreground space-y-0.5">
-                                      {cc.quantity && <p>{cc.quantity} {cc.unit_of_measure || "pcs"}</p>}
-                                      {cc.gross_weight_kg && <p>{cc.gross_weight_kg} kg</p>}
-                                      {cc.hazardous && (
-                                        <Badge variant="destructive" className="text-[9px] px-1 py-0">DG</Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-[11px] text-muted-foreground/60 italic text-center py-2">
-                                No commodities assigned
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-
-              {/* Flat Cargo Info (fallback when no containers) */}
-              {(!containers || containers.length === 0) && firstCargo && (
-                <>
-                  <Separator className="my-5" />
-                  <h4 className="text-sm font-semibold text-foreground mb-3">Cargo Information</h4>
+                  <h4 className="text-sm font-semibold text-foreground mb-3">Cargo</h4>
                   <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
                     <InfoRow label="Commodity" value={firstCargo.commodity || "—"} />
                     <InfoRow label="HS Code" value={firstCargo.hs_code || "—"} />
                     <InfoRow label="Gross Weight" value={firstCargo.gross_weight ? `${firstCargo.gross_weight} kg` : "—"} />
                     <InfoRow label="Volume" value={firstCargo.volume ? `${firstCargo.volume} CBM` : "—"} />
-                    <InfoRow label="Packages" value={firstCargo.num_packages ? `${firstCargo.num_packages} ${firstCargo.package_type || ""}`.trim() : "—"} />
                   </div>
                 </>
               )}
             </CardContent>
           </Card>
 
-          {/* Parties */}
-          {parties && parties.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-4 w-4 text-accent" />
-                  Parties
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {parties.map((party) => (
-                    <div key={party.id} className="flex items-start justify-between py-2 border-b last:border-0">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{party.role}</p>
-                        <p className="text-sm font-medium text-foreground">{party.company_name}</p>
-                        {party.contact_name && <p className="text-xs text-muted-foreground">{party.contact_name}</p>}
-                      </div>
-                      <div className="text-right">
-                        {party.email && <p className="text-xs text-muted-foreground">{party.email}</p>}
-                        {party.phone && <p className="text-xs text-muted-foreground">{party.phone}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Demurrage & Detention (Ocean only, after delivered) */}
-          {!isAirShipment && isDelivered && (
-            <DemurrageTracker shipmentId={id!} shipmentStatus={shipment.status} />
-          )}
-
-          {/* Detention Timeline (Ocean only, after delivered) */}
-          {!isAirShipment && isDelivered && (
-            <DetentionTimeline eta={shipment.eta} />
-          )}
-
-          {/* Amendments & Corrections */}
-          <AmendmentPanel
-            shipmentId={id!}
-            vesselDeparted={["in_transit", "arrived", "delivered", "completed"].includes(shipment.status)}
-          />
-
-          {/* Vessel Bookings - collapsed summary for booked+, hidden for delivered */}
-          {!isAirShipment && isBooked && !isDelivered && (
-            <VesselBookingSummary shipmentId={id!} />
-          )}
-          {!isDelivered && !isBooked && !isAirShipment && <div data-guide="vessel"><VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} /></div>}
+          {/* Execution panels for overview */}
+          {!isDelivered && !isBooked && !isAirShipment && <VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} />}
           {!isDelivered && isAirShipment && (
-            <AirBookingPanel
-              shipmentId={id!}
-              airline={(shipment as any).airline}
-              flightNumber={(shipment as any).flight_number}
-              mawbNumber={(shipment as any).mawb_number}
-              bookingRef={shipment.booking_ref}
-            />
+            <AirBookingPanel shipmentId={id!} airline={(shipment as any).airline} flightNumber={(shipment as any).flight_number} mawbNumber={(shipment as any).mawb_number} bookingRef={shipment.booking_ref} />
           )}
+          <CustomsFilingPanel shipmentId={id!} mode={isAirShipment ? "air" : "ocean"} />
+          <TruckingPanel shipmentId={id!} shipmentStatus={shipment.status} />
+          <WarehousePanel shipmentId={id!} />
+        </TabsContent>
 
-          {/* Customs / AES Filing */}
-          <div data-guide="customs">
-            <CustomsFilingPanel shipmentId={id!} mode={isAirShipment ? "air" : "ocean"} />
-          </div>
-
-          {/* Trucking */}
-          <div data-guide="trucking">
-            <TruckingPanel shipmentId={id!} shipmentStatus={shipment.status} />
-          </div>
-
-          {/* Warehouse Operations */}
-          <div data-guide="warehouse">
-            <WarehousePanel shipmentId={id!} />
-          </div>
-
-          {/* Profit & Loss */}
-          <ShipmentPnL
-            shipmentId={id!}
-            quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)}
-            shipmentStatus={shipment.status}
-          />
-
-          {/* Audit Trail / Activity Log */}
-          <AuditTrailPanel shipmentId={id!} />
-        </motion.div>
-
-        {/* Sidebar */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-6">
-          {/* Shipping Line Schedule - read-only for delivered OR in_transit+ */}
-          {isDelivered ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Ship className="h-4 w-4 text-accent" />
-                  Voyage Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <InfoRow label="Vessel" value={shipment.vessel || "—"} />
-                <InfoRow label="Voyage" value={shipment.voyage || "—"} />
-                <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"} />
-                <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "—"} />
-              </CardContent>
-            </Card>
-          ) : (
-            <VoyageDatesEditor
-              shipmentId={id!}
-              etd={shipment.etd}
-              eta={shipment.eta}
-              vessel={shipment.vessel}
-              voyage={shipment.voyage}
-              readOnly={scheduleReadOnly}
-            />
-          )}
-
-          {/* Cutoff Deadlines - hide for delivered */}
-          {!isDelivered && (
-            <CutoffTracker
-              shipmentId={id!}
-              etd={shipment.etd}
-              cutoffs={{
-                cy_cutoff: (shipment as any).cy_cutoff,
-                si_cutoff: (shipment as any).si_cutoff,
-                vgm_cutoff: (shipment as any).vgm_cutoff,
-                doc_cutoff: (shipment as any).doc_cutoff,
-              }}
-            />
-          )}
-
-          {/* Carrier Rate Selection & Booking - hide once booked */}
+        {/* ── PRICING TAB ── */}
+        <TabsContent value="pricing" className="mt-6 space-y-6">
+          {/* Rate Selection (pre-booking) */}
           {!isBooked && !isAirShipment && (
             <CarrierRateSelector
               shipmentId={id!}
@@ -880,26 +433,72 @@ const ShipmentDetail = () => {
             />
           )}
 
+          {/* Embedded Pricing Engine */}
+          <PricingEngineEmbed shipmentId={id!} shipmentType={shipment.shipment_type} mode={shipment.mode || "ocean"} />
+
+          {/* Charges & Fees */}
+          <ShipmentChargesPanel shipmentId={id!} />
+          <PaymentStatusCard shipmentId={id!} />
+        </TabsContent>
+
+        {/* ── DOCUMENTS TAB ── */}
+        <TabsContent value="documents" className="mt-6 space-y-6">
+          <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
+          <AmendmentPanel shipmentId={id!} vesselDeparted={isInTransitOrBeyond} />
+        </TabsContent>
+
+        {/* ── TRACKING TAB ── */}
+        <TabsContent value="tracking" className="mt-6 space-y-6">
+          {/* Milestone Timeline */}
+          <Card>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4 text-accent" />Shipment Tracking</CardTitle></CardHeader>
+            <CardContent>
+              <div className="relative">
+                <div className="absolute top-4 left-4 right-4 h-0.5 bg-border hidden md:block" />
+                <div className="absolute top-4 left-4 h-0.5 bg-emerald-500 hidden md:block" style={{
+                  width: currentMilestoneIndex >= 0 ? `${(currentMilestoneIndex / (milestones.length - 1)) * 100}%` : '0%',
+                  maxWidth: 'calc(100% - 2rem)',
+                }} />
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                  {milestones.map((milestone, i) => (
+                    <div key={milestone.label} className="flex flex-col items-center text-center relative">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 mb-3 transition-all ${
+                        milestone.completed
+                          ? i === currentMilestoneIndex
+                            ? "bg-emerald-500 text-white ring-4 ring-emerald-500/25"
+                            : "bg-emerald-500 text-white"
+                          : "bg-secondary border-2 border-border text-muted-foreground"
+                      }`}>
+                        {milestone.completed ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : <Circle className="h-3 w-3" />}
+                      </div>
+                      <p className={`text-xs font-medium leading-tight mb-1 ${milestone.completed ? "text-foreground" : "text-muted-foreground"}`}>{milestone.label}</p>
+                      {milestone.date && <p className="text-[10px] text-muted-foreground">{milestone.date}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Voyage Dates */}
+          <VoyageDatesEditor shipmentId={id!} etd={shipment.etd} eta={shipment.eta} vessel={shipment.vessel} voyage={shipment.voyage} readOnly={isInTransitOrBeyond} />
+
+          {/* Cutoff Deadlines */}
+          {!isDelivered && (
+            <CutoffTracker shipmentId={id!} etd={shipment.etd} cutoffs={{
+              cy_cutoff: (shipment as any).cy_cutoff, si_cutoff: (shipment as any).si_cutoff,
+              vgm_cutoff: (shipment as any).vgm_cutoff, doc_cutoff: (shipment as any).doc_cutoff,
+            }} />
+          )}
+
           {/* Live Tracking */}
-          <LiveTrackingPanel
-            shipmentId={id!}
-            mode={isAirShipment ? "air" : "ocean"}
-            bookingRef={shipment.booking_ref}
-            vessel={shipment.vessel}
-            voyage={shipment.voyage}
-            airline={(shipment as any).airline}
-            flightNumber={(shipment as any).flight_number}
-            mawbNumber={(shipment as any).mawb_number}
-          />
+          <LiveTrackingPanel shipmentId={id!} mode={isAirShipment ? "air" : "ocean"} bookingRef={shipment.booking_ref}
+            vessel={shipment.vessel} voyage={shipment.voyage} airline={(shipment as any).airline}
+            flightNumber={(shipment as any).flight_number} mawbNumber={(shipment as any).mawb_number} />
 
           {/* Carrier Communications */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Radio className="h-4 w-4 text-accent" />
-                Carrier Communications
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><Radio className="h-4 w-4 text-accent" />Carrier Communications</CardTitle></CardHeader>
             <CardContent>
               {ediMessages && ediMessages.length > 0 ? (
                 <div className="space-y-3">
@@ -913,19 +512,12 @@ const ShipmentDetail = () => {
                               <Badge variant={msg.direction === "inbound" ? "secondary" : "default"} className="text-[10px]">
                                 {msg.direction === "inbound" ? "← Received" : "→ Sent"}
                               </Badge>
-                              {msg.status === "error" && (
-                                <Badge variant="destructive" className="text-[10px]">Error</Badge>
-                              )}
                             </div>
                             <p className="text-sm text-foreground font-medium">{translated.label}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">{translated.description}</p>
-                            {!translated.isKnown && (
-                              <AiTranslatedMessage messageType={msg.message_type} direction={msg.direction} carrier={msg.carrier} status={msg.status} />
-                            )}
+                            {!translated.isKnown && <AiTranslatedMessage messageType={msg.message_type} direction={msg.direction} carrier={msg.carrier} status={msg.status} />}
                           </div>
-                          <p className="text-[10px] text-muted-foreground ml-3 shrink-0">
-                            {format(new Date(msg.created_at), "MMM d, HH:mm")}
-                          </p>
+                          <p className="text-[10px] text-muted-foreground ml-3">{format(new Date(msg.created_at), "MMM d, HH:mm")}</p>
                         </div>
                       </div>
                     );
@@ -937,40 +529,275 @@ const ShipmentDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Charges & Fees */}
-          <ShipmentChargesPanel shipmentId={id!} />
+          {/* Demurrage */}
+          {!isAirShipment && isDelivered && <DemurrageTracker shipmentId={id!} shipmentStatus={shipment.status} />}
+          {!isAirShipment && isDelivered && <DetentionTimeline eta={shipment.eta} />}
+        </TabsContent>
 
-          {/* Payment Status */}
-          <PaymentStatusCard shipmentId={id!} />
-
-          {/* Document Checklist */}
-          <div data-guide="documents">
-            <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
-          </div>
-
-          {/* AI Shipment Assistant */}
+        {/* ── PARTIES TAB ── */}
+        <TabsContent value="parties" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-accent" />Parties & Partners</CardTitle></CardHeader>
+            <CardContent>
+              {parties && parties.length > 0 ? (
+                <div className="space-y-4">
+                  {parties.map((party) => (
+                    <div key={party.id} className="flex items-start justify-between py-3 border-b last:border-0">
+                      <div>
+                        <Badge variant="secondary" className="text-[10px] mb-1">{party.role}</Badge>
+                        <p className="text-sm font-medium text-foreground">{party.company_name}</p>
+                        {party.contact_name && <p className="text-xs text-muted-foreground">{party.contact_name}</p>}
+                      </div>
+                      <div className="text-right">
+                        {party.email && <p className="text-xs text-muted-foreground">{party.email}</p>}
+                        {party.phone && <p className="text-xs text-muted-foreground">{party.phone}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No parties assigned yet. Parties are managed in the shipment workspace.</p>
+              )}
+            </CardContent>
+          </Card>
           <AiShipmentAssistant shipmentContext={shipmentContext} />
-        </motion.div>
-      </div>
+        </TabsContent>
+
+        {/* ── FINANCIALS TAB ── */}
+        <TabsContent value="financials" className="mt-6 space-y-6">
+          <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
+          <ShipmentChargesPanel shipmentId={id!} />
+          <PaymentStatusCard shipmentId={id!} />
+        </TabsContent>
+
+        {/* ── ACTIVITY LOG TAB ── */}
+        <TabsContent value="activity" className="mt-6 space-y-6">
+          <AuditTrailPanel shipmentId={id!} />
+        </TabsContent>
+      </Tabs>
 
       {/* Document Generator Dialog */}
-      <DocumentGenerator
-        shipmentId={id!}
-        shipmentRef={shipment.shipment_ref}
-        mode={isAirShipment ? "air" : "ocean"}
-        open={showDocGen}
-        onOpenChange={setShowDocGen}
-      />
+      <DocumentGenerator shipmentId={id!} shipmentRef={shipment.shipment_ref} mode={isAirShipment ? "air" : "ocean"} open={showDocGen} onOpenChange={setShowDocGen} />
     </DashboardLayout>
   );
 };
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+/* ── Embedded Pricing Engine (simplified for shipment context) ── */
+function PricingEngineEmbed({ shipmentId, shipmentType, mode }: { shipmentId: string; shipmentType: string; mode: string }) {
+  const [directCost, setDirectCost] = useState(0);
+  const [freightCost, setFreightCost] = useState(0);
+  const [truckingCost, setTruckingCost] = useState(0);
+  const [terminalCost, setTerminalCost] = useState(0);
+  const [docFees, setDocFees] = useState(0);
+  const [customsCost, setCustomsCost] = useState(0);
+  const [otherDirect, setOtherDirect] = useState(0);
+
+  const [variableCost, setVariableCost] = useState(0);
+  const [agentComm, setAgentComm] = useState(0);
+  const [insuranceCost, setInsuranceCost] = useState(0);
+
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const marginDefaults: Record<string, { min: number; target: number; stretch: number }> = {
+    fcl: { min: 6, target: 8, stretch: 10 },
+    lcl: { min: 12, target: 17, stretch: 22 },
+    air: { min: 10, target: 13, stretch: 16 },
+    trucking: { min: 6, target: 9, stretch: 12 },
+  };
+
+  const typeKey = shipmentType?.toLowerCase().includes("fcl") ? "fcl"
+    : shipmentType?.toLowerCase().includes("lcl") ? "lcl"
+    : mode === "air" ? "air" : "fcl";
+
+  const margins = marginDefaults[typeKey] || marginDefaults.fcl;
+  const [targetMargin, setTargetMargin] = useState(margins.target);
+
+  const totalDirect = freightCost + truckingCost + terminalCost + docFees + customsCost + otherDirect;
+  const totalVariable = variableCost + agentComm + insuranceCost;
+  const trueCost = totalDirect + totalVariable;
+
+  const adjustedMarginPct = targetMargin / 100;
+  const breakEvenPrice = trueCost;
+  const minSellPrice = adjustedMarginPct >= 1 ? trueCost * 2 : trueCost / (1 - margins.min / 100);
+  const recommendedSellPrice = adjustedMarginPct >= 1 ? trueCost * 2 : trueCost / (1 - adjustedMarginPct);
+  const stretchSellPrice = adjustedMarginPct >= 1 ? trueCost * 2 : trueCost / (1 - margins.stretch / 100);
+
+  const grossProfit = recommendedSellPrice - totalDirect;
+  const netProfit = recommendedSellPrice - trueCost;
+  const netMarginPct = recommendedSellPrice > 0 ? (netProfit / recommendedSellPrice) * 100 : 0;
+
+  const isLowMargin = netMarginPct < margins.min;
+  const isBelowCost = recommendedSellPrice < trueCost;
+
   return (
-    <div>
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm text-foreground mt-0.5">{value}</p>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-accent" />
+          Pricing Engine
+        </CardTitle>
+        <CardDescription>Calculate costs and recommended sell price for this shipment</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Warnings */}
+        {trueCost > 0 && isBelowCost && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 text-sm text-destructive">
+            <AlertTriangle className="h-4 w-4 shrink-0" /> Sell price is below total cost
+          </div>
+        )}
+        {trueCost > 0 && isLowMargin && !isBelowCost && (
+          <div className="rounded-lg border border-yellow-300 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20 p-3 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+            <AlertTriangle className="h-4 w-4 shrink-0" /> Net margin below minimum target ({margins.min}%)
+          </div>
+        )}
+
+        {/* Direct Costs */}
+        <div>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Direct Shipment Cost</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { label: "Freight Cost", value: freightCost, set: setFreightCost },
+              { label: "Trucking", value: truckingCost, set: setTruckingCost },
+              { label: "Terminal Handling", value: terminalCost, set: setTerminalCost },
+              { label: "Documentation", value: docFees, set: setDocFees },
+              { label: "Customs Clearance", value: customsCost, set: setCustomsCost },
+              { label: "Other Direct", value: otherDirect, set: setOtherDirect },
+            ].map((f) => (
+              <div key={f.label}>
+                <label className="text-[10px] text-muted-foreground">{f.label}</label>
+                <div className="relative mt-0.5">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                  <input
+                    type="number"
+                    value={f.value || ""}
+                    onChange={(e) => f.set(Number(e.target.value) || 0)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background pl-6 pr-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 text-right text-sm font-semibold text-foreground">
+            Total Direct: <span className="tabular-nums">${totalDirect.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Variable Costs */}
+        <div>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Variable Operational Cost</h4>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Processing & Platform", value: variableCost, set: setVariableCost },
+              { label: "Agent Commission", value: agentComm, set: setAgentComm },
+              { label: "Insurance", value: insuranceCost, set: setInsuranceCost },
+            ].map((f) => (
+              <div key={f.label}>
+                <label className="text-[10px] text-muted-foreground">{f.label}</label>
+                <div className="relative mt-0.5">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                  <input
+                    type="number"
+                    value={f.value || ""}
+                    onChange={(e) => f.set(Number(e.target.value) || 0)}
+                    className="flex h-9 w-full rounded-md border border-input bg-background pl-6 pr-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Margin Controls */}
+        <div>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Margin Target</h4>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <label className="text-[10px] text-muted-foreground">Target Margin % (on sell price)</label>
+              <input
+                type="number"
+                step="0.5"
+                value={targetMargin}
+                onChange={(e) => setTargetMargin(Number(e.target.value) || 0)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mt-0.5"
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              {[
+                { label: "Min", value: margins.min },
+                { label: "Target", value: margins.target },
+                { label: "Stretch", value: margins.stretch },
+              ].map((m) => (
+                <button
+                  key={m.label}
+                  onClick={() => setTargetMargin(m.value)}
+                  className={`text-[10px] px-2.5 py-1 rounded-full border transition-colors ${
+                    targetMargin === m.value ? "bg-accent text-accent-foreground border-accent" : "border-border text-muted-foreground hover:border-accent/30"
+                  }`}
+                >
+                  {m.label} {m.value}%
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Price Outputs */}
+        {trueCost > 0 && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Break Even", value: breakEvenPrice, color: "text-muted-foreground" },
+              { label: "Minimum Sell", value: minSellPrice, color: "text-yellow-600" },
+              { label: "Recommended", value: recommendedSellPrice, color: "text-accent" },
+              { label: "Stretch", value: stretchSellPrice, color: "text-emerald-600" },
+            ].map((p) => (
+              <div key={p.label} className="rounded-xl border border-border bg-muted/30 p-4 text-center">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{p.label}</p>
+                <p className={`text-xl font-bold tabular-nums ${p.color}`}>
+                  ${p.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Profit Summary */}
+        {trueCost > 0 && (
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Profit Summary</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-[10px] text-muted-foreground">Total Cost</p>
+                <p className="font-semibold tabular-nums">${trueCost.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Gross Profit</p>
+                <p className="font-semibold tabular-nums text-emerald-600">${grossProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Net Profit</p>
+                <p className={`font-semibold tabular-nums ${netProfit >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                  ${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">Net Margin %</p>
+                <p className={`font-semibold tabular-nums ${netMarginPct >= margins.min ? "text-emerald-600" : "text-destructive"}`}>
+                  {netMarginPct.toFixed(1)}%
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
