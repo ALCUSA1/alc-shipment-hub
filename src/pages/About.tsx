@@ -221,9 +221,13 @@ const About = () => {
       <section className="relative py-20 md:py-28 bg-background overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal>
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20">
+            <motion.div
+              animate={{ boxShadow: ["0 0 0px hsl(var(--electric) / 0)", "0 0 30px hsl(var(--electric) / 0.3)", "0 0 0px hsl(var(--electric) / 0)"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20"
+            >
               <Rocket className="w-8 h-8 text-electric" />
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Our Mission</h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
               To fix the fragmentation, inefficiency, and opacity in logistics by delivering simple, transparent, and technology-driven solutions that make global trade easier for every business.
