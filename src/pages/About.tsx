@@ -1,18 +1,18 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket } from "lucide-react";
+import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket, MapPin, Users, Zap, CircleDot } from "lucide-react";
 import syedImg from "@/assets/team/syed.jpg";
 import mikeImg from "@/assets/team/mike.jpg";
 import paulImg from "@/assets/team/paul.jpg";
 import ahadImg from "@/assets/team/ahad.jpg";
 
 const milestones = [
-  { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust." },
-  { year: "2000s", title: "Expanding Global Reach", desc: "Formed partnerships with carriers and agents worldwide, connecting U.S. businesses to Asia, Europe, and the Middle East." },
-  { year: "2010s", title: "Diversifying Services", desc: "Introduced compliance support, shipment audits, warehousing, and specialized handling for hazardous and sensitive goods." },
-  { year: "2020s", title: "Digital Transformation", desc: "Embraced technology-driven solutions to streamline operations and deliver smarter logistics." },
-  { year: "2025", title: "A New Era of Growth", desc: "Under CEO Syed Hassan-Warsi, ALC became a digital-first NVOCC and Export Trading Company focused on innovation and global growth." },
+  { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust.", icon: MapPin },
+  { year: "2000s", title: "Expanding Global Reach", desc: "Formed partnerships with carriers and agents worldwide, connecting U.S. businesses to Asia, Europe, and the Middle East.", icon: Globe },
+  { year: "2010s", title: "Diversifying Services", desc: "Introduced compliance support, shipment audits, warehousing, and specialized handling for hazardous and sensitive goods.", icon: Users },
+  { year: "2020s", title: "Digital Transformation", desc: "Launched ALC TradeHub with instant quotes, real-time tracking, compliance automation, and carbon reporting.", icon: Zap },
+  { year: "2025", title: "A New Era of Growth", desc: "Under CEO Syed Hassan-Warsi, ALC became a digital-first NVOCC and Export Trading Company focused on innovation and global growth.", icon: CircleDot },
 ];
 
 const coreValues = [
@@ -94,45 +94,48 @@ const About = () => {
           <ScrollReveal>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-14 text-center">Our History</h2>
           </ScrollReveal>
-          <div className="relative">
-            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-px" />
+          <div className="relative flex flex-col gap-16 md:gap-20">
             {milestones.map((m, i) => {
               const isEven = i % 2 === 0;
+              const Icon = m.icon;
               return (
                 <ScrollReveal key={m.year} delay={i * 0.1}>
-                  <div className="relative flex items-start mb-12 md:mb-16">
-                    {/* Dot */}
-                    <div className="absolute left-4 md:left-1/2 w-3 h-3 rounded-full bg-ocean border-2 border-background -translate-x-1.5 mt-1.5 z-10" />
+                  <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 items-center">
+                    {/* Left card or spacer */}
+                    {isEven ? (
+                      <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
+                        <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
+                        <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
+                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
+                      </div>
+                    ) : (
+                      <div className="hidden md:block" />
+                    )}
 
-                    {/* Mobile: always right of dot */}
-                    <div className="ml-10 md:hidden">
-                      <span className="text-sm font-bold text-ocean">{m.year}</span>
-                      <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
-                      <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
+                    {/* Center icon */}
+                    <div className="hidden md:flex w-12 h-12 rounded-full bg-ocean/10 border-2 border-ocean/30 items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-ocean" />
                     </div>
 
-                    {/* Desktop: alternating sides */}
-                    <div className="hidden md:grid md:grid-cols-2 w-full gap-8">
-                      {isEven ? (
-                        <>
-                          <div className="text-right pr-12">
-                            <span className="text-sm font-bold text-ocean">{m.year}</span>
-                            <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
-                            <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
-                          </div>
-                          <div />
-                        </>
-                      ) : (
-                        <>
-                          <div />
-                          <div className="pl-12">
-                            <span className="text-sm font-bold text-ocean">{m.year}</span>
-                            <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
-                            <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    {/* Right card or spacer */}
+                    {!isEven ? (
+                      <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
+                        <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
+                        <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
+                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
+                      </div>
+                    ) : (
+                      <div className="hidden md:block" />
+                    )}
+
+                    {/* Mobile card (shown only on small screens for odd items) */}
+                    {!isEven && (
+                      <div className="md:hidden bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 text-white shadow-lg w-full mt-4">
+                        <p className="text-2xl font-bold mb-1">{m.year}</p>
+                        <h3 className="text-base font-bold mb-2">{m.title}</h3>
+                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
+                      </div>
+                    )}
                   </div>
                 </ScrollReveal>
               );
