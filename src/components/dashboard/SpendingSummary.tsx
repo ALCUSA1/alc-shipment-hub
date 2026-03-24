@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DollarSign, TrendingUp, Ship, Plane, Truck } from "lucide-react";
 import { startOfMonth, startOfYear, subMonths, format } from "date-fns";
 import { motion } from "framer-motion";
-import { GlassBarChart, CHART_COLORS } from "@/components/charts/ModernCharts";
+import { GlassBarChart } from "@/components/charts/ModernCharts";
 
 export function SpendingSummary() {
   const { user } = useAuth();
@@ -69,72 +69,74 @@ export function SpendingSummary() {
 
   if (isLoading) {
     return (
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-      </div>
+      <Card className="rounded-xl border-border/60">
+        <CardContent className="p-6">
+          <Skeleton className="h-52 rounded-lg" />
+        </CardContent>
+      </Card>
     );
   }
 
-  const kpiItems = [
-    { label: "This Month", value: thisMonth, icon: DollarSign, gradient: "from-accent/10 to-accent/5", ring: "ring-accent/20", iconBg: "bg-accent/10", iconColor: "text-accent" },
-    { label: "Year to Date", value: ytd, icon: TrendingUp, gradient: "from-emerald-500/10 to-emerald-500/5", ring: "ring-emerald-500/20", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500" },
+  const inlineKpis = [
+    { label: "This Month", value: thisMonth, icon: DollarSign, color: "text-accent", bg: "bg-accent/10" },
+    { label: "Year to Date", value: ytd, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     ...byType.slice(0, 2).map((t, i) => ({
-      label: `${t.name} Spend`, value: t.value,
+      label: t.name,
+      value: t.value,
       icon: typeIcons[t.name] || DollarSign,
-      gradient: i === 0 ? "from-blue-500/10 to-blue-500/5" : "from-purple-500/10 to-purple-500/5",
-      ring: i === 0 ? "ring-blue-500/20" : "ring-purple-500/20",
-      iconBg: i === 0 ? "bg-blue-500/10" : "bg-purple-500/10",
-      iconColor: i === 0 ? "text-blue-500" : "text-purple-500",
+      color: i === 0 ? "text-blue-500" : "text-violet-500",
+      bg: i === 0 ? "bg-blue-500/10" : "bg-violet-500/10",
     })),
   ];
 
   return (
-    <div className="space-y-6 mb-6">
-      {/* KPI Row */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpiItems.map((item, i) => (
-          <motion.div key={item.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
-            <Card className={`ring-1 ${item.ring} bg-gradient-to-br ${item.gradient} h-full overflow-hidden relative group hover:shadow-md transition-shadow`}>
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br from-white/5 to-transparent -translate-y-8 translate-x-8 group-hover:scale-110 transition-transform" />
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{item.label}</CardTitle>
-                <div className={`h-8 w-8 rounded-lg ${item.iconBg} flex items-center justify-center`}>
-                  <item.icon className={`h-4 w-4 ${item.iconColor}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold tabular-nums text-foreground">${item.value.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+    <Card className="overflow-hidden border-border/60 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-emerald-500/[0.02] pointer-events-none" />
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center">
+            <DollarSign className="h-4.5 w-4.5 text-accent" />
+          </div>
+          <div>
+            <CardTitle className="text-sm font-semibold">Financial Overview</CardTitle>
+            <CardDescription>Spending breakdown & 6-month trend</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Inline KPIs — compact row inside the card */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {inlineKpis.map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50"
+            >
+              <div className={`h-8 w-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
+                <item.icon className={`h-4 w-4 ${item.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg font-bold tabular-nums text-foreground leading-tight">${item.value.toLocaleString()}</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">{item.label}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-      {/* Spend Trend */}
-      <Card className="overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-emerald-500/[0.02] pointer-events-none" />
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-accent/10 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 text-accent" />
-            </div>
-            Spend Trend
-          </CardTitle>
-          <CardDescription>Monthly spending — last 6 months</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <GlassBarChart
-            data={trendData}
-            dataKey="spend"
-            xKey="month"
-            color="hsl(var(--accent))"
-            height={200}
-            yFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-            tooltipFormatter={(v) => [`$${v.toLocaleString()}`, "Spend"]}
-            barSize={36}
-          />
-        </CardContent>
-      </Card>
-    </div>
+        {/* Spend Trend Chart */}
+        <GlassBarChart
+          data={trendData}
+          dataKey="spend"
+          xKey="month"
+          color="hsl(var(--accent))"
+          height={180}
+          yFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+          tooltipFormatter={(v) => [`$${v.toLocaleString()}`, "Spend"]}
+          barSize={36}
+        />
+      </CardContent>
+    </Card>
   );
 }
