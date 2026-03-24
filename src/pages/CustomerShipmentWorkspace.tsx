@@ -17,7 +17,7 @@ import {
   MessageSquare, Activity, BarChart3, Ship, Plane, Truck,
   Shield, Download, Receipt, Eye, AlertTriangle, CheckCircle2,
   Anchor, Globe, Container, CalendarDays, RefreshCw, Info,
-  Share2, Sparkles, Phone, Mail, ExternalLink,
+  Share2, Sparkles, Phone, Mail, ExternalLink, Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -382,6 +382,37 @@ const CustomerShipmentWorkspace = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {canEdit && (
+              <Button variant="outline" size="sm" onClick={() => {
+                const params = new URLSearchParams();
+                params.set("repeat", shipment.id);
+                navigate(`/dashboard/shipments/new?${params.toString()}`);
+              }} className="gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5" />Repeat Shipment
+              </Button>
+            )}
+            {canEdit && (
+              <Button variant="outline" size="sm" onClick={async () => {
+                const templateData = {
+                  user_id: user?.id,
+                  name: `${shipment.shipment_ref} Template`,
+                  origin_port: shipment.origin_port,
+                  destination_port: shipment.destination_port,
+                  mode: shipment.mode || "ocean",
+                  commodity: cargo?.[0]?.commodity || null,
+                  shipment_type: shipment.shipment_type,
+                  incoterms: shipment.incoterms,
+                };
+                const { error } = await supabase.from("shipment_templates").insert(templateData);
+                if (error) {
+                  toast({ title: "Failed to save template", description: error.message, variant: "destructive" });
+                } else {
+                  toast({ title: "Template saved", description: "You can reuse this from the Templates page." });
+                }
+              }} className="gap-1.5">
+                <Copy className="h-3.5 w-3.5" />Save as Template
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => setActiveTab("messages")}>
               <MessageSquare className="mr-2 h-3.5 w-3.5" />Message Support
             </Button>

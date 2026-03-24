@@ -1,9 +1,10 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Download, Loader2, Printer, ChevronDown, ChevronRight, Ship } from "lucide-react";
+import { FileText, Download, Loader2, Printer, ChevronDown, ChevronRight, Ship, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ const Documents = () => {
   const { user } = useAuth();
   const { generatePdf, generating } = useDocumentPdf();
   const [openShipments, setOpenShipments] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", user?.id],
@@ -42,11 +44,25 @@ const Documents = () => {
     enabled: !!user,
   });
 
+  // Filter documents by search query
+  const filteredDocuments = useMemo(() => {
+    if (!documents) return [];
+    if (!searchQuery.trim()) return documents;
+    const q = searchQuery.toLowerCase();
+    return documents.filter(d =>
+      getDocLabel(d.doc_type).toLowerCase().includes(q) ||
+      d.doc_type.toLowerCase().includes(q) ||
+      (d.shipments?.shipment_ref || "").toLowerCase().includes(q) ||
+      d.status.toLowerCase().includes(q)
+    );
+  }, [documents, searchQuery]);
+
   // Group documents by shipment
   const shipmentGroups = useMemo(() => {
-    if (!documents) return [];
+    const docs = filteredDocuments;
+    if (!docs.length) return [];
     const map = new Map<string, { shipmentId: string; shipmentRef: string; docs: DocRow[] }>();
-    for (const doc of documents) {
+    for (const doc of docs) {
       const sid = doc.shipment_id;
       if (!map.has(sid)) {
         map.set(sid, {
@@ -58,17 +74,16 @@ const Documents = () => {
       map.get(sid)!.docs.push(doc);
     }
     return Array.from(map.values());
-  }, [documents]);
+  }, [filteredDocuments]);
 
-  // Category counts across all docs
+  // Category counts across filtered docs
   const countByCategory = useMemo(() => {
-    if (!documents) return {};
-    const counts: Record<string, number> = { all: documents.length };
+    const counts: Record<string, number> = { all: filteredDocuments.length };
     for (const cat of DOC_CATEGORIES) {
-      counts[cat.key] = documents.filter((d) => cat.docTypes.includes(d.doc_type)).length;
+      counts[cat.key] = filteredDocuments.filter((d) => cat.docTypes.includes(d.doc_type)).length;
     }
     return counts;
-  }, [documents]);
+  }, [filteredDocuments]);
 
   const toggleShipment = (sid: string) => {
     setOpenShipments((prev) => {
@@ -183,8 +198,8 @@ const Documents = () => {
       <div className="flex items-center gap-3 mb-4">
         <BackButton />
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">Documents</h1>
-          <p className="text-sm text-muted-foreground">Shipping documents organized by shipment — generate PDFs on demand</p>
+          <h1 className="text-2xl font-bold text-foreground">Document Vault</h1>
+          <p className="text-sm text-muted-foreground">Search, filter, and download shipping documents</p>
         </div>
         {shipmentGroups.length > 0 && (
           <div className="flex gap-1">
@@ -193,6 +208,24 @@ const Documents = () => {
           </div>
         )}
       </div>
+
+      {/* Search Bar */}
+      {documents && documents.length > 0 && (
+        <div className="relative mb-5">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search documents by name, type, shipment reference..."
+            className="pl-10 pr-9"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
