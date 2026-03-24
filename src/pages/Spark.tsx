@@ -167,13 +167,7 @@ function TrendingSidebar() {
               </div>
             </div>
           )}
-          {eventCount > 0 && (
-            <div className="flex items-center gap-2 text-xs bg-accent/5 border border-accent/10 rounded-lg px-3 py-2.5">
-              <Calendar className="h-3.5 w-3.5 text-accent" />
-              <span className="text-foreground font-medium"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
-            </div>
-          )}
-          {latestRfqs.length === 0 && eventCount === 0 && (
+          {latestRfqs.length === 0 && (
             <p className="text-xs text-muted-foreground/50 italic text-center py-3">No trending activity yet</p>
           )}
         </CardContent>
