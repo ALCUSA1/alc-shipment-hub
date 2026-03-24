@@ -125,7 +125,7 @@ const Shipments = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("*, companies(company_name)")
+        .select("*, companies!shipments_company_id_fkey(company_name)")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
