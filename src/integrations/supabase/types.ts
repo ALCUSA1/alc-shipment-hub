@@ -1868,6 +1868,61 @@ export type Database = {
           },
         ]
       }
+      document_requirements: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          document_type: string
+          id: string
+          is_mandatory: boolean
+          required_at_stage: string
+          service_flag: string | null
+          shipment_type: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          document_type: string
+          id?: string
+          is_mandatory?: boolean
+          required_at_stage?: string
+          service_flag?: string | null
+          shipment_type?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          is_mandatory?: boolean
+          required_at_stage?: string
+          service_flag?: string | null
+          shipment_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requirements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -5529,6 +5584,102 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          assigned_to_role: string | null
+          assigned_to_user_id: string | null
+          company_id: string
+          completed_at: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          created_by_system: boolean
+          description: string | null
+          due_date: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          priority: string
+          shipment_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_role?: string | null
+          assigned_to_user_id?: string | null
+          company_id: string
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          created_by_system?: boolean
+          description?: string | null
+          due_date?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          priority?: string
+          shipment_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_role?: string | null
+          assigned_to_user_id?: string | null
+          company_id?: string
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          created_by_system?: boolean
+          description?: string | null
+          due_date?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          priority?: string
+          shipment_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracking_events: {
         Row: {
           created_at: string
@@ -6064,6 +6215,61 @@ export type Database = {
           warehouse_name?: string
         }
         Relationships: []
+      }
+      workflow_config: {
+        Row: {
+          company_id: string
+          config_key: string
+          config_value: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          config_key: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
