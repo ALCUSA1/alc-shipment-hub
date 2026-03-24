@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { GlassBarChart, CHART_COLORS } from "@/components/charts/ModernCharts";
 
 const AdminFinancials = () => {
   const { data, isLoading } = useQuery({
@@ -92,16 +92,17 @@ const AdminFinancials = () => {
             No financial data yet.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data?.categoryBreakdown || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,15%)" />
-              <XAxis dataKey="category" tick={{ fontSize: 12, fill: "hsl(220,10%,40%)" }} axisLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "hsl(220,10%,40%)" }} axisLine={false} />
-              <Tooltip contentStyle={{ background: "hsl(220,18%,12%)", border: "1px solid hsl(220,15%,18%)", borderRadius: 8, color: "#fff" }} />
-              <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="cost" name="Costs" fill="#ef4444" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <GlassBarChart
+            data={data?.categoryBreakdown || []}
+            dataKey="revenue"
+            secondaryDataKey="cost"
+            xKey="category"
+            color={CHART_COLORS.emerald}
+            secondaryColor="hsl(0, 84%, 60%)"
+            height={280}
+            dark
+            tooltipFormatter={(v) => [`$${v.toLocaleString()}`, ""]}
+          />
         )}
       </div>
     </AdminLayout>

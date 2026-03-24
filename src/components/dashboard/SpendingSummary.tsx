@@ -6,17 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { DollarSign, TrendingUp, Ship, Plane, Truck } from "lucide-react";
 import { startOfMonth, startOfYear, subMonths, format } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { motion } from "framer-motion";
-
-const GRADIENT_COLORS = [
-  { start: "hsl(215, 100%, 55%)", end: "hsl(215, 100%, 72%)" },
-  { start: "hsl(152, 69%, 40%)", end: "hsl(152, 69%, 58%)" },
-  { start: "hsl(25, 95%, 53%)", end: "hsl(25, 95%, 70%)" },
-  { start: "hsl(280, 70%, 55%)", end: "hsl(280, 70%, 72%)" },
-  { start: "hsl(45, 93%, 47%)", end: "hsl(45, 93%, 65%)" },
-  { start: "hsl(340, 75%, 55%)", end: "hsl(340, 75%, 72%)" },
-];
+import { GlassBarChart, CHART_COLORS } from "@/components/charts/ModernCharts";
 
 export function SpendingSummary() {
   const { user } = useAuth();
@@ -97,8 +88,6 @@ export function SpendingSummary() {
     })),
   ];
 
-  const maxSpend = Math.max(...trendData.map(d => d.spend), 1);
-
   return (
     <div className="space-y-6 mb-6">
       {/* KPI Row */}
@@ -121,7 +110,7 @@ export function SpendingSummary() {
         ))}
       </div>
 
-      {/* Spend Trend — Premium gradient bars */}
+      {/* Spend Trend */}
       <Card className="overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-emerald-500/[0.02] pointer-events-none" />
         <CardHeader>
@@ -134,40 +123,16 @@ export function SpendingSummary() {
           <CardDescription>Monthly spending — last 6 months</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={trendData} margin={{ left: -10, right: 8, top: 8, bottom: 4 }}>
-              <defs>
-                {trendData.map((_, i) => (
-                  <linearGradient key={`spendGrad-${i}`} id={`spendGrad-${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.4} />
-                  </linearGradient>
-                ))}
-                <filter id="barGlow">
-                  <feGaussianBlur stdDeviation="2" result="blur" />
-                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "0 8px 30px -12px hsl(var(--accent) / 0.2)" }}
-                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600, marginBottom: 2 }}
-                formatter={(value: number) => [`$${value.toLocaleString()}`, "Spend"]}
-                cursor={{ fill: "hsl(var(--accent) / 0.06)", radius: 6 }}
-              />
-              <Bar dataKey="spend" radius={[6, 6, 0, 0]} barSize={36} animationDuration={800}>
-                {trendData.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={`url(#spendGrad-${i})`}
-                    opacity={0.4 + (entry.spend / maxSpend) * 0.6}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <GlassBarChart
+            data={trendData}
+            dataKey="spend"
+            xKey="month"
+            color="hsl(var(--accent))"
+            height={200}
+            yFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+            tooltipFormatter={(v) => [`$${v.toLocaleString()}`, "Spend"]}
+            barSize={36}
+          />
         </CardContent>
       </Card>
     </div>

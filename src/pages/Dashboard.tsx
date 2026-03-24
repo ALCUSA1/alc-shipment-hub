@@ -9,18 +9,14 @@ import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { canSeeDashboardSection, hasCapability } from "@/lib/company-permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow, subDays, format, startOfDay } from "date-fns";
+import { formatDistanceToNow, subDays, format } from "date-fns";
 import {
   Package, DollarSign, Clock, ArrowRight, Plus, Ship, Plane,
   CheckCircle2, AlertTriangle, FileText, Zap, Truck, Activity,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  AreaChart, Area, CartesianGrid, Cell, RadialBarChart, RadialBar,
-  PieChart, Pie,
-} from "recharts";
 import { SpendingSummary } from "@/components/dashboard/SpendingSummary";
+import { GlassDonut, GlassAreaChart, AnimatedProgressBar, CHART_COLORS, PALETTE } from "@/components/charts/ModernCharts";
 
 const statusColor: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -48,11 +44,11 @@ interface ShipmentRow {
 }
 
 const PIPELINE_STAGES = [
-  { key: "pendingPricing", label: "Pending Pricing", fill: "hsl(45, 93%, 47%)" },
-  { key: "quoteReady", label: "Quote Ready", fill: "hsl(215, 100%, 50%)" },
-  { key: "awaitingApproval", label: "Awaiting Approval", fill: "hsl(25, 95%, 53%)" },
-  { key: "booked", label: "Booked", fill: "hsl(217, 91%, 60%)" },
-  { key: "inTransit", label: "In Transit", fill: "hsl(152, 69%, 40%)" },
+  { key: "pendingPricing", label: "Pending Pricing", fill: CHART_COLORS.amber },
+  { key: "quoteReady", label: "Quote Ready", fill: CHART_COLORS.blue },
+  { key: "awaitingApproval", label: "Awaiting Approval", fill: CHART_COLORS.orange },
+  { key: "booked", label: "Booked", fill: CHART_COLORS.indigo },
+  { key: "inTransit", label: "In Transit", fill: CHART_COLORS.emerald },
   { key: "delivered", label: "Delivered", fill: "hsl(152, 69%, 31%)" },
 ] as const;
 
@@ -105,15 +101,13 @@ const Dashboard = () => {
 
   const isEmpty = !loading && recentShipments.length === 0 && counts.active === 0;
 
-  /* ── Pipeline bar data ── */
   const pipelineData = useMemo(() =>
     PIPELINE_STAGES.map(s => ({
       name: s.label,
-      count: counts[s.key as keyof typeof counts] as number,
+      value: counts[s.key as keyof typeof counts] as number,
       fill: s.fill,
     })), [counts]);
 
-  /* ── Trend chart data (last 30 days) ── */
   const trendData = useMemo(() => {
     const buckets: Record<string, number> = {};
     for (let i = 29; i >= 0; i--) {
@@ -197,7 +191,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Tasks & Alerts — Moved up, prominent */}
+      {/* Tasks & Alerts */}
       {!loading && hasAlerts && showAlerts && (
         <Card className="mb-6 border-yellow-200 dark:border-yellow-800/40 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
           <CardHeader className="pb-3">
@@ -263,10 +257,10 @@ const Dashboard = () => {
         </Card>
       )}
 
-      {/* Charts Row: Pipeline + Trend */}
+      {/* Charts Row: Pipeline Donut + Trend Area */}
       {!loading && (
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Pipeline Donut + Legend */}
+          {/* Pipeline Donut */}
           <Card className="overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] to-transparent pointer-events-none" />
             <CardHeader>
@@ -280,46 +274,24 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-6">
-                <div className="w-[180px] h-[180px] shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <defs>
-                        {pipelineData.map((entry, i) => (
-                          <linearGradient key={`pg-${i}`} id={`pipeGrad-${i}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
-                            <stop offset="100%" stopColor={entry.fill} stopOpacity={0.6} />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <Pie
-                        data={pipelineData.filter(d => d.count > 0)}
-                        cx="50%" cy="50%"
-                        innerRadius={52} outerRadius={80}
-                        paddingAngle={3}
-                        dataKey="count"
-                        stroke="none"
-                        animationBegin={0}
-                        animationDuration={800}
-                      >
-                        {pipelineData.filter(d => d.count > 0).map((_, i) => (
-                          <Cell key={i} fill={`url(#pipeGrad-${i})`} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "0 8px 30px -12px hsl(var(--accent) / 0.15)" }}
-                        formatter={(value: number, name: string) => [value, name]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="w-[180px] shrink-0">
+                  <GlassDonut
+                    data={pipelineData}
+                    height={180}
+                    innerRadius={52}
+                    outerRadius={80}
+                    centerValue={counts.active + counts.delivered}
+                    centerLabel="total"
+                  />
                 </div>
                 <div className="flex-1 space-y-2.5">
                   {pipelineData.map((item, i) => (
                     <div key={i} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="h-3 w-3 rounded-full shrink-0" style={{ background: item.fill, boxShadow: `0 0 6px ${item.fill}40` }} />
+                        <div className="h-3 w-3 rounded-full shrink-0" style={{ background: item.fill, boxShadow: `0 0 8px ${item.fill}40` }} />
                         <span className="text-xs text-muted-foreground truncate">{item.name}</span>
                       </div>
-                      <span className="text-sm font-semibold tabular-nums text-foreground">{item.count}</span>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -327,7 +299,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Shipments Over Time — Gradient Area */}
+          {/* Shipments Over Time */}
           <Card className="overflow-hidden relative">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent pointer-events-none" />
             <CardHeader>
@@ -340,36 +312,14 @@ const Dashboard = () => {
               <CardDescription>New shipments — last 30 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={trendData} margin={{ left: -10, right: 8, top: 8, bottom: 4 }}>
-                  <defs>
-                    <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.25} />
-                      <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity={0.08} />
-                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
-                    </linearGradient>
-                    <filter id="trendGlow">
-                      <feGaussianBlur stdDeviation="3" result="blur" />
-                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                    </filter>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "0 8px 30px -12px hsl(var(--accent) / 0.2)" }}
-                    labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600, marginBottom: 2 }}
-                    formatter={(value: number) => [value, "Shipments"]}
-                  />
-                  <Area
-                    type="monotone" dataKey="count" name="Shipments"
-                    stroke="hsl(var(--accent))" fill="url(#trendGrad)"
-                    strokeWidth={2.5}
-                    dot={false}
-                    activeDot={{ r: 5, fill: "hsl(var(--accent))", stroke: "hsl(var(--background))", strokeWidth: 2, filter: "url(#trendGlow)" }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <GlassAreaChart
+                data={trendData}
+                dataKey="count"
+                xKey="date"
+                color="hsl(var(--accent))"
+                height={220}
+                tooltipFormatter={(v) => [`${v}`, "Shipments"]}
+              />
             </CardContent>
           </Card>
         </div>
@@ -408,7 +358,6 @@ const Dashboard = () => {
                   <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">On-Time Rate</p>
                 </div>
               </div>
-              {/* Top lanes derived from recent shipments */}
               <div>
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Lanes</p>
                 <div className="space-y-1.5">
@@ -421,17 +370,15 @@ const Dashboard = () => {
                     const topLanes = Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
                     if (topLanes.length === 0) return <p className="text-xs text-muted-foreground">No data yet</p>;
                     const maxCount = topLanes[0][1];
-                    return topLanes.map(([lane, count]) => (
-                      <div key={lane} className="flex items-center gap-2">
-                        <div className="flex-1 h-6 bg-muted/50 rounded-md overflow-hidden relative">
-                          <div
-                            className="h-full bg-accent/15 rounded-md"
-                            style={{ width: `${(count / maxCount) * 100}%` }}
-                          />
-                          <span className="absolute inset-0 flex items-center px-2 text-[11px] font-medium text-foreground">{lane}</span>
-                        </div>
-                        <span className="text-xs font-semibold text-muted-foreground tabular-nums w-6 text-right">{count}</span>
-                      </div>
+                    return topLanes.map(([lane, count], i) => (
+                      <AnimatedProgressBar
+                        key={lane}
+                        label={lane}
+                        value={count}
+                        max={maxCount}
+                        color={PALETTE[i % PALETTE.length]}
+                        index={i}
+                      />
                     ));
                   })()}
                 </div>
@@ -461,7 +408,6 @@ const Dashboard = () => {
                     to={`/dashboard/shipments/${s.id}`}
                     className="flex items-start gap-3 py-2.5 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors group relative"
                   >
-                    {/* Timeline line */}
                     {i < Math.min(recentShipments.length, 5) - 1 && (
                       <div className="absolute left-[19px] top-10 bottom-0 w-px bg-border" />
                     )}
