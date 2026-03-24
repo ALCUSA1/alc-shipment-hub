@@ -2136,6 +2136,69 @@ export type Database = {
           },
         ]
       }
+      fixed_cost_profiles: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          fixed_cost_per_shipment: number | null
+          id: string
+          monthly_marketing_cost: number
+          monthly_office_cost: number
+          monthly_shipment_volume: number
+          monthly_software_cost: number
+          monthly_team_cost: number
+          monthly_tech_cost: number
+          profile_name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          fixed_cost_per_shipment?: number | null
+          id?: string
+          monthly_marketing_cost?: number
+          monthly_office_cost?: number
+          monthly_shipment_volume?: number
+          monthly_software_cost?: number
+          monthly_team_cost?: number
+          monthly_tech_cost?: number
+          profile_name?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          fixed_cost_per_shipment?: number | null
+          id?: string
+          monthly_marketing_cost?: number
+          monthly_office_cost?: number
+          monthly_shipment_volume?: number
+          monthly_software_cost?: number
+          monthly_team_cost?: number
+          monthly_tech_cost?: number
+          profile_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_cost_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_cost_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forwarder_customers: {
         Row: {
           accepted_at: string | null
@@ -2766,6 +2829,299 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      pricing_cost_lines: {
+        Row: {
+          amount: number
+          cost_category: string
+          cost_type: string
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          pricing_scenario_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          cost_category: string
+          cost_type: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_scenario_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cost_category?: string
+          cost_type?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_scenario_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_cost_lines_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_outputs: {
+        Row: {
+          break_even_price: number
+          contribution_margin_percent: number
+          contribution_profit: number
+          created_at: string
+          fixed_cost_per_shipment: number
+          gross_margin_percent: number
+          gross_profit: number
+          id: string
+          minimum_acceptable_sell_price: number
+          net_margin_percent: number
+          net_profit: number
+          pricing_scenario_id: string
+          recommended_sell_price: number
+          stretch_sell_price: number
+          total_direct_cost: number
+          total_network_payout_cost: number
+          total_variable_cost: number
+          true_total_cost: number
+          updated_at: string
+        }
+        Insert: {
+          break_even_price?: number
+          contribution_margin_percent?: number
+          contribution_profit?: number
+          created_at?: string
+          fixed_cost_per_shipment?: number
+          gross_margin_percent?: number
+          gross_profit?: number
+          id?: string
+          minimum_acceptable_sell_price?: number
+          net_margin_percent?: number
+          net_profit?: number
+          pricing_scenario_id: string
+          recommended_sell_price?: number
+          stretch_sell_price?: number
+          total_direct_cost?: number
+          total_network_payout_cost?: number
+          total_variable_cost?: number
+          true_total_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          break_even_price?: number
+          contribution_margin_percent?: number
+          contribution_profit?: number
+          created_at?: string
+          fixed_cost_per_shipment?: number
+          gross_margin_percent?: number
+          gross_profit?: number
+          id?: string
+          minimum_acceptable_sell_price?: number
+          net_margin_percent?: number
+          net_profit?: number
+          pricing_scenario_id?: string
+          recommended_sell_price?: number
+          stretch_sell_price?: number
+          total_direct_cost?: number
+          total_network_payout_cost?: number
+          total_variable_cost?: number
+          true_total_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_outputs_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: true
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_rules: {
+        Row: {
+          active: boolean
+          capacity_loose_adjustment: number
+          capacity_normal_adjustment: number
+          capacity_tight_adjustment: number
+          company_id: string
+          competition_high_adjustment: number
+          competition_low_adjustment: number
+          competition_normal_adjustment: number
+          created_at: string
+          high_volume_customer_adjustment: number
+          id: string
+          minimum_margin_percent: number
+          shipment_type: string
+          stretch_margin_percent: number
+          target_margin_percent: number
+          updated_at: string
+          urgency_priority_adjustment: number
+          urgency_standard_adjustment: number
+          urgency_urgent_adjustment: number
+        }
+        Insert: {
+          active?: boolean
+          capacity_loose_adjustment?: number
+          capacity_normal_adjustment?: number
+          capacity_tight_adjustment?: number
+          company_id: string
+          competition_high_adjustment?: number
+          competition_low_adjustment?: number
+          competition_normal_adjustment?: number
+          created_at?: string
+          high_volume_customer_adjustment?: number
+          id?: string
+          minimum_margin_percent?: number
+          shipment_type: string
+          stretch_margin_percent?: number
+          target_margin_percent?: number
+          updated_at?: string
+          urgency_priority_adjustment?: number
+          urgency_standard_adjustment?: number
+          urgency_urgent_adjustment?: number
+        }
+        Update: {
+          active?: boolean
+          capacity_loose_adjustment?: number
+          capacity_normal_adjustment?: number
+          capacity_tight_adjustment?: number
+          company_id?: string
+          competition_high_adjustment?: number
+          competition_low_adjustment?: number
+          competition_normal_adjustment?: number
+          created_at?: string
+          high_volume_customer_adjustment?: number
+          id?: string
+          minimum_margin_percent?: number
+          shipment_type?: string
+          stretch_margin_percent?: number
+          target_margin_percent?: number
+          updated_at?: string
+          urgency_priority_adjustment?: number
+          urgency_standard_adjustment?: number
+          urgency_urgent_adjustment?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_scenarios: {
+        Row: {
+          adjustment_percent: number | null
+          approved_at: string | null
+          approved_by_user_id: string | null
+          base_margin_percent: number | null
+          company_id: string
+          created_at: string
+          created_by_user_id: string
+          final_margin_percent: number | null
+          first_shipment_discount_amount: number | null
+          id: string
+          is_active: boolean
+          is_selected: boolean
+          manual_override: boolean
+          minimum_margin_percent: number | null
+          override_reason: string | null
+          pricing_status: string
+          scenario_name: string
+          shipment_id: string
+          shipment_type: string | null
+          stretch_margin_percent: number | null
+          updated_at: string
+        }
+        Insert: {
+          adjustment_percent?: number | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          base_margin_percent?: number | null
+          company_id: string
+          created_at?: string
+          created_by_user_id: string
+          final_margin_percent?: number | null
+          first_shipment_discount_amount?: number | null
+          id?: string
+          is_active?: boolean
+          is_selected?: boolean
+          manual_override?: boolean
+          minimum_margin_percent?: number | null
+          override_reason?: string | null
+          pricing_status?: string
+          scenario_name?: string
+          shipment_id: string
+          shipment_type?: string | null
+          stretch_margin_percent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          adjustment_percent?: number | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          base_margin_percent?: number | null
+          company_id?: string
+          created_at?: string
+          created_by_user_id?: string
+          final_margin_percent?: number | null
+          first_shipment_discount_amount?: number | null
+          id?: string
+          is_active?: boolean
+          is_selected?: boolean
+          manual_override?: boolean
+          minimum_margin_percent?: number | null
+          override_reason?: string | null
+          pricing_status?: string
+          scenario_name?: string
+          shipment_id?: string
+          shipment_type?: string | null
+          stretch_margin_percent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_scenarios_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
