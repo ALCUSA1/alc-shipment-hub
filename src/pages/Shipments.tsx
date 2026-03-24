@@ -219,9 +219,11 @@ const Shipments = () => {
             {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Seed Pending Data
           </Button>
-          <Button variant="electric" asChild>
-            <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
-          </Button>
+          {canCreate && (
+            <Button variant="electric" asChild>
+              <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
+            </Button>
+          )}
         </div>
       </div>
 
