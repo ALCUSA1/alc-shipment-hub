@@ -861,15 +861,16 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
     queryFn: async () => { const { data } = await supabase.from("profiles").select("full_name, avatar_url, company_name").eq("user_id", currentUserId).maybeSingle(); return data; },
   });
 
-  const hasLiked = reactions.some((r: any) => r.user_id === currentUserId && r.reaction_type === "like");
-  const likeCount = reactions.filter((r: any) => r.reaction_type === "like").length;
+  const getReactionsByType = (type: string) => reactions.filter((r: any) => r.reaction_type === type);
+  const hasReacted = (type: string) => reactions.some((r: any) => r.user_id === currentUserId && r.reaction_type === type);
+  const totalReactions = reactions.length;
 
-  const toggleLike = useMutation({
-    mutationFn: async () => {
-      if (hasLiked) {
-        await supabase.from("feed_reactions").delete().eq("post_id", post.id).eq("user_id", currentUserId).eq("reaction_type", "like");
+  const toggleReaction = useMutation({
+    mutationFn: async (type: string) => {
+      if (hasReacted(type)) {
+        await supabase.from("feed_reactions").delete().eq("post_id", post.id).eq("user_id", currentUserId).eq("reaction_type", type);
       } else {
-        await supabase.from("feed_reactions").insert({ post_id: post.id, user_id: currentUserId, reaction_type: "like" });
+        await supabase.from("feed_reactions").insert({ post_id: post.id, user_id: currentUserId, reaction_type: type });
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feed-reactions", post.id] }),
