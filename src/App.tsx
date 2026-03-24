@@ -114,6 +114,8 @@ import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
 import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
 import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
 import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
+import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
+import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
 
 const queryClient = new QueryClient();
 
@@ -213,6 +215,8 @@ const App = () => (
             <Route path="/admin/customer-pricing" element={<AdminGate><AdminCustomerPricing /></AdminGate>} />
             <Route path="/admin/market-ingestion" element={<AdminGate><AdminMarketIngestion /></AdminGate>} />
             <Route path="/admin/lane-auto-quote" element={<AdminGate><AdminLaneAutoQuote /></AdminGate>} />
+            <Route path="/admin/commercial" element={<AdminGate><AdminCommercialCommand /></AdminGate>} />
+            <Route path="/admin/weekly-review" element={<AdminGate><AdminWeeklyReview /></AdminGate>} />
 
             {/* Forwarder Portal */}
             <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />

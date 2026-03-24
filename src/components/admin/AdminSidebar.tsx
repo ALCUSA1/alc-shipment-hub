@@ -15,6 +15,8 @@ const navGroups = [
     label: "Overview",
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
+      { title: "Commercial Command", url: "/admin/commercial", icon: Activity },
+      { title: "Weekly Review", url: "/admin/weekly-review", icon: FileText },
       { title: "Pipeline", url: "/admin/pipeline", icon: GitBranch },
     ],
   },
