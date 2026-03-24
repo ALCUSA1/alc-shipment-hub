@@ -477,7 +477,7 @@ const CustomerShipmentWorkspace = () => {
       {/* ── TABBED WORKSPACE ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-1 bg-transparent p-0 border-b border-border rounded-none pb-0">
-          {CUSTOMER_TABS.map(tab => (
+          {visibleTabs.map(tab => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
