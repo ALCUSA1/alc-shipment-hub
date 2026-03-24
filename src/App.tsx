@@ -111,6 +111,7 @@ import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
 import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
 import AdminRateIntelligence from "./pages/admin/AdminRateIntelligence";
 import PricingPreview from "./pages/PricingPreview";
+import BookingFlow from "./pages/BookingFlow";
 import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
 import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
 import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
@@ -149,6 +150,7 @@ const App = () => (
             {/* Quick entry routes */}
             <Route path="/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
             <Route path="/pricing-preview" element={<ProtectedRoute><PricingPreview /></ProtectedRoute>} />
+            <Route path="/book" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
 
             {/* Operations Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
