@@ -294,8 +294,16 @@ const About = () => {
 
       {/* ═══ CTA ═══ */}
       <section className="relative py-20 md:py-28 bg-navy text-primary-foreground overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,hsl(var(--electric)/0.2),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,hsl(var(--electric)/0.1),transparent_50%)]" />
+        <motion.div
+          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,hsl(var(--electric)/0.2),transparent_60%)]"
+        />
+        <motion.div
+          animate={{ x: [0, -20, 0], y: [0, 15, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,hsl(var(--electric)/0.1),transparent_50%)]"
+        />
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal>
             <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20">
