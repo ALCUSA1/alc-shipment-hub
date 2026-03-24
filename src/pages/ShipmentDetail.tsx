@@ -132,29 +132,6 @@ const ShipmentDetail = () => {
     }
   }, [rolesLoading, isAdminOrInternal, id, navigate]);
 
-  // While roles are loading or redirecting, show loading state
-  if (rolesLoading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // If not admin, don't render (redirect effect will fire)
-  if (!isAdminOrInternal) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   const handleDelete = async () => {
     if (!id) return;
