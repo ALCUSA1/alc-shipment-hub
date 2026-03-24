@@ -26,8 +26,10 @@ import {
   Plus, AtSign, ExternalLink, MapPin, Building2, Briefcase,
   Search, ArrowLeft, Edit3, Globe2, Phone, Mail, Handshake,
   ShoppingCart, Star, Calendar, Check, X, Clock, Award, Video,
-  Mic, ChevronRight, DollarSign, Ship, Package, MapPinned
+  Mic, ChevronRight, DollarSign, Ship, Package, MapPinned,
+  Bookmark, ThumbsUp, PartyPopper, Rocket, UserCheck
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
