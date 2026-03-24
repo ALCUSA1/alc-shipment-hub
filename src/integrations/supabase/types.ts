@@ -1616,6 +1616,96 @@ export type Database = {
           },
         ]
       }
+      earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          deal_id: string | null
+          description: string
+          earning_type: string
+          id: string
+          paid_at: string | null
+          shipment_id: string | null
+          source_ref: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          deal_id?: string | null
+          description: string
+          earning_type?: string
+          id?: string
+          paid_at?: string | null
+          shipment_id?: string | null
+          source_ref?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          deal_id?: string | null
+          description?: string
+          earning_type?: string
+          id?: string
+          paid_at?: string | null
+          shipment_id?: string | null
+          source_ref?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earnings_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "earnings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      earnings_balance: {
+        Row: {
+          available_balance: number
+          id: string
+          lifetime_earnings: number
+          payment_method: string | null
+          pending_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_balance?: number
+          id?: string
+          lifetime_earnings?: number
+          payment_method?: string | null
+          pending_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_balance?: number
+          id?: string
+          lifetime_earnings?: number
+          payment_method?: string | null
+          pending_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       edi_messages: {
         Row: {
           carrier: string
@@ -2373,6 +2463,106 @@ export type Database = {
           },
           {
             foreignKeyName: "payments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_deals: {
+        Row: {
+          carrier: string | null
+          company_id: string | null
+          company_name: string | null
+          confirmed_earnings: number | null
+          created_at: string
+          deal_amount: number | null
+          deal_type: string
+          destination: string | null
+          estimated_earnings: number | null
+          id: string
+          notes: string | null
+          origin: string | null
+          paid_earnings: number | null
+          shipment_id: string | null
+          source_id: string | null
+          source_type: string | null
+          stage: string
+          timeline: string | null
+          title: string
+          trade_lane: string | null
+          updated_at: string
+          user_id: string
+          volume: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          confirmed_earnings?: number | null
+          created_at?: string
+          deal_amount?: number | null
+          deal_type?: string
+          destination?: string | null
+          estimated_earnings?: number | null
+          id?: string
+          notes?: string | null
+          origin?: string | null
+          paid_earnings?: number | null
+          shipment_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          stage?: string
+          timeline?: string | null
+          title: string
+          trade_lane?: string | null
+          updated_at?: string
+          user_id: string
+          volume?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          confirmed_earnings?: number | null
+          created_at?: string
+          deal_amount?: number | null
+          deal_type?: string
+          destination?: string | null
+          estimated_earnings?: number | null
+          id?: string
+          notes?: string | null
+          origin?: string | null
+          paid_earnings?: number | null
+          shipment_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          stage?: string
+          timeline?: string | null
+          title?: string
+          trade_lane?: string | null
+          updated_at?: string
+          user_id?: string
+          volume?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_deals_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
