@@ -20,7 +20,8 @@ export function SpendingSummary() {
         .select("id, amount, currency, shipment_id, created_at, shipments!inner(shipment_type, mode, created_at)")
         .in("status", ["accepted", "converted"])
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) { console.error("[SpendingSummary] query error:", error); throw error; }
+      console.log("[SpendingSummary] fetched quotes:", quotes?.length, "sample:", quotes?.slice(0, 2));
       return quotes || [];
     },
     enabled: !!user,
