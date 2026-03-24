@@ -126,15 +126,14 @@ export function SpendingSummary() {
         </div>
 
         {/* Spend Trend Chart */}
-        <GlassBarChart
+        <GlassAreaChart
           data={trendData}
           dataKey="spend"
           xKey="month"
-          color="hsl(var(--accent))"
+          color={CHART_COLORS.emerald}
           height={180}
           yFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
           tooltipFormatter={(v) => [`$${v.toLocaleString()}`, "Spend"]}
-          barSize={36}
         />
       </CardContent>
     </Card>

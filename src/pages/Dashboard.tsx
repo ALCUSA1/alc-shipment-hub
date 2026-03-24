@@ -285,37 +285,43 @@ const Dashboard = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {/* ── LEFT: Trend Chart ── */}
+          {/* ── LEFT: Charts side by side ── */}
           <div className="lg:col-span-8 space-y-6">
-            {/* Area Chart */}
-            <Card className="overflow-hidden border-border/60">
-              <CardHeader className="pb-0">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center">
-                      <BarChart3 className="h-4.5 w-4.5 text-accent" />
+            {/* Shipment Volume + Financial Overview — side by side */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Shipment Volume */}
+              <Card className="overflow-hidden border-border/60">
+                <CardHeader className="pb-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center">
+                        <BarChart3 className="h-4.5 w-4.5 text-accent" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
+                        <p className="text-[11px] text-muted-foreground">Last 4 weeks</p>
+                      </div>
                     </div>
-                    <div>
-                    <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
-                      <p className="text-[11px] text-muted-foreground">Last 4 weeks</p>
-                    </div>
+                    <Badge variant="secondary" className="text-[10px] font-semibold bg-accent/10 text-accent border-0">
+                      {allShipments.length} total
+                    </Badge>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] font-semibold bg-accent/10 text-accent border-0">
-                    {allShipments.length} total
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4 pb-2">
-                <GlassAreaChart
-                  data={trendData}
-                  dataKey="count"
-                  xKey="date"
-                  color={CHART_COLORS.blue}
-                  height={240}
-                  tooltipFormatter={(v) => [`${v}`, "Shipments"]}
-                />
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-4 pb-2">
+                  <GlassAreaChart
+                    data={trendData}
+                    dataKey="count"
+                    xKey="date"
+                    color={CHART_COLORS.blue}
+                    height={200}
+                    tooltipFormatter={(v) => [`${v}`, "Shipments"]}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Financial Overview — now inline, not at the bottom */}
+              {!isEmpty && showFinancials && <SpendingSummary />}
+            </div>
 
             {/* Alerts + Top Lanes Row */}
             <div className="grid md:grid-cols-2 gap-6">
