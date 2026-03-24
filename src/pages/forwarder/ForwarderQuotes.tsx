@@ -51,6 +51,7 @@ const ForwarderQuotes = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Valid Until</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
