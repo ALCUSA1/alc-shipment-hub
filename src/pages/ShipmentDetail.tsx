@@ -106,6 +106,7 @@ const WORKSPACE_TABS = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
   { id: "parties", label: "Parties", icon: Users },
+  { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "financials", label: "Financials", icon: BarChart3 },
   { id: "activity", label: "Activity Log", icon: Activity },
 ];
