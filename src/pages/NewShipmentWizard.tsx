@@ -1,69 +1,34 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { WizardShell } from "@/components/wizard/WizardShell";
-import { OverviewStep, type OverviewData } from "@/components/wizard/steps/OverviewStep";
-import { CargoStep, type CargoData } from "@/components/wizard/steps/CargoStep";
-import { ComplianceStep, type ComplianceData, type AutoFillSource, EMPTY_COMPLIANCE } from "@/components/wizard/steps/ComplianceStep";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { BackButton } from "@/components/shared/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Ship, Check, Clock, ChevronDown, ChevronUp, FileText,
-  CheckCircle2, Bookmark, ArrowRight, Loader2, Package,
-  MapPin, AlertCircle, Shield, AlertTriangle, XCircle,
+  Ship, Check, ArrowRight, ArrowLeft, Loader2, Package, MapPin,
+  FileText, Upload, Shield, CheckCircle2, Plus, Plane, Truck as TruckIcon,
 } from "lucide-react";
-import { format } from "date-fns";
-import type { Json } from "@/integrations/supabase/types";
-import {
-  overviewSchema, cargoSchema, complianceSchema,
-  validateStep, checkComplianceGating,
-  type ValidationErrors, type GatingIssue, type CompanyCredentials,
-} from "@/lib/wizard-validation";
 
-/* ── Wizard Steps ── */
-const STEPS = ["Route & Basics", "Cargo", "Select Rate", "Customs & Compliance", "Review & Confirm", "Booking Created"];
+const STEPS = [
+  "Shipment Info",
+  "Cargo Details",
+  "Services Required",
+  "Documents",
+  "Review & Submit",
+];
 
-/* ── Rate helpers ── */
-interface Surcharge { code: string; description: string; amount: number; }
-interface CarrierRate {
-  id: string; carrier: string; origin_port: string; destination_port: string;
-  container_type: string; base_rate: number; currency: string;
-  transit_days: number | null; valid_from: string; valid_until: string;
-  surcharges: Json; notes: string | null;
-}
-
-function parseSurcharges(surcharges: Json): Surcharge[] {
-  if (!Array.isArray(surcharges)) return [];
-  return surcharges
-    .filter((s) => typeof s === "object" && s !== null && "code" in s && "amount" in s)
-    .map((s) => {
-      const obj = s as Record<string, Json>;
-      return { code: String(obj.code ?? ""), description: String(obj.description ?? ""), amount: Number(obj.amount ?? 0) };
-    });
-}
-function getTotalRate(rate: CarrierRate) {
-  return rate.base_rate + parseSurcharges(rate.surcharges).reduce((sum, s) => sum + s.amount, 0);
-}
-
-/* ── Review Row ── */
-function Row({ label, value }: { label: string; value: string | undefined }) {
-  if (!value) return null;
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground text-right max-w-[60%] truncate">{value}</span>
-    </div>
-  );
-}
-
-/* ── Main Component ── */
 const NewShipmentWizard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -73,59 +38,46 @@ const NewShipmentWizard = () => {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  // Pre-fill from rate search URL params
-  const prefillOrigin = searchParams.get("origin") || "";
-  const prefillDest = searchParams.get("destination") || "";
-  const prefillContainer = searchParams.get("container") || "40hc";
-  const prefillMode = searchParams.get("mode") || "";
+  // Step 1: Basic Shipment Info
+  const [shipmentType, setShipmentType] = useState(searchParams.get("type") || "fcl");
+  const [origin, setOrigin] = useState(searchParams.get("origin") || "");
+  const [destination, setDestination] = useState(searchParams.get("destination") || "");
+  const [tradeLane, setTradeLane] = useState("");
+  const [cargoType, setCargoType] = useState("");
+  const [incoterms, setIncoterms] = useState("");
+  const [pickupDate, setPickupDate] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [companyId, setCompanyId] = useState("");
 
-  // Step 1: Overview
-  const [overview, setOverview] = useState<OverviewData>({
-    shipmentType: prefillMode === "air" ? "export" : "export",
-    originPort: prefillOrigin,
-    destinationPort: prefillDest,
-    pickupLocation: "",
-    deliveryLocation: "",
-    companyId: "",
-    incoterms: "",
-  });
+  // Step 2: Cargo Details
+  const [commodity, setCommodity] = useState("");
+  const [weight, setWeight] = useState("");
+  const [volume, setVolume] = useState("");
+  const [numPackages, setNumPackages] = useState("");
+  const [containerType, setContainerType] = useState(searchParams.get("container") || "40hc");
+  const [containerQty, setContainerQty] = useState("1");
+  const [dangerousGoods, setDangerousGoods] = useState(false);
+  const [hsCode, setHsCode] = useState("");
 
-  // Step 2: Cargo
-  const [cargo, setCargo] = useState<CargoData>({
-    commodity: "", hsCode: "", numPackages: "", packageType: "",
-    grossWeight: "", volume: "", unitValue: "", totalValue: "",
-    countryOfOrigin: "", containerType: prefillContainer, containerQuantity: "1",
-  });
+  // Step 3: Services
+  const [needsCustoms, setNeedsCustoms] = useState(false);
+  const [needsTrucking, setNeedsTrucking] = useState(false);
+  const [needsWarehouse, setNeedsWarehouse] = useState(false);
+  const [needsInsurance, setNeedsInsurance] = useState(false);
+  const [specialHandling, setSpecialHandling] = useState(false);
+  const [specialNotes, setSpecialNotes] = useState("");
 
-  // Step 3: Compliance
-  const [compliance, setCompliance] = useState<ComplianceData>({
-    ...EMPTY_COMPLIANCE,
-  });
-
-  // Step 4: Rate selection
-  const [selectedRate, setSelectedRate] = useState<CarrierRate | null>(null);
-  const [expandedRateId, setExpandedRateId] = useState<string | null>(null);
-
-  // Validation state
-  const [stepErrors, setStepErrors] = useState<ValidationErrors>({});
-  const [gatingIssues, setGatingIssues] = useState<GatingIssue[]>([]);
-  const [attemptedNext, setAttemptedNext] = useState(false);
+  // Step 4: Documents (optional uploads tracked by reference)
+  const [invoiceUploaded, setInvoiceUploaded] = useState(false);
+  const [packingListUploaded, setPackingListUploaded] = useState(false);
 
   // Queries
-  const { data: ports = [] } = useQuery({
-    queryKey: ["ports"],
-    queryFn: async () => {
-      const { data } = await supabase.from("ports").select("code, name, country").order("name");
-      return data || [];
-    },
-  });
-
   const { data: companies = [] } = useQuery({
     queryKey: ["wizard-companies", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("companies")
-        .select("id, company_name, ein, address, city, state, zip, country, email, phone, company_contact_name, cargo_insurance_provider, cargo_insurance_policy, fmc_license_status, fmc_license_expiry, cargo_insurance_expiry, sam_expiry, general_liability_expiry")
+        .select("id, company_name")
         .eq("user_id", user!.id)
         .order("company_name");
       return data || [];
@@ -133,86 +85,18 @@ const NewShipmentWizard = () => {
     enabled: !!user,
   });
 
-  const { data: rates = [], isLoading: ratesLoading } = useQuery({
-    queryKey: ["wizard-rates", overview.originPort, overview.destinationPort, cargo.containerType],
-    queryFn: async () => {
-      let query = supabase.from("carrier_rates").select("*").order("base_rate");
-      if (overview.originPort) query = query.eq("origin_port", overview.originPort);
-      if (overview.destinationPort) query = query.eq("destination_port", overview.destinationPort);
-      if (cargo.containerType) query = query.eq("container_type", cargo.containerType);
-      const today = new Date().toISOString().split("T")[0];
-      query = query.gte("valid_until", today);
-      const { data } = await query;
-      return (data as CarrierRate[]) || [];
-    },
-    enabled: !!(overview.originPort && overview.destinationPort) && step >= 2,
-  });
-
-  const bestRateId = rates.length > 0
-    ? rates.reduce((best, r) => getTotalRate(r) < getTotalRate(best) ? r : best, rates[0]).id
-    : null;
-
-  // Selected company for gating checks
-  const selectedCompany = companies.find((c: any) => c.id === overview.companyId) as (CompanyCredentials & Record<string, any>) | undefined;
-
-  // Validate current step
-  const validateCurrentStep = (): boolean => {
-    let result: { valid: boolean; errors: ValidationErrors };
+  const canProceed = useMemo(() => {
     switch (step) {
-      case 0:
-        result = validateStep(overviewSchema, overview);
-        break;
-      case 1:
-        result = validateStep(cargoSchema, cargo);
-        break;
-      case 2:
-        // Rate selection — no zod, just need a rate selected (or skip)
-        return !!selectedRate || rates.length === 0;
-      case 3:
-        result = validateStep(complianceSchema, compliance);
-        break;
-      default:
-        return true;
+      case 0: return !!origin && !!destination && !!shipmentType;
+      case 1: return !!commodity || !!weight;
+      case 2: return true; // services are optional
+      case 3: return true; // documents are optional
+      case 4: return true; // review
+      default: return true;
     }
-    setStepErrors(result.errors);
-    return result.valid;
-  };
-
-  // Check compliance gating when company changes
-  const updateGating = () => {
-    if (selectedCompany) {
-      const issues = checkComplianceGating(selectedCompany);
-      setGatingIssues(issues);
-      return issues;
-    }
-    setGatingIssues([]);
-    return [];
-  };
-
-  const hasBlockingGating = gatingIssues.some(i => i.severity === "error");
+  }, [step, origin, destination, shipmentType, commodity, weight]);
 
   const handleNext = () => {
-    setAttemptedNext(true);
-
-    // Validate current step
-    if (!validateCurrentStep()) {
-      toast({ title: "Please fix the errors below", description: "Required fields are missing or have invalid values.", variant: "destructive" });
-      return;
-    }
-
-    // On step 0, check compliance gating for selected company
-    if (step === 0) {
-      const issues = updateGating();
-      if (issues.some(i => i.severity === "error")) {
-        toast({ title: "Compliance issue detected", description: "The selected customer has expired credentials. Please resolve before proceeding.", variant: "destructive" });
-        return;
-      }
-    }
-
-    // Clear errors on successful validation
-    setStepErrors({});
-    setAttemptedNext(false);
-
     if (step === 4) {
       handleSubmit();
     } else {
@@ -221,43 +105,68 @@ const NewShipmentWizard = () => {
   };
 
   const handlePrev = () => {
-    setStepErrors({});
-    setAttemptedNext(false);
     if (step > 0) setStep(step - 1);
+    else navigate("/dashboard");
   };
 
-  // Save as quote — create draft shipment first (quotes require shipment_id)
-  const handleSaveAsQuote = async () => {
+  const handleSubmit = async () => {
     if (!user) return;
     setSubmitting(true);
     try {
-      // Create draft shipment as anchor for the quote
-      const { data: shipRow, error: shipErr } = await supabase.from("shipments").insert({
+      const mode = shipmentType === "air" ? "air" : "ocean";
+      const { data: row, error } = await supabase.from("shipments").insert({
         user_id: user.id,
         shipment_ref: "PENDING",
-        shipment_type: overview.shipmentType || "export",
-        origin_port: overview.originPort || null,
-        destination_port: overview.destinationPort || null,
-        incoterms: overview.incoterms || null,
-        company_id: overview.companyId || null,
+        shipment_type: "export",
+        origin_port: origin || null,
+        destination_port: destination || null,
+        incoterms: incoterms || null,
+        company_id: companyId || null,
+        mode,
         status: "draft",
-      }).select("id").single();
-      if (shipErr) throw shipErr;
-
-      const { error } = await supabase.from("quotes").insert({
-        shipment_id: shipRow.id,
-        user_id: user.id,
-        origin_port: overview.originPort || null,
-        destination_port: overview.destinationPort || null,
-        container_type: cargo.containerType || null,
-        company_id: overview.companyId || null,
-        status: "pending",
-        amount: selectedRate ? getTotalRate(selectedRate) : null,
-        carrier: selectedRate?.carrier || null,
-      });
+        pickup_location: null,
+        delivery_location: null,
+        etd: pickupDate || null,
+        eta: deliveryDate || null,
+      }).select("id, shipment_ref").single();
       if (error) throw error;
-      toast({ title: "Quote saved", description: "Redirecting to Quotes page for margin & approval." });
-      navigate("/dashboard/quotes");
+
+      const shipmentId = row.id;
+
+      // Insert cargo
+      if (commodity || weight || hsCode) {
+        await supabase.from("cargo").insert({
+          shipment_id: shipmentId,
+          commodity: commodity || null,
+          hs_code: hsCode || null,
+          num_packages: numPackages ? parseInt(numPackages) : null,
+          gross_weight: weight ? parseFloat(weight) : null,
+          volume: volume ? parseFloat(volume) : null,
+          dangerous_goods: dangerousGoods,
+        });
+      }
+
+      // Insert container
+      if (containerType && (shipmentType === "fcl" || shipmentType === "lcl")) {
+        await supabase.from("containers").insert({
+          shipment_id: shipmentId,
+          container_type: containerType,
+          quantity: containerQty ? parseInt(containerQty) : 1,
+        });
+      }
+
+      // Create document checklist
+      const requiredDocs = ["bill_of_lading", "commercial_invoice", "packing_list"];
+      if (needsCustoms) requiredDocs.push("customs_declaration", "aes_filing");
+      if (needsInsurance) requiredDocs.push("insurance_certificate");
+      requiredDocs.push("shipper_letter_of_instruction", "dock_receipt", "certificate_of_origin");
+
+      await supabase.from("documents").insert(
+        requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
+      );
+
+      toast({ title: "Shipment request created", description: `${row.shipment_ref} — Pending Pricing` });
+      navigate(`/dashboard/shipments/${shipmentId}`);
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -265,473 +174,340 @@ const NewShipmentWizard = () => {
     }
   };
 
-  // Book shipment
-  const handleSubmit = async () => {
-    if (!user || !selectedRate) return;
-    setSubmitting(true);
-    try {
-      const { data: row, error } = await supabase.from("shipments").insert({
-        user_id: user.id,
-        shipment_ref: "PENDING",
-        shipment_type: overview.shipmentType || "export",
-        origin_port: overview.originPort || null,
-        destination_port: overview.destinationPort || null,
-        place_of_receipt: overview.pickupLocation || null,
-        place_of_delivery: overview.deliveryLocation || null,
-        incoterms: overview.incoterms || null,
-        company_id: overview.companyId || null,
-        carrier: selectedRate.carrier || null,
-        status: "booked",
-      }).select("id, shipment_ref").single();
-      if (error) throw error;
-      const shipmentId = row.id;
-
-      // Insert cargo
-      if (cargo.commodity || cargo.hsCode) {
-        await supabase.from("cargo").insert({
-          shipment_id: shipmentId,
-          commodity: cargo.commodity || null,
-          hs_code: cargo.hsCode || null,
-          num_packages: cargo.numPackages ? parseInt(cargo.numPackages) : null,
-          package_type: cargo.packageType || null,
-          gross_weight: cargo.grossWeight ? parseFloat(cargo.grossWeight) : null,
-          volume: cargo.volume ? parseFloat(cargo.volume) : null,
-          country_of_origin: cargo.countryOfOrigin || null,
-          total_value: cargo.totalValue ? parseFloat(cargo.totalValue) : null,
-          unit_value: cargo.unitValue ? parseFloat(cargo.unitValue) : null,
-        });
-      }
-
-      // Insert container and get its ID for commodity mapping
-      let insertedContainerId: string | null = null;
-      if (cargo.containerType) {
-        const { data: containerRow } = await supabase.from("containers").insert({
-          shipment_id: shipmentId,
-          container_type: cargo.containerType,
-          quantity: cargo.containerQuantity ? parseInt(cargo.containerQuantity) : 1,
-        }).select("id").single();
-        insertedContainerId = containerRow?.id || null;
-      }
-
-      // Insert container_commodities linking cargo to container
-      if (insertedContainerId && (cargo.commodity || cargo.hsCode)) {
-        await supabase.from("container_commodities").insert({
-          container_id: insertedContainerId,
-          shipment_id: shipmentId,
-          line_sequence: 1,
-          commodity_description: cargo.commodity || null,
-          hs_code: cargo.hsCode || null,
-          gross_weight_kg: cargo.grossWeight ? parseFloat(cargo.grossWeight) : null,
-          value_usd: cargo.totalValue ? parseFloat(cargo.totalValue) : null,
-          country_of_manufacture: cargo.countryOfOrigin || null,
-          quantity: cargo.numPackages ? parseFloat(cargo.numPackages) : null,
-          hazardous: false,
-        });
-      }
-
-      // Insert documents
-      const requiredDocs = ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "dock_receipt", "certificate_of_origin", "insurance_certificate", "aes_filing"];
-      await supabase.from("documents").insert(
-        requiredDocs.map(docType => ({ shipment_id: shipmentId, user_id: user.id, doc_type: docType, status: "pending" }))
-      );
-
-      // Insert customs filing if compliance data provided
-      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation) {
-        await supabase.from("customs_filings").insert({
-          shipment_id: shipmentId,
-          user_id: user.id,
-          exporter_name: compliance.exporterName || null,
-          exporter_ein: compliance.exporterEin || null,
-          aes_citation: compliance.eeiExemptionCitation || null,
-          consignee_name: compliance.consigneeName || null,
-          consignee_address: compliance.consigneeAddress || null,
-          port_of_export: compliance.portOfExport || overview.originPort || null,
-          port_of_unlading: compliance.portOfUnlading || overview.destinationPort || null,
-          country_of_destination: compliance.countryOfDestination || null,
-          mode_of_transport: compliance.methodOfTransportation || null,
-          status: "draft",
-        });
-      }
-
-      // Submit compliance review for admin approval
-      if (compliance.exporterName || compliance.exporterEin || compliance.eeiExemptionCitation || compliance.insuranceProvider) {
-        await supabase.from("compliance_reviews").insert({
-          shipment_id: shipmentId,
-          user_id: user.id,
-          exporter_name: compliance.exporterName || null,
-          exporter_ein: compliance.exporterEin || null,
-          aes_type: compliance.eeiExemptionCitation || null,
-          export_license: compliance.eeiExemptionCitation || null,
-          insurance_provider: compliance.insuranceProvider || null,
-          insurance_policy: compliance.insurancePolicy || null,
-          insurance_coverage: compliance.insuranceCoverage || null,
-          status: "pending_review",
-        });
-      }
-
-      toast({ title: "Shipment booked!", description: `${row.shipment_ref} created with ${selectedRate.carrier}.` });
-      setStep(5); // Go to success step
-    } catch (err: any) {
-      toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Get the created shipment ID for the success screen
-  const getLatestShipmentLink = () => {
-    // We'll use a simple approach - navigate to shipments list
-    return "/dashboard/shipments";
-  };
+  const shipmentTypes = [
+    { value: "fcl", label: "FCL", icon: Ship },
+    { value: "lcl", label: "LCL", icon: Package },
+    { value: "air", label: "Air", icon: Plane },
+    { value: "trucking", label: "Trucking", icon: TruckIcon },
+  ];
 
   return (
     <DashboardLayout>
       <div className="max-w-3xl mx-auto px-1">
+        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <BackButton />
           <div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">New Shipment</h1>
-            <p className="text-[11px] text-muted-foreground">Book a shipment or save as a quote.</p>
+            <p className="text-[11px] text-muted-foreground">Create a shipment request and submit for pricing.</p>
           </div>
         </div>
 
         {/* Stepper */}
-        {step < 5 && (
-          <div className="flex items-center gap-1 mb-8">
-            {STEPS.slice(0, 5).map((s, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
-                  i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
-                }`}>
-                  {i < step ? <Check className="h-4 w-4" /> : i + 1}
-                </div>
-                <span className={`text-xs text-center hidden sm:block ${
-                  i <= step ? "text-foreground font-medium" : "text-muted-foreground"
-                }`}>{s}</span>
+        <div className="flex items-center gap-1 mb-8">
+          {STEPS.map((s, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-2 transition-colors ${
+                i <= step ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground"
+              }`}>
+                {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── Step 0: Route & Basics ── */}
-        {step === 0 && (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <OverviewStep data={overview} onChange={setOverview} ports={ports} companies={companies} errors={attemptedNext ? stepErrors : {}} />
-              {/* Compliance Gating Warnings */}
-              {gatingIssues.length > 0 && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
-                  <h4 className="text-xs font-semibold text-destructive flex items-center gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Compliance Issues for Selected Customer
-                  </h4>
-                  {gatingIssues.map((issue, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
-                      {issue.severity === "error" ? (
-                        <XCircle className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
-                      ) : (
-                        <AlertTriangle className="h-3.5 w-3.5 text-yellow-500 shrink-0 mt-0.5" />
-                      )}
-                      <span className={issue.severity === "error" ? "text-destructive" : "text-yellow-700 dark:text-yellow-400"}>
-                        {issue.message}
-                      </span>
-                    </div>
-                  ))}
-                  {hasBlockingGating && (
-                    <p className="text-[10px] text-destructive/80 mt-1">
-                      Resolve expired credentials in CRM before proceeding.
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 1: Cargo ── */}
-        {step === 1 && (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <CargoStep data={cargo} onChange={setCargo} errors={attemptedNext ? stepErrors : {}} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 2: Select Rate ── */}
-        {step === 2 && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-1">
-                <Ship className="h-4 w-4 text-accent" />
-                <h3 className="font-semibold text-foreground">Available Rates</h3>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                {overview.originPort} → {overview.destinationPort} · {cargo.containerType?.toUpperCase()} × {cargo.containerQuantity || 1}
-              </p>
-
-              {ratesLoading ? (
-                <div className="flex items-center justify-center py-12 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading rates…
-                </div>
-              ) : rates.length === 0 ? (
-                <div className="text-center py-10">
-                  <AlertCircle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No rates found for this route & container type.</p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">You can still proceed — rate details can be added later in the workspace.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {rates.map((rate) => {
-                    const surcharges = parseSurcharges(rate.surcharges);
-                    const totalRate = getTotalRate(rate);
-                    const isSelected = selectedRate?.id === rate.id;
-                    const isBest = rate.id === bestRateId;
-                    const isExpanded = expandedRateId === rate.id;
-
-                    return (
-                      <div
-                        key={rate.id}
-                        className={`rounded-lg border-2 p-3 cursor-pointer transition-all ${
-                          isSelected ? "border-accent bg-accent/5" : "border-border hover:border-accent/40"
-                        }`}
-                        onClick={() => setSelectedRate(rate)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-2">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
-                              isSelected ? "border-accent bg-accent" : "border-muted-foreground/30"
-                            }`}>
-                              {isSelected && <Check className="h-3 w-3 text-accent-foreground" />}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-sm text-foreground">{rate.carrier}</span>
-                                {isBest && <Badge variant="default" className="text-[10px] bg-accent text-accent-foreground">Best Rate</Badge>}
-                              </div>
-                              <div className="flex items-center gap-3 mt-0.5">
-                                {rate.transit_days && (
-                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Clock className="h-3 w-3" /> {rate.transit_days} days
-                                  </span>
-                                )}
-                                <span className="text-xs text-muted-foreground">
-                                  Valid until {format(new Date(rate.valid_until), "MMM d")}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-foreground">${totalRate.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">{rate.currency} all-in</p>
-                          </div>
-                        </div>
-
-                        {surcharges.length > 0 && (
-                          <div className="mt-2">
-                            <button
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                              onClick={(e) => { e.stopPropagation(); setExpandedRateId(isExpanded ? null : rate.id); }}
-                            >
-                              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                              Rate breakdown
-                            </button>
-                            {isExpanded && (
-                              <div className="mt-2 pt-2 border-t border-border/50 space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span className="text-muted-foreground">Base rate</span>
-                                  <span className="font-mono text-foreground">${rate.base_rate.toLocaleString()}</span>
-                                </div>
-                                {surcharges.map((s, i) => (
-                                  <div key={i} className="flex justify-between text-xs">
-                                    <span className="text-muted-foreground">{s.code} — {s.description}</span>
-                                    <span className="font-mono text-foreground">${s.amount.toLocaleString()}</span>
-                                  </div>
-                                ))}
-                                <Separator className="my-1" />
-                                <div className="flex justify-between text-xs font-semibold">
-                                  <span className="text-foreground">Total</span>
-                                  <span className="font-mono text-foreground">${totalRate.toLocaleString()}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 3: Customs & Compliance ── */}
-        {step === 3 && (() => {
-          const selectedCompany = companies.find((c: any) => c.id === overview.companyId);
-          const autoFill: AutoFillSource = {
-            originPort: overview.originPort,
-            destinationPort: overview.destinationPort,
-            carrier: selectedRate?.carrier,
-            containerType: cargo.containerType,
-            shipmentType: overview.shipmentType,
-            companyName: selectedCompany?.company_name,
-            companyEin: selectedCompany?.ein,
-            companyAddress: selectedCompany ? [selectedCompany.address, selectedCompany.city, selectedCompany.state, selectedCompany.zip, selectedCompany.country].filter(Boolean).join(", ") : undefined,
-            companyContactName: selectedCompany?.company_contact_name,
-            companyPhone: selectedCompany?.phone,
-            companyEmail: selectedCompany?.email,
-            insuranceProvider: selectedCompany?.cargo_insurance_provider,
-            insurancePolicy: selectedCompany?.cargo_insurance_policy,
-          };
-          return (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <ComplianceStep data={compliance} onChange={setCompliance} autoFillSource={autoFill} errors={attemptedNext ? stepErrors : {}} />
-              <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
-                <p className="text-xs text-muted-foreground">
-                  <Shield className="h-3.5 w-3.5 inline mr-1 text-accent" />
-                  Compliance details will be sent to our team for validation. You can proceed with your booking — we'll review in the background and notify you of any issues.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          );
-        })()}
-
-        {/* ── Step 4: Review & Confirm ── */}
-        {step === 4 && (
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-accent" /> Route
-                </h4>
-                <Row label="Type" value={overview.shipmentType} />
-                <Row label="Route" value={`${overview.originPort} → ${overview.destinationPort}`} />
-                <Row label="Incoterms" value={overview.incoterms} />
-                <Row label="Pickup" value={overview.pickupLocation} />
-                <Row label="Delivery" value={overview.deliveryLocation} />
-              </div>
-
-              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Package className="h-4 w-4 text-accent" /> Cargo
-                </h4>
-                <Row label="Container" value={cargo.containerType ? `${cargo.containerType.toUpperCase()} × ${cargo.containerQuantity || 1}` : undefined} />
-                <Row label="Commodity" value={cargo.commodity} />
-                <Row label="HS Code" value={cargo.hsCode} />
-                <Row label="Weight" value={cargo.grossWeight ? `${cargo.grossWeight} kg` : undefined} />
-                <Row label="Volume" value={cargo.volume ? `${cargo.volume} CBM` : undefined} />
-                <Row label="Value" value={cargo.totalValue ? `$${Number(cargo.totalValue).toLocaleString()}` : undefined} />
-              </div>
-
-              {(compliance.exporterName || compliance.eeiExemptionCitation || compliance.insuranceProvider) && (
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
-                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-accent" /> Customs & Compliance
-                  </h4>
-                  <Row label="Exporter (USPPI)" value={compliance.exporterName} />
-                  <Row label="EIN" value={compliance.exporterEin} />
-                  <Row label="Consignee" value={compliance.consigneeName} />
-                  <Row label="Port of Export" value={compliance.portOfExport} />
-                  <Row label="Port of Unlading" value={compliance.portOfUnlading} />
-                  <Row label="Method of Transport" value={compliance.methodOfTransportation} />
-                  <Row label="Exporting Carrier" value={compliance.exportingCarrier} />
-                  <Row label="EEI Citation" value={compliance.eeiExemptionCitation} />
-                  <Row label="Insurance" value={compliance.insuranceProvider} />
-                  <Row label="Policy #" value={compliance.insurancePolicy} />
-                  <Row label="Coverage" value={compliance.insuranceCoverage ? `$${Number(compliance.insuranceCoverage).toLocaleString()}` : undefined} />
-                </div>
-              )}
-
-              {selectedRate && (
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
-                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Ship className="h-4 w-4 text-accent" /> Selected Rate
-                  </h4>
-                  <Row label="Carrier" value={selectedRate.carrier} />
-                  <Row label="Transit" value={selectedRate.transit_days ? `${selectedRate.transit_days} days` : undefined} />
-                  <Row label="Total Cost" value={`$${getTotalRate(selectedRate).toLocaleString()} ${selectedRate.currency}`} />
-                </div>
-              )}
-
-              <Separator />
-
-              <div className="rounded-lg border border-accent/30 bg-accent/5 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-4 w-4 text-accent" />
-                  <h4 className="text-sm font-semibold text-foreground">Documents to Generate</h4>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Bill of Lading", "Commercial Invoice", "Packing List", "Certificate of Origin",
-                    "Shipper's Letter of Instruction", "Dock Receipt", "Insurance Certificate", "AES Filing"].map((doc) => (
-                    <div key={doc} className="flex items-center gap-2 text-xs">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                      <span className="text-foreground">{doc}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Step 5: Success ── */}
-        {step === 5 && (
-          <Card className="border-accent/20">
-            <CardContent className="pt-8 pb-8 text-center space-y-4">
-              <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="h-8 w-8 text-accent" />
-              </div>
-              <h2 className="text-xl font-bold text-foreground">Shipment Booked!</h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Your shipment with <strong>{selectedRate?.carrier}</strong> has been created. 
-                Head to the workspace to upload documents, assign trucking, and track progress.
-              </p>
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <Button variant="outline" onClick={() => navigate("/dashboard/shipments")}>
-                  View All Shipments
-                </Button>
-                <Button variant="electric" onClick={() => {
-                  navigate("/dashboard/shipments");
-                }}>
-                  Open Workspace <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── Navigation Buttons ── */}
-        {step < 5 && (
-          <div className="flex justify-between mt-6">
-            <Button variant="outline" onClick={step === 0 ? () => navigate(-1) : handlePrev}>
-              {step === 0 ? "Cancel" : "Previous"}
-            </Button>
-            <div className="flex gap-2">
-              {/* Save as Quote fork at step 2 (rate selection) */}
-              {step === 2 && selectedRate && (
-                <Button variant="outline" onClick={handleSaveAsQuote} disabled={submitting}>
-                  <Bookmark className="mr-2 h-4 w-4" />
-                  Save as Quote
-                </Button>
-              )}
-              {step === 2 && rates.length === 0 && (
-                <Button variant="outline" onClick={() => setStep(step + 1)}>
-                  Skip — Add Rate Later
-                </Button>
-              )}
-              <Button
-                variant="electric"
-                onClick={handleNext}
-                disabled={submitting || hasBlockingGating}
-              >
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {step === 4 ? "Confirm Booking" : "Next"}
-                {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
+              <span className={`text-[10px] text-center hidden sm:block ${
+                i <= step ? "text-foreground font-medium" : "text-muted-foreground"
+              }`}>{s}</span>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Step 1: Basic Shipment Info */}
+            {step === 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Ship className="h-4 w-4 text-accent" />
+                    Shipment Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Shipment Type */}
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-2 block">Shipment Type</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {shipmentTypes.map((t) => (
+                        <button
+                          key={t.value}
+                          onClick={() => setShipmentType(t.value)}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-xs font-medium ${
+                            shipmentType === t.value
+                              ? "border-accent bg-accent/5 text-accent"
+                              : "border-border bg-card text-muted-foreground hover:border-accent/30"
+                          }`}
+                        >
+                          <t.icon className="h-5 w-5" />
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Origin</Label>
+                      <Input placeholder="e.g. Shanghai, CNSHA" value={origin} onChange={(e) => setOrigin(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Destination</Label>
+                      <Input placeholder="e.g. Los Angeles, USLAX" value={destination} onChange={(e) => setDestination(e.target.value)} className="mt-1" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Incoterms (optional)</Label>
+                      <Select value={incoterms} onValueChange={setIncoterms}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          {["FOB", "CIF", "EXW", "DAP", "DDP", "FCA", "CFR"].map(t => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Customer</Label>
+                      <Select value={companyId} onValueChange={setCompanyId}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
+                        <SelectContent>
+                          {companies.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Pickup Date (optional)</Label>
+                      <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Delivery Date (optional)</Label>
+                      <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="mt-1" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 2: Cargo Details */}
+            {step === 1 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Package className="h-4 w-4 text-accent" />
+                    Cargo Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Commodity</Label>
+                      <Input placeholder="e.g. Electronics, Furniture" value={commodity} onChange={(e) => setCommodity(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">HS Code</Label>
+                      <Input placeholder="e.g. 8471.30.01.00" value={hsCode} onChange={(e) => setHsCode(e.target.value)} className="mt-1" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Weight (kg)</Label>
+                      <Input type="number" placeholder="e.g. 18000" value={weight} onChange={(e) => setWeight(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Volume (CBM)</Label>
+                      <Input type="number" placeholder="e.g. 33" value={volume} onChange={(e) => setVolume(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">No. of Packages</Label>
+                      <Input type="number" placeholder="e.g. 50" value={numPackages} onChange={(e) => setNumPackages(e.target.value)} className="mt-1" />
+                    </div>
+                  </div>
+
+                  {(shipmentType === "fcl" || shipmentType === "lcl") && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Container Type</Label>
+                        <Select value={containerType} onValueChange={setContainerType}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {["20gp", "40gp", "40hc", "45hc", "20rf", "40rf", "20ot", "40ot", "20fr", "40fr"].map(t => (
+                              <SelectItem key={t} value={t}>{t.toUpperCase()}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Quantity</Label>
+                        <Input type="number" min="1" value={containerQty} onChange={(e) => setContainerQty(e.target.value)} className="mt-1" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                    <Switch checked={dangerousGoods} onCheckedChange={setDangerousGoods} />
+                    <Label className="text-sm">Dangerous Goods (DG/Hazmat)</Label>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 3: Services Required */}
+            {step === 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-accent" />
+                    Services Required
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[
+                    { label: "Customs Clearance", checked: needsCustoms, onChange: setNeedsCustoms, desc: "Export/import customs filing and clearance" },
+                    { label: "Trucking / Drayage", checked: needsTrucking, onChange: setNeedsTrucking, desc: "Pickup or delivery trucking service" },
+                    { label: "Warehousing", checked: needsWarehouse, onChange: setNeedsWarehouse, desc: "Storage at origin or destination" },
+                    { label: "Cargo Insurance", checked: needsInsurance, onChange: setNeedsInsurance, desc: "Coverage for cargo in transit" },
+                    { label: "Special Handling", checked: specialHandling, onChange: setSpecialHandling, desc: "Temperature control, oversized, etc." },
+                  ].map((svc) => (
+                    <div key={svc.label} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary/80 transition-colors">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{svc.label}</p>
+                        <p className="text-xs text-muted-foreground">{svc.desc}</p>
+                      </div>
+                      <Switch checked={svc.checked} onCheckedChange={svc.onChange} />
+                    </div>
+                  ))}
+                  {specialHandling && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Special Handling Notes</Label>
+                      <Textarea
+                        placeholder="Describe special requirements..."
+                        value={specialNotes}
+                        onChange={(e) => setSpecialNotes(e.target.value)}
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 4: Documents */}
+            {step === 3 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-accent" />
+                    Documents (Optional)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Upload supporting documents now or add them later inside the Shipment Workspace.
+                  </p>
+                  {[
+                    { label: "Commercial Invoice", uploaded: invoiceUploaded },
+                    { label: "Packing List", uploaded: packingListUploaded },
+                  ].map((doc) => (
+                    <div key={doc.label} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{doc.label}</span>
+                      </div>
+                      <Button variant="outline" size="sm" disabled>
+                        <Upload className="h-3.5 w-3.5 mr-1.5" />
+                        Upload
+                      </Button>
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground italic">
+                    Full document management is available in the Shipment Workspace after submission.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 5: Review & Submit */}
+            {step === 4 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent" />
+                    Review & Submit
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-lg border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Shipment Info</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-muted-foreground">Type:</span> <span className="font-medium ml-1">{shipmentType.toUpperCase()}</span></div>
+                      <div><span className="text-muted-foreground">Route:</span> <span className="font-medium ml-1">{origin} → {destination}</span></div>
+                      {incoterms && <div><span className="text-muted-foreground">Incoterms:</span> <span className="font-medium ml-1">{incoterms}</span></div>}
+                      {pickupDate && <div><span className="text-muted-foreground">Pickup:</span> <span className="font-medium ml-1">{pickupDate}</span></div>}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cargo</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {commodity && <div><span className="text-muted-foreground">Commodity:</span> <span className="font-medium ml-1">{commodity}</span></div>}
+                      {weight && <div><span className="text-muted-foreground">Weight:</span> <span className="font-medium ml-1">{weight} kg</span></div>}
+                      {volume && <div><span className="text-muted-foreground">Volume:</span> <span className="font-medium ml-1">{volume} CBM</span></div>}
+                      {containerType && <div><span className="text-muted-foreground">Container:</span> <span className="font-medium ml-1">{containerQty}× {containerType.toUpperCase()}</span></div>}
+                      {dangerousGoods && <div><Badge variant="destructive" className="text-[10px]">Dangerous Goods</Badge></div>}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Services</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {needsCustoms && <Badge variant="secondary">Customs Clearance</Badge>}
+                      {needsTrucking && <Badge variant="secondary">Trucking</Badge>}
+                      {needsWarehouse && <Badge variant="secondary">Warehousing</Badge>}
+                      {needsInsurance && <Badge variant="secondary">Insurance</Badge>}
+                      {specialHandling && <Badge variant="secondary">Special Handling</Badge>}
+                      {!needsCustoms && !needsTrucking && !needsWarehouse && !needsInsurance && !specialHandling && (
+                        <span className="text-sm text-muted-foreground">No additional services selected</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
+                    <p className="text-sm font-medium text-foreground">After submission:</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your shipment will be created with status <Badge variant="secondary" className="text-[10px] mx-1">Pending Pricing</Badge>
+                      and you'll be taken directly to the Shipment Workspace where you can manage pricing, documents, tracking, and more — all in one place.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-6 mb-12">
+          <Button variant="outline" onClick={handlePrev}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {step === 0 ? "Cancel" : "Previous"}
+          </Button>
+          <Button variant="electric" onClick={handleNext} disabled={!canProceed || submitting}>
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {step === 4 ? "Request Pricing" : "Next"}
+            {step < 4 && <ArrowRight className="ml-2 h-4 w-4" />}
+          </Button>
+        </div>
       </div>
     </DashboardLayout>
   );
