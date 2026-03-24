@@ -81,6 +81,7 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
               <h2 className="text-lg font-semibold text-foreground">{ticket.subject}</h2>
             </div>
             <div className="flex items-center gap-2">
+              <PriorityBadge priority={(ticket as any).priority || "normal"} />
               <Badge variant="outline">{ticket.category}</Badge>
               <Badge variant={sc.variant}>{sc.label}</Badge>
             </div>

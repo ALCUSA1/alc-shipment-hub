@@ -203,6 +203,7 @@ export default function Support() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono text-muted-foreground">{ticket.ticket_ref}</span>
                         <Badge variant={sc.variant} className="text-[10px]">{sc.label}</Badge>
+                        <PriorityBadge priority={(ticket as any).priority || "normal"} size="sm" />
                         <Badge variant="outline" className="text-[10px]">{ticket.category}</Badge>
                       </div>
                       <p className="font-medium text-sm text-foreground truncate mt-0.5">{ticket.subject}</p>
