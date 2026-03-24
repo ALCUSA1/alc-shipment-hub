@@ -296,8 +296,8 @@ const Dashboard = () => {
                       <BarChart3 className="h-4.5 w-4.5 text-accent" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
-                      <p className="text-[11px] text-muted-foreground">Last 30 days</p>
+                    <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
+                      <p className="text-[11px] text-muted-foreground">Last 4 weeks</p>
                     </div>
                   </div>
                   <Badge variant="secondary" className="text-[10px] font-semibold bg-accent/10 text-accent border-0">
@@ -306,13 +306,14 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <GlassAreaChart
+                <GlassBarChart
                   data={trendData}
                   dataKey="count"
                   xKey="date"
                   color={CHART_COLORS.blue}
                   height={240}
                   tooltipFormatter={(v) => [`${v}`, "Shipments"]}
+                  barSize={48}
                 />
               </CardContent>
             </Card>
