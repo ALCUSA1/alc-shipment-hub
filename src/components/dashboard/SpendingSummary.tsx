@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DollarSign, TrendingUp, Ship, Plane, Truck } from "lucide-react";
 import { startOfMonth, startOfYear, subMonths, format } from "date-fns";
 import { motion } from "framer-motion";
-import { GlassBarChart } from "@/components/charts/ModernCharts";
+import { GlassAreaChart, CHART_COLORS } from "@/components/charts/ModernCharts";
 
 export function SpendingSummary() {
   const { user } = useAuth();
