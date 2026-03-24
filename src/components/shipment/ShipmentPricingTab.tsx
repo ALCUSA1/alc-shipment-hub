@@ -653,6 +653,18 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
             customerType={customerType}
           />
 
+          {/* Customer Response Predictor */}
+          <CustomerResponsePredictor
+            currentSellPrice={calc.sellPrice}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+            customerType={customerType}
+            urgency={urgency}
+          />
+
           {/* Deal Score */}
           <div className="rounded-xl border border-border bg-card p-4">
             <DealScorePanel
