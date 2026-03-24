@@ -1,53 +1,48 @@
 
 
-## About Page Visual Upgrade
+## Making Spark More Enticing
 
-The current About page is functional but flat. Here's a plan to elevate it to match the premium SaaS aesthetic used across the rest of the site.
+Spark already has strong bones — feed, directory, marketplace, events, reviews, partnerships. The gap is **engagement polish and discoverability**. Here's what to add:
 
-### Changes Overview
+### 1. Spark Landing/Welcome Banner
+Replace the plain "Sparkles + Spark" header with a dynamic welcome section when on "My Page" tab:
+- Gradient banner with stats: "X companies in network · Y active RFQs · Z upcoming events"
+- Quick-action buttons: "Post Update", "Browse RFQs", "Find Partners"
+- Animated entrance with framer-motion
 
-**1. Hero Section -- Add depth and visual punch**
-- Add a subtle animated gradient mesh or secondary radial gradient layer
-- Introduce a decorative grid/dot pattern overlay for texture
-- Add a thin glowing divider line below stats
-- Animate stat numbers with a count-up effect using framer-motion
+### 2. Trending/Activity Sidebar Widget
+Add a "Trending on Spark" card to the right sidebar showing:
+- Latest 3 RFQs with origin → destination routes
+- Upcoming event count
+- "Hot" posts (most liked in last 7 days)
+This gives the page life even when a user's own feed is empty.
 
-**2. Our Story -- Two-column layout with accent**
-- Split into a left-aligned heading column and right-aligned text column on desktop
-- Add a vertical electric-blue accent bar beside the heading
-- Pull-quote styling for "We don't just move goods" with larger italic text
+### 3. Empty State Upgrades
+Current empty states are bland gray icons. Upgrade to:
+- Illustrated empty states with actionable CTAs ("Create your first RFQ", "Post your first update")
+- Animated icons with subtle pulse/bounce
 
-**3. History Timeline -- Polish the alternating cards**
-- Add connecting dots on the vertical line at each milestone node
-- Add subtle hover scale/glow effect on cards
-- Stagger entrance animations with ScrollReveal delays
+### 4. Post Engagement Enhancements
+- Add emoji reactions beyond just "like" (🔥 fire, ⚡ insightful, 👏 congrats) as quick-reaction buttons
+- Show reaction counts with small emoji icons
+- Add a "Bookmark" button to save posts
 
-**4. Mission Section -- Make it a full-width navy banner**
-- Convert from plain white background to a navy section with radial gradient (matching hero style)
-- Larger icon with a glowing ring effect
-- White text on dark for visual rhythm (alternating dark/light sections)
+### 5. Company Profile Completeness Prompt
+When viewing your own page with incomplete profile, show a "Complete your profile" progress bar:
+- Checks: avatar, tagline, about, services, cover photo
+- Links directly to the account/edit page
+- Disappears once all fields are filled
 
-**5. Core Values -- Glass-morphism cards**
-- Add a subtle gradient background or glass-blur effect to cards
-- Icon housed in a rounded electric/10 background circle
-- Add hover lift animation (translateY + shadow increase)
-
-**6. Leadership -- Larger photos with overlay style**
-- Increase photo size to 28x28 (112px) with a subtle ring/border in electric blue
-- Add a navy gradient overlay on the card bottom for name/role
-- Hover effect that slightly scales the photo
-
-**7. CTA Section -- Add floating decorative elements**
-- Add subtle floating shapes or a second radial gradient blob
-- Pill-style buttons with slight shadow
-
-**8. General Polish**
-- Ensure consistent section rhythm (alternating bg-background / bg-navy / bg-muted)
-- Add `motion.div` fade-in transitions where ScrollReveal isn't used
+### 6. Visual Polish
+- Add subtle gradient borders on active tab pills
+- Pulse animation on the "Publish" button when composer has content
+- Stagger card entrance animations more dramatically in directory/marketplace
+- Add a subtle confetti or sparkle micro-animation when a post is published
 
 ### Technical Approach
-- All changes in `src/pages/About.tsx` only
-- Uses existing design tokens (navy, electric, muted, etc.)
-- Uses existing `ScrollReveal` and `framer-motion` already in the project
-- No new dependencies needed
+- All changes in `src/pages/Spark.tsx`
+- Uses existing framer-motion, Lucide icons, and design tokens
+- New sidebar widgets query existing tables (rfq_posts, spark_events, feed_reactions)
+- No new database tables or migrations needed
+- No new dependencies
 
