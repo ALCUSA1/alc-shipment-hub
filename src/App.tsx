@@ -56,6 +56,7 @@ import Team from "./pages/Team";
 import Accounting from "./pages/Accounting";
 import RateTrends from "./pages/RateTrends";
 import Pipeline from "./pages/Pipeline";
+import Earnings from "./pages/Earnings";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import PendingApproval from "./pages/PendingApproval";
