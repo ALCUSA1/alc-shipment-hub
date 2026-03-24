@@ -20,6 +20,8 @@ import { AiPricingRecommendation } from "./AiPricingRecommendation";
 import { DealScorePanel } from "./DealScorePanel";
 import { RateIntelligencePanel } from "./RateIntelligencePanel";
 import { DynamicMarginPanel } from "./DynamicMarginPanel";
+import { WhatIfSimulator } from "./WhatIfSimulator";
+import { DealNegotiationAssistant } from "./DealNegotiationAssistant";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
