@@ -71,7 +71,7 @@ export async function autoSeedIfEmpty(userId: string) {
 
   const { data: insertedShipments } = await supabase
     .from("shipments")
-    .insert(shipments.map(s => ({ ...s, user_id: userId })))
+    .insert(shipments.map(s => ({ ...s, shipment_ref: "SEED", user_id: userId })))
     .select("id, status, origin_port, destination_port, carrier, mode");
 
   if (!insertedShipments?.length) {
