@@ -119,11 +119,18 @@ const ShipmentDetail = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { isAdmin, isOpsManager, isSales } = useUserRole();
+  const { isAdmin, isOpsManager, isSales, isLoading: rolesLoading } = useUserRole();
   const isAdminOrInternal = isAdmin || isOpsManager || isSales;
   const [deleting, setDeleting] = useState(false);
   const [showDocGen, setShowDocGen] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+
+  // Redirect non-internal users to customer workspace
+  useEffect(() => {
+    if (!rolesLoading && !isAdminOrInternal) {
+      navigate(`/dashboard/shipments/${id}/workspace${window.location.search}`, { replace: true });
+    }
+  }, [rolesLoading, isAdminOrInternal, id, navigate]);
 
   const handleDelete = async () => {
     if (!id) return;

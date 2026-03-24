@@ -23,6 +23,7 @@ import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
 import NewShipmentWizard from "./pages/NewShipmentWizard";
 import ShipmentDetail from "./pages/ShipmentDetail";
+import CustomerShipmentWorkspace from "./pages/CustomerShipmentWorkspace";
 import Quotes from "./pages/Quotes";
 import NewQuote from "./pages/NewQuote";
 import QuoteApproval from "./pages/QuoteApproval";
@@ -155,6 +156,7 @@ const App = () => (
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/:id/workspace" element={<ProtectedRoute><CustomerShipmentWorkspace /></ProtectedRoute>} />
             <Route path="/dashboard/quotes" element={<RoleGate><Quotes /></RoleGate>} />
             <Route path="/dashboard/quotes/new" element={<ProtectedRoute><NewQuote /></ProtectedRoute>} />
             <Route path="/dashboard/trucking" element={<RoleGate><Trucking /></RoleGate>} />
