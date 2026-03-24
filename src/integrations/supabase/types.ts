@@ -324,6 +324,98 @@ export type Database = {
           },
         ]
       }
+      ai_match_feedback: {
+        Row: {
+          created_at: string
+          feedback: string
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback: string
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: string
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_match_feedback_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "ai_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_matches: {
+        Row: {
+          created_at: string
+          deal_type: string | null
+          destination: string | null
+          estimated_earnings: number | null
+          id: string
+          match_score: number | null
+          match_type: string
+          metadata: Json | null
+          origin: string | null
+          reason: string | null
+          source_id: string | null
+          source_type: string | null
+          status: string
+          title: string
+          trade_lane: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deal_type?: string | null
+          destination?: string | null
+          estimated_earnings?: number | null
+          id?: string
+          match_score?: number | null
+          match_type?: string
+          metadata?: Json | null
+          origin?: string | null
+          reason?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          title: string
+          trade_lane?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deal_type?: string | null
+          destination?: string | null
+          estimated_earnings?: number | null
+          id?: string
+          match_score?: number | null
+          match_type?: string
+          metadata?: Json | null
+          origin?: string | null
+          reason?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          title?: string
+          trade_lane?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string

@@ -30,6 +30,7 @@ import {
   Bookmark, ThumbsUp, PartyPopper, Rocket, UserCheck
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { RecommendedForYou } from "@/components/smart/RecommendedForYou";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
@@ -1859,6 +1860,11 @@ const Spark = () => {
         ) : (
           <>
             {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
+            {isOwner && !isViewingOther && (
+              <div className="mb-5">
+                <RecommendedForYou variant="spark" maxItems={3} />
+              </div>
+            )}
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
