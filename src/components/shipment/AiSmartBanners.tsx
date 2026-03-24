@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Clock, FileText, CreditCard, Anchor, Shield } from "lucide-react";
 import { differenceInHours, differenceInDays, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { PriorityBadge, type CustomerPriority } from "@/components/shared/PriorityBadge";
 
 interface Props {
   shipment: Record<string, any>;
@@ -15,6 +16,7 @@ interface Banner {
   icon: React.ElementType;
   message: string;
   severity: "warning" | "critical" | "info";
+  priority: CustomerPriority;
 }
 
 export function AiSmartBanners({ shipment, documents, payments, customsFilings }: Props) {
