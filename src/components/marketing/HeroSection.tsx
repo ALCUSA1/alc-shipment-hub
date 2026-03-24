@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Globe, Search, Ship, Plane, ArrowRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Globe, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { PortSelector } from "@/components/shipment/PortSelector";
-import { RateResultsPanel } from "@/components/rate-search/RateResultsPanel";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { HeroRateSearch } from "./HeroRateSearch";
+import { StartShipmentModal } from "./StartShipmentModal";
+import { DemoModal } from "./DemoModal";
 
 export function HeroSection() {
+  const [showSignup, setShowSignup] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
+
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gray-light">
@@ -61,11 +61,11 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
             className="flex items-center justify-center gap-4 mb-12"
           >
-            <Button variant="electric" size="lg" className="text-base px-8 h-12" asChild>
-              <Link to="/signup">Start a Shipment <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Button variant="electric" size="lg" className="text-base px-8 h-12" onClick={() => setShowSignup(true)}>
+              Start a Shipment <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button variant="outline" size="lg" className="text-base px-8 h-12" asChild>
-              <Link to="/about">Book a Demo</Link>
+            <Button variant="outline" size="lg" className="text-base px-8 h-12" onClick={() => setShowDemo(true)}>
+              Book a Demo
             </Button>
           </motion.div>
         </div>
@@ -82,6 +82,9 @@ export function HeroSection() {
 
         <HeroRateSearch />
       </div>
+
+      <StartShipmentModal open={showSignup} onOpenChange={setShowSignup} />
+      <DemoModal open={showDemo} onOpenChange={setShowDemo} />
     </section>
   );
 }

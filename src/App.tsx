@@ -108,6 +108,7 @@ import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
 import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
+import PricingPreview from "./pages/PricingPreview";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +137,10 @@ const App = () => (
             <Route path="/quote/approve" element={<QuoteApproval />} />
             <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+
+            {/* Quick entry routes */}
+            <Route path="/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
+            <Route path="/pricing-preview" element={<ProtectedRoute><PricingPreview /></ProtectedRoute>} />
 
             {/* Operations Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
