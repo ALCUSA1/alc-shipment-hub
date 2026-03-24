@@ -58,7 +58,7 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
   const { data: stats } = useQuery({
     queryKey: ["spark-stats"],
     queryFn: async () => {
-      const [companies, rfqs, events] = await Promise.all([
+      const [companies, rfqs] = await Promise.all([
         supabase.from("companies").select("id", { count: "exact", head: true }),
         supabase.from("rfq_posts").select("id", { count: "exact", head: true }).eq("status", "open"),
       ]);
