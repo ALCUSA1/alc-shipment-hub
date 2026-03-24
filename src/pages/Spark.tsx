@@ -1831,17 +1831,17 @@ const Spark = () => {
           </div>
           {!isViewingOther && (
             <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as any)}>
-              <TabsList className="bg-muted/50 p-1 rounded-full">
-                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+              <TabsList className="bg-muted/50 p-1 rounded-full border border-border/30">
+                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Building2 className="h-3.5 w-3.5" /> My Page
                 </TabsTrigger>
-                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Search className="h-3.5 w-3.5" /> Explore
                 </TabsTrigger>
-                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <ShoppingCart className="h-3.5 w-3.5" /> Marketplace
                 </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Calendar className="h-3.5 w-3.5" /> Events
                 </TabsTrigger>
               </TabsList>
