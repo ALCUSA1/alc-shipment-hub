@@ -22,6 +22,7 @@ import { RateIntelligencePanel } from "./RateIntelligencePanel";
 import { DynamicMarginPanel } from "./DynamicMarginPanel";
 import { WhatIfSimulator } from "./WhatIfSimulator";
 import { DealNegotiationAssistant } from "./DealNegotiationAssistant";
+import { CustomerResponsePredictor } from "./CustomerResponsePredictor";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
