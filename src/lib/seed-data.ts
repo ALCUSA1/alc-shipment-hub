@@ -158,6 +158,24 @@ export async function autoSeedIfEmpty(userId: string) {
 
   await supabase.from("warehouse_orders").insert(warehouseOrders);
 
+  // --- Shipment Financials (P&L data for Accounting page) ---
+  const financialEntries = insertedShipments.flatMap((s, i) => {
+    const revenue = [4800, 4200, 5800, 4100, 5500, 3400, 7000, 3600, 5100, 6500][i] || 4000;
+    const oceanCost = [3200, 2800, 3900, 2700, 3700, 2200, 4700, 2400, 3400, 4300][i] || 3000;
+    const truckingCost = [850, 600, 750, 500, 900, 400, 1100, 350, 700, 800][i] || 500;
+    const thcCost = [280, 220, 310, 200, 260, 180, 350, 170, 240, 300][i] || 200;
+    const docFee = [75, 75, 75, 75, 75, 75, 75, 75, 75, 75][i];
+    return [
+      { shipment_id: s.id, user_id: userId, entry_type: "revenue", category: "ocean_freight", description: "Ocean freight — sell rate", amount: revenue, currency: "USD", date: format(subDays(now, 30 - i * 3), "yyyy-MM-dd") },
+      { shipment_id: s.id, user_id: userId, entry_type: "cost", category: "ocean_freight", description: "Carrier buy rate", amount: oceanCost, currency: "USD", vendor: s.carrier || "Carrier", date: format(subDays(now, 30 - i * 3), "yyyy-MM-dd") },
+      { shipment_id: s.id, user_id: userId, entry_type: "cost", category: "trucking", description: "Drayage — origin pickup", amount: truckingCost, currency: "USD", vendor: "Local Trucker", date: format(subDays(now, 28 - i * 3), "yyyy-MM-dd") },
+      { shipment_id: s.id, user_id: userId, entry_type: "cost", category: "terminal_handling", description: "Terminal handling charges", amount: thcCost, currency: "USD", vendor: "Terminal Operator", date: format(subDays(now, 27 - i * 3), "yyyy-MM-dd") },
+      { shipment_id: s.id, user_id: userId, entry_type: "expense", category: "documentation", description: "Documentation & filing fees", amount: docFee, currency: "USD", date: format(subDays(now, 26 - i * 3), "yyyy-MM-dd") },
+    ];
+  });
+
+  await supabase.from("shipment_financials").insert(financialEntries);
+
   // --- Leads (Pipeline) ---
   const leads = [
     { full_name: "Sarah Chen", company_name: "Shenzhen Electronics Co.", email: "schen@szelectronics.cn", phone: "+86-755-555-0101", stage: "qualified", score: 85, source: "referral", notes: "Interested in regular ocean FCL from Shenzhen to LA" },
