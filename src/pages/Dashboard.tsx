@@ -306,14 +306,13 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <GlassBarChart
+                <GlassAreaChart
                   data={trendData}
                   dataKey="count"
                   xKey="date"
                   color={CHART_COLORS.blue}
                   height={240}
                   tooltipFormatter={(v) => [`${v}`, "Shipments"]}
-                  barSize={48}
                 />
               </CardContent>
             </Card>
