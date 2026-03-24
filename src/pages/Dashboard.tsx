@@ -105,16 +105,19 @@ const Dashboard = () => {
     })), [counts]);
 
   const trendData = useMemo(() => {
-    const buckets: Record<string, number> = {};
-    for (let i = 29; i >= 0; i--) {
-      const d = format(subDays(new Date(), i), "MMM d");
-      buckets[d] = 0;
+    // Group by week (7 buckets) for a cleaner chart
+    const weeks: { date: string; count: number }[] = [];
+    for (let w = 3; w >= 0; w--) {
+      const weekEnd = subDays(new Date(), w * 7);
+      const weekStart = subDays(weekEnd, 6);
+      const label = `${format(weekStart, "MMM d")} – ${format(weekEnd, "d")}`;
+      const count = (allShipments || []).filter(s => {
+        const d = new Date(s.created_at);
+        return d >= weekStart && d <= weekEnd;
+      }).length;
+      weeks.push({ date: label, count });
     }
-    for (const s of allShipments) {
-      const d = format(new Date(s.created_at), "MMM d");
-      if (d in buckets) buckets[d]++;
-    }
-    return Object.entries(buckets).map(([date, count]) => ({ date, count }));
+    return weeks;
   }, [allShipments]);
 
   const onTimeRate = counts.delivered > 0
