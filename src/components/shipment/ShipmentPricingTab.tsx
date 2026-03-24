@@ -16,6 +16,8 @@ import {
   ArrowRight, Save, SendHorizonal, Zap, BarChart3, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AiPricingRecommendation } from "./AiPricingRecommendation";
+import { DealScorePanel } from "./DealScorePanel";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -582,6 +584,39 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* AI Pricing Recommendation */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <AiPricingRecommendation
+              carrierBuyRate={carrierBuyRate}
+              trueCost={calc.trueCost}
+              currentMargin={calc.adjustedMargin}
+              currentSellPrice={calc.sellPrice}
+              netProfit={calc.netProfit}
+              platformRetained={calc.platformRetained}
+              shipmentType={shipmentType || mode || "fcl"}
+              customerType={customerType}
+              urgency={urgency}
+              onApplyRecommendation={(margin) => {
+                setManualMarginOverride(margin);
+                toast.success("AI recommendation applied");
+              }}
+            />
+          </div>
+
+          {/* Deal Score */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <DealScorePanel
+              netProfit={calc.netProfit}
+              platformRetained={calc.platformRetained}
+              netMargin={calc.netMargin}
+              sellPrice={calc.sellPrice}
+              trueCost={calc.trueCost}
+              customerType={customerType}
+              urgency={urgency}
+              shipmentType={shipmentType || mode || "fcl"}
+            />
           </div>
 
           {/* Alerts */}
