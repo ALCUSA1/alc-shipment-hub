@@ -39,11 +39,11 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6"
+            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6 max-w-4xl mx-auto"
           >
-            Price, manage, and profit from
-            <br />
-            <span className="text-gradient">every shipment in one platform.</span>
+            <span className="whitespace-nowrap">Price, manage, and profit</span>{" "}
+            <br className="hidden md:block" />
+            <span className="text-gradient whitespace-nowrap">from every shipment in one platform.</span>
           </motion.h1>
 
           <motion.p
