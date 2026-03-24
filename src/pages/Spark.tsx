@@ -1973,11 +1973,6 @@ const Spark = () => {
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
             {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
-            {isOwner && !isViewingOther && (
-              <div className="mb-5">
-                <RecommendedForYou variant="spark" maxItems={3} />
-              </div>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-6">
               <div className="space-y-4">
@@ -2013,6 +2008,7 @@ const Spark = () => {
               </div>
 
               <div className="space-y-4 hidden lg:block">
+                {isOwner && <RecommendedForYou variant="spark" maxItems={3} />}
                 {isOwner && <ProfileCompleteness profile={displayProfile} company={activeCompany ?? null} />}
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
                 <TrendingSidebar />
