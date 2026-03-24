@@ -478,6 +478,7 @@ const Quotes = () => {
                                 )}
                               </Button>
                             )}
+                            <QuoteShareActions quote={q} />
                             {q.shipment_id && (
                               <Button size="sm" variant="ghost" asChild>
                                 <Link to={`/dashboard/shipments/${q.shipment_id}`}>

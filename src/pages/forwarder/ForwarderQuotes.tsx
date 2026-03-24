@@ -88,7 +88,7 @@ const ForwarderQuotes = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12">
+                  <TableCell colSpan={6} className="text-center py-12">
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
                     <p className="text-sm text-muted-foreground">No quotes yet</p>
                   </TableCell>
