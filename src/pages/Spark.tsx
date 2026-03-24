@@ -819,7 +819,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
   });
 
   return (
-    <Card className={`mb-5 transition-all duration-300 ${isFocused ? "ring-2 ring-primary/20 shadow-lg shadow-primary/5" : "shadow-sm"}`}>
+    <Card className={`mb-4 border-border/50 transition-all duration-300 ${isFocused ? "ring-2 ring-primary/20 shadow-xl shadow-primary/5" : "shadow-sm"}`}>
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 ring-2 ring-primary/10">
