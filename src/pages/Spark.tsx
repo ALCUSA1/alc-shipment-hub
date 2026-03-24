@@ -1852,7 +1852,7 @@ const Spark = () => {
         {/* Tab content */}
         {mainTab === "directory" && !isViewingOther ? (
           <CompanyDirectory onSelectCompany={handleSelectCompany} />
-        ) : mainTab === "marketplace" && !isViewingOther ? (
+        ) : mainTab === "rfqs" && !isViewingOther ? (
           <MarketplaceTab />
         ) : mainTab === "events" && !isViewingOther ? (
           <EventsTab />
