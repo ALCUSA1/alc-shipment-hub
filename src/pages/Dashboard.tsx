@@ -15,7 +15,8 @@ import {
 import { motion } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  AreaChart, Area, CartesianGrid,
+  AreaChart, Area, CartesianGrid, Cell, RadialBarChart, RadialBar,
+  PieChart, Pie,
 } from "recharts";
 import { SpendingSummary } from "@/components/dashboard/SpendingSummary";
 
@@ -255,53 +256,108 @@ const Dashboard = () => {
       {/* Charts Row: Pipeline + Trend */}
       {!loading && (
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Pipeline Bar Chart */}
-          <Card>
+          {/* Pipeline Donut + Legend */}
+          <Card className="overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] to-transparent pointer-events-none" />
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Activity className="h-4 w-4 text-accent" />
+                <div className="h-7 w-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Activity className="h-4 w-4 text-accent" />
+                </div>
                 Shipment Pipeline
               </CardTitle>
-              <CardDescription>Status distribution across lifecycle</CardDescription>
+              <CardDescription>Live status distribution</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={pipelineData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    cursor={{ fill: "hsl(var(--accent) / 0.06)" }}
-                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  />
-                  <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={22}>
-                    {pipelineData.map((entry, i) => (
-                      <rect key={i} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex items-center gap-6">
+                <div className="w-[180px] h-[180px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        {pipelineData.map((entry, i) => (
+                          <linearGradient key={`pg-${i}`} id={`pipeGrad-${i}`} x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
+                            <stop offset="100%" stopColor={entry.fill} stopOpacity={0.6} />
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      <Pie
+                        data={pipelineData.filter(d => d.count > 0)}
+                        cx="50%" cy="50%"
+                        innerRadius={52} outerRadius={80}
+                        paddingAngle={3}
+                        dataKey="count"
+                        stroke="none"
+                        animationBegin={0}
+                        animationDuration={800}
+                      >
+                        {pipelineData.filter(d => d.count > 0).map((_, i) => (
+                          <Cell key={i} fill={`url(#pipeGrad-${i})`} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "0 8px 30px -12px hsl(var(--accent) / 0.15)" }}
+                        formatter={(value: number, name: string) => [value, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2.5">
+                  {pipelineData.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-3 w-3 rounded-full shrink-0" style={{ background: item.fill, boxShadow: `0 0 6px ${item.fill}40` }} />
+                        <span className="text-xs text-muted-foreground truncate">{item.name}</span>
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Shipments Over Time */}
-          <Card>
+          {/* Shipments Over Time — Gradient Area */}
+          <Card className="overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent pointer-events-none" />
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Package className="h-4 w-4 text-accent" />
+                <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Package className="h-4 w-4 text-blue-500" />
+                </div>
                 Shipments Over Time
               </CardTitle>
               <CardDescription>New shipments — last 30 days</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={trendData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <AreaChart data={trendData} margin={{ left: -10, right: 8, top: 8, bottom: 4 }}>
+                  <defs>
+                    <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.25} />
+                      <stop offset="50%" stopColor="hsl(var(--accent))" stopOpacity={0.08} />
+                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                    </linearGradient>
+                    <filter id="trendGlow">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
                   <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                    contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "0 8px 30px -12px hsl(var(--accent) / 0.2)" }}
+                    labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600, marginBottom: 2 }}
+                    formatter={(value: number) => [value, "Shipments"]}
                   />
-                  <Area type="monotone" dataKey="count" name="Shipments" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.1} strokeWidth={2} />
+                  <Area
+                    type="monotone" dataKey="count" name="Shipments"
+                    stroke="hsl(var(--accent))" fill="url(#trendGrad)"
+                    strokeWidth={2.5}
+                    dot={false}
+                    activeDot={{ r: 5, fill: "hsl(var(--accent))", stroke: "hsl(var(--background))", strokeWidth: 2, filter: "url(#trendGlow)" }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
