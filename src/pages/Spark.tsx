@@ -36,10 +36,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const POST_TYPES = [
-  { value: "update", label: "Update", icon: Globe, color: "text-primary" },
+  { value: "update", label: "General Post", icon: Globe, color: "text-primary" },
+  { value: "shipment_update", label: "Shipment Update", icon: Ship, color: "text-sky-500" },
+  { value: "capacity_available", label: "Capacity Available", icon: Package, color: "text-emerald-500" },
+  { value: "shipment_request", label: "Shipment Request", icon: MapPinned, color: "text-orange-500" },
+  { value: "collaboration", label: "Collaboration Request", icon: Handshake, color: "text-violet-500" },
   { value: "promotion", label: "Promotion", icon: Megaphone, color: "text-amber-500" },
   { value: "rate_alert", label: "Rate Alert", icon: TrendingUp, color: "text-emerald-500" },
-  { value: "article", label: "Article", icon: Newspaper, color: "text-violet-500" },
 ];
 
 const EVENT_TYPES = [
