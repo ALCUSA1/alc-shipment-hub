@@ -376,7 +376,7 @@ const Dashboard = () => {
       )}
 
       {/* Spending Summary */}
-      {!loading && !isEmpty && <SpendingSummary />}
+      {!loading && !isEmpty && showFinancials && <SpendingSummary />}
 
       {/* Recent Shipments */}
       {!loading && recentShipments.length > 0 && (
