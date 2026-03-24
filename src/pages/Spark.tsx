@@ -94,7 +94,7 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
         </div>
         <div className="flex items-center gap-2 mt-5">
           <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
-            onClick={() => onAction("marketplace")}>
+            onClick={() => onAction("rfqs")}>
             <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
           </Button>
           <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
@@ -1116,7 +1116,7 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
   );
 }
 
-/* ─── RFQ Marketplace Tab ─── */
+/* ─── RFQ Tab ─── */
 function MarketplaceTab() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -1224,7 +1224,7 @@ function MarketplaceTab() {
     return (
       <div>
         <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => setSelectedRfq(null)}>
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Marketplace
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to RFQs
         </Button>
         <Card className="border-border/50">
           <CardContent className="p-6">
@@ -1716,7 +1716,7 @@ const Spark = () => {
   const { companyId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mainTab, setMainTab] = useState<"page" | "directory" | "marketplace" | "events">("page");
+  const [mainTab, setMainTab] = useState<"page" | "directory" | "rfqs" | "events">("page");
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
   const isViewingOther = !!companyId;
@@ -1838,8 +1838,8 @@ const Spark = () => {
                 <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Search className="h-3.5 w-3.5" /> Explore
                 </TabsTrigger>
-                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <ShoppingCart className="h-3.5 w-3.5" /> Marketplace
+                <TabsTrigger value="rfqs" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <Package className="h-3.5 w-3.5" /> RFQs
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Calendar className="h-3.5 w-3.5" /> Events
@@ -1852,7 +1852,7 @@ const Spark = () => {
         {/* Tab content */}
         {mainTab === "directory" && !isViewingOther ? (
           <CompanyDirectory onSelectCompany={handleSelectCompany} />
-        ) : mainTab === "marketplace" && !isViewingOther ? (
+        ) : mainTab === "rfqs" && !isViewingOther ? (
           <MarketplaceTab />
         ) : mainTab === "events" && !isViewingOther ? (
           <EventsTab />
