@@ -1858,6 +1858,7 @@ const Spark = () => {
           <EventsTab />
         ) : (
           <>
+            {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
@@ -1867,14 +1868,26 @@ const Spark = () => {
                 {postsLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
                 ) : posts.length === 0 ? (
-                  <Card className="border-dashed border-2 border-border/40">
-                    <CardContent className="py-12 text-center">
-                      <Sparkles className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">
-                        {isOwner ? "Share your first spark to light up your company page!" : "No posts yet from this company."}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+                    <Card className="border-dashed border-2 border-border/40 bg-gradient-to-br from-primary/[0.02] to-transparent">
+                      <CardContent className="py-16 text-center">
+                        <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}>
+                          <Sparkles className="h-10 w-10 text-primary/30 mx-auto mb-4" />
+                        </motion.div>
+                        <h3 className="text-base font-semibold text-foreground mb-1">
+                          {isOwner ? "Light up your Spark page" : "No posts yet"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                          {isOwner ? "Share updates, rate alerts, or promote your services to the Spark community." : "This company hasn't posted yet. Check back soon!"}
+                        </p>
+                        {isOwner && (
+                          <Button size="sm" className="mt-5 rounded-full px-6 gap-1.5 shadow-md shadow-primary/20">
+                            <Send className="h-3.5 w-3.5" /> Post your first update
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ) : (
                   posts.map((post: any, i: number) => (
                     <PostCard key={post.id} post={post} currentUserId={user!.id} index={i} isAdmin={isAdmin} />
@@ -1883,7 +1896,9 @@ const Spark = () => {
               </div>
 
               <div className="space-y-5 hidden lg:block">
+                {isOwner && <ProfileCompleteness profile={displayProfile} company={activeCompany ?? null} />}
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
+                <TrendingSidebar />
                 {activeCompany?.id && <PartnersCard companyId={activeCompany.id} />}
                 {activeCompany?.id && (
                   <ReviewsCard
