@@ -828,7 +828,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
                 </Button>
               </div>
               <Button size="sm" disabled={!content.trim() || createPost.isPending} onClick={() => createPost.mutate()}
-                className="rounded-full px-5 gap-2 shadow-md shadow-primary/20">
+                className={`rounded-full px-5 gap-2 shadow-md shadow-primary/20 transition-all ${content.trim() && !createPost.isPending ? "animate-pulse hover:animate-none" : ""}`}>
                 {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />} Publish
               </Button>
             </motion.div>
