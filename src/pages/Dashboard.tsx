@@ -58,6 +58,12 @@ const PIPELINE_STAGES = [
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { role: companyRole } = useCompanyRole();
+  const canCreateShipment = hasCapability(companyRole, "create_shipment");
+  const showFinancials = canSeeDashboardSection(companyRole, "financials");
+  const showPipeline = canSeeDashboardSection(companyRole, "pipeline");
+  const showAlerts = canSeeDashboardSection(companyRole, "alerts");
+  const showCta = canSeeDashboardSection(companyRole, "cta");
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({ active: 0, pendingPricing: 0, quoteReady: 0, awaitingApproval: 0, booked: 0, inTransit: 0, delivered: 0, delayed: 0, missingDocs: 0 });
   const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
