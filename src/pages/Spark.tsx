@@ -1917,39 +1917,47 @@ const Spark = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-5">
+      <div className="max-w-6xl mx-auto">
+        {/* ── Page Header ── */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {isViewingOther && (
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/dashboard/spark")}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => navigate("/dashboard/spark")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Spark</h2>
+            <div className="flex items-center gap-2.5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-foreground tracking-tight">Spark</h2>
+                <p className="text-[10px] text-muted-foreground font-medium -mt-0.5">Community Hub</p>
+              </div>
             </div>
           </div>
           {!isViewingOther && (
-            <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as any)}>
-              <TabsList className="bg-muted/50 p-1 rounded-full border border-border/30">
-                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Building2 className="h-3.5 w-3.5" /> My Page
-                </TabsTrigger>
-                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Search className="h-3.5 w-3.5" /> Explore
-                </TabsTrigger>
-                <TabsTrigger value="rfqs" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Package className="h-3.5 w-3.5" /> RFQs
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Calendar className="h-3.5 w-3.5" /> Events
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="bg-muted/50 p-1 rounded-full border border-border/40 flex items-center gap-0.5">
+              {[
+                { value: "page", label: "My Page", icon: Building2 },
+                { value: "directory", label: "Explore", icon: Search },
+                { value: "rfqs", label: "RFQs", icon: Package },
+                { value: "events", label: "Events", icon: Calendar },
+              ].map((tab) => (
+                <button key={tab.value}
+                  onClick={() => setMainTab(tab.value as any)}
+                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold px-4 py-2 transition-all ${
+                    mainTab === tab.value
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  }`}>
+                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                </button>
+              ))}
+            </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Tab content */}
         {mainTab === "directory" && !isViewingOther ? (
