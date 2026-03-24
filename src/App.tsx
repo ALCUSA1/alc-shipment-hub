@@ -195,6 +195,7 @@ const App = () => (
             <Route path="/admin/campaigns" element={<AdminGate><AdminCampaigns /></AdminGate>} />
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
+            <Route path="/admin/pricing-engine" element={<AdminGate><AdminPricingEngine /></AdminGate>} />
 
             {/* Forwarder Portal */}
             <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />
