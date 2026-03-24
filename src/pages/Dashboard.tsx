@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
+import { canSeeDashboardSection, hasCapability } from "@/lib/company-permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, subDays, format, startOfDay } from "date-fns";
