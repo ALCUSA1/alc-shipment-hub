@@ -646,8 +646,7 @@ const CustomerShipmentWorkspace = () => {
 
         {/* ══ TRUCKING TAB ══ */}
         <TabsContent value="trucking" className="mt-6 space-y-6">
-          <CustomerTruckingSection pickups={truckPickups || []} leg="origin" title="Origin Trucking" />
-          <CustomerTruckingSection pickups={truckPickups || []} leg="destination" title="Destination Trucking" />
+          <CustomerTruckingSection pickups={truckPickups || []} />
         </TabsContent>
 
         {/* ══ DOCUMENTS TAB ══ */}
