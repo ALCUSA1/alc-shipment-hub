@@ -234,6 +234,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-700",
       iconColor: "text-indigo-600",
+      sortOrder: 3,
     });
   }
 
