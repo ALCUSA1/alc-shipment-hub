@@ -587,6 +587,17 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
             </div>
           </div>
 
+          {/* Rate Intelligence */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <RateIntelligencePanel
+              carrierBuyRate={carrierBuyRate}
+              shipmentType={shipmentType || mode || "fcl"}
+              customerType={customerType}
+              origin={originPort || ""}
+              destination={destPort || ""}
+            />
+          </div>
+
           {/* AI Pricing Recommendation */}
           <div className="rounded-xl border border-border bg-card p-4">
             <AiPricingRecommendation
