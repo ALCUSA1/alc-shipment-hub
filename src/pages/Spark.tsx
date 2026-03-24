@@ -94,7 +94,7 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
         </div>
         <div className="flex items-center gap-2 mt-5">
           <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
-            onClick={() => onAction("marketplace")}>
+            onClick={() => onAction("rfqs")}>
             <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
           </Button>
           <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
