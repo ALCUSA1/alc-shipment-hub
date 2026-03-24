@@ -179,14 +179,14 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
         quote.transit_days ? `⏱ ${quote.transit_days} day transit` : null,
       ].filter(Boolean).join("\n");
 
-      await supabase.from("spark_posts").insert({
+      await supabase.from("feed_posts").insert({
         user_id: user.id,
         content: quoteEmbed,
         post_type: "promotion",
         author_name: profile?.full_name || "User",
         author_company: profile?.company_name || null,
         author_avatar: profile?.avatar_url || null,
-      });
+      } as any);
 
       toast({ title: "Shared on Spark!", description: "Your quote has been posted to the Spark feed." });
       setSparkDialogOpen(false);
