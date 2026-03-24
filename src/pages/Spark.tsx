@@ -1838,8 +1838,8 @@ const Spark = () => {
                 <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Search className="h-3.5 w-3.5" /> Explore
                 </TabsTrigger>
-                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <ShoppingCart className="h-3.5 w-3.5" /> Marketplace
+                <TabsTrigger value="rfqs" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <Package className="h-3.5 w-3.5" /> RFQs
                 </TabsTrigger>
                 <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Calendar className="h-3.5 w-3.5" /> Events
