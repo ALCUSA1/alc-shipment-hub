@@ -32,7 +32,7 @@ const ForwarderDashboard = () => {
           .eq("forwarder_user_id", user!.id),
         supabase
           .from("shipments")
-          .select("id, status, shipment_ref, origin_port, destination_port, mode, updated_at, companies(company_name)")
+          .select("id, status, shipment_ref, origin_port, destination_port, mode, updated_at, companies!shipments_company_id_fkey(company_name)")
           .eq("user_id", user!.id)
           .order("updated_at", { ascending: false })
           .limit(5),

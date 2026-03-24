@@ -32,7 +32,7 @@ const AdminShipments = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("id, shipment_ref, status, origin_port, destination_port, vessel, etd, eta, created_at, updated_at, user_id, companies(company_name)")
+        .select("id, shipment_ref, status, origin_port, destination_port, vessel, etd, eta, created_at, updated_at, user_id, companies!shipments_company_id_fkey(company_name)")
         .order("updated_at", { ascending: false })
         .limit(200);
       if (error) throw error;

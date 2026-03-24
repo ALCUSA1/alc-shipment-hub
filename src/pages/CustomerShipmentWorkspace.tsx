@@ -201,8 +201,8 @@ const CustomerShipmentWorkspace = () => {
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["cust-shipment", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shipments").select("*, companies(company_name)").eq("id", id!).single();
-      if (error) throw error;
+      const { data, error } = await supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name)").eq("id", id!).maybeSingle();
+      if (error) { console.error("[CustomerWorkspace] query error:", error); throw error; }
       return data;
     },
     enabled: !!id,

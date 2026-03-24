@@ -28,27 +28,27 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const statusColor: Record<string, string> = {
-  in_transit: "bg-accent/10 text-accent",
-  booked: "bg-yellow-100 text-yellow-800",
-  booking_confirmed: "bg-yellow-100 text-yellow-700",
-  cargo_received: "bg-blue-100 text-blue-700",
-  arrived: "bg-blue-100 text-blue-700",
-  delivered: "bg-emerald-100 text-emerald-700",
   draft: "bg-muted text-muted-foreground",
-  pending: "bg-muted text-muted-foreground",
+  pending_pricing: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  quote_ready: "bg-accent/10 text-accent",
+  awaiting_approval: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+  booked: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  in_transit: "bg-accent/10 text-accent",
+  delivered: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  closed: "bg-muted text-muted-foreground",
   cancelled: "bg-destructive/10 text-destructive",
 };
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
   { value: "draft", label: "Draft" },
-  { value: "pending", label: "Pending" },
+  { value: "pending_pricing", label: "Pending Pricing" },
+  { value: "quote_ready", label: "Quote Ready" },
+  { value: "awaiting_approval", label: "Awaiting Approval" },
   { value: "booked", label: "Booked" },
-  { value: "booking_confirmed", label: "Booking Confirmed" },
-  { value: "cargo_received", label: "Cargo Received" },
   { value: "in_transit", label: "In Transit" },
-  { value: "arrived", label: "Arrived" },
   { value: "delivered", label: "Delivered" },
+  { value: "closed", label: "Closed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
@@ -130,9 +130,11 @@ const Shipments = () => {
       const { data, error } = await supabase
         .from("shipments")
         .select("*, companies!shipments_company_id_fkey(company_name)")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Shipments] list query error:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
