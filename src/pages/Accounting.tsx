@@ -23,7 +23,7 @@ const Accounting = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("id, shipment_ref, status, origin_port, destination_port, created_at, companies(company_name)")
+        .select("id, shipment_ref, status, origin_port, destination_port, created_at, companies!shipments_company_id_fkey(company_name)")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
