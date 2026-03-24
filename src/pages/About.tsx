@@ -1,7 +1,11 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Users, Target, Rocket } from "lucide-react";
+import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket } from "lucide-react";
+import syedImg from "@/assets/team/syed.jpg";
+import mikeImg from "@/assets/team/mike.jpg";
+import paulImg from "@/assets/team/paul.jpg";
+import ahadImg from "@/assets/team/ahad.jpg";
 
 const milestones = [
   { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust." },
@@ -21,10 +25,10 @@ const coreValues = [
 ];
 
 const leaders = [
-  { name: "Syed Hassan-Warsi", role: "CEO & Chairman", desc: "Leading ALC into digital transformation and growth. Driving evolution to a technology-driven NVOCC and Export Trading Company, focusing on innovation and customer partnerships." },
-  { name: "Michael Kuhfal", role: "Former Founder", desc: "Established ALC in 1996 on trust, integrity, and reliability. Built strong global relationships, ensuring customers receive personalized service." },
-  { name: "Paul Bishal", role: "Vice President, Operations", desc: "Oversees global operations, streamlining complex supply chains and ensuring compliance. Known for precision and efficiency." },
-  { name: "Ahad Hassan", role: "Operations Manager", desc: "Manages daily execution, scheduling, and compliance. Ensures timely and reliable shipments." },
+  { name: "Syed Hassan-Warsi", role: "CEO & Chairman", desc: "Leading ALC into digital transformation and growth. Driving evolution to a technology-driven NVOCC and Export Trading Company, focusing on innovation and customer partnerships.", img: syedImg },
+  { name: "Michael Kuhfal", role: "Former Founder", desc: "Established ALC in 1996 on trust, integrity, and reliability. Built strong global relationships, ensuring customers receive personalized service.", img: mikeImg },
+  { name: "Paul Bishal", role: "Vice President, Operations", desc: "Oversees global operations, streamlining complex supply chains and ensuring compliance. Known for precision and efficiency.", img: paulImg },
+  { name: "Ahad Hassan", role: "Operations Manager", desc: "Manages daily execution, scheduling, and compliance. Ensures timely and reliable shipments.", img: ahadImg },
 ];
 
 const About = () => {
@@ -154,8 +158,8 @@ const About = () => {
             {leaders.map((l, i) => (
               <ScrollReveal key={l.name} delay={i * 0.1}>
                 <div className="bg-card border border-border rounded-xl p-8">
-                  <div className="w-14 h-14 rounded-full bg-ocean/10 flex items-center justify-center mb-4">
-                    <Users className="w-7 h-7 text-ocean" />
+                  <div className="w-20 h-20 rounded-full overflow-hidden mb-4">
+                    <img src={l.img} alt={l.name} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">{l.name}</h3>
                   <p className="text-sm text-ocean font-medium mb-3">{l.role}</p>
