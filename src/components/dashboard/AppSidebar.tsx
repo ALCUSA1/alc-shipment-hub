@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Inbox, ContactRound, Users, Settings, LogOut,
-  TrendingUp, BarChart3, DollarSign, Search, Shield, User,
+  TrendingUp, BarChart3, DollarSign, Search, Shield, User, Sparkles,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
