@@ -68,6 +68,7 @@ import NotFound from "./pages/NotFound";
 import Security from "./pages/Security";
 import Templates from "./pages/Templates";
 import Spark from "./pages/Spark";
+import Opportunities from "./pages/Opportunities";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
 import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
 import ForwarderShipments from "./pages/forwarder/ForwarderShipments";
@@ -159,6 +160,7 @@ const App = () => (
             <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
             <Route path="/dashboard/spark" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
             <Route path="/dashboard/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
+            <Route path="/dashboard/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
