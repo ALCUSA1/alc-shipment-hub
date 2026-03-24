@@ -68,6 +68,7 @@ import NotFound from "./pages/NotFound";
 import Security from "./pages/Security";
 import Templates from "./pages/Templates";
 import Spark from "./pages/Spark";
+import Opportunities from "./pages/Opportunities";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
 import ForwarderCustomers from "./pages/forwarder/ForwarderCustomers";
 import ForwarderShipments from "./pages/forwarder/ForwarderShipments";
