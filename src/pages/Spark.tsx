@@ -61,9 +61,8 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
       const [companies, rfqs, events] = await Promise.all([
         supabase.from("companies").select("id", { count: "exact", head: true }),
         supabase.from("rfq_posts").select("id", { count: "exact", head: true }).eq("status", "open"),
-        supabase.from("spark_events").select("id", { count: "exact", head: true }).gte("event_date", new Date().toISOString()),
       ]);
-      return { companies: companies.count || 0, rfqs: rfqs.count || 0, events: events.count || 0 };
+      return { companies: companies.count || 0, rfqs: rfqs.count || 0 };
     },
     staleTime: 60_000,
   });
@@ -71,7 +70,6 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
   const statItems = [
     { label: "Companies", value: stats?.companies || 0, icon: Building2 },
     { label: "Active RFQs", value: stats?.rfqs || 0, icon: ShoppingCart },
-    { label: "Upcoming Events", value: stats?.events || 0, icon: Calendar },
   ];
 
   return (
