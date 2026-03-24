@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { StartShipmentModal } from "./StartShipmentModal";
 import alcLogo from "@/assets/alc-logo.png";
 
 const navLinks = [
@@ -14,8 +15,10 @@ const navLinks = [
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
   return (
+    <>
     <header role="banner">
     <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
@@ -35,8 +38,8 @@ export function MarketingNav() {
           <Button variant="ghost" asChild>
             <Link to="/login">Log In</Link>
           </Button>
-          <Button variant="electric" asChild>
-            <Link to="/signup">Start Shipping</Link>
+          <Button variant="electric" onClick={() => setShowSignup(true)}>
+            Start a Shipment
           </Button>
         </div>
 
@@ -56,13 +59,15 @@ export function MarketingNav() {
             <Button variant="ghost" asChild size="sm">
               <Link to="/login">Log In</Link>
             </Button>
-            <Button variant="electric" asChild size="sm">
-              <Link to="/signup">Start Shipping</Link>
+            <Button variant="electric" size="sm" onClick={() => { setOpen(false); setShowSignup(true); }}>
+              Start a Shipment
             </Button>
           </div>
         </div>
       )}
     </nav>
     </header>
+    <StartShipmentModal open={showSignup} onOpenChange={setShowSignup} />
+    </>
   );
 }
