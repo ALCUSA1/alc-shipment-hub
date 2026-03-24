@@ -40,7 +40,7 @@ export default function Support() {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState({ category: "", subject: "", description: "" });
+  const [form, setForm] = useState({ category: "", subject: "", description: "", priority: "normal" as CustomerPriority });
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["support-tickets"],
