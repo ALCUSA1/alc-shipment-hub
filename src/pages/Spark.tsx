@@ -2012,7 +2012,7 @@ const Spark = () => {
                 )}
               </div>
 
-              <div className="space-y-5 hidden lg:block">
+              <div className="space-y-4 hidden lg:block">
                 {isOwner && <ProfileCompleteness profile={displayProfile} company={activeCompany ?? null} />}
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
                 <TrendingSidebar />
