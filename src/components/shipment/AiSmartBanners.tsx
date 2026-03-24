@@ -64,6 +64,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: FileText,
           message: `${pending.length} document${pending.length > 1 ? "s" : ""} still pending — complete before vessel departure.`,
           severity: pending.length >= 3 ? "critical" : "warning",
+          priority: pending.length >= 3 ? "urgent" : "attention_needed",
         });
       }
     }
