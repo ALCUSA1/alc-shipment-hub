@@ -22,6 +22,7 @@ import { RateIntelligencePanel } from "./RateIntelligencePanel";
 import { DynamicMarginPanel } from "./DynamicMarginPanel";
 import { WhatIfSimulator } from "./WhatIfSimulator";
 import { DealNegotiationAssistant } from "./DealNegotiationAssistant";
+import { CustomerResponsePredictor } from "./CustomerResponsePredictor";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -650,6 +651,18 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
             platformRetained={calc.platformRetained}
             shipmentType={shipmentType || mode || "fcl"}
             customerType={customerType}
+          />
+
+          {/* Customer Response Predictor */}
+          <CustomerResponsePredictor
+            currentSellPrice={calc.sellPrice}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+            customerType={customerType}
+            urgency={urgency}
           />
 
           {/* Deal Score */}
