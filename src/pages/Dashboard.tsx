@@ -378,58 +378,125 @@ const Dashboard = () => {
       {/* Spending Summary */}
       {!loading && !isEmpty && showFinancials && <SpendingSummary />}
 
-      {/* Recent Shipments */}
-      {!loading && recentShipments.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Recent Activity</CardTitle>
-              <CardDescription>Latest shipment updates</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard/shipments" className="text-accent">
-                View All <ArrowRight className="ml-1 h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              {recentShipments.map((s) => (
-                <Link
-                  key={s.id}
-                  to={`/dashboard/shipments/${s.id}`}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-secondary/60 transition-colors group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                      {s.mode === "air" ? <Plane className="h-3.5 w-3.5 text-muted-foreground" /> : <Ship className="h-3.5 w-3.5 text-muted-foreground" />}
+      {/* Performance Snapshot + Activity Timeline */}
+      {!loading && !isEmpty && (
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          {/* Performance Snapshot */}
+          <Card className="overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] to-transparent pointer-events-none" />
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                </div>
+                Performance Snapshot
+              </CardTitle>
+              <CardDescription>Key metrics at a glance</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-border bg-muted/30 p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{counts.active + counts.delivered}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total Shipments</p>
+                </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
+                  <p className="text-2xl font-bold text-emerald-600 tabular-nums">
+                    {counts.delivered > 0
+                      ? `${Math.round((counts.delivered / Math.max(counts.delivered + counts.delayed, 1)) * 100)}%`
+                      : "—"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">On-Time Rate</p>
+                </div>
+              </div>
+              {/* Top lanes derived from recent shipments */}
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Lanes</p>
+                <div className="space-y-1.5">
+                  {(() => {
+                    const laneCounts: Record<string, number> = {};
+                    recentShipments.forEach(s => {
+                      const lane = `${s.origin_port || "?"} → ${s.destination_port || "?"}`;
+                      laneCounts[lane] = (laneCounts[lane] || 0) + 1;
+                    });
+                    const topLanes = Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+                    if (topLanes.length === 0) return <p className="text-xs text-muted-foreground">No data yet</p>;
+                    const maxCount = topLanes[0][1];
+                    return topLanes.map(([lane, count]) => (
+                      <div key={lane} className="flex items-center gap-2">
+                        <div className="flex-1 h-6 bg-muted/50 rounded-md overflow-hidden relative">
+                          <div
+                            className="h-full bg-accent/15 rounded-md"
+                            style={{ width: `${(count / maxCount) * 100}%` }}
+                          />
+                          <span className="absolute inset-0 flex items-center px-2 text-[11px] font-medium text-foreground">{lane}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-muted-foreground tabular-nums w-6 text-right">{count}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity Timeline */}
+          <Card className="overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent pointer-events-none" />
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Activity className="h-4 w-4 text-primary" />
+                  </div>
+                  Activity Timeline
+                </CardTitle>
+                <CardDescription>Recent account activity</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="relative space-y-0">
+                {recentShipments.slice(0, 5).map((s, i) => (
+                  <Link
+                    key={s.id}
+                    to={`/dashboard/shipments/${s.id}`}
+                    className="flex items-start gap-3 py-2.5 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors group relative"
+                  >
+                    {/* Timeline line */}
+                    {i < Math.min(recentShipments.length, 5) - 1 && (
+                      <div className="absolute left-[19px] top-10 bottom-0 w-px bg-border" />
+                    )}
+                    <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 z-10 mt-0.5">
+                      {s.mode === "air" ? <Plane className="h-3 w-3 text-muted-foreground" /> : <Ship className="h-3 w-3 text-muted-foreground" />}
                     </div>
-                    <div className="min-w-0">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-foreground">{s.shipment_ref}</span>
-                        {(s as any).companies?.company_name && (
-                          <span className="text-[10px] text-muted-foreground truncate">• {(s as any).companies.company_name}</span>
-                        )}
+                        <Badge variant="secondary" className={`text-[9px] px-1.5 py-0 h-4 ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
+                          {statusLabel[s.status] || s.status}
+                        </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {s.origin_port || "—"} → {s.destination_port || "—"}
+                      <p className="text-xs text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                        {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[10px] text-muted-foreground hidden sm:block">
-                      {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
-                    </span>
-                    <Badge variant="secondary" className={`text-[10px] ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
-                      {statusLabel[s.status] || s.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                    </Badge>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1.5" />
+                  </Link>
+                ))}
+                {recentShipments.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-6">No recent activity</p>
+                )}
+              </div>
+              {recentShipments.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <Button variant="ghost" size="sm" className="w-full text-accent text-xs" asChild>
+                    <Link to="/dashboard/shipments">View All Shipments <ArrowRight className="ml-1 h-3 w-3" /></Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </DashboardLayout>
   );
