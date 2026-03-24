@@ -911,6 +911,7 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [externalShareOpen, setExternalShareOpen] = useState(false);
 
   const { data: reactions = [] } = useQuery({
     queryKey: ["feed-reactions", post.id],
