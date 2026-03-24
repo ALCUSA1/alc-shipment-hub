@@ -469,8 +469,7 @@ const CustomerShipmentWorkspace = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
                   { label: isAir ? "Air Freight" : "Ocean Freight", active: true },
-                  { label: "Origin Trucking", active: shipmentServices?.origin_trucking },
-                  { label: "Destination Trucking", active: shipmentServices?.destination_trucking },
+                  { label: "Trucking", active: shipmentServices?.trucking },
                   { label: "AES Filing", active: shipmentServices?.customs_clearance },
                   { label: "Customs Clearance", active: shipmentServices?.customs_clearance },
                   { label: "Warehousing", active: shipmentServices?.warehousing },
