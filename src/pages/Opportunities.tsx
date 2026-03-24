@@ -29,15 +29,13 @@ type RfqPost = {
   title: string;
   origin: string | null;
   destination: string | null;
-  volume: string | null;
-  category: string | null;
-  budget_range: string | null;
+  cargo_type: string | null;
+  container_type: string | null;
+  company_name: string | null;
   deadline: string | null;
   description: string | null;
   status: string;
   created_at: string;
-  bid_count: number | null;
-  profiles?: { full_name: string | null; company_name: string | null } | null;
 };
 
 const SHIPMENT_TYPE_OPTIONS = [
