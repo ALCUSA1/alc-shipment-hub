@@ -74,34 +74,56 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
     staleTime: 60_000,
   });
 
+  const statItems = [
+    { label: "Companies", value: stats?.companies || 0, icon: Building2 },
+    { label: "Active RFQs", value: stats?.rfqs || 0, icon: ShoppingCart },
+    { label: "Upcoming Events", value: stats?.events || 0, icon: Calendar },
+  ];
+
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.85)] to-[hsl(220,80%,25%)] p-6 md:p-8 mb-6">
-      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-xl" />
-      <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-white/5 blur-lg" />
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-white/80" />
-          <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">Spark Network</span>
+      className="relative overflow-hidden rounded-2xl mb-6">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/80" />
+      <div className="absolute inset-0">
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/[0.06] blur-2xl" />
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/[0.04] blur-2xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-40 bg-white/[0.03] rounded-full blur-3xl rotate-12" />
+      </div>
+
+      <div className="relative z-10 p-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-xs font-bold text-white/60 uppercase tracking-[0.2em]">Spark Network</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Connect. Share. Grow.</h2>
+            <p className="text-sm text-white/60 mt-1.5 max-w-md">Your logistics community hub — post updates, browse RFQs, and find partners.</p>
+          </div>
+
+          {/* Stat pills */}
+          <div className="flex items-center gap-3">
+            {statItems.map((s, i) => (
+              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 + i * 0.1 }}
+                className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-center min-w-[90px]">
+                <s.icon className="h-4 w-4 text-white/50 mx-auto mb-1" />
+                <p className="text-xl font-extrabold text-white tabular-nums">{s.value}</p>
+                <p className="text-[9px] font-semibold text-white/40 uppercase tracking-wider">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Welcome to the community</h2>
-        <div className="flex items-center gap-4 mt-3 flex-wrap">
-          {stats && (
-            <>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.companies}</strong> companies</span>
-              <span className="text-white/30">·</span>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.rfqs}</strong> active RFQs</span>
-              <span className="text-white/30">·</span>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.events}</strong> upcoming events</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-5">
-          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2.5 mt-6">
+          <Button size="sm" className="rounded-full px-6 gap-2 bg-white text-primary hover:bg-white/90 shadow-lg shadow-black/10 font-semibold"
             onClick={() => onAction("rfqs")}>
             <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
           </Button>
-          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+          <Button size="sm" className="rounded-full px-6 gap-2 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm font-semibold"
             onClick={() => onAction("directory")}>
             <Users2 className="h-3.5 w-3.5" /> Find Partners
           </Button>
@@ -136,21 +158,23 @@ function TrendingSidebar() {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
       <Card className="border-border/50 shadow-sm overflow-hidden">
-        <div className="px-5 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/30">
+        <div className="px-5 py-3 bg-gradient-to-r from-primary/8 to-accent/5 border-b border-border/30">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm text-foreground">Trending on Spark</h3>
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <h3 className="font-bold text-sm text-foreground">Trending</h3>
           </div>
         </div>
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 space-y-3">
           {latestRfqs.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Latest RFQs</p>
-              <div className="space-y-2">
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2">Latest RFQs</p>
+              <div className="space-y-1.5">
                 {latestRfqs.map((rfq: any) => (
-                  <div key={rfq.id} className="flex items-center gap-2 text-xs">
-                    <Package className="h-3 w-3 text-primary/60 shrink-0" />
-                    <span className="text-foreground truncate">
+                  <div key={rfq.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-xs">
+                    <Package className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                    <span className="text-foreground font-medium truncate">
                       {rfq.origin && rfq.destination ? `${rfq.origin} → ${rfq.destination}` : rfq.title}
                     </span>
                   </div>
@@ -159,13 +183,13 @@ function TrendingSidebar() {
             </div>
           )}
           {eventCount > 0 && (
-            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
-              <Calendar className="h-3.5 w-3.5 text-primary" />
-              <span className="text-foreground"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
+            <div className="flex items-center gap-2 text-xs bg-accent/5 border border-accent/10 rounded-lg px-3 py-2.5">
+              <Calendar className="h-3.5 w-3.5 text-accent" />
+              <span className="text-foreground font-medium"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
             </div>
           )}
           {latestRfqs.length === 0 && eventCount === 0 && (
-            <p className="text-xs text-muted-foreground/50 italic text-center py-2">No trending activity yet</p>
+            <p className="text-xs text-muted-foreground/50 italic text-center py-3">No trending activity yet</p>
           )}
         </CardContent>
       </Card>
@@ -795,7 +819,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
   });
 
   return (
-    <Card className={`mb-5 transition-all duration-300 ${isFocused ? "ring-2 ring-primary/20 shadow-lg shadow-primary/5" : "shadow-sm"}`}>
+    <Card className={`mb-4 border-border/50 transition-all duration-300 ${isFocused ? "ring-2 ring-primary/20 shadow-xl shadow-primary/5" : "shadow-sm"}`}>
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 ring-2 ring-primary/10">
@@ -1895,39 +1919,47 @@ const Spark = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-5">
+      <div className="max-w-6xl mx-auto">
+        {/* ── Page Header ── */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {isViewingOther && (
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/dashboard/spark")}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => navigate("/dashboard/spark")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Spark</h2>
+            <div className="flex items-center gap-2.5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-foreground tracking-tight">Spark</h2>
+                <p className="text-[10px] text-muted-foreground font-medium -mt-0.5">Community Hub</p>
+              </div>
             </div>
           </div>
           {!isViewingOther && (
-            <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as any)}>
-              <TabsList className="bg-muted/50 p-1 rounded-full border border-border/30">
-                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Building2 className="h-3.5 w-3.5" /> My Page
-                </TabsTrigger>
-                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Search className="h-3.5 w-3.5" /> Explore
-                </TabsTrigger>
-                <TabsTrigger value="rfqs" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Package className="h-3.5 w-3.5" /> RFQs
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Calendar className="h-3.5 w-3.5" /> Events
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="bg-muted/50 p-1 rounded-full border border-border/40 flex items-center gap-0.5">
+              {[
+                { value: "page", label: "My Page", icon: Building2 },
+                { value: "directory", label: "Explore", icon: Search },
+                { value: "rfqs", label: "RFQs", icon: Package },
+                { value: "events", label: "Events", icon: Calendar },
+              ].map((tab) => (
+                <button key={tab.value}
+                  onClick={() => setMainTab(tab.value as any)}
+                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold px-4 py-2 transition-all ${
+                    mainTab === tab.value
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  }`}>
+                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                </button>
+              ))}
+            </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Tab content */}
         {mainTab === "directory" && !isViewingOther ? (
@@ -1947,8 +1979,8 @@ const Spark = () => {
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 mt-5">
-              <div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-6">
+              <div className="space-y-4">
                 {isOwner && <PostComposer profile={displayProfile} />}
                 {postsLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
@@ -1980,7 +2012,7 @@ const Spark = () => {
                 )}
               </div>
 
-              <div className="space-y-5 hidden lg:block">
+              <div className="space-y-4 hidden lg:block">
                 {isOwner && <ProfileCompleteness profile={displayProfile} company={activeCompany ?? null} />}
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
                 <TrendingSidebar />
