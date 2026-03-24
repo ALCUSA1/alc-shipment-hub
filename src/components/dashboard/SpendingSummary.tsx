@@ -105,22 +105,22 @@ export function SpendingSummary() {
       </CardHeader>
       <CardContent>
         {/* Inline KPIs — compact row inside the card */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 gap-2.5 mb-5">
           {inlineKpis.map((item, i) => (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50"
+              className="p-3 rounded-xl bg-muted/40 border border-border/50"
             >
-              <div className={`h-8 w-8 rounded-lg ${item.bg} flex items-center justify-center shrink-0`}>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-bold tabular-nums text-foreground leading-tight">${item.value.toLocaleString()}</p>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className={`h-6 w-6 rounded-md ${item.bg} flex items-center justify-center shrink-0`}>
+                  <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                </div>
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">{item.label}</p>
               </div>
+              <p className="text-sm font-bold tabular-nums text-foreground">${item.value.toLocaleString()}</p>
             </motion.div>
           ))}
         </div>
