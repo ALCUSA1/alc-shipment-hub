@@ -169,6 +169,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-orange-50",
       textColor: "text-orange-700",
       iconColor: "text-orange-600",
+      sortOrder: 1,
     });
   }
 
