@@ -20,6 +20,8 @@ import { AiPricingRecommendation } from "./AiPricingRecommendation";
 import { DealScorePanel } from "./DealScorePanel";
 import { RateIntelligencePanel } from "./RateIntelligencePanel";
 import { DynamicMarginPanel } from "./DynamicMarginPanel";
+import { WhatIfSimulator } from "./WhatIfSimulator";
+import { DealNegotiationAssistant } from "./DealNegotiationAssistant";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -626,6 +628,29 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
               }}
             />
           </div>
+
+          {/* What-If Simulator */}
+          <WhatIfSimulator
+            carrierBuyRate={carrierBuyRate}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            currentSellPrice={calc.sellPrice}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+          />
+
+          {/* Deal Negotiation Assistant */}
+          <DealNegotiationAssistant
+            carrierBuyRate={carrierBuyRate}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            currentSellPrice={calc.sellPrice}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+            customerType={customerType}
+          />
 
           {/* Deal Score */}
           <div className="rounded-xl border border-border bg-card p-4">
