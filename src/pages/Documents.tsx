@@ -44,11 +44,25 @@ const Documents = () => {
     enabled: !!user,
   });
 
+  // Filter documents by search query
+  const filteredDocuments = useMemo(() => {
+    if (!documents) return [];
+    if (!searchQuery.trim()) return documents;
+    const q = searchQuery.toLowerCase();
+    return documents.filter(d =>
+      getDocLabel(d.doc_type).toLowerCase().includes(q) ||
+      d.doc_type.toLowerCase().includes(q) ||
+      (d.shipments?.shipment_ref || "").toLowerCase().includes(q) ||
+      d.status.toLowerCase().includes(q)
+    );
+  }, [documents, searchQuery]);
+
   // Group documents by shipment
   const shipmentGroups = useMemo(() => {
-    if (!documents) return [];
+    const docs = filteredDocuments;
+    if (!docs.length) return [];
     const map = new Map<string, { shipmentId: string; shipmentRef: string; docs: DocRow[] }>();
-    for (const doc of documents) {
+    for (const doc of docs) {
       const sid = doc.shipment_id;
       if (!map.has(sid)) {
         map.set(sid, {
@@ -60,17 +74,16 @@ const Documents = () => {
       map.get(sid)!.docs.push(doc);
     }
     return Array.from(map.values());
-  }, [documents]);
+  }, [filteredDocuments]);
 
-  // Category counts across all docs
+  // Category counts across filtered docs
   const countByCategory = useMemo(() => {
-    if (!documents) return {};
-    const counts: Record<string, number> = { all: documents.length };
+    const counts: Record<string, number> = { all: filteredDocuments.length };
     for (const cat of DOC_CATEGORIES) {
-      counts[cat.key] = documents.filter((d) => cat.docTypes.includes(d.doc_type)).length;
+      counts[cat.key] = filteredDocuments.filter((d) => cat.docTypes.includes(d.doc_type)).length;
     }
     return counts;
-  }, [documents]);
+  }, [filteredDocuments]);
 
   const toggleShipment = (sid: string) => {
     setOpenShipments((prev) => {
