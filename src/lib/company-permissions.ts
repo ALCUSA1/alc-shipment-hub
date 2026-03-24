@@ -63,6 +63,8 @@ const NAV_ROLES: Record<NavItemKey, CompanyRole[]> = {
   spark:        ["admin", "operations_manager", "sales_manager", "customer_user"],
   analytics:    ["admin", "sales_manager", "pricing_manager"],
   "rate-trends": ["admin", "sales_manager", "pricing_manager"],
+  support:      ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
+  ideas:        ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
   account:      ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
 };
 

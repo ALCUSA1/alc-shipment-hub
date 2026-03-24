@@ -40,6 +40,8 @@ const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey 
   { title: "Spark", url: "/dashboard/spark", icon: Sparkles, navKey: "spark" },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, navKey: "analytics" },
   { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp, navKey: "rate-trends" },
+  { title: "Support", url: "/dashboard/support", icon: LifeBuoy, navKey: "support" },
+  { title: "Ideas", url: "/dashboard/ideas", icon: Lightbulb, navKey: "ideas" },
   { title: "Settings", url: "/dashboard/account", icon: Settings, navKey: "account" },
 ];
 
