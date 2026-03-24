@@ -158,8 +158,8 @@ const About = () => {
             {leaders.map((l, i) => (
               <ScrollReveal key={l.name} delay={i * 0.1}>
                 <div className="bg-card border border-border rounded-xl p-8">
-                  <div className="w-14 h-14 rounded-full bg-ocean/10 flex items-center justify-center mb-4">
-                    <Users className="w-7 h-7 text-ocean" />
+                  <div className="w-20 h-20 rounded-full overflow-hidden mb-4">
+                    <img src={l.img} alt={l.name} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">{l.name}</h3>
                   <p className="text-sm text-ocean font-medium mb-3">{l.role}</p>
