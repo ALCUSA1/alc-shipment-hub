@@ -389,7 +389,7 @@ const Analytics = () => {
                       max={Math.max(...topRoutes.map(r => r.shipments), 1)}
                       color={PALETTE[i % PALETTE.length]}
                       index={i}
-                      suffix={<Badge variant="secondary" className="text-[10px] font-bold">{route.shipments}</Badge>}
+                      suffix={route.shipments}
                     />
                   ))}
                 </div>
