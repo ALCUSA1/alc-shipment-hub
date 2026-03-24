@@ -1,9 +1,10 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Download, Loader2, Printer, ChevronDown, ChevronRight, Ship } from "lucide-react";
+import { FileText, Download, Loader2, Printer, ChevronDown, ChevronRight, Ship, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
