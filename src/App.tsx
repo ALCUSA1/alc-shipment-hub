@@ -16,6 +16,7 @@ import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
 import Features from "./pages/Features";
 import Category from "./pages/Category";
+import About from "./pages/About";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
