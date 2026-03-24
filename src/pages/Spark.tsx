@@ -1920,45 +1920,54 @@ const Spark = () => {
   return (
     <DashboardLayout>
       <div className="w-full">
-        {/* ── Page Header ── */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            {isViewingOther && (
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => navigate("/dashboard/spark")}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
-                <Sparkles className="h-5 w-5 text-primary-foreground" />
+        {/* ── Spark Network Header Banner ── */}
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-2xl mb-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/80" />
+          <div className="absolute inset-0">
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/[0.06] blur-2xl" />
+            <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/[0.04] blur-2xl" />
+          </div>
+          <div className="relative z-10 px-6 py-5 md:px-8 md:py-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {isViewingOther && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-white hover:bg-white/10" onClick={() => navigate("/dashboard/spark")}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">Spark Network</h2>
+                  <p className="text-xs text-white/50 font-medium">Connect. Share. Grow.</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-extrabold text-foreground tracking-tight">Spark</h2>
-                <p className="text-[10px] text-muted-foreground font-medium -mt-0.5">Community Hub</p>
-              </div>
+
+              {/* Tab pills */}
+              {!isViewingOther && (
+                <div className="bg-white/10 backdrop-blur-sm p-1 rounded-full border border-white/10 flex items-center gap-0.5">
+                  {[
+                    { value: "page", label: "My Page", icon: Building2 },
+                    { value: "directory", label: "Explore", icon: Search },
+                    { value: "rfqs", label: "RFQs", icon: Package },
+                    { value: "events", label: "Events", icon: Calendar },
+                  ].map((tab) => (
+                    <button key={tab.value}
+                      onClick={() => setMainTab(tab.value as any)}
+                      className={`flex items-center gap-1.5 rounded-full text-xs font-semibold px-4 py-2 transition-all ${
+                        mainTab === tab.value
+                          ? "bg-white text-primary shadow-md"
+                          : "text-white/70 hover:text-white hover:bg-white/10"
+                      }`}>
+                      <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-          {!isViewingOther && (
-            <div className="bg-muted/50 p-1 rounded-full border border-border/40 flex items-center gap-0.5">
-              {[
-                { value: "page", label: "My Page", icon: Building2 },
-                { value: "directory", label: "Explore", icon: Search },
-                { value: "rfqs", label: "RFQs", icon: Package },
-                { value: "events", label: "Events", icon: Calendar },
-              ].map((tab) => (
-                <button key={tab.value}
-                  onClick={() => setMainTab(tab.value as any)}
-                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold px-4 py-2 transition-all ${
-                    mainTab === tab.value
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                  }`}>
-                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
-                </button>
-              ))}
-            </div>
-          )}
         </motion.div>
 
         {/* Tab content */}
@@ -1972,7 +1981,6 @@ const Spark = () => {
           <>
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
-            {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 mt-6">
               <div className="space-y-4">
