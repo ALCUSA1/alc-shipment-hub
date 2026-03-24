@@ -158,21 +158,23 @@ function TrendingSidebar() {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
       <Card className="border-border/50 shadow-sm overflow-hidden">
-        <div className="px-5 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/30">
+        <div className="px-5 py-3 bg-gradient-to-r from-primary/8 to-accent/5 border-b border-border/30">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm text-foreground">Trending on Spark</h3>
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <h3 className="font-bold text-sm text-foreground">Trending</h3>
           </div>
         </div>
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-4 space-y-3">
           {latestRfqs.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Latest RFQs</p>
-              <div className="space-y-2">
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2">Latest RFQs</p>
+              <div className="space-y-1.5">
                 {latestRfqs.map((rfq: any) => (
-                  <div key={rfq.id} className="flex items-center gap-2 text-xs">
-                    <Package className="h-3 w-3 text-primary/60 shrink-0" />
-                    <span className="text-foreground truncate">
+                  <div key={rfq.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-xs">
+                    <Package className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                    <span className="text-foreground font-medium truncate">
                       {rfq.origin && rfq.destination ? `${rfq.origin} → ${rfq.destination}` : rfq.title}
                     </span>
                   </div>
@@ -181,13 +183,13 @@ function TrendingSidebar() {
             </div>
           )}
           {eventCount > 0 && (
-            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
-              <Calendar className="h-3.5 w-3.5 text-primary" />
-              <span className="text-foreground"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
+            <div className="flex items-center gap-2 text-xs bg-accent/5 border border-accent/10 rounded-lg px-3 py-2.5">
+              <Calendar className="h-3.5 w-3.5 text-accent" />
+              <span className="text-foreground font-medium"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
             </div>
           )}
           {latestRfqs.length === 0 && eventCount === 0 && (
-            <p className="text-xs text-muted-foreground/50 italic text-center py-2">No trending activity yet</p>
+            <p className="text-xs text-muted-foreground/50 italic text-center py-3">No trending activity yet</p>
           )}
         </CardContent>
       </Card>
