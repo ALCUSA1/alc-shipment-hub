@@ -111,6 +111,9 @@ import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
 import AdminRateIntelligence from "./pages/admin/AdminRateIntelligence";
 import PricingPreview from "./pages/PricingPreview";
 import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
+import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
+import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
+import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
 
 const queryClient = new QueryClient();
 
