@@ -1113,6 +1113,7 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
             )}
           </AnimatePresence>
         </CardContent>
+        <ExternalShareDialog open={externalShareOpen} onOpenChange={setExternalShareOpen} post={post} />
       </Card>
     </motion.div>
   );
