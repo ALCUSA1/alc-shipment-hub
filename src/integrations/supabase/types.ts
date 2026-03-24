@@ -5784,6 +5784,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          priority: string
           shipment_id: string | null
           status: string
           subject: string
@@ -5796,6 +5797,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          priority?: string
           shipment_id?: string | null
           status?: string
           subject: string
@@ -5808,6 +5810,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          priority?: string
           shipment_id?: string | null
           status?: string
           subject?: string
