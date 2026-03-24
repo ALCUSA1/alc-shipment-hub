@@ -79,6 +79,8 @@ const Shipments = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { role: companyRole } = useCompanyRole();
+  const canCreate = hasCapability(companyRole, "create_shipment");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
