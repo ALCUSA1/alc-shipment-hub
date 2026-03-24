@@ -107,6 +107,7 @@ import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
+import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
 
 const queryClient = new QueryClient();
 
@@ -196,6 +197,7 @@ const App = () => (
             <Route path="/admin/materials" element={<AdminGate><AdminMaterials /></AdminGate>} />
             <Route path="/admin/payment-settings" element={<AdminGate><AdminPaymentSettings /></AdminGate>} />
             <Route path="/admin/pricing-engine" element={<AdminGate><AdminPricingEngine /></AdminGate>} />
+            <Route path="/admin/profit" element={<AdminGate><AdminProfitIntelligence /></AdminGate>} />
 
             {/* Forwarder Portal */}
             <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />

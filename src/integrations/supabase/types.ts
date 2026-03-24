@@ -741,12 +741,15 @@ export type Database = {
           created_at: string
           currency: string
           destination_port: string
+          free_time_days: number | null
           id: string
           mode: string
           notes: string | null
           origin_port: string
           rate_basis_type: string | null
+          service_level: string | null
           surcharges: Json
+          trade_lane: string | null
           transit_days: number | null
           updated_at: string
           valid_from: string
@@ -760,12 +763,15 @@ export type Database = {
           created_at?: string
           currency?: string
           destination_port: string
+          free_time_days?: number | null
           id?: string
           mode?: string
           notes?: string | null
           origin_port: string
           rate_basis_type?: string | null
+          service_level?: string | null
           surcharges?: Json
+          trade_lane?: string | null
           transit_days?: number | null
           updated_at?: string
           valid_from: string
@@ -779,12 +785,15 @@ export type Database = {
           created_at?: string
           currency?: string
           destination_port?: string
+          free_time_days?: number | null
           id?: string
           mode?: string
           notes?: string | null
           origin_port?: string
           rate_basis_type?: string | null
+          service_level?: string | null
           surcharges?: Json
+          trade_lane?: string | null
           transit_days?: number | null
           updated_at?: string
           valid_from?: string
@@ -3307,6 +3316,8 @@ export type Database = {
       pricing_outputs: {
         Row: {
           break_even_price: number
+          carrier_buy_rate: number | null
+          collaboration_share: number | null
           contribution_margin_percent: number
           contribution_profit: number
           created_at: string
@@ -3317,8 +3328,12 @@ export type Database = {
           minimum_acceptable_sell_price: number
           net_margin_percent: number
           net_profit: number
+          network_share: number | null
+          platform_retained_profit: number | null
           pricing_scenario_id: string
           recommended_sell_price: number
+          referral_share: number | null
+          sell_price: number | null
           stretch_sell_price: number
           total_direct_cost: number
           total_network_payout_cost: number
@@ -3328,6 +3343,8 @@ export type Database = {
         }
         Insert: {
           break_even_price?: number
+          carrier_buy_rate?: number | null
+          collaboration_share?: number | null
           contribution_margin_percent?: number
           contribution_profit?: number
           created_at?: string
@@ -3338,8 +3355,12 @@ export type Database = {
           minimum_acceptable_sell_price?: number
           net_margin_percent?: number
           net_profit?: number
+          network_share?: number | null
+          platform_retained_profit?: number | null
           pricing_scenario_id: string
           recommended_sell_price?: number
+          referral_share?: number | null
+          sell_price?: number | null
           stretch_sell_price?: number
           total_direct_cost?: number
           total_network_payout_cost?: number
@@ -3349,6 +3370,8 @@ export type Database = {
         }
         Update: {
           break_even_price?: number
+          carrier_buy_rate?: number | null
+          collaboration_share?: number | null
           contribution_margin_percent?: number
           contribution_profit?: number
           created_at?: string
@@ -3359,8 +3382,12 @@ export type Database = {
           minimum_acceptable_sell_price?: number
           net_margin_percent?: number
           net_profit?: number
+          network_share?: number | null
+          platform_retained_profit?: number | null
           pricing_scenario_id?: string
           recommended_sell_price?: number
+          referral_share?: number | null
+          sell_price?: number | null
           stretch_sell_price?: number
           total_direct_cost?: number
           total_network_payout_cost?: number
@@ -4674,72 +4701,133 @@ export type Database = {
       }
       shipment_rates: {
         Row: {
+          base_rate: number | null
           carrier: string | null
+          carrier_rate_id: string | null
+          company_id: string | null
           container_count: number
           container_type: string | null
           contract_number: string | null
           created_at: string
           currency: string
+          destination_port: string | null
+          free_time_days: number | null
           id: string
           is_selected: boolean
           markup_amount: number | null
           markup_percent: number | null
+          mode: string | null
           notes: string | null
+          origin_port: string | null
           rate_basis_type: string
           rate_per_container: number
+          service_level: string | null
           shipment_id: string
+          snapshot_taken_at: string | null
           surcharges: Json | null
+          total_buy_rate: number | null
           total_freight: number
+          trade_lane: string | null
           transit_days: number | null
           updated_at: string
           valid_from: string | null
           valid_until: string | null
         }
         Insert: {
+          base_rate?: number | null
           carrier?: string | null
+          carrier_rate_id?: string | null
+          company_id?: string | null
           container_count?: number
           container_type?: string | null
           contract_number?: string | null
           created_at?: string
           currency?: string
+          destination_port?: string | null
+          free_time_days?: number | null
           id?: string
           is_selected?: boolean
           markup_amount?: number | null
           markup_percent?: number | null
+          mode?: string | null
           notes?: string | null
+          origin_port?: string | null
           rate_basis_type?: string
           rate_per_container?: number
+          service_level?: string | null
           shipment_id: string
+          snapshot_taken_at?: string | null
           surcharges?: Json | null
+          total_buy_rate?: number | null
           total_freight?: number
+          trade_lane?: string | null
           transit_days?: number | null
           updated_at?: string
           valid_from?: string | null
           valid_until?: string | null
         }
         Update: {
+          base_rate?: number | null
           carrier?: string | null
+          carrier_rate_id?: string | null
+          company_id?: string | null
           container_count?: number
           container_type?: string | null
           contract_number?: string | null
           created_at?: string
           currency?: string
+          destination_port?: string | null
+          free_time_days?: number | null
           id?: string
           is_selected?: boolean
           markup_amount?: number | null
           markup_percent?: number | null
+          mode?: string | null
           notes?: string | null
+          origin_port?: string | null
           rate_basis_type?: string
           rate_per_container?: number
+          service_level?: string | null
           shipment_id?: string
+          snapshot_taken_at?: string | null
           surcharges?: Json | null
+          total_buy_rate?: number | null
           total_freight?: number
+          trade_lane?: string | null
           transit_days?: number | null
           updated_at?: string
           valid_from?: string | null
           valid_until?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_rates_carrier_rate_id_fkey"
+            columns: ["carrier_rate_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_rates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_rates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_rates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_rates_shipment_id_fkey"
             columns: ["shipment_id"]

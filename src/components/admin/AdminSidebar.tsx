@@ -55,6 +55,7 @@ const navGroups = [
       { title: "Customer Lookup", url: "/admin/customers", icon: Search },
       { title: "Activity Feed", url: "/admin/activity", icon: Activity },
       { title: "Financials", url: "/admin/financials", icon: DollarSign },
+      { title: "Profit Intelligence", url: "/admin/profit", icon: TrendingUp },
       { title: "Compliance", url: "/admin/compliance", icon: ShieldCheck },
       { title: "API & Integrations", url: "/admin/api-health", icon: Radio },
       { title: "System Health", url: "/admin/system", icon: Server },
