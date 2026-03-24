@@ -4,9 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Package, DollarSign, FileText, Activity, TrendingUp } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-
-const PIE_COLORS = ["#3b82f6", "#f59e0b", "#10b981", "#6366f1", "#ef4444", "#8b5cf6"];
+import { GlassAreaChart, GlassDonut, PALETTE, CHART_COLORS } from "@/components/charts/ModernCharts";
 
 const AdminDashboard = () => {
   const { data: stats, isLoading } = useQuery({
@@ -49,9 +47,10 @@ const AdminDashboard = () => {
         documentCount: documents.count || 0,
         companyCount: companies.count || 0,
         totalRevenue,
-        statusBreakdown: Object.entries(statusMap).map(([name, value]) => ({
+        statusBreakdown: Object.entries(statusMap).map(([name, value], i) => ({
           name: name.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
           value,
+          fill: PALETTE[i % PALETTE.length],
         })),
         monthlyTrend: months,
       };
@@ -102,16 +101,15 @@ const AdminDashboard = () => {
           {isLoading ? (
             <Skeleton className="h-[220px] w-full bg-[hsl(220,15%,15%)]" />
           ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={stats?.monthlyTrend || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220,15%,15%)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(220,10%,40%)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: "hsl(220,10%,40%)" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "hsl(220,18%,12%)", border: "1px solid hsl(220,15%,18%)", borderRadius: 8, color: "#fff" }} />
-                <Area type="monotone" dataKey="shipments" name="Shipments" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={2} />
-                <Area type="monotone" dataKey="quotes" name="Quotes" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.08} strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <GlassAreaChart
+              data={stats?.monthlyTrend || []}
+              dataKey="shipments"
+              secondaryDataKey="quotes"
+              color={CHART_COLORS.blue}
+              secondaryColor={CHART_COLORS.amber}
+              height={220}
+              dark
+            />
           )}
         </div>
 
@@ -122,20 +120,17 @@ const AdminDashboard = () => {
             <Skeleton className="h-[220px] w-full bg-[hsl(220,15%,15%)]" />
           ) : (
             <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={stats?.statusBreakdown || []} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={3}>
-                    {(stats?.statusBreakdown || []).map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ background: "hsl(220,18%,12%)", border: "1px solid hsl(220,15%,18%)", borderRadius: 8, color: "#fff" }} />
-                </PieChart>
-              </ResponsiveContainer>
+              <GlassDonut
+                data={stats?.statusBreakdown || []}
+                height={160}
+                innerRadius={40}
+                outerRadius={65}
+                dark
+              />
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 justify-center">
                 {(stats?.statusBreakdown || []).map((s, i) => (
                   <div key={s.name} className="flex items-center gap-1.5 text-xs">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: PALETTE[i % PALETTE.length] }} />
                     <span className="text-[hsl(220,10%,50%)]">{s.name}</span>
                     <span className="font-medium text-white">{s.value}</span>
                   </div>
