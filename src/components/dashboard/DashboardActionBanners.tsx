@@ -185,6 +185,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-purple-50",
       textColor: "text-purple-700",
       iconColor: "text-purple-600",
+      sortOrder: 1,
     });
   }
 
