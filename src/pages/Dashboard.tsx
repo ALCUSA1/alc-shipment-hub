@@ -13,6 +13,7 @@ import { formatDistanceToNow, subDays, format } from "date-fns";
 import {
   Package, DollarSign, Clock, ArrowRight, Plus, Ship, Plane,
   CheckCircle2, AlertTriangle, FileText, Zap, Truck, Activity,
+  TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { SpendingSummary } from "@/components/dashboard/SpendingSummary";
@@ -121,20 +122,38 @@ const Dashboard = () => {
     return Object.entries(buckets).map(([date, count]) => ({ date, count }));
   }, [allShipments]);
 
-  const kpiCards = [
-    { label: "Active Shipments", value: counts.active, icon: Package, accent: "text-accent", bg: "bg-accent/10", ring: "ring-accent/20" },
-    { label: "Pending Pricing", value: counts.pendingPricing, icon: DollarSign, accent: "text-yellow-500", bg: "bg-yellow-500/10", ring: "ring-yellow-500/20" },
-    { label: "Awaiting Approval", value: counts.awaitingApproval, icon: Clock, accent: "text-orange-500", bg: "bg-orange-500/10", ring: "ring-orange-500/20" },
-    { label: "In Transit", value: counts.inTransit, icon: Truck, accent: "text-blue-500", bg: "bg-blue-500/10", ring: "ring-blue-500/20" },
-    { label: "Delayed", value: counts.delayed, icon: AlertTriangle, accent: "text-destructive", bg: "bg-destructive/10", ring: "ring-destructive/20" },
-  ];
-
   const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0 || counts.awaitingApproval > 0;
+
+  const alertItems = [
+    counts.delayed > 0 && { href: "/dashboard/shipments?status=delayed", icon: AlertTriangle, label: `${counts.delayed} delayed`, sub: "Requires attention", color: "destructive" as const },
+    counts.pendingPricing > 0 && { href: "/dashboard/quotes", icon: DollarSign, label: `${counts.pendingPricing} pricing needed`, sub: "Review quotes", color: "yellow" as const },
+    counts.awaitingApproval > 0 && { href: "/dashboard/shipments?status=awaiting_approval", icon: Clock, label: `${counts.awaitingApproval} approval pending`, sub: "Needs decision", color: "orange" as const },
+    counts.missingDocs > 0 && { href: "/dashboard/shipments", icon: FileText, label: `${counts.missingDocs} missing docs`, sub: "Upload required", color: "orange" as const },
+  ].filter(Boolean) as { href: string; icon: any; label: string; sub: string; color: "destructive" | "yellow" | "orange" }[];
+
+  const alertColorMap = {
+    destructive: { border: "border-destructive/20", bg: "bg-destructive/5 hover:bg-destructive/10", iconBg: "bg-destructive/10", iconColor: "text-destructive", textColor: "text-destructive" },
+    yellow: { border: "border-yellow-200 dark:border-yellow-800", bg: "bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20", iconBg: "bg-yellow-500/10", iconColor: "text-yellow-600", textColor: "text-yellow-700 dark:text-yellow-300" },
+    orange: { border: "border-orange-200 dark:border-orange-800", bg: "bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20", iconBg: "bg-orange-500/10", iconColor: "text-orange-500", textColor: "text-orange-700 dark:text-orange-300" },
+  };
+
+  const onTimeRate = counts.delivered > 0
+    ? Math.round((counts.delivered / Math.max(counts.delivered + counts.delayed, 1)) * 100)
+    : null;
+
+  const topLanes = useMemo(() => {
+    const laneCounts: Record<string, number> = {};
+    recentShipments.forEach(s => {
+      const lane = `${s.origin_port || "?"} → ${s.destination_port || "?"}`;
+      laneCounts[lane] = (laneCounts[lane] || 0) + 1;
+    });
+    return Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  }, [recentShipments]);
 
   return (
     <DashboardLayout>
-      {/* Header with CTA */}
-      <div className="flex items-center justify-between mb-8">
+      {/* ═══ HEADER ═══ */}
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Shipment lifecycle overview</p>
@@ -148,10 +167,10 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Getting Started */}
+      {/* ═══ ONBOARDING (empty state) ═══ */}
       {isEmpty && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Card className="mb-8 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+          <Card className="mb-6 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
@@ -170,280 +189,225 @@ const Dashboard = () => {
         </motion.div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-        {kpiCards.map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className={`transition-all hover:shadow-md ring-1 ${s.ring} h-full`}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{s.label}</CardTitle>
-                <div className={`h-8 w-8 rounded-lg ${s.bg} flex items-center justify-center`}>
+      {/* ═══ SECTION 1: KPIs + Alerts (compact row) ═══ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+        {[
+          { label: "Active", value: counts.active, icon: Package, accent: "text-accent", bg: "bg-accent/10" },
+          { label: "Pending Pricing", value: counts.pendingPricing, icon: DollarSign, accent: "text-yellow-500", bg: "bg-yellow-500/10" },
+          { label: "Awaiting Approval", value: counts.awaitingApproval, icon: Clock, accent: "text-orange-500", bg: "bg-orange-500/10" },
+          { label: "In Transit", value: counts.inTransit, icon: Truck, accent: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "Delivered", value: counts.delivered, icon: CheckCircle2, accent: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Delayed", value: counts.delayed, icon: AlertTriangle, accent: "text-destructive", bg: "bg-destructive/10" },
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+            <Card className="h-full border-border/60">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
                   <s.icon className={`h-4 w-4 ${s.accent}`} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? <Skeleton className="h-8 w-14" /> : (
-                  <div className={`text-2xl font-bold tabular-nums ${s.value > 0 && s.label === "Delayed" ? "text-destructive" : "text-foreground"}`}>{s.value}</div>
-                )}
+                <div className="min-w-0">
+                  {loading ? <Skeleton className="h-6 w-10" /> : (
+                    <p className={`text-xl font-bold tabular-nums ${s.value > 0 && s.label === "Delayed" ? "text-destructive" : "text-foreground"}`}>{s.value}</p>
+                  )}
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">{s.label}</p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         ))}
       </div>
 
-      {/* Tasks & Alerts */}
-      {!loading && hasAlerts && showAlerts && (
-        <Card className="mb-6 border-yellow-200 dark:border-yellow-800/40 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              </div>
-              Tasks & Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {counts.delayed > 0 && (
-                <Link to="/dashboard/shipments?status=delayed" className="flex items-center gap-3 p-3 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-colors">
-                  <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-destructive tabular-nums">{counts.delayed} delayed</p>
-                    <p className="text-[10px] text-muted-foreground">Requires attention</p>
-                  </div>
-                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
-                </Link>
-              )}
-              {counts.pendingPricing > 0 && (
-                <Link to="/dashboard/quotes" className="flex items-center gap-3 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors">
-                  <div className="h-8 w-8 rounded-lg bg-yellow-500/10 flex items-center justify-center shrink-0">
-                    <DollarSign className="h-4 w-4 text-yellow-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-300 tabular-nums">{counts.pendingPricing} pricing needed</p>
-                    <p className="text-[10px] text-muted-foreground">Review quotes</p>
-                  </div>
-                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
-                </Link>
-              )}
-              {counts.awaitingApproval > 0 && (
-                <Link to="/dashboard/shipments?status=awaiting_approval" className="flex items-center gap-3 p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
-                  <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
-                    <Clock className="h-4 w-4 text-orange-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-orange-700 dark:text-orange-300 tabular-nums">{counts.awaitingApproval} approval pending</p>
-                    <p className="text-[10px] text-muted-foreground">Needs decision</p>
-                  </div>
-                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
-                </Link>
-              )}
-              {counts.missingDocs > 0 && (
-                <Link to="/dashboard/shipments" className="flex items-center gap-3 p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
-                  <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-orange-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-orange-700 dark:text-orange-300 tabular-nums">{counts.missingDocs} missing docs</p>
-                    <p className="text-[10px] text-muted-foreground">Upload required</p>
-                  </div>
-                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
-                </Link>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Charts Row: Pipeline Donut + Trend Area */}
+      {/* ═══ SECTION 2: Main content — 3-column grid ═══ */}
       {!loading && (
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Pipeline Donut */}
-          <Card className="overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.03] to-transparent pointer-events-none" />
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <Activity className="h-4 w-4 text-accent" />
-                </div>
-                Shipment Pipeline
-              </CardTitle>
-              <CardDescription>Live status distribution</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="w-[180px] shrink-0">
-                  <GlassDonut
-                    data={pipelineData}
-                    height={180}
-                    innerRadius={52}
-                    outerRadius={80}
-                    centerValue={counts.active + counts.delivered}
-                    centerLabel="total"
-                  />
-                </div>
-                <div className="flex-1 space-y-2.5">
+        <div className="grid lg:grid-cols-12 gap-5 mb-6">
+
+          {/* ── LEFT: Pipeline Donut + Performance ── */}
+          <div className="lg:col-span-4 space-y-5">
+            {/* Pipeline */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Activity className="h-3.5 w-3.5 text-accent" />
+                  </div>
+                  Shipment Pipeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pb-5">
+                <GlassDonut
+                  data={pipelineData}
+                  height={160}
+                  innerRadius={46}
+                  outerRadius={72}
+                  centerValue={counts.active + counts.delivered}
+                  centerLabel="total"
+                />
+                <div className="space-y-2 mt-3">
                   {pipelineData.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="h-3 w-3 rounded-full shrink-0" style={{ background: item.fill, boxShadow: `0 0 8px ${item.fill}40` }} />
-                        <span className="text-xs text-muted-foreground truncate">{item.name}</span>
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: item.fill }} />
+                        <span className="text-[11px] text-muted-foreground truncate">{item.name}</span>
                       </div>
-                      <span className="text-sm font-semibold tabular-nums text-foreground">{item.value}</span>
+                      <span className="text-xs font-semibold tabular-nums text-foreground">{item.value}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Shipments Over Time */}
-          <Card className="overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent pointer-events-none" />
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Package className="h-4 w-4 text-blue-500" />
-                </div>
-                Shipments Over Time
-              </CardTitle>
-              <CardDescription>New shipments — last 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GlassAreaChart
-                data={trendData}
-                dataKey="count"
-                xKey="date"
-                color="hsl(var(--accent))"
-                height={220}
-                tooltipFormatter={(v) => [`${v}`, "Shipments"]}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Spending Summary */}
-      {!loading && !isEmpty && showFinancials && <SpendingSummary />}
-
-      {/* Performance Snapshot + Activity Timeline */}
-      {!loading && !isEmpty && (
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Performance Snapshot */}
-          <Card className="overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] to-transparent pointer-events-none" />
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                </div>
-                Performance Snapshot
-              </CardTitle>
-              <CardDescription>Key metrics at a glance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-border bg-muted/30 p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">{counts.active + counts.delivered}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total Shipments</p>
-                </div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
-                  <p className="text-2xl font-bold text-emerald-600 tabular-nums">
-                    {counts.delivered > 0
-                      ? `${Math.round((counts.delivered / Math.max(counts.delivered + counts.delayed, 1)) * 100)}%`
-                      : "—"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">On-Time Rate</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Lanes</p>
-                <div className="space-y-1.5">
-                  {(() => {
-                    const laneCounts: Record<string, number> = {};
-                    recentShipments.forEach(s => {
-                      const lane = `${s.origin_port || "?"} → ${s.destination_port || "?"}`;
-                      laneCounts[lane] = (laneCounts[lane] || 0) + 1;
-                    });
-                    const topLanes = Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-                    if (topLanes.length === 0) return <p className="text-xs text-muted-foreground">No data yet</p>;
-                    const maxCount = topLanes[0][1];
-                    return topLanes.map(([lane, count], i) => (
-                      <AnimatedProgressBar
-                        key={lane}
-                        label={lane}
-                        value={count}
-                        max={maxCount}
-                        color={PALETTE[i % PALETTE.length]}
-                        index={i}
-                      />
-                    ));
-                  })()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Activity Timeline */}
-          <Card className="overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent pointer-events-none" />
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Activity className="h-4 w-4 text-primary" />
+            {/* Performance */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
                   </div>
-                  Activity Timeline
+                  Performance
                 </CardTitle>
-                <CardDescription>Recent account activity</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="relative space-y-0">
-                {recentShipments.slice(0, 5).map((s, i) => (
-                  <Link
-                    key={s.id}
-                    to={`/dashboard/shipments/${s.id}`}
-                    className="flex items-start gap-3 py-2.5 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors group relative"
-                  >
-                    {i < Math.min(recentShipments.length, 5) - 1 && (
-                      <div className="absolute left-[19px] top-10 bottom-0 w-px bg-border" />
-                    )}
-                    <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 z-10 mt-0.5">
-                      {s.mode === "air" ? <Plane className="h-3 w-3 text-muted-foreground" /> : <Ship className="h-3 w-3 text-muted-foreground" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-foreground">{s.shipment_ref}</span>
-                        <Badge variant="secondary" className={`text-[9px] px-1.5 py-0 h-4 ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
-                          {statusLabel[s.status] || s.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</p>
-                      <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                        {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1.5" />
-                  </Link>
-                ))}
-                {recentShipments.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-6">No recent activity</p>
-                )}
-              </div>
-              {recentShipments.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <Button variant="ghost" size="sm" className="w-full text-accent text-xs" asChild>
-                    <Link to="/dashboard/shipments">View All Shipments <ArrowRight className="ml-1 h-3 w-3" /></Link>
-                  </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-border bg-muted/30 p-3 text-center">
+                    <p className="text-xl font-bold text-foreground tabular-nums">{counts.active + counts.delivered}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Total</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
+                    <p className="text-xl font-bold text-emerald-600 tabular-nums">{onTimeRate !== null ? `${onTimeRate}%` : "—"}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">On-Time</p>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                {topLanes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Top Lanes</p>
+                    <div className="space-y-1.5">
+                      {topLanes.map(([lane, count], i) => (
+                        <AnimatedProgressBar key={lane} label={lane} value={count} max={topLanes[0][1]} color={PALETTE[i % PALETTE.length]} index={i} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ── CENTER: Trend Chart + Alerts ── */}
+          <div className="lg:col-span-5 space-y-5">
+            {/* Shipments Over Time */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Package className="h-3.5 w-3.5 text-blue-500" />
+                  </div>
+                  Shipments Over Time
+                </CardTitle>
+                <CardDescription className="text-[11px]">Last 30 days</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GlassAreaChart
+                  data={trendData}
+                  dataKey="count"
+                  xKey="date"
+                  color="hsl(var(--accent))"
+                  height={200}
+                  tooltipFormatter={(v) => [`${v}`, "Shipments"]}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Alerts */}
+            {hasAlerts && showAlerts && (
+              <Card className="border-yellow-200/50 dark:border-yellow-800/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                      <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                    </div>
+                    Action Required
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {alertItems.map((item) => {
+                      const c = alertColorMap[item.color];
+                      return (
+                        <Link key={item.href} to={item.href} className={`flex items-center gap-3 p-3 rounded-xl border ${c.border} ${c.bg} transition-colors`}>
+                          <div className={`h-8 w-8 rounded-lg ${c.iconBg} flex items-center justify-center shrink-0`}>
+                            <item.icon className={`h-4 w-4 ${c.iconColor}`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-sm font-semibold tabular-nums ${c.textColor}`}>{item.label}</p>
+                            <p className="text-[10px] text-muted-foreground">{item.sub}</p>
+                          </div>
+                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* ── RIGHT: Recent Activity ── */}
+          <div className="lg:col-span-3">
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Activity className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-0">
+                  {recentShipments.slice(0, 6).map((s, i) => (
+                    <Link
+                      key={s.id}
+                      to={`/dashboard/shipments/${s.id}`}
+                      className="flex items-start gap-2.5 py-2.5 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors group relative"
+                    >
+                      {i < Math.min(recentShipments.length, 6) - 1 && (
+                        <div className="absolute left-[15px] top-9 bottom-0 w-px bg-border" />
+                      )}
+                      <div className="h-6 w-6 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 z-10 mt-0.5">
+                        {s.mode === "air" ? <Plane className="h-3 w-3 text-muted-foreground" /> : <Ship className="h-3 w-3 text-muted-foreground" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-medium text-foreground truncate">{s.shipment_ref}</span>
+                          <Badge variant="secondary" className={`text-[8px] px-1 py-0 h-3.5 ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
+                            {statusLabel[s.status] || s.status}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground truncate">{s.origin_port || "—"} → {s.destination_port || "—"}</p>
+                        <p className="text-[9px] text-muted-foreground/50">
+                          {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                  {recentShipments.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-8">No recent activity</p>
+                  )}
+                </div>
+                {recentShipments.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <Button variant="ghost" size="sm" className="w-full text-accent text-xs" asChild>
+                      <Link to="/dashboard/shipments">View All Shipments <ArrowRight className="ml-1 h-3 w-3" /></Link>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
+
+      {/* ═══ SECTION 3: Financial Summary (full width, compact) ═══ */}
+      {!loading && !isEmpty && showFinancials && <SpendingSummary />}
     </DashboardLayout>
   );
 };
