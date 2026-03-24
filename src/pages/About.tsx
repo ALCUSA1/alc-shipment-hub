@@ -100,35 +100,49 @@ const About = () => {
               className="absolute bottom-0 left-5 top-0 w-px bg-border/70 md:left-1/2 md:-translate-x-1/2"
             />
             <div className="flex flex-col gap-8 md:gap-12">
-            {milestones.map((m, i) => {
-              const isEven = i % 2 === 0;
-              const Icon = m.icon;
-              const card = (
-                <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
-                  <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
-                  <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
-                  <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
-                </div>
-              );
-              return (
-                <div key={m.year} className="relative">
-                  <div className="flex items-start gap-4 md:hidden">
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
-                      <Icon className="h-4 w-4 text-ocean" />
-                    </div>
-                    <div className="flex-1">{card}</div>
-                  </div>
+              {milestones.map((m, i) => {
+                const isEven = i % 2 === 0;
+                const Icon = m.icon;
 
-                  <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start md:gap-8">
-                    <div>{isEven ? card : null}</div>
-                    <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
-                      <Icon className="h-5 w-5 text-ocean" />
+                return (
+                  <div key={m.year} className="relative">
+                    <div className="flex items-start gap-4 md:hidden">
+                      <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
+                        <Icon className="h-4 w-4 text-ocean" />
+                      </div>
+                      <div className="flex-1 rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-6 text-white shadow-lg">
+                        <p className="text-2xl font-bold mb-1">{m.year}</p>
+                        <h3 className="text-base font-bold mb-2">{m.title}</h3>
+                        <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
+                      </div>
                     </div>
-                    <div>{!isEven ? card : null}</div>
+
+                    <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start md:gap-8">
+                      <div>
+                        {isEven ? (
+                          <div className="rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-8 text-white shadow-lg">
+                            <p className="text-3xl font-bold mb-1">{m.year}</p>
+                            <h3 className="text-lg font-bold mb-2">{m.title}</h3>
+                            <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
+                        <Icon className="h-5 w-5 text-ocean" />
+                      </div>
+                      <div>
+                        {!isEven ? (
+                          <div className="rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-8 text-white shadow-lg">
+                            <p className="text-3xl font-bold mb-1">{m.year}</p>
+                            <h3 className="text-lg font-bold mb-2">{m.title}</h3>
+                            <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
           </div>
         </div>
