@@ -45,12 +45,6 @@ const POST_TYPES = [
   { value: "rate_alert", label: "Rate Alert", icon: TrendingUp, color: "text-emerald-500" },
 ];
 
-const EVENT_TYPES = [
-  { value: "webinar", label: "Webinar", icon: Video },
-  { value: "trade_show", label: "Trade Show", icon: Building2 },
-  { value: "announcement", label: "Announcement", icon: Megaphone },
-  { value: "networking", label: "Networking", icon: Users2 },
-];
 
 const REACTION_TYPES = [
   { type: "like", emoji: "❤️", icon: Heart, label: "Like" },
