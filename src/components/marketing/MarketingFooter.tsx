@@ -25,6 +25,7 @@ export function MarketingFooter() {
           <div>
             <h4 className="font-semibold text-sm mb-4">Company</h4>
             <div className="space-y-2 text-sm text-primary-foreground/60">
+              <Link to="/about" className="block hover:text-primary-foreground transition-colors">About</Link>
               <Link to="/category" className="block hover:text-primary-foreground transition-colors">Category</Link>
               <span className="block">Careers</span>
               <span className="block">Contact</span>

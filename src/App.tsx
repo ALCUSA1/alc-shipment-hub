@@ -16,6 +16,7 @@ import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
 import Features from "./pages/Features";
 import Category from "./pages/Category";
+import About from "./pages/About";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
@@ -122,6 +123,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/features" element={<Features />} />
             <Route path="/category" element={<Category />} />
+            <Route path="/about" element={<About />} />
             <Route path="/rates" element={<RateSearch />} />
             <Route path="/security" element={<Security />} />
             <Route path="/login" element={<Login />} />
