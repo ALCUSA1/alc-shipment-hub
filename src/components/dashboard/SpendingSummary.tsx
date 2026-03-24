@@ -17,10 +17,11 @@ export function SpendingSummary() {
     queryFn: async () => {
       const { data: quotes, error } = await supabase
         .from("quotes")
-        .select("id, amount, currency, shipment_id, created_at, shipments!inner(shipment_type, mode, created_at)")
+        .select("id, amount, currency, shipment_id, created_at, carrier, container_type")
         .in("status", ["accepted", "converted"])
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) { console.error("[SpendingSummary] query error:", error); throw error; }
+      console.log("[SpendingSummary] fetched quotes:", quotes?.length);
       return quotes || [];
     },
     enabled: !!user,
@@ -41,11 +42,9 @@ export function SpendingSummary() {
   const byType = useMemo(() => {
     const map: Record<string, number> = {};
     for (const q of data || []) {
-      const type = (q as any).shipments?.shipment_type || (q as any).shipments?.mode || "Other";
-      const label = type.toUpperCase().includes("FCL") ? "FCL" :
-        type.toUpperCase().includes("LCL") ? "LCL" :
-        type.toLowerCase() === "air" ? "Air" :
-        type.toLowerCase().includes("truck") ? "Trucking" : "Other";
+      const cType = (q.container_type || "").toUpperCase();
+      const label = cType.includes("20") || cType.includes("40") || cType.includes("HC") ? "FCL" :
+        cType.includes("LCL") ? "LCL" : "Ocean";
       map[label] = (map[label] || 0) + (q.amount || 0);
     }
     return Object.entries(map).map(([name, value]) => ({ name, value }));
