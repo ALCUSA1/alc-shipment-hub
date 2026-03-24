@@ -106,6 +106,7 @@ const WORKSPACE_TABS = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
   { id: "parties", label: "Parties", icon: Users },
+  { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "financials", label: "Financials", icon: BarChart3 },
   { id: "activity", label: "Activity Log", icon: Activity },
 ];
@@ -563,6 +564,26 @@ const ShipmentDetail = () => {
           <AiShipmentAssistant shipmentContext={shipmentContext} />
         </TabsContent>
 
+        {/* ── MESSAGES TAB ── */}
+        <TabsContent value="messages" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-accent" />
+                Shipment Messages
+              </CardTitle>
+              <CardDescription>Communication thread for this shipment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <MessageSquare className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">No messages yet</p>
+                <p className="text-xs text-muted-foreground">Use the chat drawer to start a conversation about this shipment.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* ── FINANCIALS TAB ── */}
         <TabsContent value="financials" className="mt-6 space-y-6">
           <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
@@ -630,174 +651,169 @@ function PricingEngineEmbed({ shipmentId, shipmentType, mode }: { shipmentId: st
   const isBelowCost = recommendedSellPrice < trueCost;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-accent" />
-          Pricing Engine
-        </CardTitle>
-        <CardDescription>Calculate costs and recommended sell price for this shipment</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Warnings */}
-        {trueCost > 0 && isBelowCost && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 text-sm text-destructive">
-            <AlertTriangle className="h-4 w-4 shrink-0" /> Sell price is below total cost
-          </div>
-        )}
-        {trueCost > 0 && isLowMargin && !isBelowCost && (
-          <div className="rounded-lg border border-yellow-300 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20 p-3 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
-            <AlertTriangle className="h-4 w-4 shrink-0" /> Net margin below minimum target ({margins.min}%)
-          </div>
-        )}
+    <div className="space-y-6">
+      {/* Warnings */}
+      {trueCost > 0 && isBelowCost && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 text-sm text-destructive">
+          <AlertTriangle className="h-4 w-4 shrink-0" /> Sell price is below total cost
+        </div>
+      )}
+      {trueCost > 0 && isLowMargin && !isBelowCost && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20 p-3 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+          <AlertTriangle className="h-4 w-4 shrink-0" /> Net margin below minimum target ({margins.min}%)
+        </div>
+      )}
 
-        {/* Direct Costs */}
-        <div>
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Direct Shipment Cost</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { label: "Freight Cost", value: freightCost, set: setFreightCost },
-              { label: "Trucking", value: truckingCost, set: setTruckingCost },
-              { label: "Terminal Handling", value: terminalCost, set: setTerminalCost },
-              { label: "Documentation", value: docFees, set: setDocFees },
-              { label: "Customs Clearance", value: customsCost, set: setCustomsCost },
-              { label: "Other Direct", value: otherDirect, set: setOtherDirect },
-            ].map((f) => (
-              <div key={f.label}>
-                <label className="text-[10px] text-muted-foreground">{f.label}</label>
-                <div className="relative mt-0.5">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    value={f.value || ""}
-                    onChange={(e) => f.set(Number(e.target.value) || 0)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background pl-6 pr-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="0"
-                  />
+      {/* 3-Panel Layout */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* LEFT: Cost Inputs */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Cost Inputs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Direct Costs</h4>
+              <div className="space-y-2">
+                {[
+                  { label: "Freight", value: freightCost, set: setFreightCost },
+                  { label: "Trucking", value: truckingCost, set: setTruckingCost },
+                  { label: "Terminal", value: terminalCost, set: setTerminalCost },
+                  { label: "Docs", value: docFees, set: setDocFees },
+                  { label: "Customs", value: customsCost, set: setCustomsCost },
+                  { label: "Other", value: otherDirect, set: setOtherDirect },
+                ].map((f) => (
+                  <div key={f.label} className="flex items-center gap-2">
+                    <label className="text-[10px] text-muted-foreground w-14 shrink-0">{f.label}</label>
+                    <div className="relative flex-1">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">$</span>
+                      <input type="number" value={f.value || ""} onChange={(e) => f.set(Number(e.target.value) || 0)}
+                        className="flex h-8 w-full rounded-md border border-input bg-background pl-5 pr-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="0" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-right text-xs font-semibold">Direct: <span className="tabular-nums">${totalDirect.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></div>
+            </div>
+            <Separator />
+            <div>
+              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Variable Costs</h4>
+              <div className="space-y-2">
+                {[
+                  { label: "Platform", value: variableCost, set: setVariableCost },
+                  { label: "Agent", value: agentComm, set: setAgentComm },
+                  { label: "Insurance", value: insuranceCost, set: setInsuranceCost },
+                ].map((f) => (
+                  <div key={f.label} className="flex items-center gap-2">
+                    <label className="text-[10px] text-muted-foreground w-14 shrink-0">{f.label}</label>
+                    <div className="relative flex-1">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">$</span>
+                      <input type="number" value={f.value || ""} onChange={(e) => f.set(Number(e.target.value) || 0)}
+                        className="flex h-8 w-full rounded-md border border-input bg-background pl-5 pr-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="0" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Separator />
+            <div>
+              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Margin Target</h4>
+              <input type="number" step="0.5" value={targetMargin} onChange={(e) => setTargetMargin(Number(e.target.value) || 0)}
+                className="flex h-8 w-full rounded-md border border-input bg-background px-3 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring mb-2" />
+              <div className="flex gap-1.5">
+                {[
+                  { label: "Min", value: margins.min },
+                  { label: "Target", value: margins.target },
+                  { label: "Stretch", value: margins.stretch },
+                ].map((m) => (
+                  <button key={m.label} onClick={() => setTargetMargin(m.value)}
+                    className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
+                      targetMargin === m.value ? "bg-accent text-accent-foreground border-accent" : "border-border text-muted-foreground hover:border-accent/30"
+                    }`}>
+                    {m.label} {m.value}%
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CENTER: Price Outputs */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-accent" />
+              Pricing Engine
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {trueCost > 0 ? (
+              <div className="space-y-3">
+                {[
+                  { label: "Break Even", value: breakEvenPrice, color: "text-muted-foreground", bg: "bg-muted/30" },
+                  { label: "Minimum Sell Price", value: minSellPrice, color: "text-yellow-600", bg: "bg-yellow-50 dark:bg-yellow-900/10" },
+                  { label: "Recommended Price", value: recommendedSellPrice, color: "text-accent", bg: "bg-accent/5 border-accent/20" },
+                  { label: "Stretch Price", value: stretchSellPrice, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/10" },
+                ].map((p) => (
+                  <div key={p.label} className={`rounded-xl border p-4 ${p.bg}`}>
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{p.label}</p>
+                    <p className={`text-2xl font-bold tabular-nums ${p.color}`}>
+                      ${p.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <DollarSign className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Enter costs to calculate pricing</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* RIGHT: Profit & Margin */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Profit & Margin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {trueCost > 0 ? (
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {[
+                    { label: "Total Cost", value: trueCost, color: "text-foreground" },
+                    { label: "Gross Profit", value: grossProfit, color: grossProfit >= 0 ? "text-emerald-600" : "text-destructive" },
+                    { label: "Net Profit", value: netProfit, color: netProfit >= 0 ? "text-emerald-600" : "text-destructive" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                      <span className="text-xs text-muted-foreground">{item.label}</span>
+                      <span className={`text-sm font-semibold tabular-nums ${item.color}`}>
+                        ${item.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className={`rounded-xl p-4 text-center ${netMarginPct >= margins.min ? "bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800" : "bg-destructive/5 border border-destructive/20"}`}>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Net Margin</p>
+                  <p className={`text-3xl font-bold tabular-nums ${netMarginPct >= margins.min ? "text-emerald-600" : "text-destructive"}`}>
+                    {netMarginPct.toFixed(1)}%
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Target: {margins.min}% – {margins.stretch}%
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mt-2 text-right text-sm font-semibold text-foreground">
-            Total Direct: <span className="tabular-nums">${totalDirect.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Variable Costs */}
-        <div>
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Variable Operational Cost</h4>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Processing & Platform", value: variableCost, set: setVariableCost },
-              { label: "Agent Commission", value: agentComm, set: setAgentComm },
-              { label: "Insurance", value: insuranceCost, set: setInsuranceCost },
-            ].map((f) => (
-              <div key={f.label}>
-                <label className="text-[10px] text-muted-foreground">{f.label}</label>
-                <div className="relative mt-0.5">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    value={f.value || ""}
-                    onChange={(e) => f.set(Number(e.target.value) || 0)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background pl-6 pr-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="0"
-                  />
-                </div>
+            ) : (
+              <div className="text-center py-8">
+                <BarChart3 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Margins will appear here</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Margin Controls */}
-        <div>
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Margin Target</h4>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="text-[10px] text-muted-foreground">Target Margin % (on sell price)</label>
-              <input
-                type="number"
-                step="0.5"
-                value={targetMargin}
-                onChange={(e) => setTargetMargin(Number(e.target.value) || 0)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mt-0.5"
-              />
-            </div>
-            <div className="flex gap-2 pt-4">
-              {[
-                { label: "Min", value: margins.min },
-                { label: "Target", value: margins.target },
-                { label: "Stretch", value: margins.stretch },
-              ].map((m) => (
-                <button
-                  key={m.label}
-                  onClick={() => setTargetMargin(m.value)}
-                  className={`text-[10px] px-2.5 py-1 rounded-full border transition-colors ${
-                    targetMargin === m.value ? "bg-accent text-accent-foreground border-accent" : "border-border text-muted-foreground hover:border-accent/30"
-                  }`}
-                >
-                  {m.label} {m.value}%
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Price Outputs */}
-        {trueCost > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: "Break Even", value: breakEvenPrice, color: "text-muted-foreground" },
-              { label: "Minimum Sell", value: minSellPrice, color: "text-yellow-600" },
-              { label: "Recommended", value: recommendedSellPrice, color: "text-accent" },
-              { label: "Stretch", value: stretchSellPrice, color: "text-emerald-600" },
-            ].map((p) => (
-              <div key={p.label} className="rounded-xl border border-border bg-muted/30 p-4 text-center">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">{p.label}</p>
-                <p className={`text-xl font-bold tabular-nums ${p.color}`}>
-                  ${p.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Profit Summary */}
-        {trueCost > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Profit Summary</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-[10px] text-muted-foreground">Total Cost</p>
-                <p className="font-semibold tabular-nums">${trueCost.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Gross Profit</p>
-                <p className="font-semibold tabular-nums text-emerald-600">${grossProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Net Profit</p>
-                <p className={`font-semibold tabular-nums ${netProfit >= 0 ? "text-emerald-600" : "text-destructive"}`}>
-                  ${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Net Margin %</p>
-                <p className={`font-semibold tabular-nums ${netMarginPct >= margins.min ? "text-emerald-600" : "text-destructive"}`}>
-                  {netMarginPct.toFixed(1)}%
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
