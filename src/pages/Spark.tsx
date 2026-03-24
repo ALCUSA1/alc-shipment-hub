@@ -48,6 +48,170 @@ const EVENT_TYPES = [
   { value: "networking", label: "Networking", icon: Users2 },
 ];
 
+const REACTION_TYPES = [
+  { type: "like", emoji: "❤️", icon: Heart, label: "Like" },
+  { type: "fire", emoji: "🔥", icon: Flame, label: "Fire" },
+  { type: "insightful", emoji: "⚡", icon: Zap, label: "Insightful" },
+  { type: "congrats", emoji: "👏", icon: PartyPopper, label: "Congrats" },
+];
+
+/* ─── Welcome Banner ─── */
+function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
+  const { data: stats } = useQuery({
+    queryKey: ["spark-stats"],
+    queryFn: async () => {
+      const [companies, rfqs, events] = await Promise.all([
+        supabase.from("companies").select("id", { count: "exact", head: true }),
+        supabase.from("rfq_posts").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("spark_events").select("id", { count: "exact", head: true }).gte("event_date", new Date().toISOString()),
+      ]);
+      return { companies: companies.count || 0, rfqs: rfqs.count || 0, events: events.count || 0 };
+    },
+    staleTime: 60_000,
+  });
+
+  return (
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.85)] to-[hsl(220,80%,25%)] p-6 md:p-8 mb-6">
+      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-xl" />
+      <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-white/5 blur-lg" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-5 w-5 text-white/80" />
+          <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">Spark Network</span>
+        </div>
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Welcome to the community</h2>
+        <div className="flex items-center gap-4 mt-3 flex-wrap">
+          {stats && (
+            <>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.companies}</strong> companies</span>
+              <span className="text-white/30">·</span>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.rfqs}</strong> active RFQs</span>
+              <span className="text-white/30">·</span>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.events}</strong> upcoming events</span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-5">
+          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+            onClick={() => onAction("marketplace")}>
+            <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
+          </Button>
+          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+            onClick={() => onAction("directory")}>
+            <Users2 className="h-3.5 w-3.5" /> Find Partners
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Trending Sidebar ─── */
+function TrendingSidebar() {
+  const { data: latestRfqs = [] } = useQuery({
+    queryKey: ["spark-trending-rfqs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rfq_posts").select("id, title, origin, destination, created_at")
+        .eq("status", "open").order("created_at", { ascending: false }).limit(3);
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: eventCount = 0 } = useQuery({
+    queryKey: ["spark-trending-events"],
+    queryFn: async () => {
+      const { count } = await supabase.from("spark_events").select("id", { count: "exact", head: true })
+        .gte("event_date", new Date().toISOString());
+      return count || 0;
+    },
+    staleTime: 30_000,
+  });
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+      <Card className="border-border/50 shadow-sm overflow-hidden">
+        <div className="px-5 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/30">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-sm text-foreground">Trending on Spark</h3>
+          </div>
+        </div>
+        <CardContent className="p-5 space-y-4">
+          {latestRfqs.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Latest RFQs</p>
+              <div className="space-y-2">
+                {latestRfqs.map((rfq: any) => (
+                  <div key={rfq.id} className="flex items-center gap-2 text-xs">
+                    <Package className="h-3 w-3 text-primary/60 shrink-0" />
+                    <span className="text-foreground truncate">
+                      {rfq.origin && rfq.destination ? `${rfq.origin} → ${rfq.destination}` : rfq.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {eventCount > 0 && (
+            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
+              <Calendar className="h-3.5 w-3.5 text-primary" />
+              <span className="text-foreground"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
+            </div>
+          )}
+          {latestRfqs.length === 0 && eventCount === 0 && (
+            <p className="text-xs text-muted-foreground/50 italic text-center py-2">No trending activity yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ─── Profile Completeness ─── */
+function ProfileCompleteness({ profile, company }: { profile: CompanyProfile; company: CompanyData | null }) {
+  const navigate = useNavigate();
+  const checks = [
+    { label: "Avatar", done: !!profile.avatar_url },
+    { label: "Tagline", done: !!profile.tagline },
+    { label: "About", done: !!profile.about },
+    { label: "Services", done: !!(profile.services && profile.services.length > 0) },
+    { label: "Cover photo", done: !!profile.cover_url },
+  ];
+  const completed = checks.filter((c) => c.done).length;
+  const pct = Math.round((completed / checks.length) * 100);
+
+  if (pct === 100) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <Card className="border-border/50 shadow-sm border-l-4 border-l-primary">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-primary" /> Profile strength
+            </h3>
+            <span className="text-xs font-bold text-primary">{pct}%</span>
+          </div>
+          <Progress value={pct} className="h-2 mb-3" />
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {checks.map((c) => (
+              <Badge key={c.label} variant="secondary"
+                className={`text-[10px] ${c.done ? "bg-emerald-500/10 text-emerald-600 line-through opacity-60" : "bg-muted text-muted-foreground"}`}>
+                {c.done && <Check className="h-2.5 w-2.5 mr-0.5" />}{c.label}
+              </Badge>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 rounded-full w-full" onClick={() => navigate("/dashboard/account")}>
+            <Edit3 className="h-3 w-3" /> Complete Profile
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 /* ─── Types ─── */
 interface CompanyProfile {
   id: string;
