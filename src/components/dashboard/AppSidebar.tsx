@@ -30,6 +30,7 @@ const primaryNav = [
   { title: "Customers", url: "/dashboard/crm", icon: ContactRound },
   { title: "Partners", url: "/dashboard/partners", icon: Users },
   { title: "Financials", url: "/dashboard/accounting", icon: DollarSign },
+  { title: "Team", url: "/dashboard/team", icon: Shield },
 ];
 
 const secondaryNav = [
