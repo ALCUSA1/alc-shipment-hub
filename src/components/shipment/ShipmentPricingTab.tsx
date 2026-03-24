@@ -16,6 +16,8 @@ import {
   ArrowRight, Save, SendHorizonal, Zap, BarChart3, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AiPricingRecommendation } from "./AiPricingRecommendation";
+import { DealScorePanel } from "./DealScorePanel";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
