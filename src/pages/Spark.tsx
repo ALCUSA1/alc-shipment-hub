@@ -1716,7 +1716,7 @@ const Spark = () => {
   const { companyId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mainTab, setMainTab] = useState<"page" | "directory" | "marketplace" | "events">("page");
+  const [mainTab, setMainTab] = useState<"page" | "directory" | "rfqs" | "events">("page");
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
   const isViewingOther = !!companyId;
