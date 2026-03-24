@@ -105,16 +105,19 @@ const Dashboard = () => {
     })), [counts]);
 
   const trendData = useMemo(() => {
-    const buckets: Record<string, number> = {};
-    for (let i = 29; i >= 0; i--) {
-      const d = format(subDays(new Date(), i), "MMM d");
-      buckets[d] = 0;
+    // Group by week (7 buckets) for a cleaner chart
+    const weeks: { date: string; count: number }[] = [];
+    for (let w = 3; w >= 0; w--) {
+      const weekEnd = subDays(new Date(), w * 7);
+      const weekStart = subDays(weekEnd, 6);
+      const label = `${format(weekStart, "MMM d")} – ${format(weekEnd, "d")}`;
+      const count = (allShipments || []).filter(s => {
+        const d = new Date(s.created_at);
+        return d >= weekStart && d <= weekEnd;
+      }).length;
+      weeks.push({ date: label, count });
     }
-    for (const s of allShipments) {
-      const d = format(new Date(s.created_at), "MMM d");
-      if (d in buckets) buckets[d]++;
-    }
-    return Object.entries(buckets).map(([date, count]) => ({ date, count }));
+    return weeks;
   }, [allShipments]);
 
   const onTimeRate = counts.delivered > 0
@@ -293,8 +296,8 @@ const Dashboard = () => {
                       <BarChart3 className="h-4.5 w-4.5 text-accent" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
-                      <p className="text-[11px] text-muted-foreground">Last 30 days</p>
+                    <CardTitle className="text-sm font-semibold">Shipment Volume</CardTitle>
+                      <p className="text-[11px] text-muted-foreground">Last 4 weeks</p>
                     </div>
                   </div>
                   <Badge variant="secondary" className="text-[10px] font-semibold bg-accent/10 text-accent border-0">
@@ -303,13 +306,14 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <GlassAreaChart
+                <GlassBarChart
                   data={trendData}
                   dataKey="count"
                   xKey="date"
                   color={CHART_COLORS.blue}
                   height={240}
                   tooltipFormatter={(v) => [`${v}`, "Shipments"]}
+                  barSize={48}
                 />
               </CardContent>
             </Card>
