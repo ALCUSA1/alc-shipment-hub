@@ -26,6 +26,12 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 };
 
 const CATEGORIES = ["Shipment", "Billing", "Documents", "Booking", "Technical", "General"];
+const PRIORITIES: { value: CustomerPriority; label: string }[] = [
+  { value: "normal", label: "Normal" },
+  { value: "attention_needed", label: "Attention Needed" },
+  { value: "urgent", label: "Urgent" },
+  { value: "critical", label: "Critical Issue" },
+];
 
 export default function Support() {
   const { user } = useAuth();
