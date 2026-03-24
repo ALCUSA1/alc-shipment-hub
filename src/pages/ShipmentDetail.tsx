@@ -125,12 +125,13 @@ const ShipmentDetail = () => {
   const [showDocGen, setShowDocGen] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
 
-  // Redirect non-internal users to customer workspace
+  // Redirect non-internal users to customer workspace (only after roles loaded and shipment query settled)
   useEffect(() => {
-    if (!rolesLoading && !isAdminOrInternal) {
+    if (!rolesLoading && !isAdminOrInternal && id) {
       navigate(`/dashboard/shipments/${id}/workspace${window.location.search}`, { replace: true });
     }
   }, [rolesLoading, isAdminOrInternal, id, navigate]);
+
 
   const handleDelete = async () => {
     if (!id) return;
