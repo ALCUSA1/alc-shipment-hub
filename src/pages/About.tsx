@@ -1,7 +1,11 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Users, Target, Rocket } from "lucide-react";
+import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket } from "lucide-react";
+import syedImg from "@/assets/team/syed.jpg";
+import mikeImg from "@/assets/team/mike.jpg";
+import paulImg from "@/assets/team/paul.jpg";
+import ahadImg from "@/assets/team/ahad.jpg";
 
 const milestones = [
   { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust." },
