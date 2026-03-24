@@ -141,7 +141,7 @@ export default function Support() {
                   <Label>Description</Label>
                   <Textarea placeholder="Describe your issue in detail..." rows={5} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
                 </div>
-                <Button className="w-full" disabled={!form.category || !form.subject || !form.description || createTicket.isPending} onClick={() => createTicket.mutate()}>
+                <Button className="w-full" disabled={!form.category || !form.subject || !form.description || !form.priority || createTicket.isPending} onClick={() => createTicket.mutate()}>
                   {createTicket.isPending ? "Creating..." : "Submit Ticket"}
                 </Button>
               </div>
