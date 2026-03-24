@@ -1,12 +1,13 @@
-import { Search, Ship, MapPin, CreditCard } from "lucide-react";
+import { FileText, Calculator, CheckCircle, MapPin, BarChart3 } from "lucide-react";
 import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/components/motion/ScrollReveal";
 import { motion } from "framer-motion";
 
 const steps = [
-  { icon: Search, step: "01", title: "Discover Rates", desc: "Search and compare instant pricing from multiple carriers across ocean and air freight." },
-  { icon: Ship, step: "02", title: "Book & Ship", desc: "Confirm your booking with guaranteed reliability. Coordinate trucking pickup and warehouse handling in one flow." },
-  { icon: MapPin, step: "03", title: "Track & Manage", desc: "Real-time shipment tracking with automated document generation — BL, commercial invoice, packing list, and customs filings." },
-  { icon: CreditCard, step: "04", title: "Pay & Complete", desc: "Flexible payment options with full cost transparency. View P&L breakdowns and settle invoices digitally." },
+  { icon: FileText, step: "01", title: "Create Shipment Request", desc: "Enter cargo, route, and service requirements in a guided wizard." },
+  { icon: Calculator, step: "02", title: "Generate Intelligent Pricing", desc: "Auto-calculate cost build-up, apply margin rules, and produce a profitable sell price." },
+  { icon: CheckCircle, step: "03", title: "Approve & Book Shipment", desc: "Review pricing, approve quotes with margin safeguards, and confirm booking." },
+  { icon: MapPin, step: "04", title: "Track Execution in Real Time", desc: "Monitor milestones, documents, partner activity, and delivery status." },
+  { icon: BarChart3, step: "05", title: "Monitor Profit & Close", desc: "Review final P&L, confirm invoices, and close the shipment with full audit trail." },
 ];
 
 export function WorkflowSection() {
@@ -16,11 +17,11 @@ export function WorkflowSection() {
         <ScrollReveal>
           <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">How It Works</p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-16 leading-tight">
-            Four steps from quote to delivery.
+            From request to delivery — fully controlled.
           </h2>
         </ScrollReveal>
 
-        <StaggerContainer className="grid sm:grid-cols-2 gap-6" staggerDelay={0.1}>
+        <StaggerContainer className="space-y-4 max-w-3xl mx-auto" staggerDelay={0.1}>
           {steps.map((s, i) => (
             <motion.div key={i} variants={staggerItemVariants} className="flex items-start gap-5 p-6 rounded-xl border bg-card hover:border-accent/30 transition-colors group">
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10 text-accent shrink-0 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
