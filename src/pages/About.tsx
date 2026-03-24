@@ -94,48 +94,28 @@ const About = () => {
           <ScrollReveal>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-14 text-center">Our History</h2>
           </ScrollReveal>
-          <div className="relative flex flex-col gap-16 md:gap-20">
+          <div className="relative flex flex-col gap-12 md:gap-20">
             {milestones.map((m, i) => {
               const isEven = i % 2 === 0;
               const Icon = m.icon;
+              const card = (
+                <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
+                  <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
+                  <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
+                  <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
+                </div>
+              );
               return (
                 <ScrollReveal key={m.year} delay={i * 0.1}>
-                  <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 items-center">
-                    {/* Left card or spacer */}
-                    {isEven ? (
-                      <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
-                        <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
-                        <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
-                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
-                      </div>
-                    ) : (
-                      <div className="hidden md:block" />
-                    )}
-
-                    {/* Center icon */}
-                    <div className="hidden md:flex w-12 h-12 rounded-full bg-ocean/10 border-2 border-ocean/30 items-center justify-center shrink-0">
+                  {/* Mobile */}
+                  <div className="md:hidden">{card}</div>
+                  {/* Desktop */}
+                  <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 items-center">
+                    {isEven ? card : <div />}
+                    <div className="flex w-12 h-12 rounded-full bg-ocean/10 border-2 border-ocean/30 items-center justify-center shrink-0">
                       <Icon className="w-5 h-5 text-ocean" />
                     </div>
-
-                    {/* Right card or spacer */}
-                    {!isEven ? (
-                      <div className="bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 md:p-8 text-white shadow-lg w-full">
-                        <p className="text-2xl md:text-3xl font-bold mb-1">{m.year}</p>
-                        <h3 className="text-base md:text-lg font-bold mb-2">{m.title}</h3>
-                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
-                      </div>
-                    ) : (
-                      <div className="hidden md:block" />
-                    )}
-
-                    {/* Mobile card (shown only on small screens for odd items) */}
-                    {!isEven && (
-                      <div className="md:hidden bg-gradient-to-br from-ocean to-ocean/80 rounded-2xl p-6 text-white shadow-lg w-full mt-4">
-                        <p className="text-2xl font-bold mb-1">{m.year}</p>
-                        <h3 className="text-base font-bold mb-2">{m.title}</h3>
-                        <p className="text-white/80 text-sm leading-relaxed">{m.desc}</p>
-                      </div>
-                    )}
+                    {!isEven ? card : <div />}
                   </div>
                 </ScrollReveal>
               );
