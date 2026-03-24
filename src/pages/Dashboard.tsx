@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, subDays, format, startOfDay } from "date-fns";
 import {
   Package, DollarSign, Clock, ArrowRight, Plus, Ship, Plane,
-  CheckCircle2, AlertTriangle, FileText, Inbox, Truck, Zap, Activity,
+  CheckCircle2, AlertTriangle, FileText, Zap, Truck, Activity,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  AreaChart, Area, CartesianGrid,
+} from "recharts";
 
 const statusColor: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -39,27 +43,29 @@ interface ShipmentRow {
   etd: string | null; eta: string | null; companies: { company_name: string } | null;
 }
 
-/* ── Pipeline Stage Chip ── */
-function PipelineStage({ label, count, color, active }: { label: string; count: number; color: string; active?: boolean }) {
-  return (
-    <div className={`flex flex-col items-center px-3 py-2 rounded-lg border transition-all ${active ? "border-accent/30 bg-accent/5" : "border-transparent"}`}>
-      <span className={`text-lg font-bold tabular-nums ${color}`}>{count}</span>
-      <span className="text-[10px] text-muted-foreground whitespace-nowrap">{label}</span>
-    </div>
-  );
-}
+const PIPELINE_STAGES = [
+  { key: "pendingPricing", label: "Pending Pricing", fill: "hsl(45, 93%, 47%)" },
+  { key: "quoteReady", label: "Quote Ready", fill: "hsl(215, 100%, 50%)" },
+  { key: "awaitingApproval", label: "Awaiting Approval", fill: "hsl(25, 95%, 53%)" },
+  { key: "booked", label: "Booked", fill: "hsl(217, 91%, 60%)" },
+  { key: "inTransit", label: "In Transit", fill: "hsl(152, 69%, 40%)" },
+  { key: "delivered", label: "Delivered", fill: "hsl(152, 69%, 31%)" },
+] as const;
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({ active: 0, pendingPricing: 0, quoteReady: 0, awaitingApproval: 0, booked: 0, inTransit: 0, delivered: 0, delayed: 0, missingDocs: 0 });
   const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
+  const [allShipments, setAllShipments] = useState<{ created_at: string }[]>([]);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
-      const [activeRes, pendingRes, quoteRes, approvalRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes] = await Promise.all([
+      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+
+      const [activeRes, pendingRes, quoteRes, approvalRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes, trendRes] = await Promise.all([
         supabase.from("shipments").select("id", { count: "exact" }).in("status", ["booked", "in_transit", "arrived"]),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "pending_pricing"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "quote_ready"),
@@ -67,8 +73,9 @@ const Dashboard = () => {
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "booked"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "in_transit"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "delivered"),
-        supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, mode, created_at, updated_at, etd, eta, companies!shipments_company_id_fkey(company_name)").order("updated_at", { ascending: false }).limit(8),
+        supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, mode, created_at, updated_at, etd, eta, companies!shipments_company_id_fkey(company_name)").order("updated_at", { ascending: false }).limit(6),
         supabase.from("documents").select("id", { count: "exact" }).eq("status", "pending"),
+        supabase.from("shipments").select("created_at").gte("created_at", thirtyDaysAgo),
       ]);
 
       const today = new Date().toISOString().split("T")[0];
@@ -80,6 +87,7 @@ const Dashboard = () => {
         delivered: deliveredRes.count ?? 0, delayed: delayed ?? 0, missingDocs: docsRes.count ?? 0,
       });
       setRecentShipments((recentRes.data as ShipmentRow[]) ?? []);
+      setAllShipments(trendRes.data ?? []);
       setLoading(false);
     };
     void fetchData();
@@ -87,29 +95,51 @@ const Dashboard = () => {
 
   const isEmpty = !loading && recentShipments.length === 0 && counts.active === 0;
 
+  /* ── Pipeline bar data ── */
+  const pipelineData = useMemo(() =>
+    PIPELINE_STAGES.map(s => ({
+      name: s.label,
+      count: counts[s.key as keyof typeof counts] as number,
+      fill: s.fill,
+    })), [counts]);
+
+  /* ── Trend chart data (last 30 days) ── */
+  const trendData = useMemo(() => {
+    const buckets: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = format(subDays(new Date(), i), "MMM d");
+      buckets[d] = 0;
+    }
+    for (const s of allShipments) {
+      const d = format(new Date(s.created_at), "MMM d");
+      if (d in buckets) buckets[d]++;
+    }
+    return Object.entries(buckets).map(([date, count]) => ({ date, count }));
+  }, [allShipments]);
+
   const kpiCards = [
-    { label: "Active Shipments", value: counts.active, icon: Package, color: "text-accent" },
-    { label: "Pending Pricing", value: counts.pendingPricing, icon: DollarSign, color: "text-yellow-500" },
-    { label: "Awaiting Approval", value: counts.awaitingApproval, icon: Clock, color: "text-orange-500" },
-    { label: "In Transit", value: counts.inTransit, icon: Truck, color: "text-blue-500" },
-    { label: "Delayed", value: counts.delayed, icon: AlertTriangle, color: "text-destructive" },
+    { label: "Active Shipments", value: counts.active, icon: Package, accent: "text-accent", bg: "bg-accent/10", ring: "ring-accent/20" },
+    { label: "Pending Pricing", value: counts.pendingPricing, icon: DollarSign, accent: "text-yellow-500", bg: "bg-yellow-500/10", ring: "ring-yellow-500/20" },
+    { label: "Awaiting Approval", value: counts.awaitingApproval, icon: Clock, accent: "text-orange-500", bg: "bg-orange-500/10", ring: "ring-orange-500/20" },
+    { label: "In Transit", value: counts.inTransit, icon: Truck, accent: "text-blue-500", bg: "bg-blue-500/10", ring: "ring-blue-500/20" },
+    { label: "Delayed", value: counts.delayed, icon: AlertTriangle, accent: "text-destructive", bg: "bg-destructive/10", ring: "ring-destructive/20" },
   ];
 
-  const pipelineStages = [
-    { label: "Pending Pricing", count: counts.pendingPricing, color: "text-yellow-600" },
-    { label: "Quote Ready", count: counts.quoteReady, color: "text-accent" },
-    { label: "Awaiting Approval", count: counts.awaitingApproval, color: "text-orange-500" },
-    { label: "Booked", count: counts.booked, color: "text-blue-500" },
-    { label: "In Transit", count: counts.inTransit, color: "text-accent" },
-    { label: "Delivered", count: counts.delivered, color: "text-emerald-600" },
-  ];
+  const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0 || counts.awaitingApproval > 0;
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Shipment lifecycle overview</p>
+      {/* Header with CTA */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Shipment lifecycle overview</p>
+        </div>
+        <Button variant="electric" asChild>
+          <Link to="/dashboard/shipments/new">
+            <Plus className="mr-2 h-4 w-4" />Start a Shipment
+          </Link>
+        </Button>
       </div>
 
       {/* Getting Started */}
@@ -135,17 +165,19 @@ const Dashboard = () => {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         {kpiCards.map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="transition-all hover:shadow-md hover:border-accent/20 h-full">
+            <Card className={`transition-all hover:shadow-md ring-1 ${s.ring} h-full`}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{s.label}</CardTitle>
-                <s.icon className={`h-4 w-4 ${s.color}`} />
+                <div className={`h-8 w-8 rounded-lg ${s.bg} flex items-center justify-center`}>
+                  <s.icon className={`h-4 w-4 ${s.accent}`} />
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? <Skeleton className="h-8 w-14" /> : (
-                  <div className="text-2xl font-bold text-foreground tabular-nums">{s.value}</div>
+                  <div className={`text-2xl font-bold tabular-nums ${s.value > 0 && s.label === "Delayed" ? "text-destructive" : "text-foreground"}`}>{s.value}</div>
                 )}
               </CardContent>
             </Card>
@@ -153,137 +185,182 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Shipment Pipeline Status */}
-      {!loading && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-base">Shipment Pipeline</CardTitle>
-            <CardDescription>Status distribution across the shipment lifecycle</CardDescription>
+      {/* Tasks & Alerts — Moved up, prominent */}
+      {!loading && hasAlerts && (
+        <Card className="mb-6 border-yellow-200 dark:border-yellow-800/40 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              </div>
+              Tasks & Alerts
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between gap-1 overflow-x-auto">
-              {pipelineStages.map((stage, i) => (
-                <div key={stage.label} className="flex items-center">
-                  <PipelineStage label={stage.label} count={stage.count} color={stage.color} active={stage.count > 0} />
-                  {i < pipelineStages.length - 1 && (
-                    <ArrowRight className="h-3.5 w-3.5 text-border mx-1 shrink-0" />
-                  )}
-                </div>
-              ))}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {counts.delayed > 0 && (
+                <Link to="/dashboard/shipments?status=delayed" className="flex items-center gap-3 p-3 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-destructive tabular-nums">{counts.delayed} delayed</p>
+                    <p className="text-[10px] text-muted-foreground">Requires attention</p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
+                </Link>
+              )}
+              {counts.pendingPricing > 0 && (
+                <Link to="/dashboard/quotes" className="flex items-center gap-3 p-3 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-yellow-500/10 flex items-center justify-center shrink-0">
+                    <DollarSign className="h-4 w-4 text-yellow-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-300 tabular-nums">{counts.pendingPricing} pricing needed</p>
+                    <p className="text-[10px] text-muted-foreground">Review quotes</p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
+                </Link>
+              )}
+              {counts.awaitingApproval > 0 && (
+                <Link to="/dashboard/shipments?status=awaiting_approval" className="flex items-center gap-3 p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-orange-700 dark:text-orange-300 tabular-nums">{counts.awaitingApproval} approval pending</p>
+                    <p className="text-[10px] text-muted-foreground">Needs decision</p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
+                </Link>
+              )}
+              {counts.missingDocs > 0 && (
+                <Link to="/dashboard/shipments" className="flex items-center gap-3 p-3 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-orange-700 dark:text-orange-300 tabular-nums">{counts.missingDocs} missing docs</p>
+                    <p className="text-[10px] text-muted-foreground">Upload required</p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground ml-auto shrink-0" />
+                </Link>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Tasks & Alerts */}
-        <div className="lg:col-span-1 space-y-4">
-          {!loading && (counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0 || counts.awaitingApproval > 0) && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                  Tasks & Alerts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {counts.pendingPricing > 0 && (
-                  <Link to="/dashboard/quotes" className="flex items-center justify-between p-2.5 rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/10 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-3.5 w-3.5 text-yellow-600" />
-                      <span className="text-xs font-medium">{counts.pendingPricing} pricing needed</span>
-                    </div>
-                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  </Link>
-                )}
-                {counts.awaitingApproval > 0 && (
-                  <Link to="/dashboard/shipments?status=awaiting_approval" className="flex items-center justify-between p-2.5 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-3.5 w-3.5 text-orange-500" />
-                      <span className="text-xs font-medium">{counts.awaitingApproval} approval pending</span>
-                    </div>
-                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  </Link>
-                )}
-                {counts.delayed > 0 && (
-                  <Link to="/dashboard/shipments?status=delayed" className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-                      <span className="text-xs font-medium">{counts.delayed} delayed shipment{counts.delayed > 1 ? "s" : ""}</span>
-                    </div>
-                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  </Link>
-                )}
-                {counts.missingDocs > 0 && (
-                  <Link to="/dashboard/shipments" className="flex items-center justify-between p-2.5 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-3.5 w-3.5 text-orange-500" />
-                      <span className="text-xs font-medium">{counts.missingDocs} missing document{counts.missingDocs > 1 ? "s" : ""}</span>
-                    </div>
-                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      {/* Charts Row: Pipeline + Trend */}
+      {!loading && (
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          {/* Pipeline Bar Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4 text-accent" />
+                Shipment Pipeline
+              </CardTitle>
+              <CardDescription>Status distribution across lifecycle</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={pipelineData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    cursor={{ fill: "hsl(var(--accent) / 0.06)" }}
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={22}>
+                    {pipelineData.map((entry, i) => (
+                      <rect key={i} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-        {/* Recent Shipments + Activity */}
-        <div className="lg:col-span-2">
-          {!loading && recentShipments.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">Recent Activity</CardTitle>
-                  <CardDescription>Latest shipment updates</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard/shipments" className="text-accent">
-                    View All <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  {recentShipments.map((s) => (
-                    <Link
-                      key={s.id}
-                      to={`/dashboard/shipments/${s.id}`}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-secondary/60 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                          {s.mode === "air" ? <Plane className="h-3.5 w-3.5 text-muted-foreground" /> : <Ship className="h-3.5 w-3.5 text-muted-foreground" />}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-foreground">{s.shipment_ref}</span>
-                            {(s as any).companies?.company_name && (
-                              <span className="text-[10px] text-muted-foreground truncate">• {(s as any).companies.company_name}</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {s.origin_port || "—"} → {s.destination_port || "—"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-[10px] text-muted-foreground hidden sm:block">
-                          {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
-                        </span>
-                        <Badge variant="secondary" className={`text-[10px] ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
-                          {statusLabel[s.status] || s.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                        </Badge>
-                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Shipments Over Time */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Package className="h-4 w-4 text-accent" />
+                Shipments Over Time
+              </CardTitle>
+              <CardDescription>New shipments — last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={trendData} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  />
+                  <Area type="monotone" dataKey="count" name="Shipments" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.1} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
+
+      {/* Recent Shipments */}
+      {!loading && recentShipments.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Recent Activity</CardTitle>
+              <CardDescription>Latest shipment updates</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/dashboard/shipments" className="text-accent">
+                View All <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              {recentShipments.map((s) => (
+                <Link
+                  key={s.id}
+                  to={`/dashboard/shipments/${s.id}`}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-secondary/60 transition-colors group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                      {s.mode === "air" ? <Plane className="h-3.5 w-3.5 text-muted-foreground" /> : <Ship className="h-3.5 w-3.5 text-muted-foreground" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">{s.shipment_ref}</span>
+                        {(s as any).companies?.company_name && (
+                          <span className="text-[10px] text-muted-foreground truncate">• {(s as any).companies.company_name}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {s.origin_port || "—"} → {s.destination_port || "—"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[10px] text-muted-foreground hidden sm:block">
+                      {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true })}
+                    </span>
+                    <Badge variant="secondary" className={`text-[10px] ${statusColor[s.status] || "bg-secondary text-muted-foreground"}`}>
+                      {statusLabel[s.status] || s.status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                    </Badge>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </DashboardLayout>
   );
 };
