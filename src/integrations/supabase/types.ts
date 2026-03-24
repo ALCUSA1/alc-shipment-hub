@@ -1023,6 +1023,60 @@ export type Database = {
           },
         ]
       }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          invited_at: string | null
+          is_active: boolean
+          joined_at: string | null
+          role: Database["public"]["Enums"]["company_role"]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_reviews: {
         Row: {
           content: string | null
@@ -3576,6 +3630,53 @@ export type Database = {
           },
         ]
       }
+      shipment_services: {
+        Row: {
+          additional_services_json: Json | null
+          created_at: string
+          customs_clearance: boolean
+          id: string
+          insurance: boolean
+          shipment_id: string
+          special_handling: boolean
+          trucking: boolean
+          updated_at: string
+          warehousing: boolean
+        }
+        Insert: {
+          additional_services_json?: Json | null
+          created_at?: string
+          customs_clearance?: boolean
+          id?: string
+          insurance?: boolean
+          shipment_id: string
+          special_handling?: boolean
+          trucking?: boolean
+          updated_at?: string
+          warehousing?: boolean
+        }
+        Update: {
+          additional_services_json?: Json | null
+          created_at?: string
+          customs_clearance?: boolean
+          id?: string
+          insurance?: boolean
+          shipment_id?: string
+          special_handling?: boolean
+          trucking?: boolean
+          updated_at?: string
+          warehousing?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_services_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: true
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_templates: {
         Row: {
           cargo: Json | null
@@ -3661,10 +3762,14 @@ export type Database = {
           airline: string | null
           airport_of_departure: string | null
           airport_of_destination: string | null
+          archived_at: string | null
+          assigned_ops_user_id: string | null
+          assigned_pricing_user_id: string | null
           available_for_pickup_date: string | null
           booking_confirmed_date: string | null
           booking_ref: string | null
           booking_terms: string | null
+          capacity_condition: string | null
           cargo_arrival_date: string | null
           cargo_loaded_date: string | null
           cargo_received_date: string | null
@@ -3674,11 +3779,13 @@ export type Database = {
           chargeable_weight: number | null
           commodity_item_number: string | null
           company_id: string | null
+          competition_level: string | null
           container_count: number | null
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
           customer_reference: string | null
+          customer_type_snapshot: string | null
           customs_clearance_date: string | null
           cy_cutoff: string | null
           declared_value: number | null
@@ -3718,6 +3825,8 @@ export type Database = {
           invoice_currency: string | null
           invoice_date: string | null
           invoice_number: string | null
+          is_first_shipment: boolean | null
+          lifecycle_stage: string | null
           mawb_number: string | null
           mode: string
           nature_and_quantity: string | null
@@ -3736,6 +3845,7 @@ export type Database = {
           pickup_validated: boolean | null
           place_of_delivery: string | null
           place_of_receipt: string | null
+          priority_level: string | null
           quote_reference: string | null
           rate_basis_type: string | null
           rate_class: string | null
@@ -3769,10 +3879,14 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          archived_at?: string | null
+          assigned_ops_user_id?: string | null
+          assigned_pricing_user_id?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
+          capacity_condition?: string | null
           cargo_arrival_date?: string | null
           cargo_loaded_date?: string | null
           cargo_received_date?: string | null
@@ -3782,11 +3896,13 @@ export type Database = {
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          competition_level?: string | null
           container_count?: number | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
@@ -3826,6 +3942,8 @@ export type Database = {
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          is_first_shipment?: boolean | null
+          lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
@@ -3844,6 +3962,7 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
           rate_class?: string | null
@@ -3877,10 +3996,14 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          archived_at?: string | null
+          assigned_ops_user_id?: string | null
+          assigned_pricing_user_id?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
+          capacity_condition?: string | null
           cargo_arrival_date?: string | null
           cargo_loaded_date?: string | null
           cargo_received_date?: string | null
@@ -3890,11 +4013,13 @@ export type Database = {
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          competition_level?: string | null
           container_count?: number | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
@@ -3934,6 +4059,8 @@ export type Database = {
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          is_first_shipment?: boolean | null
+          lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
@@ -3952,6 +4079,7 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
           rate_class?: string | null
@@ -4809,6 +4937,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_company_role: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["company_role"]
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -4818,6 +4950,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
     }
@@ -4831,6 +4967,15 @@ export type Database = {
         | "driver"
         | "warehouse"
         | "forwarder"
+      company_role:
+        | "admin"
+        | "pricing_manager"
+        | "operations_manager"
+        | "sales_manager"
+        | "customer_user"
+        | "finance_user"
+        | "partner_user"
+        | "viewer"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -4973,6 +5118,16 @@ export const Constants = {
         "driver",
         "warehouse",
         "forwarder",
+      ],
+      company_role: [
+        "admin",
+        "pricing_manager",
+        "operations_manager",
+        "sales_manager",
+        "customer_user",
+        "finance_user",
+        "partner_user",
+        "viewer",
       ],
       company_status: [
         "prospect",
