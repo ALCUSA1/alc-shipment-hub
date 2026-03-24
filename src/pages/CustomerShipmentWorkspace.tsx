@@ -332,11 +332,11 @@ const CustomerShipmentWorkspace = () => {
       </div>
 
       {/* ── SPARK SHARE DIALOG ── */}
-      {s && (
+      {shipment && (
         <SparkShareDialog
           open={sparkShareOpen}
           onOpenChange={setSparkShareOpen}
-          shipment={s}
+          shipment={shipment}
           onNavigateToSpark={() => navigate("/dashboard/spark")}
         />
       )}
