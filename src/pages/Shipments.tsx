@@ -130,9 +130,11 @@ const Shipments = () => {
       const { data, error } = await supabase
         .from("shipments")
         .select("*, companies!shipments_company_id_fkey(company_name)")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Shipments] list query error:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
