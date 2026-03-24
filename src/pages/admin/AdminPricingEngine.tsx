@@ -58,6 +58,43 @@ type SplitPreset = keyof typeof SPLIT_PRESETS;
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (n: number) => n.toFixed(1) + "%";
 
+const BRAIN_CATEGORIES = [
+  { id: "promo", label: "Promo Handling", icon: "✨" },
+  { id: "customer", label: "Customer Strategy", icon: "👥" },
+  { id: "shipment_type", label: "Shipment Type", icon: "🚢" },
+  { id: "profit_protection", label: "Profit Protection", icon: "🛡️" },
+  { id: "ai_boundaries", label: "AI Boundaries", icon: "🤖" },
+  { id: "approval", label: "Approval Escalation", icon: "⚠️" },
+  { id: "templates", label: "Templates", icon: "📋" },
+];
+
+function PricingRulesBrainTab() {
+  const [activeCategory, setActiveCategory] = useState("promo");
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Brain className="h-5 w-5 text-violet-400" />
+        <h2 className="text-lg font-bold">Pricing Rules Brain</h2>
+        <Badge variant="outline" className="text-[10px]">7 Rule Categories</Badge>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {BRAIN_CATEGORIES.map(cat => (
+          <Button
+            key={cat.id}
+            size="sm"
+            variant={activeCategory === cat.id ? "default" : "outline"}
+            className="text-xs h-8"
+            onClick={() => setActiveCategory(cat.id)}
+          >
+            <span className="mr-1">{cat.icon}</span> {cat.label}
+          </Button>
+        ))}
+      </div>
+      <RuleCategoryPanel category={activeCategory} />
+    </div>
+  );
+}
+
 const AdminPricingEngine = () => {
   /* ── Shipment details ── */
   const [shipmentType, setShipmentType] = useState("fcl");
