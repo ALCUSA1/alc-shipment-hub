@@ -629,6 +629,29 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
             />
           </div>
 
+          {/* What-If Simulator */}
+          <WhatIfSimulator
+            carrierBuyRate={carrierBuyRate}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            currentSellPrice={calc.sellPrice}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+          />
+
+          {/* Deal Negotiation Assistant */}
+          <DealNegotiationAssistant
+            carrierBuyRate={carrierBuyRate}
+            trueCost={calc.trueCost}
+            currentMargin={calc.adjustedMargin}
+            currentSellPrice={calc.sellPrice}
+            netProfit={calc.netProfit}
+            platformRetained={calc.platformRetained}
+            shipmentType={shipmentType || mode || "fcl"}
+            customerType={customerType}
+          />
+
           {/* Deal Score */}
           <div className="rounded-xl border border-border bg-card p-4">
             <DealScorePanel
