@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Package, Inbox, ContactRound, Users, Settings, LogOut,
   TrendingUp, BarChart3, DollarSign, Search, Shield, User, Sparkles,
+  LifeBuoy, Lightbulb,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +40,8 @@ const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey 
   { title: "Spark", url: "/dashboard/spark", icon: Sparkles, navKey: "spark" },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, navKey: "analytics" },
   { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp, navKey: "rate-trends" },
+  { title: "Support", url: "/dashboard/support", icon: LifeBuoy, navKey: "support" },
+  { title: "Ideas", url: "/dashboard/ideas", icon: Lightbulb, navKey: "ideas" },
   { title: "Settings", url: "/dashboard/account", icon: Settings, navKey: "account" },
 ];
 

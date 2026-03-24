@@ -118,6 +118,8 @@ import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
 import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
 import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
 import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
+import Support from "./pages/Support";
+import Ideas from "./pages/Ideas";
 
 const queryClient = new QueryClient();
 
@@ -180,6 +182,8 @@ const App = () => (
             <Route path="/dashboard/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
             <Route path="/dashboard/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
+            <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="/dashboard/ideas" element={<ProtectedRoute><Ideas /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
