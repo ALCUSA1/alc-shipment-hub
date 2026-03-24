@@ -416,6 +416,72 @@ export type Database = {
         }
         Relationships: []
       }
+      approvals: {
+        Row: {
+          approval_type: string
+          assigned_to_user_id: string | null
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decision_note: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reason_note: string | null
+          requested_at: string
+          requested_by_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approval_type: string
+          assigned_to_user_id?: string | null
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decision_note?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason_note?: string | null
+          requested_at?: string
+          requested_by_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: string
+          assigned_to_user_id?: string | null
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decision_note?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason_note?: string | null
+          requested_at?: string
+          requested_by_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -3377,6 +3443,125 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_split_rules: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          default_collaboration_percent: number
+          default_platform_percent: number
+          default_referral_percent: number
+          id: string
+          minimum_platform_retained_profit: number | null
+          shipment_type: string | null
+          split_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          default_collaboration_percent?: number
+          default_platform_percent?: number
+          default_referral_percent?: number
+          id?: string
+          minimum_platform_retained_profit?: number | null
+          shipment_type?: string | null
+          split_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          default_collaboration_percent?: number
+          default_platform_percent?: number
+          default_referral_percent?: number
+          id?: string
+          minimum_platform_retained_profit?: number | null
+          shipment_type?: string | null
+          split_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_split_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_split_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_splits: {
+        Row: {
+          collaboration_amount: number
+          collaboration_percent: number
+          created_at: string
+          id: string
+          margin_pool_amount: number
+          network_amount: number
+          network_percent: number
+          platform_amount: number
+          platform_percent: number
+          pricing_scenario_id: string
+          referral_amount: number
+          referral_percent: number
+          retained_platform_profit: number
+          split_type: string
+          updated_at: string
+        }
+        Insert: {
+          collaboration_amount?: number
+          collaboration_percent?: number
+          created_at?: string
+          id?: string
+          margin_pool_amount?: number
+          network_amount?: number
+          network_percent?: number
+          platform_amount?: number
+          platform_percent?: number
+          pricing_scenario_id: string
+          referral_amount?: number
+          referral_percent?: number
+          retained_platform_profit?: number
+          split_type?: string
+          updated_at?: string
+        }
+        Update: {
+          collaboration_amount?: number
+          collaboration_percent?: number
+          created_at?: string
+          id?: string
+          margin_pool_amount?: number
+          network_amount?: number
+          network_percent?: number
+          platform_amount?: number
+          platform_percent?: number
+          pricing_scenario_id?: string
+          referral_amount?: number
+          referral_percent?: number
+          retained_platform_profit?: number
+          split_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_splits_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: true
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rfq_bids: {
         Row: {
           amount: number
@@ -3742,6 +3927,64 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "shipment_financials_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_messages: {
+        Row: {
+          attachment_json: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          message_body: string
+          sender_user_id: string
+          shipment_id: string
+          updated_at: string
+          visibility_scope: string
+        }
+        Insert: {
+          attachment_json?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          message_body: string
+          sender_user_id: string
+          shipment_id: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Update: {
+          attachment_json?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          message_body?: string
+          sender_user_id?: string
+          shipment_id?: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
