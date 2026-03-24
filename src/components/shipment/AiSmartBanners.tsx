@@ -41,6 +41,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Clock,
             message: `⏰ ${c.label} is in ${hoursLeft} hours — act now to avoid delays.`,
             severity: "critical",
+            priority: "critical",
           });
         } else if (hoursLeft > 24 && hoursLeft <= 72) {
           items.push({
