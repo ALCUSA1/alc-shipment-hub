@@ -94,7 +94,12 @@ const About = () => {
           <ScrollReveal>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-14 text-center">Our History</h2>
           </ScrollReveal>
-          <div className="relative flex flex-col gap-12 md:gap-20">
+          <div className="relative mt-14">
+            <div
+              aria-hidden="true"
+              className="absolute bottom-0 left-5 top-0 w-px bg-border/70 md:left-1/2 md:-translate-x-1/2"
+            />
+            <div className="flex flex-col gap-8 md:gap-12">
             {milestones.map((m, i) => {
               const isEven = i % 2 === 0;
               const Icon = m.icon;
@@ -106,20 +111,25 @@ const About = () => {
                 </div>
               );
               return (
-                <ScrollReveal key={m.year} delay={i * 0.1}>
-                  {/* Mobile */}
-                  <div className="md:hidden">{card}</div>
-                  {/* Desktop */}
-                  <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 items-center">
-                    {isEven ? card : <div />}
-                    <div className="flex w-12 h-12 rounded-full bg-ocean/10 border-2 border-ocean/30 items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5 text-ocean" />
+                <div key={m.year} className="relative">
+                  <div className="flex items-start gap-4 md:hidden">
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
+                      <Icon className="h-4 w-4 text-ocean" />
                     </div>
-                    {!isEven ? card : <div />}
+                    <div className="flex-1">{card}</div>
                   </div>
-                </ScrollReveal>
+
+                  <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start md:gap-8">
+                    <div>{isEven ? card : null}</div>
+                    <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
+                      <Icon className="h-5 w-5 text-ocean" />
+                    </div>
+                    <div>{!isEven ? card : null}</div>
+                  </div>
+                </div>
               );
             })}
+            </div>
           </div>
         </div>
       </section>
