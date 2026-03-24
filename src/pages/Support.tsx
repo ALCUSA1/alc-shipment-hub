@@ -125,6 +125,15 @@ export default function Support() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <Select value={form.priority} onValueChange={(v) => setForm((p) => ({ ...p, priority: v as CustomerPriority }))}>
+                    <SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger>
+                    <SelectContent>
+                      {PRIORITIES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Subject</Label>
                   <Input placeholder="Brief summary of the issue" value={form.subject} onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))} />
                 </div>
