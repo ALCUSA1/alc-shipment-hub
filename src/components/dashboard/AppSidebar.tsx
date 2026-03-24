@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, DollarSign, FileText, Users, Settings, LogOut,
-  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Bell, BarChart3, Megaphone
+  Truck, Warehouse, ContactRound, UsersRound, Calculator, TrendingUp, Layers, Bell, BarChart3, Megaphone, Wallet
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
