@@ -74,34 +74,56 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
     staleTime: 60_000,
   });
 
+  const statItems = [
+    { label: "Companies", value: stats?.companies || 0, icon: Building2 },
+    { label: "Active RFQs", value: stats?.rfqs || 0, icon: ShoppingCart },
+    { label: "Upcoming Events", value: stats?.events || 0, icon: Calendar },
+  ];
+
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.85)] to-[hsl(220,80%,25%)] p-6 md:p-8 mb-6">
-      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-xl" />
-      <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-white/5 blur-lg" />
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-white/80" />
-          <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">Spark Network</span>
+      className="relative overflow-hidden rounded-2xl mb-6">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent/80" />
+      <div className="absolute inset-0">
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/[0.06] blur-2xl" />
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-white/[0.04] blur-2xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-40 bg-white/[0.03] rounded-full blur-3xl rotate-12" />
+      </div>
+
+      <div className="relative z-10 p-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-xs font-bold text-white/60 uppercase tracking-[0.2em]">Spark Network</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Connect. Share. Grow.</h2>
+            <p className="text-sm text-white/60 mt-1.5 max-w-md">Your logistics community hub — post updates, browse RFQs, and find partners.</p>
+          </div>
+
+          {/* Stat pills */}
+          <div className="flex items-center gap-3">
+            {statItems.map((s, i) => (
+              <motion.div key={s.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 + i * 0.1 }}
+                className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-center min-w-[90px]">
+                <s.icon className="h-4 w-4 text-white/50 mx-auto mb-1" />
+                <p className="text-xl font-extrabold text-white tabular-nums">{s.value}</p>
+                <p className="text-[9px] font-semibold text-white/40 uppercase tracking-wider">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Welcome to the community</h2>
-        <div className="flex items-center gap-4 mt-3 flex-wrap">
-          {stats && (
-            <>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.companies}</strong> companies</span>
-              <span className="text-white/30">·</span>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.rfqs}</strong> active RFQs</span>
-              <span className="text-white/30">·</span>
-              <span className="text-sm text-white/70"><strong className="text-white">{stats.events}</strong> upcoming events</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-5">
-          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2.5 mt-6">
+          <Button size="sm" className="rounded-full px-6 gap-2 bg-white text-primary hover:bg-white/90 shadow-lg shadow-black/10 font-semibold"
             onClick={() => onAction("rfqs")}>
             <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
           </Button>
-          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+          <Button size="sm" className="rounded-full px-6 gap-2 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm font-semibold"
             onClick={() => onAction("directory")}>
             <Users2 className="h-3.5 w-3.5" /> Find Partners
           </Button>
