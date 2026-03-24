@@ -319,6 +319,13 @@ export type Database = {
             foreignKeyName: "aes_filings_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aes_filings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -478,6 +485,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -651,6 +665,13 @@ export type Database = {
           volume?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cargo_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cargo_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -976,6 +997,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "company_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       company_contacts: {
@@ -1028,6 +1056,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1087,6 +1122,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "company_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       company_members: {
@@ -1141,6 +1183,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       company_reviews: {
@@ -1193,6 +1242,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "company_reviews_reviewed_company_id_fkey"
+            columns: ["reviewed_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "company_reviews_reviewer_company_id_fkey"
             columns: ["reviewer_company_id"]
             isOneToOne: false
@@ -1204,6 +1260,13 @@ export type Database = {
             columns: ["reviewer_company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewer_company_id_fkey"
+            columns: ["reviewer_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -1264,6 +1327,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "compliance_reviews_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "compliance_reviews_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -1361,6 +1431,13 @@ export type Database = {
             foreignKeyName: "container_commodities_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "container_commodities_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -1422,6 +1499,13 @@ export type Database = {
           vgm?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "containers_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "containers_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -1492,6 +1576,73 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      customer_user_links: {
+        Row: {
+          company_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customs_filings: {
         Row: {
@@ -1582,6 +1733,13 @@ export type Database = {
           voyage_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "customs_filings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "customs_filings_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -1698,6 +1856,13 @@ export type Database = {
             foreignKeyName: "demurrage_charges_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demurrage_charges_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -1735,6 +1900,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -1816,6 +1988,13 @@ export type Database = {
             foreignKeyName: "driver_assignments_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_assignments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -1877,6 +2056,13 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "pipeline_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "earnings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -1965,6 +2151,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "edi_messages_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "edi_messages_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -2263,6 +2456,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fixed_cost_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       forwarder_customers: {
@@ -2496,6 +2696,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "leads_converted_company_id_fkey"
+            columns: ["converted_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       messages: {
@@ -2608,6 +2815,73 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_user_links: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          partner_id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          partner_id: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          partner_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partnership_requests: {
         Row: {
           created_at: string
@@ -2655,6 +2929,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "partnership_requests_requester_company_id_fkey"
+            columns: ["requester_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "partnership_requests_target_company_id_fkey"
             columns: ["target_company_id"]
             isOneToOne: false
@@ -2666,6 +2947,13 @@ export type Database = {
             columns: ["target_company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partnership_requests_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2734,6 +3022,13 @@ export type Database = {
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -2834,6 +3129,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_deals_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -3093,6 +3402,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pricing_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       pricing_scenarios: {
@@ -3178,6 +3494,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -3396,6 +3726,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quotes_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
@@ -3496,6 +3840,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_split_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -3618,6 +3969,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "rfq_bids_bidder_company_id_fkey"
+            columns: ["bidder_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rfq_bids_rfq_id_fkey"
             columns: ["rfq_id"]
             isOneToOne: false
@@ -3691,6 +4049,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "rfq_posts_awarded_to_fkey"
+            columns: ["awarded_to"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rfq_posts_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -3702,6 +4067,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_posts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -3766,6 +4138,13 @@ export type Database = {
             foreignKeyName: "shipment_amendments_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_amendments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -3823,6 +4202,13 @@ export type Database = {
             foreignKeyName: "shipment_charges_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_charges_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -3866,6 +4252,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_cutoffs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_cutoffs_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -3929,6 +4322,13 @@ export type Database = {
             foreignKeyName: "shipment_financials_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_financials_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -3981,6 +4381,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -4037,6 +4451,13 @@ export type Database = {
             foreignKeyName: "shipment_milestones_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_milestones_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -4045,6 +4466,7 @@ export type Database = {
       shipment_parties: {
         Row: {
           address: string | null
+          assigned_by_user_id: string | null
           city: string | null
           company_name: string
           contact_name: string | null
@@ -4052,15 +4474,18 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          partner_id: string | null
           phone: string | null
           postal_code: string | null
           role: string
+          role_type: string | null
           shipment_id: string
           state: string | null
           tax_id: string | null
         }
         Insert: {
           address?: string | null
+          assigned_by_user_id?: string | null
           city?: string | null
           company_name: string
           contact_name?: string | null
@@ -4068,15 +4493,18 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           role: string
+          role_type?: string | null
           shipment_id: string
           state?: string | null
           tax_id?: string | null
         }
         Update: {
           address?: string | null
+          assigned_by_user_id?: string | null
           city?: string | null
           company_name?: string
           contact_name?: string | null
@@ -4084,14 +4512,44 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           role?: string
+          role_type?: string | null
           shipment_id?: string
           state?: string | null
           tax_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_parties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_parties_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -4141,6 +4599,13 @@ export type Database = {
             columns: ["financial_id"]
             isOneToOne: false
             referencedRelation: "shipment_financials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_pnl_audit_log_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
             referencedColumns: ["id"]
           },
           {
@@ -4224,6 +4689,13 @@ export type Database = {
             foreignKeyName: "shipment_rates_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_rates_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -4267,6 +4739,13 @@ export type Database = {
           warehousing?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_services_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: true
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_services_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -4383,6 +4862,7 @@ export type Database = {
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
+          customer_id: string | null
           customer_reference: string | null
           customer_type_snapshot: string | null
           customs_clearance_date: string | null
@@ -4500,6 +4980,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
@@ -4617,6 +5098,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
@@ -4722,10 +5204,38 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shipments_converted_from_quote_id_fkey"
             columns: ["converted_from_quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
             referencedColumns: ["id"]
           },
         ]
@@ -4908,6 +5418,13 @@ export type Database = {
             foreignKeyName: "sli_documents_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sli_documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -5003,6 +5520,13 @@ export type Database = {
             referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "spark_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tracking_events: {
@@ -5040,6 +5564,13 @@ export type Database = {
           source?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tracking_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tracking_events_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -5102,6 +5633,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "truck_pickups_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "truck_pickups_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -5173,6 +5711,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trucking_quotes_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trucking_quotes_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -5261,6 +5806,13 @@ export type Database = {
             foreignKeyName: "vessel_bookings_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_bookings_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -5319,6 +5871,13 @@ export type Database = {
           weight?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "warehouse_operations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "warehouse_operations_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -5430,6 +5989,13 @@ export type Database = {
             foreignKeyName: "warehouse_orders_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_orders_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
@@ -5534,15 +6100,126 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_summary_view: {
+        Row: {
+          active_shipments: number | null
+          company_name: string | null
+          company_type: string | null
+          created_at: string | null
+          id: string | null
+          shipment_count: number | null
+          status: Database["public"]["Enums"]["company_status"] | null
+          user_id: string | null
+        }
+        Insert: {
+          active_shipments?: never
+          company_name?: string | null
+          company_type?: string | null
+          created_at?: string | null
+          id?: string | null
+          shipment_count?: never
+          status?: Database["public"]["Enums"]["company_status"] | null
+          user_id?: string | null
+        }
+        Update: {
+          active_shipments?: never
+          company_name?: string | null
+          company_type?: string | null
+          created_at?: string | null
+          id?: string | null
+          shipment_count?: never
+          status?: Database["public"]["Enums"]["company_status"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shipment_workspace_view: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          created_at: string | null
+          customer_id: string | null
+          destination_port: string | null
+          doc_count: number | null
+          eta: string | null
+          etd: string | null
+          id: string | null
+          latest_milestone: string | null
+          lifecycle_stage: string | null
+          mode: string | null
+          net_margin_percent: number | null
+          net_profit: number | null
+          origin_port: string | null
+          pending_doc_count: number | null
+          recommended_sell_price: number | null
+          shipment_ref: string | null
+          shipment_type: string | null
+          status: string | null
+          true_total_cost: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      can_edit_shipment: { Args: { _shipment_id: string }; Returns: boolean }
+      can_view_shipment: { Args: { _shipment_id: string }; Returns: boolean }
       get_company_role: {
         Args: { _company_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["company_role"]
       }
+      get_user_company_ids: { Args: never; Returns: string[] }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_company_role: {
+        Args: { _allowed_roles: string[]; _company_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
@@ -5555,6 +6232,8 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      scenario_company_id: { Args: { _scenario_id: string }; Returns: string }
+      shipment_company_id: { Args: { _shipment_id: string }; Returns: string }
     }
     Enums: {
       app_role:
