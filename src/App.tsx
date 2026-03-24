@@ -106,6 +106,7 @@ import AdminSalesAnalytics from "./pages/admin/AdminSalesAnalytics";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
+import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
 
 const queryClient = new QueryClient();
 
