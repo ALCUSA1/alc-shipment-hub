@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import {
   DollarSign, TrendingUp, Calculator, AlertTriangle, CheckCircle2,
   ChevronDown, Save, FileText, Shield, Users, Percent,
-  Ship, Truck, Plane, Package, Target, Zap, BarChart3
+  Ship, Truck, Plane, Package, Target, Zap, BarChart3, Brain, Play,
 } from "lucide-react";
+import { RuleCategoryPanel } from "@/components/admin/pricing-rules/RuleCategoryPanel";
+import { SimulationPanel } from "@/components/admin/pricing-rules/SimulationPanel";
 
 /* ─── Constants ─── */
 const SHIPMENT_TYPES = [
