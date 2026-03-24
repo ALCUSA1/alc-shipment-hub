@@ -1,18 +1,18 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket } from "lucide-react";
+import { Building2, Globe, ShieldCheck, Handshake, Lightbulb, Leaf, Target, Rocket, MapPin, Users, Zap, CircleDot } from "lucide-react";
 import syedImg from "@/assets/team/syed.jpg";
 import mikeImg from "@/assets/team/mike.jpg";
 import paulImg from "@/assets/team/paul.jpg";
 import ahadImg from "@/assets/team/ahad.jpg";
 
 const milestones = [
-  { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust." },
-  { year: "2000s", title: "Expanding Global Reach", desc: "Formed partnerships with carriers and agents worldwide, connecting U.S. businesses to Asia, Europe, and the Middle East." },
-  { year: "2010s", title: "Diversifying Services", desc: "Introduced compliance support, shipment audits, warehousing, and specialized handling for hazardous and sensitive goods." },
-  { year: "2020s", title: "Digital Transformation", desc: "Embraced technology-driven solutions to streamline operations and deliver smarter logistics." },
-  { year: "2025", title: "A New Era of Growth", desc: "Under CEO Syed Hassan-Warsi, ALC became a digital-first NVOCC and Export Trading Company focused on innovation and global growth." },
+  { year: "1996", title: "Foundation in Compton, CA", desc: "Founded by Michael Kuhfal to solve unreliable freight forwarding. Built a reputation for reliability, transparency, and trust.", icon: MapPin },
+  { year: "2000s", title: "Expanding Global Reach", desc: "Formed partnerships with carriers and agents worldwide, connecting U.S. businesses to Asia, Europe, and the Middle East.", icon: Globe },
+  { year: "2010s", title: "Diversifying Services", desc: "Introduced compliance support, shipment audits, warehousing, and specialized handling for hazardous and sensitive goods.", icon: Users },
+  { year: "2020s", title: "Digital Transformation", desc: "Launched ALC TradeHub with instant quotes, real-time tracking, compliance automation, and carbon reporting.", icon: Zap },
+  { year: "2025", title: "A New Era of Growth", desc: "Under CEO Syed Hassan-Warsi, ALC became a digital-first NVOCC and Export Trading Company focused on innovation and global growth.", icon: CircleDot },
 ];
 
 const coreValues = [
