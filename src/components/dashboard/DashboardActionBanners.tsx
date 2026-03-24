@@ -256,6 +256,9 @@ export function DashboardActionBanners() {
 
   if (banners.length === 0) return null;
 
+  // Sort by priority: critical first, normal last
+  banners.sort((a, b) => a.sortOrder - b.sortOrder);
+
   return (
     <div className="flex flex-wrap gap-3 mb-6">
       {banners.map((b, i) => (
