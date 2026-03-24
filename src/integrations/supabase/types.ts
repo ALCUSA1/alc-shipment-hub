@@ -1493,6 +1493,59 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_user_links: {
+        Row: {
+          company_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_user_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customs_filings: {
         Row: {
           aes_citation: string | null
@@ -2607,6 +2660,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      partner_user_links: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          partner_id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          partner_id: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          partner_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_user_links_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partnership_requests: {
         Row: {
@@ -4045,6 +4151,7 @@ export type Database = {
       shipment_parties: {
         Row: {
           address: string | null
+          assigned_by_user_id: string | null
           city: string | null
           company_name: string
           contact_name: string | null
@@ -4052,15 +4159,18 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          partner_id: string | null
           phone: string | null
           postal_code: string | null
           role: string
+          role_type: string | null
           shipment_id: string
           state: string | null
           tax_id: string | null
         }
         Insert: {
           address?: string | null
+          assigned_by_user_id?: string | null
           city?: string | null
           company_name: string
           contact_name?: string | null
@@ -4068,15 +4178,18 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           role: string
+          role_type?: string | null
           shipment_id: string
           state?: string | null
           tax_id?: string | null
         }
         Update: {
           address?: string | null
+          assigned_by_user_id?: string | null
           city?: string | null
           company_name?: string
           contact_name?: string | null
@@ -4084,14 +4197,30 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           role?: string
+          role_type?: string | null
           shipment_id?: string
           state?: string | null
           tax_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipment_parties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipment_parties_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -4383,6 +4512,7 @@ export type Database = {
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
+          customer_id: string | null
           customer_reference: string | null
           customer_type_snapshot: string | null
           customs_clearance_date: string | null
@@ -4500,6 +4630,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
@@ -4617,6 +4748,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
@@ -4726,6 +4858,20 @@ export type Database = {
             columns: ["converted_from_quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -5536,13 +5682,20 @@ export type Database = {
       }
     }
     Functions: {
+      can_edit_shipment: { Args: { _shipment_id: string }; Returns: boolean }
+      can_view_shipment: { Args: { _shipment_id: string }; Returns: boolean }
       get_company_role: {
         Args: { _company_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["company_role"]
       }
+      get_user_company_ids: { Args: never; Returns: string[] }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_company_role: {
+        Args: { _allowed_roles: string[]; _company_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
