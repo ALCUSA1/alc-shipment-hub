@@ -843,6 +843,69 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
   );
 }
 
+/* ─── External Share Dialog ─── */
+function ExternalShareDialog({ open, onOpenChange, post }: { open: boolean; onOpenChange: (o: boolean) => void; post: any }) {
+  const shareUrl = `${window.location.origin}/dashboard/spark`;
+  const shareText = post.content?.slice(0, 200) || "Check out this post on Spark";
+  const postTypeLabel = POST_TYPES.find((t) => t.value === post.post_type)?.label || "Post";
+
+  const messageBody = `${postTypeLabel}: ${shareText}${post.content?.length > 200 ? "…" : ""}\n\nView on Spark: ${shareUrl}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    toast({ title: "Link copied to clipboard!" });
+    onOpenChange(false);
+  };
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  const shareSMS = () => {
+    window.open(`sms:?body=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  const shareEmail = () => {
+    const subject = `Spark: ${postTypeLabel} from ${post.company_name || post.author_name || "ALC Platform"}`;
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Share2 className="h-4 w-4" /> Share Externally</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-3">
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={copyLink}>
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0"><ExternalLink className="h-4 w-4 text-foreground" /></div>
+            Copy Link
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareWhatsApp}>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><Phone className="h-4 w-4 text-emerald-600" /></div>
+            Share via WhatsApp
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareSMS}>
+            <div className="h-8 w-8 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0"><MessageCircle className="h-4 w-4 text-sky-600" /></div>
+            Share via SMS
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareEmail}>
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Mail className="h-4 w-4 text-primary" /></div>
+            Share via Email
+          </Button>
+        </div>
+        <div className="bg-muted/40 rounded-lg p-3 mt-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Preview</p>
+          <p className="text-xs text-foreground line-clamp-3">{messageBody}</p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── Post Card ─── */
 function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentUserId: string; index: number; isAdmin?: boolean }) {
   const queryClient = useQueryClient();
