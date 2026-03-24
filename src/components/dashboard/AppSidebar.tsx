@@ -73,7 +73,7 @@ export function AppSidebar() {
   };
 
   const renderNavItems = (items: typeof primaryNav) => {
-    const visible = items.filter((item) => canAccessRoute(item.url, roles));
+    const visible = items.filter((item) => canAccessRoute(item.url, roles) && canSeeNavItem(companyRole, item.navKey));
     if (visible.length === 0) return null;
     return (
       <SidebarMenu>
