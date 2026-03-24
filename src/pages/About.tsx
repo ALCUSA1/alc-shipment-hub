@@ -96,18 +96,47 @@ const About = () => {
           </ScrollReveal>
           <div className="relative">
             <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-px" />
-            {milestones.map((m, i) => (
-              <ScrollReveal key={m.year} delay={i * 0.1}>
-                <div className={`relative flex flex-col md:flex-row items-start mb-12 ${i % 2 === 0 ? "md:flex-row-reverse" : ""}`}>
-                  <div className="absolute left-4 md:left-1/2 w-3 h-3 rounded-full bg-ocean border-2 border-background -translate-x-1.5 mt-1.5" />
-                  <div className={`ml-10 md:ml-0 md:w-[45%] ${i % 2 === 0 ? "md:pl-12" : "md:pr-12 md:text-right md:ml-auto"}`}>
-                    <span className="text-sm font-bold text-ocean">{m.year}</span>
-                    <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
-                    <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
+            {milestones.map((m, i) => {
+              const isEven = i % 2 === 0;
+              return (
+                <ScrollReveal key={m.year} delay={i * 0.1}>
+                  <div className="relative flex items-start mb-12 md:mb-16">
+                    {/* Dot */}
+                    <div className="absolute left-4 md:left-1/2 w-3 h-3 rounded-full bg-ocean border-2 border-background -translate-x-1.5 mt-1.5 z-10" />
+
+                    {/* Mobile: always right of dot */}
+                    <div className="ml-10 md:hidden">
+                      <span className="text-sm font-bold text-ocean">{m.year}</span>
+                      <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
+                      <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
+                    </div>
+
+                    {/* Desktop: alternating sides */}
+                    <div className="hidden md:grid md:grid-cols-2 w-full gap-8">
+                      {isEven ? (
+                        <>
+                          <div className="text-right pr-12">
+                            <span className="text-sm font-bold text-ocean">{m.year}</span>
+                            <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
+                            <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
+                          </div>
+                          <div />
+                        </>
+                      ) : (
+                        <>
+                          <div />
+                          <div className="pl-12">
+                            <span className="text-sm font-bold text-ocean">{m.year}</span>
+                            <h3 className="text-lg font-semibold text-foreground mt-1">{m.title}</h3>
+                            <p className="text-muted-foreground text-sm mt-2">{m.desc}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </ScrollReveal>
-            ))}
+                </ScrollReveal>
+              );
+            })}
           </div>
         </div>
       </section>
