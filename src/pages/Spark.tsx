@@ -1860,6 +1860,11 @@ const Spark = () => {
         ) : (
           <>
             {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
+            {isOwner && !isViewingOther && (
+              <div className="mb-5">
+                <RecommendedForYou variant="spark" maxItems={3} />
+              </div>
+            )}
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
