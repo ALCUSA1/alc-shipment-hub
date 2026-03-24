@@ -114,6 +114,8 @@ import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
 import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
 import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
 import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
+import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
+import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
 
 const queryClient = new QueryClient();
 
