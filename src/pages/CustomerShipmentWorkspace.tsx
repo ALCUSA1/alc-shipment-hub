@@ -755,47 +755,51 @@ const CustomerShipmentWorkspace = () => {
 };
 
 /* ── Customer Trucking Section ── */
-function CustomerTruckingSection({ pickups, leg, title }: { pickups: any[]; leg: string; title: string }) {
-  const legPickups = pickups.filter(p =>
-    leg === "origin" ? (p.leg_type === "origin" || p.leg_type === "pickup") : (p.leg_type === "destination" || p.leg_type === "delivery")
-  );
+function CustomerTruckingSection({ pickups }: { pickups: any[] }) {
+  if (pickups.length === 0) {
+    return (
+      <Card>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4 text-accent" />Trucking</CardTitle></CardHeader>
+        <CardContent>
+          <div className="text-center py-6">
+            <Truck className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No trucking service included for this shipment.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4 text-accent" />{title}</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4 text-accent" />Trucking</CardTitle></CardHeader>
       <CardContent>
-        {legPickups.length > 0 ? (
-          <div className="space-y-4">
-            {legPickups.map(pickup => (
-              <div key={pickup.id} className="rounded-lg border p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <Badge className={`text-[10px] ${
-                    pickup.status === "delivered" || pickup.status === "completed" ? "bg-emerald-100 text-emerald-700" :
-                    pickup.status === "en_route" || pickup.status === "in_progress" ? "bg-blue-100 text-blue-700" :
-                    pickup.status === "scheduled" ? "bg-accent/10 text-accent" :
-                    "bg-secondary text-muted-foreground"
-                  }`}>{fmt(pickup.status)}</Badge>
-                  {pickup.scheduled_date && (
-                    <p className="text-xs text-muted-foreground">{format(new Date(pickup.scheduled_date), "MMM d, yyyy")}</p>
-                  )}
-                </div>
-                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-                  {pickup.pickup_address && <InfoRow label={leg === "origin" ? "Pickup Address" : "Delivery Address"} value={pickup.pickup_address} />}
-                  {pickup.delivery_address && <InfoRow label="Delivery Address" value={pickup.delivery_address} />}
-                  {pickup.scheduled_date && <InfoRow label="Scheduled Date" value={format(new Date(pickup.scheduled_date), "MMM d, yyyy")} />}
-                  {pickup.completed_date && <InfoRow label="Completed Date" value={format(new Date(pickup.completed_date), "MMM d, yyyy")} />}
-                  {pickup.carrier_name && <InfoRow label="Trucker" value={pickup.carrier_name} />}
-                  {pickup.notes && <InfoRow label="Notes" value={pickup.notes} />}
-                </div>
+        <div className="space-y-4">
+          {pickups.map(pickup => (
+            <div key={pickup.id} className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-3">
+                <Badge className={`text-[10px] ${
+                  pickup.status === "delivered" || pickup.status === "completed" ? "bg-emerald-100 text-emerald-700" :
+                  pickup.status === "en_route" || pickup.status === "in_progress" ? "bg-blue-100 text-blue-700" :
+                  pickup.status === "scheduled" ? "bg-accent/10 text-accent" :
+                  "bg-secondary text-muted-foreground"
+                }`}>{fmt(pickup.status)}</Badge>
+                {pickup.pickup_date && (
+                  <p className="text-xs text-muted-foreground">{format(new Date(pickup.pickup_date), "MMM d, yyyy")}</p>
+                )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-6">
-            <Truck className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No {leg} trucking service included for this shipment.</p>
-          </div>
-        )}
+              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+                {pickup.pickup_location && <InfoRow label="Pickup Location" value={pickup.pickup_location} />}
+                {pickup.delivery_location && <InfoRow label="Delivery Location" value={pickup.delivery_location} />}
+                {pickup.pickup_date && <InfoRow label="Pickup Date" value={format(new Date(pickup.pickup_date), "MMM d, yyyy")} />}
+                {pickup.pickup_time && <InfoRow label="Pickup Time" value={pickup.pickup_time} />}
+                {pickup.driver_name && <InfoRow label="Driver" value={pickup.driver_name} />}
+                {pickup.container_type && <InfoRow label="Container" value={pickup.container_type} />}
+                {pickup.notes && <InfoRow label="Notes" value={pickup.notes} />}
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
