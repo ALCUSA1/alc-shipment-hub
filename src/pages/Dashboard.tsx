@@ -246,6 +246,11 @@ const Dashboard = () => {
         </Card>
       )}
 
+      {/* AI Recommendations */}
+      <div className="mb-8">
+        <RecommendedForYou variant="dashboard" maxItems={4} />
+      </div>
+
       {/* Metric Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {stats.map((s) => (
