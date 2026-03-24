@@ -91,9 +91,17 @@ const About = () => {
 
       {/* ═══ Hero ═══ */}
       <section className="relative bg-navy text-primary-foreground py-28 md:py-36 overflow-hidden">
-        {/* Gradient layers */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--electric)/0.25),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,hsl(var(--electric)/0.12),transparent_60%)]" />
+        {/* Animated gradient layers */}
+        <motion.div
+          animate={{ opacity: [0.2, 0.35, 0.2], scale: [1, 1.1, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--electric)/0.25),transparent_70%)]"
+        />
+        <motion.div
+          animate={{ opacity: [0.1, 0.2, 0.1], scale: [1, 1.15, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,hsl(var(--electric)/0.12),transparent_60%)]"
+        />
         {/* Dot pattern */}
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle, hsl(var(--primary-foreground)) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
