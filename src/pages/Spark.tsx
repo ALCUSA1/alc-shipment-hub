@@ -1699,8 +1699,6 @@ const Spark = () => {
           <CompanyDirectory onSelectCompany={handleSelectCompany} />
         ) : mainTab === "rfqs" && !isViewingOther ? (
           <MarketplaceTab />
-        ) : mainTab === "events" && !isViewingOther ? (
-          <EventsTab />
         ) : (
           <>
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
