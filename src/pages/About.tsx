@@ -306,9 +306,13 @@ const About = () => {
         />
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal>
-            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20"
+            >
               <Building2 className="w-7 h-7 text-electric" />
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Partner with ALC?</h2>
             <p className="text-primary-foreground/60 mb-10 max-w-xl mx-auto">
               Join hundreds of satisfied clients who trust ALC for their logistics needs. Let's discuss how we can optimize your supply chain and drive your business forward.
