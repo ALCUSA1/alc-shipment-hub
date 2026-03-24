@@ -218,6 +218,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-teal-50",
       textColor: "text-teal-700",
       iconColor: "text-teal-600",
+      sortOrder: 3,
     });
   }
 
