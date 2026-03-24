@@ -49,6 +49,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Clock,
             message: `${c.label} is approaching in ${Math.ceil(hoursLeft / 24)} days.`,
             severity: "warning",
+            priority: "attention_needed",
           });
         }
       }
