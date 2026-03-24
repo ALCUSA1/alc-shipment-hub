@@ -509,8 +509,8 @@ const Dashboard = () => {
         </motion.div>
       )}
 
-      {/* ═══ FINANCIAL SUMMARY ═══ */}
-      {!loading && !isEmpty && showFinancials && <SpendingSummary />}
+
+
 
       {/* Loading skeleton */}
       {loading && (
