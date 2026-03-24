@@ -30,6 +30,7 @@ import {
   Bookmark, ThumbsUp, PartyPopper, Rocket, UserCheck
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { RecommendedForYou } from "@/components/smart/RecommendedForYou";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
