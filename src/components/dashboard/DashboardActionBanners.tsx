@@ -137,6 +137,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-accent/5",
       textColor: "text-accent",
       iconColor: "text-accent",
+      sortOrder: 2,
     });
   }
 
