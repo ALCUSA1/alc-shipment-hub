@@ -36,10 +36,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const POST_TYPES = [
-  { value: "update", label: "Update", icon: Globe, color: "text-primary" },
+  { value: "update", label: "General Post", icon: Globe, color: "text-primary" },
+  { value: "shipment_update", label: "Shipment Update", icon: Ship, color: "text-sky-500" },
+  { value: "capacity_available", label: "Capacity Available", icon: Package, color: "text-emerald-500" },
+  { value: "shipment_request", label: "Shipment Request", icon: MapPinned, color: "text-orange-500" },
+  { value: "collaboration", label: "Collaboration Request", icon: Handshake, color: "text-violet-500" },
   { value: "promotion", label: "Promotion", icon: Megaphone, color: "text-amber-500" },
   { value: "rate_alert", label: "Rate Alert", icon: TrendingUp, color: "text-emerald-500" },
-  { value: "article", label: "Article", icon: Newspaper, color: "text-violet-500" },
 ];
 
 const EVENT_TYPES = [
@@ -840,11 +843,75 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
   );
 }
 
+/* ─── External Share Dialog ─── */
+function ExternalShareDialog({ open, onOpenChange, post }: { open: boolean; onOpenChange: (o: boolean) => void; post: any }) {
+  const shareUrl = `${window.location.origin}/dashboard/spark`;
+  const shareText = post.content?.slice(0, 200) || "Check out this post on Spark";
+  const postTypeLabel = POST_TYPES.find((t) => t.value === post.post_type)?.label || "Post";
+
+  const messageBody = `${postTypeLabel}: ${shareText}${post.content?.length > 200 ? "…" : ""}\n\nView on Spark: ${shareUrl}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    toast({ title: "Link copied to clipboard!" });
+    onOpenChange(false);
+  };
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  const shareSMS = () => {
+    window.open(`sms:?body=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  const shareEmail = () => {
+    const subject = `Spark: ${postTypeLabel} from ${post.company_name || post.author_name || "ALC Platform"}`;
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageBody)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Share2 className="h-4 w-4" /> Share Externally</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-3">
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={copyLink}>
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0"><ExternalLink className="h-4 w-4 text-foreground" /></div>
+            Copy Link
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareWhatsApp}>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><Phone className="h-4 w-4 text-emerald-600" /></div>
+            Share via WhatsApp
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareSMS}>
+            <div className="h-8 w-8 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0"><MessageCircle className="h-4 w-4 text-sky-600" /></div>
+            Share via SMS
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-12 text-sm" onClick={shareEmail}>
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Mail className="h-4 w-4 text-primary" /></div>
+            Share via Email
+          </Button>
+        </div>
+        <div className="bg-muted/40 rounded-lg p-3 mt-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Preview</p>
+          <p className="text-xs text-foreground line-clamp-3">{messageBody}</p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── Post Card ─── */
 function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentUserId: string; index: number; isAdmin?: boolean }) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [externalShareOpen, setExternalShareOpen] = useState(false);
 
   const { data: reactions = [] } = useQuery({
     queryKey: ["feed-reactions", post.id],
@@ -997,10 +1064,21 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
               onClick={() => setShowComments(!showComments)}>
               <MessageCircle className="h-3.5 w-3.5" /> Comment
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
-              onClick={() => sharePost.mutate()} disabled={sharePost.isPending}>
-              <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8">
+                  <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => sharePost.mutate()}>
+                  <Rocket className="h-4 w-4 mr-2" /> Share on Spark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setExternalShareOpen(true)}>
+                  <ExternalLink className="h-4 w-4 mr-2" /> Share Externally
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8 ml-auto"
               title="Bookmark">
               <Bookmark className="h-3.5 w-3.5" />
@@ -1035,6 +1113,7 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
             )}
           </AnimatePresence>
         </CardContent>
+        <ExternalShareDialog open={externalShareOpen} onOpenChange={setExternalShareOpen} post={post} />
       </Card>
     </motion.div>
   );

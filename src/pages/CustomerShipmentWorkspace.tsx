@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { BackButton } from "@/components/shared/BackButton";
@@ -16,6 +17,7 @@ import {
   MessageSquare, Activity, BarChart3, Ship, Plane, Truck,
   Shield, Download, Receipt, Eye, AlertTriangle, CheckCircle2,
   Anchor, Globe, Container, CalendarDays, RefreshCw, Info,
+  Share2, Sparkles, Phone, Mail, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,6 +102,64 @@ function StatusCard({ icon: Icon, label, status, color }: { icon: any; label: st
   );
 }
 
+/* ── Spark Share Dialog ── */
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
+
+function SparkShareDialog({ open, onOpenChange, shipment, onNavigateToSpark }: {
+  open: boolean; onOpenChange: (o: boolean) => void; shipment: any; onNavigateToSpark: () => void;
+}) {
+  const route = `${shipment.origin_port || "Origin"} → ${shipment.destination_port || "Destination"}`;
+  const ref = shipment.shipment_ref || shipment.id?.slice(0, 8);
+  const status = (shipment.lifecycle_stage || shipment.status || "").replace(/_/g, " ");
+  const shareText = `Shipment ${ref}: ${route}. Status: ${status}. ${shipment.eta ? `ETA: ${shipment.eta}` : ""}`.trim();
+  const shareUrl = `${window.location.origin}/dashboard/shipments/${shipment.id}/workspace`;
+
+  const copyLink = () => { navigator.clipboard.writeText(shareUrl); toast({ title: "Link copied!" }); onOpenChange(false); };
+  const openWA = () => { window.open(`https://wa.me/?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`, "_blank"); onOpenChange(false); };
+  const openSMS = () => { window.open(`sms:?body=${encodeURIComponent(shareText + "\n" + shareUrl)}`, "_blank"); onOpenChange(false); };
+  const openEmail = () => {
+    window.open(`mailto:?subject=${encodeURIComponent(`Shipment Update: ${ref}`)}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`, "_blank");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Share Shipment</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-3">
+          <Button variant="outline" className="w-full justify-start gap-3 h-11 text-sm" onClick={() => { onOpenChange(false); onNavigateToSpark(); }}>
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Sparkles className="h-3.5 w-3.5 text-primary" /></div>
+            Post on Spark
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-11 text-sm" onClick={copyLink}>
+            <div className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center shrink-0"><ExternalLink className="h-3.5 w-3.5 text-foreground" /></div>
+            Copy Link
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-11 text-sm" onClick={openWA}>
+            <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><Phone className="h-3.5 w-3.5 text-emerald-600" /></div>
+            WhatsApp
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-11 text-sm" onClick={openSMS}>
+            <div className="h-7 w-7 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0"><MessageSquare className="h-3.5 w-3.5 text-sky-600" /></div>
+            SMS
+          </Button>
+          <Button variant="outline" className="w-full justify-start gap-3 h-11 text-sm" onClick={openEmail}>
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Mail className="h-3.5 w-3.5 text-primary" /></div>
+            Email
+          </Button>
+        </div>
+        <div className="bg-muted/40 rounded-lg p-3">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Preview</p>
+          <p className="text-xs text-foreground">{shareText}</p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ── Main Component ── */
 const CustomerShipmentWorkspace = () => {
   const { id } = useParams();
@@ -107,6 +167,8 @@ const CustomerShipmentWorkspace = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  const [sparkShareOpen, setSparkShareOpen] = useState(false);
+  const navigate = useNavigate();
 
   /* ── Realtime ── */
   useEffect(() => {
@@ -320,9 +382,22 @@ const CustomerShipmentWorkspace = () => {
             <Button variant="electric" size="sm" onClick={() => setActiveTab("tracking")}>
               <Eye className="mr-2 h-3.5 w-3.5" />Track Shipment
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setSparkShareOpen(true)} className="gap-1.5">
+              <Sparkles className="h-3.5 w-3.5" />Share via Spark
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* ── SPARK SHARE DIALOG ── */}
+      {shipment && (
+        <SparkShareDialog
+          open={sparkShareOpen}
+          onOpenChange={setSparkShareOpen}
+          shipment={shipment}
+          onNavigateToSpark={() => navigate("/dashboard/spark")}
+        />
+      )}
 
       {/* ── ALERTS ── */}
       {alerts.length > 0 && (
