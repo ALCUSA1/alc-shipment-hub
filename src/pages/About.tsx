@@ -41,10 +41,10 @@ const About = () => {
 
       {/* Hero */}
       <section className="relative bg-navy text-primary-foreground py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--ocean)/0.25),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--electric)/0.25),transparent_70%)]" />
         <div className="max-w-5xl mx-auto px-6 relative z-10 text-center">
           <ScrollReveal>
-            <p className="text-sm font-semibold tracking-widest uppercase text-ocean mb-4">About ALC</p>
+            <p className="text-sm font-semibold tracking-widest uppercase text-electric mb-4">About ALC</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               All Logistics Cargo
             </h1>
@@ -61,7 +61,7 @@ const About = () => {
                 { stat: "99.8%", label: "Success Rate" },
               ].map((s) => (
                 <div key={s.label} className="text-center">
-                  <p className="text-3xl md:text-4xl font-bold text-ocean">{s.stat}</p>
+                  <p className="text-3xl md:text-4xl font-bold text-electric">{s.stat}</p>
                   <p className="text-xs text-primary-foreground/50 mt-1">{s.label}</p>
                 </div>
               ))}
@@ -107,10 +107,10 @@ const About = () => {
                 return (
                   <div key={m.year} className="relative">
                     <div className="flex items-start gap-4 md:hidden">
-                      <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
-                        <Icon className="h-4 w-4 text-ocean" />
+                      <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-electric/30 bg-background">
+                        <Icon className="h-4 w-4 text-electric" />
                       </div>
-                      <div className="flex-1 rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-6 text-white shadow-lg">
+                      <div className="flex-1 rounded-2xl bg-gradient-to-br from-electric to-electric/80 p-6 text-white shadow-lg">
                         <p className="text-2xl font-bold mb-1">{m.year}</p>
                         <h3 className="text-base font-bold mb-2">{m.title}</h3>
                         <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
@@ -120,19 +120,19 @@ const About = () => {
                     <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start md:gap-8">
                       <div>
                         {isEven ? (
-                          <div className="rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-8 text-white shadow-lg">
+                          <div className="rounded-2xl bg-gradient-to-br from-electric to-electric/80 p-8 text-white shadow-lg">
                             <p className="text-3xl font-bold mb-1">{m.year}</p>
                             <h3 className="text-lg font-bold mb-2">{m.title}</h3>
                             <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
                           </div>
                         ) : null}
                       </div>
-                      <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-ocean/30 bg-background">
-                        <Icon className="h-5 w-5 text-ocean" />
+                      <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-electric/30 bg-background">
+                        <Icon className="h-5 w-5 text-electric" />
                       </div>
                       <div>
                         {!isEven ? (
-                          <div className="rounded-2xl bg-gradient-to-br from-ocean to-ocean/80 p-8 text-white shadow-lg">
+                          <div className="rounded-2xl bg-gradient-to-br from-electric to-electric/80 p-8 text-white shadow-lg">
                             <p className="text-3xl font-bold mb-1">{m.year}</p>
                             <h3 className="text-lg font-bold mb-2">{m.title}</h3>
                             <p className="text-sm leading-relaxed text-white/80">{m.desc}</p>
@@ -152,7 +152,7 @@ const About = () => {
       <section className="py-20 md:py-28 bg-background">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <ScrollReveal>
-            <Rocket className="w-10 h-10 text-ocean mx-auto mb-4" />
+            <Rocket className="w-10 h-10 text-electric mx-auto mb-4" />
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Our Mission</h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
               To fix the fragmentation, inefficiency, and opacity in logistics by delivering simple, transparent, and technology-driven solutions that make global trade easier for every business.
@@ -171,7 +171,7 @@ const About = () => {
             {coreValues.map((v, i) => (
               <ScrollReveal key={v.title} delay={i * 0.08}>
                 <div className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow">
-                  <v.icon className="w-8 h-8 text-ocean mb-4" />
+                  <v.icon className="w-8 h-8 text-electric mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">{v.title}</h3>
                   <p className="text-muted-foreground text-sm">{v.desc}</p>
                 </div>
@@ -198,7 +198,7 @@ const About = () => {
                     <img src={l.img} alt={l.name} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">{l.name}</h3>
-                  <p className="text-sm text-ocean font-medium mb-3">{l.role}</p>
+                  <p className="text-sm text-electric font-medium mb-3">{l.role}</p>
                   <p className="text-muted-foreground text-sm leading-relaxed">{l.desc}</p>
                 </div>
               </ScrollReveal>
@@ -211,13 +211,13 @@ const About = () => {
       <section className="py-20 md:py-28 bg-navy text-primary-foreground">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <ScrollReveal>
-            <Building2 className="w-10 h-10 text-ocean mx-auto mb-4" />
+            <Building2 className="w-10 h-10 text-electric mx-auto mb-4" />
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Partner with ALC?</h2>
             <p className="text-primary-foreground/60 mb-8">
               Join hundreds of satisfied clients who trust ALC for their logistics needs. Let's discuss how we can optimize your supply chain and drive your business forward.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/signup" className="inline-flex items-center justify-center rounded-lg bg-ocean px-8 py-3 text-sm font-semibold text-white hover:bg-ocean/90 transition-colors">
+              <a href="/signup" className="inline-flex items-center justify-center rounded-lg bg-electric px-8 py-3 text-sm font-semibold text-white hover:bg-electric/90 transition-colors">
                 Start Partnership
               </a>
               <a href="/features" className="inline-flex items-center justify-center rounded-lg border border-primary-foreground/20 px-8 py-3 text-sm font-semibold hover:bg-primary-foreground/5 transition-colors">
