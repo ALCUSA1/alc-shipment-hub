@@ -91,9 +91,17 @@ const About = () => {
 
       {/* ═══ Hero ═══ */}
       <section className="relative bg-navy text-primary-foreground py-28 md:py-36 overflow-hidden">
-        {/* Gradient layers */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--electric)/0.25),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,hsl(var(--electric)/0.12),transparent_60%)]" />
+        {/* Animated gradient layers */}
+        <motion.div
+          animate={{ opacity: [0.2, 0.35, 0.2], scale: [1, 1.1, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,hsl(var(--electric)/0.25),transparent_70%)]"
+        />
+        <motion.div
+          animate={{ opacity: [0.1, 0.2, 0.1], scale: [1, 1.15, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,hsl(var(--electric)/0.12),transparent_60%)]"
+        />
         {/* Dot pattern */}
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "radial-gradient(circle, hsl(var(--primary-foreground)) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
@@ -213,9 +221,13 @@ const About = () => {
       <section className="relative py-20 md:py-28 bg-background overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal>
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20">
+            <motion.div
+              animate={{ boxShadow: ["0 0 0px hsl(var(--electric) / 0)", "0 0 30px hsl(var(--electric) / 0.3)", "0 0 0px hsl(var(--electric) / 0)"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20"
+            >
               <Rocket className="w-8 h-8 text-electric" />
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Our Mission</h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
               To fix the fragmentation, inefficiency, and opacity in logistics by delivering simple, transparent, and technology-driven solutions that make global trade easier for every business.
@@ -282,13 +294,25 @@ const About = () => {
 
       {/* ═══ CTA ═══ */}
       <section className="relative py-20 md:py-28 bg-navy text-primary-foreground overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,hsl(var(--electric)/0.2),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,hsl(var(--electric)/0.1),transparent_50%)]" />
+        <motion.div
+          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,hsl(var(--electric)/0.2),transparent_60%)]"
+        />
+        <motion.div
+          animate={{ x: [0, -20, 0], y: [0, 15, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,hsl(var(--electric)/0.1),transparent_50%)]"
+        />
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <ScrollReveal>
-            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-electric/10 ring-1 ring-electric/20"
+            >
               <Building2 className="w-7 h-7 text-electric" />
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Partner with ALC?</h2>
             <p className="text-primary-foreground/60 mb-10 max-w-xl mx-auto">
               Join hundreds of satisfied clients who trust ALC for their logistics needs. Let's discuss how we can optimize your supply chain and drive your business forward.
