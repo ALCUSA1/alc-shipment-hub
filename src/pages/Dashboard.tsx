@@ -198,7 +198,7 @@ const Dashboard = () => {
       </div>
 
       {/* Tasks & Alerts — Moved up, prominent */}
-      {!loading && hasAlerts && (
+      {!loading && hasAlerts && showAlerts && (
         <Card className="mb-6 border-yellow-200 dark:border-yellow-800/40 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
