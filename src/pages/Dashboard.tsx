@@ -145,11 +145,13 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Shipment lifecycle overview</p>
         </div>
-        <Button variant="electric" asChild>
-          <Link to="/dashboard/shipments/new">
-            <Plus className="mr-2 h-4 w-4" />Start a Shipment
-          </Link>
-        </Button>
+        {showCta && (
+          <Button variant="electric" asChild>
+            <Link to="/dashboard/shipments/new">
+              <Plus className="mr-2 h-4 w-4" />Start a Shipment
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Getting Started */}
