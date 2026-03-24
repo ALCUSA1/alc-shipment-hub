@@ -94,6 +94,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Anchor,
             message: `ETD is in ${daysToEtd} day${daysToEtd !== 1 ? "s" : ""} but no carrier booking exists yet.`,
             severity: "critical",
+            priority: "critical",
           });
         }
       }
