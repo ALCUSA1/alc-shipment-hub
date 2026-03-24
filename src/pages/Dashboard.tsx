@@ -15,7 +15,8 @@ import {
 import { motion } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  AreaChart, Area, CartesianGrid,
+  AreaChart, Area, CartesianGrid, Cell, RadialBarChart, RadialBar,
+  PieChart, Pie,
 } from "recharts";
 import { SpendingSummary } from "@/components/dashboard/SpendingSummary";
 
