@@ -594,7 +594,7 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
               shipmentType={shipmentType || mode || "fcl"}
               customerType={customerType}
               origin={originPort || ""}
-              destination={destPort || ""}
+              destination={destinationPort || ""}
             />
           </div>
 
