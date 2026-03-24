@@ -1116,7 +1116,7 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
   );
 }
 
-/* ─── RFQ Marketplace Tab ─── */
+/* ─── RFQ Tab ─── */
 function MarketplaceTab() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
