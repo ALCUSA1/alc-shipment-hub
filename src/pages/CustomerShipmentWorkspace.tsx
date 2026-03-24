@@ -258,13 +258,12 @@ const CustomerShipmentWorkspace = () => {
   const customsStatus = hasCustomsFiling
     ? (customsFilings || []).some(f => f.status === "accepted" || f.status === "itn_received") ? { status: "Cleared", color: "green" as const } : { status: "In Progress", color: "yellow" as const }
     : { status: "Not Required", color: "muted" as const };
-  const hasPickup = (truckPickups || []).some(p => p.leg_type === "origin" || p.leg_type === "pickup");
+  const hasPickup = (truckPickups || []).length > 0;
   const originPickupStatus = hasPickup
-    ? (truckPickups || []).some(p => (p.leg_type === "origin" || p.leg_type === "pickup") && p.status === "delivered") ? { status: "Completed", color: "green" as const } : { status: "Scheduled", color: "blue" as const }
+    ? (truckPickups || []).some(p => p.status === "delivered" || p.status === "completed") ? { status: "Completed", color: "green" as const } : { status: "Scheduled", color: "blue" as const }
     : { status: "N/A", color: "muted" as const };
   const transitStatus = currentStageIndex >= 6 ? { status: "Delivered", color: "green" as const } : currentStageIndex >= 5 ? { status: "In Transit", color: "blue" as const } : { status: "Awaiting", color: "muted" as const };
-  const hasDelivery = (truckPickups || []).some(p => p.leg_type === "destination" || p.leg_type === "delivery");
-  const deliveryStatus = currentStageIndex >= 6 ? { status: "Delivered", color: "green" as const } : hasDelivery ? { status: "Scheduled", color: "blue" as const } : { status: "Pending", color: "muted" as const };
+  const deliveryStatus = currentStageIndex >= 6 ? { status: "Delivered", color: "green" as const } : hasPickup ? { status: "Scheduled", color: "blue" as const } : { status: "Pending", color: "muted" as const };
 
   /* ── Alerts ── */
   const alerts: { type: "red" | "yellow" | "blue"; message: string }[] = [];
