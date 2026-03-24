@@ -81,6 +81,9 @@ const ForwarderQuotes = () => {
                     <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(q.created_at), "MMM d, yyyy")}
                     </TableCell>
+                    <TableCell>
+                      <QuoteShareActions quote={{ id: q.id, amount: q.amount, status: q.status, valid_until: q.valid_until, created_at: q.created_at }} />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
