@@ -25,10 +25,10 @@ const coreValues = [
 ];
 
 const leaders = [
-  { name: "Syed Hassan-Warsi", role: "CEO & Chairman", desc: "Leading ALC into digital transformation and growth. Driving evolution to a technology-driven NVOCC and Export Trading Company, focusing on innovation and customer partnerships." },
-  { name: "Michael Kuhfal", role: "Former Founder", desc: "Established ALC in 1996 on trust, integrity, and reliability. Built strong global relationships, ensuring customers receive personalized service." },
-  { name: "Paul Bishal", role: "Vice President, Operations", desc: "Oversees global operations, streamlining complex supply chains and ensuring compliance. Known for precision and efficiency." },
-  { name: "Ahad Hassan", role: "Operations Manager", desc: "Manages daily execution, scheduling, and compliance. Ensures timely and reliable shipments." },
+  { name: "Syed Hassan-Warsi", role: "CEO & Chairman", desc: "Leading ALC into digital transformation and growth. Driving evolution to a technology-driven NVOCC and Export Trading Company, focusing on innovation and customer partnerships.", img: syedImg },
+  { name: "Michael Kuhfal", role: "Former Founder", desc: "Established ALC in 1996 on trust, integrity, and reliability. Built strong global relationships, ensuring customers receive personalized service.", img: mikeImg },
+  { name: "Paul Bishal", role: "Vice President, Operations", desc: "Oversees global operations, streamlining complex supply chains and ensuring compliance. Known for precision and efficiency.", img: paulImg },
+  { name: "Ahad Hassan", role: "Operations Manager", desc: "Manages daily execution, scheduling, and compliance. Ensures timely and reliable shipments.", img: ahadImg },
 ];
 
 const About = () => {
