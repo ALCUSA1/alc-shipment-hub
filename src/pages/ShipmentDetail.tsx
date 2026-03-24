@@ -588,9 +588,19 @@ const ShipmentDetail = () => {
 
         {/* ── FINANCIALS TAB ── */}
         <TabsContent value="financials" className="mt-6 space-y-6">
-          <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
-          <ShipmentChargesPanel shipmentId={id!} />
-          <PaymentStatusCard shipmentId={id!} />
+          {isAdminOrInternal ? (
+            <>
+              <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
+              <ShipmentChargesPanel shipmentId={id!} />
+              <PaymentStatusCard shipmentId={id!} />
+            </>
+          ) : (
+            <CustomerFinancialsTab
+              shipmentId={id!}
+              shipmentRef={shipment.shipment_ref}
+              customerName={(shipment as any).companies?.company_name}
+            />
+          )}
         </TabsContent>
 
         {/* ── ACTIVITY LOG TAB ── */}
