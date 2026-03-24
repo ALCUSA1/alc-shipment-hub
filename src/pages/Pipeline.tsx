@@ -8,16 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PipelineCard, type PipelineItem } from "@/components/pipeline/PipelineCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Layers, DollarSign, Handshake, MessageSquare, CheckCircle2, Truck, PackageCheck,
-  Filter, Search, Sparkles, ArrowRight, TrendingUp, Eye, MessageCircle
+  Filter, Search, Sparkles, ArrowRight, TrendingUp, Eye, MessageCircle, Plus
 } from "lucide-react";
 
 /* ─── Stage definitions ─── */
@@ -39,20 +39,24 @@ const ALLOWED_MOVES: Record<string, string[]> = {
   completed: [],
 };
 
-/* ─── Demo seed data ─── */
-function seedPipeline(): PipelineItem[] {
-  return [
-    { id: "p1", ref: "OPP-001", type: "shipment", stage: "opportunity", route: "Shanghai → Los Angeles", customer: "Meridian Logistics", carrier: null, amount: null, date: new Date().toISOString(), link: "/dashboard/spark", status: "opportunity", meta: { title: "2x40HC China → LA", kind: "Shipment", volume: "2x40HC", timeline: "Apr 2026", estimatedEarnings: 1200 } },
-    { id: "p2", ref: "OPP-002", type: "shipment", stage: "opportunity", route: "Hamburg → New York", customer: "Apex Trade Co", carrier: null, amount: null, date: new Date().toISOString(), link: "/dashboard/spark", status: "opportunity", meta: { title: "1x20GP Germany → NY", kind: "Capacity", volume: "1x20GP", timeline: "May 2026", estimatedEarnings: 650 } },
-    { id: "p3", ref: "ENG-003", type: "shipment", stage: "engaged", route: "Ningbo → Savannah", customer: "Pacific Freight", carrier: null, amount: null, date: new Date().toISOString(), link: "/dashboard/spark", status: "engaged", meta: { title: "3x40HC Ningbo → SAV", kind: "Shipment", volume: "3x40HC", timeline: "Apr 2026", estimatedEarnings: 2100 } },
-    { id: "p4", ref: "DIS-004", type: "shipment", stage: "in_discussion", route: "Busan → Long Beach", customer: "Global Cargo Inc", carrier: "Evergreen", amount: 1800, date: new Date().toISOString(), link: "/dashboard/spark", status: "in_discussion", meta: { title: "1x40HC Korea → LB", kind: "Partnership", volume: "1x40HC", timeline: "May 2026", estimatedEarnings: 900 } },
-    { id: "p5", ref: "DEA-005", type: "shipment", stage: "deal_confirmed", route: "Yantian → Newark", customer: "Allied Shipping", carrier: "MSC", amount: 3200, date: new Date().toISOString(), link: "/dashboard/shipments", status: "deal_confirmed", meta: { title: "2x40HC Yantian → EWR", kind: "Shipment", volume: "2x40HC", timeline: "Apr 2026", confirmedEarnings: 1600 } },
-    { id: "p6", ref: "SHP-006", type: "shipment", stage: "booked", route: "Rotterdam → Houston", customer: "TransOcean Ltd", carrier: "Hapag-Lloyd", amount: 2800, date: new Date().toISOString(), link: "/dashboard/shipments/p6", status: "booked", meta: { title: "1x40HC Rotterdam → HOU", kind: "Shipment", volume: "1x40HC", timeline: "Mar 2026", confirmedEarnings: 1400 } },
-    { id: "p7", ref: "SHP-007", type: "shipment", stage: "completed", route: "Qingdao → Charleston", customer: "EastWest Logistics", carrier: "COSCO", amount: 2400, date: new Date().toISOString(), link: "/dashboard/shipments/p7", status: "completed", meta: { title: "2x20GP Qingdao → CHS", kind: "Shipment", volume: "2x20GP", timeline: "Feb 2026", paidEarnings: 1200 } },
-  ];
+interface DealRow {
+  id: string;
+  stage: string;
+  title: string;
+  company_name: string | null;
+  deal_type: string;
+  trade_lane: string | null;
+  volume: string | null;
+  timeline: string | null;
+  carrier: string | null;
+  estimated_earnings: number | null;
+  confirmed_earnings: number | null;
+  paid_earnings: number | null;
+  deal_amount: number | null;
+  created_at: string;
+  shipment_id: string | null;
 }
 
-/* ─── Filters ─── */
 interface Filters {
   search: string;
   status: string;
@@ -61,44 +65,72 @@ interface Filters {
 
 const Pipeline = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<PipelineItem[]>(seedPipeline);
+  const qc = useQueryClient();
   const [filters, setFilters] = useState<Filters>({ search: "", status: "all", tradeLane: "all" });
 
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      if (filters.status !== "all" && item.stage !== filters.status) return false;
-      if (filters.tradeLane !== "all" && !item.route.toLowerCase().includes(filters.tradeLane.toLowerCase())) return false;
+  const { data: deals = [], isLoading } = useQuery({
+    queryKey: ["pipeline-deals", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pipeline_deals")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as DealRow[];
+    },
+    enabled: !!user,
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: async ({ id, toStage }: { id: string; toStage: string }) => {
+      const { error } = await supabase
+        .from("pipeline_deals")
+        .update({ stage: toStage })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pipeline-deals"] });
+      toast.success("Stage updated");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const filteredDeals = useMemo(() => {
+    return deals.filter((d) => {
+      if (filters.status !== "all" && d.stage !== filters.status) return false;
+      if (filters.tradeLane !== "all" && d.trade_lane !== filters.tradeLane) return false;
       if (filters.search) {
         const q = filters.search.toLowerCase();
-        return item.customer?.toLowerCase().includes(q) || item.route.toLowerCase().includes(q) || item.ref.toLowerCase().includes(q) || item.meta?.title?.toLowerCase().includes(q);
+        return (d.company_name?.toLowerCase().includes(q) || d.trade_lane?.toLowerCase().includes(q) || d.title.toLowerCase().includes(q));
       }
       return true;
     });
-  }, [items, filters]);
+  }, [deals, filters]);
 
-  const stageItems = (key: string) => filteredItems.filter((i) => i.stage === key);
+  const stageItems = (key: string) => filteredDeals.filter((d) => d.stage === key);
 
   const handleDragEnd = (result: DropResult) => {
     const { draggableId, destination, source } = result;
     if (!destination || destination.droppableId === source.droppableId) return;
-    const item = items.find((i) => i.id === draggableId);
-    if (!item) return;
-    const allowed = ALLOWED_MOVES[item.stage] || [];
+    const deal = deals.find((d) => d.id === draggableId);
+    if (!deal) return;
+    const allowed = ALLOWED_MOVES[deal.stage] || [];
     if (!allowed.includes(destination.droppableId)) return;
-    setItems((prev) => prev.map((i) => (i.id === draggableId ? { ...i, stage: destination.droppableId, status: destination.droppableId } : i)));
+    moveMutation.mutate({ id: deal.id, toStage: destination.droppableId });
   };
 
-  const handleMove = (item: PipelineItem, toStage: string) => {
-    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, stage: toStage, status: toStage } : i)));
+  const handleMove = (deal: DealRow, toStage: string) => {
+    moveMutation.mutate({ id: deal.id, toStage });
   };
 
   /* Summary stats */
-  const totalActive = items.filter((i) => !["completed"].includes(i.stage)).length;
-  const inProgress = items.filter((i) => ["in_discussion", "deal_confirmed", "booked"].includes(i.stage)).length;
-  const completed = items.filter((i) => i.stage === "completed").length;
-  const totalEarnings = items.reduce((sum, i) => sum + (i.meta?.paidEarnings || i.meta?.confirmedEarnings || i.meta?.estimatedEarnings || 0), 0);
-
-  const tradeLanes = [...new Set(items.map((i) => i.route))];
+  const totalActive = deals.filter((d) => d.stage !== "completed").length;
+  const inProgress = deals.filter((d) => ["in_discussion", "deal_confirmed", "booked"].includes(d.stage)).length;
+  const completed = deals.filter((d) => d.stage === "completed").length;
+  const totalEarnings = deals.reduce((sum, d) => sum + (d.paid_earnings || d.confirmed_earnings || d.estimated_earnings || 0), 0);
+  const tradeLanes = [...new Set(deals.map((d) => d.trade_lane).filter(Boolean))] as string[];
 
   return (
     <DashboardLayout>
@@ -114,9 +146,7 @@ const Pipeline = () => {
             <p className="text-sm text-muted-foreground">Track opportunities from Spark all the way to completed shipments & earnings</p>
           </div>
           <Link to="/dashboard/earnings">
-            <Button variant="electric" size="sm" className="gap-1.5">
-              <DollarSign className="h-4 w-4" /> View Earnings
-            </Button>
+            <Button variant="electric" size="sm" className="gap-1.5"><DollarSign className="h-4 w-4" /> View Earnings</Button>
           </Link>
         </div>
 
@@ -163,7 +193,11 @@ const Pipeline = () => {
         </div>
 
         {/* Kanban Board */}
-        {filteredItems.length === 0 && !items.length ? (
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-64 w-full rounded-lg" />)}
+          </div>
+        ) : deals.length === 0 ? (
           <EmptyPipeline />
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -190,8 +224,8 @@ const Pipeline = () => {
                             </div>
                           ) : (
                             <div className="space-y-2">
-                              {cards.map((item, index) => (
-                                <Draggable key={item.id} draggableId={item.id} index={index}>
+                              {cards.map((deal, index) => (
+                                <Draggable key={deal.id} draggableId={deal.id} index={index}>
                                   {(dragProvided, dragSnapshot) => (
                                     <div
                                       ref={dragProvided.innerRef}
@@ -199,7 +233,7 @@ const Pipeline = () => {
                                       {...dragProvided.dragHandleProps}
                                       className={dragSnapshot.isDragging ? "opacity-80 rotate-1" : ""}
                                     >
-                                      <SparkPipelineCard item={item} onMove={handleMove} />
+                                      <DealCard deal={deal} onMove={handleMove} />
                                     </div>
                                   )}
                                 </Draggable>
@@ -221,12 +255,14 @@ const Pipeline = () => {
   );
 };
 
-/* ─── Pipeline Card (Spark-specific) ─── */
-function SparkPipelineCard({ item, onMove }: { item: PipelineItem; onMove: (item: PipelineItem, to: string) => void }) {
-  const transitions = ALLOWED_MOVES[item.stage] || [];
-  const earnings = item.meta?.paidEarnings || item.meta?.confirmedEarnings || item.meta?.estimatedEarnings || 0;
-  const earningsLabel = item.meta?.paidEarnings ? "Paid" : item.meta?.confirmedEarnings ? "Confirmed" : "Estimated";
-  const earningsColor = item.meta?.paidEarnings ? "text-green-600 dark:text-green-400" : item.meta?.confirmedEarnings ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground";
+/* ─── Deal Card ─── */
+function DealCard({ deal, onMove }: { deal: DealRow; onMove: (deal: DealRow, to: string) => void }) {
+  const transitions = ALLOWED_MOVES[deal.stage] || [];
+  const earnings = deal.paid_earnings || deal.confirmed_earnings || deal.estimated_earnings || 0;
+  const earningsLabel = deal.paid_earnings ? "Paid" : deal.confirmed_earnings ? "Confirmed" : "Estimated";
+  const earningsColor = deal.paid_earnings ? "text-green-600 dark:text-green-400" : deal.confirmed_earnings ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground";
+
+  const kindLabel = deal.deal_type === "capacity" ? "Capacity" : deal.deal_type === "partnership" ? "Partnership" : "Shipment";
 
   return (
     <motion.div
@@ -235,13 +271,14 @@ function SparkPipelineCard({ item, onMove }: { item: PipelineItem; onMove: (item
       className="border rounded-lg p-3 bg-card hover:shadow-md transition-shadow group"
     >
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-mono font-semibold text-foreground">{item.ref}</span>
-        <Badge variant="outline" className="text-[10px]">{item.meta?.kind || "Shipment"}</Badge>
+        <span className="text-xs font-mono font-semibold text-foreground truncate">{deal.title}</span>
+        <Badge variant="outline" className="text-[10px] shrink-0">{kindLabel}</Badge>
       </div>
-      {item.meta?.title && <p className="text-sm font-medium text-foreground mb-1">{item.meta.title}</p>}
-      <p className="text-xs text-muted-foreground mb-1">{item.route}</p>
-      {item.customer && <p className="text-xs text-foreground/80 truncate">{item.customer}</p>}
-      {item.meta?.volume && <p className="text-[10px] text-muted-foreground">{item.meta.volume} · {item.meta.timeline}</p>}
+      {deal.trade_lane && <p className="text-xs text-muted-foreground mb-1">{deal.trade_lane}</p>}
+      {deal.company_name && <p className="text-xs text-foreground/80 truncate">{deal.company_name}</p>}
+      {(deal.volume || deal.timeline) && (
+        <p className="text-[10px] text-muted-foreground">{[deal.volume, deal.timeline].filter(Boolean).join(" · ")}</p>
+      )}
 
       {/* Earnings */}
       <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
@@ -250,12 +287,8 @@ function SparkPipelineCard({ item, onMove }: { item: PipelineItem; onMove: (item
           <p className={`text-sm font-bold tabular-nums ${earningsColor}`}>${earnings.toLocaleString()}</p>
         </div>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-6 w-6" title="View Details">
-            <Eye className="h-3 w-3" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6" title="Message">
-            <MessageCircle className="h-3 w-3" />
-          </Button>
+          <Button variant="ghost" size="icon" className="h-6 w-6" title="View Details"><Eye className="h-3 w-3" /></Button>
+          <Button variant="ghost" size="icon" className="h-6 w-6" title="Message"><MessageCircle className="h-3 w-3" /></Button>
         </div>
       </div>
 
@@ -265,7 +298,7 @@ function SparkPipelineCard({ item, onMove }: { item: PipelineItem; onMove: (item
           variant="ghost"
           size="sm"
           className="w-full mt-2 text-xs text-accent hover:text-accent gap-1"
-          onClick={() => onMove(item, transitions[0])}
+          onClick={() => onMove(deal, transitions[0])}
         >
           Move to {STAGES.find((s) => s.key === transitions[0])?.label} <ArrowRight className="h-3 w-3" />
         </Button>
