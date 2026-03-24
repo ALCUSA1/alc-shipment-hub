@@ -29,6 +29,7 @@ const Documents = () => {
   const { user } = useAuth();
   const { generatePdf, generating } = useDocumentPdf();
   const [openShipments, setOpenShipments] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ["documents", user?.id],
