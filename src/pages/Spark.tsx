@@ -45,12 +45,6 @@ const POST_TYPES = [
   { value: "rate_alert", label: "Rate Alert", icon: TrendingUp, color: "text-emerald-500" },
 ];
 
-const EVENT_TYPES = [
-  { value: "webinar", label: "Webinar", icon: Video },
-  { value: "trade_show", label: "Trade Show", icon: Building2 },
-  { value: "announcement", label: "Announcement", icon: Megaphone },
-  { value: "networking", label: "Networking", icon: Users2 },
-];
 
 const REACTION_TYPES = [
   { type: "like", emoji: "❤️", icon: Heart, label: "Like" },
@@ -64,12 +58,11 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
   const { data: stats } = useQuery({
     queryKey: ["spark-stats"],
     queryFn: async () => {
-      const [companies, rfqs, events] = await Promise.all([
+      const [companies, rfqs] = await Promise.all([
         supabase.from("companies").select("id", { count: "exact", head: true }),
         supabase.from("rfq_posts").select("id", { count: "exact", head: true }).eq("status", "open"),
-        supabase.from("spark_events").select("id", { count: "exact", head: true }).gte("event_date", new Date().toISOString()),
       ]);
-      return { companies: companies.count || 0, rfqs: rfqs.count || 0, events: events.count || 0 };
+      return { companies: companies.count || 0, rfqs: rfqs.count || 0 };
     },
     staleTime: 60_000,
   });
@@ -77,7 +70,6 @@ function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
   const statItems = [
     { label: "Companies", value: stats?.companies || 0, icon: Building2 },
     { label: "Active RFQs", value: stats?.rfqs || 0, icon: ShoppingCart },
-    { label: "Upcoming Events", value: stats?.events || 0, icon: Calendar },
   ];
 
   return (
@@ -145,15 +137,6 @@ function TrendingSidebar() {
     staleTime: 30_000,
   });
 
-  const { data: eventCount = 0 } = useQuery({
-    queryKey: ["spark-trending-events"],
-    queryFn: async () => {
-      const { count } = await supabase.from("spark_events").select("id", { count: "exact", head: true })
-        .gte("event_date", new Date().toISOString());
-      return count || 0;
-    },
-    staleTime: 30_000,
-  });
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
@@ -182,13 +165,7 @@ function TrendingSidebar() {
               </div>
             </div>
           )}
-          {eventCount > 0 && (
-            <div className="flex items-center gap-2 text-xs bg-accent/5 border border-accent/10 rounded-lg px-3 py-2.5">
-              <Calendar className="h-3.5 w-3.5 text-accent" />
-              <span className="text-foreground font-medium"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
-            </div>
-          )}
-          {latestRfqs.length === 0 && eventCount === 0 && (
+          {latestRfqs.length === 0 && (
             <p className="text-xs text-muted-foreground/50 italic text-center py-3">No trending activity yet</p>
           )}
         </CardContent>
@@ -1558,260 +1535,6 @@ function MarketplaceTab() {
   );
 }
 
-/* ─── Events Tab ─── */
-function EventsTab() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [showCreate, setShowCreate] = useState(false);
-  const [filterType, setFilterType] = useState("all");
-
-  // Form
-  const [eTitle, setETitle] = useState("");
-  const [eDesc, setEDesc] = useState("");
-  const [eType, setEType] = useState("announcement");
-  const [eDate, setEDate] = useState("");
-  const [eLocation, setELocation] = useState("");
-  const [eVirtual, setEVirtual] = useState(false);
-  const [eRsvpLink, setERsvpLink] = useState("");
-
-  const { data: ownCompany } = useQuery({
-    queryKey: ["spark-own-company-events", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("companies").select("id, company_name").eq("user_id", user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ["spark-events", filterType],
-    queryFn: async () => {
-      let query = supabase.from("spark_events").select("*").order("event_date", { ascending: true, nullsFirst: false });
-      if (filterType !== "all") query = query.eq("event_type", filterType);
-      const { data } = await query.limit(50);
-      return data || [];
-    },
-  });
-
-  // RSVP counts
-  const eventIds = events.map((e: any) => e.id);
-  const { data: rsvpData = [] } = useQuery({
-    queryKey: ["spark-rsvps", eventIds.join(",")],
-    queryFn: async () => {
-      if (eventIds.length === 0) return [];
-      const { data } = await supabase.from("spark_event_rsvps").select("event_id, user_id").in("event_id", eventIds);
-      return data || [];
-    },
-    enabled: eventIds.length > 0,
-  });
-
-  const rsvpCounts = new Map<string, number>();
-  const myRsvps = new Set<string>();
-  rsvpData.forEach((r: any) => {
-    rsvpCounts.set(r.event_id, (rsvpCounts.get(r.event_id) || 0) + 1);
-    if (r.user_id === user?.id) myRsvps.add(r.event_id);
-  });
-
-  const createEvent = useMutation({
-    mutationFn: async () => {
-      await supabase.from("spark_events").insert({
-        user_id: user!.id, company_id: ownCompany?.id || null,
-        company_name: ownCompany?.company_name || null,
-        title: eTitle.trim(), description: eDesc.trim() || null,
-        event_type: eType, event_date: eDate || null,
-        location: eLocation.trim() || null, is_virtual: eVirtual,
-        rsvp_link: eRsvpLink.trim() || null,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["spark-events"] });
-      setShowCreate(false);
-      setETitle(""); setEDesc(""); setEDate(""); setELocation(""); setERsvpLink("");
-      toast({ title: "Event created!" });
-    },
-    onError: () => toast({ title: "Failed to create event", variant: "destructive" }),
-  });
-
-  const toggleRsvp = useMutation({
-    mutationFn: async (eventId: string) => {
-      if (myRsvps.has(eventId)) {
-        await supabase.from("spark_event_rsvps").delete().eq("event_id", eventId).eq("user_id", user!.id);
-      } else {
-        await supabase.from("spark_event_rsvps").insert({
-          event_id: eventId, user_id: user!.id,
-          company_name: ownCompany?.company_name || null,
-        });
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["spark-rsvps"] }),
-  });
-
-  const deleteEvent = useMutation({
-    mutationFn: async (eventId: string) => {
-      await supabase.from("spark_events").delete().eq("id", eventId);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["spark-events"] });
-      toast({ title: "Event deleted" });
-    },
-  });
-
-  const getEventIcon = (type: string) => {
-    const found = EVENT_TYPES.find((t) => t.value === type);
-    return found ? found.icon : Megaphone;
-  };
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[140px] h-9 text-xs border-border/50 bg-muted/30"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
-              {EVENT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button size="sm" className="gap-1.5 rounded-full px-5" onClick={() => setShowCreate(true)}>
-          <Plus className="h-4 w-4" /> Create Event
-        </Button>
-      </div>
-
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label className="text-xs mb-1.5 block">Title *</Label>
-              <Input value={eTitle} onChange={(e) => setETitle(e.target.value)} placeholder="Event name" className="h-9" maxLength={200} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs mb-1.5 block">Type</Label>
-                <Select value={eType} onValueChange={setEType}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {EVENT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs mb-1.5 block">Date</Label>
-                <Input type="datetime-local" value={eDate} onChange={(e) => setEDate(e.target.value)} className="h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs mb-1.5 block">Location</Label>
-                <Input value={eLocation} onChange={(e) => setELocation(e.target.value)} placeholder="City or venue" className="h-9" maxLength={200} />
-              </div>
-              <div className="flex items-end gap-2 pb-0.5">
-                <label className="flex items-center gap-2 text-xs cursor-pointer">
-                  <input type="checkbox" checked={eVirtual} onChange={(e) => setEVirtual(e.target.checked)}
-                    className="rounded border-border" />
-                  <Video className="h-3.5 w-3.5 text-muted-foreground" /> Virtual event
-                </label>
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs mb-1.5 block">RSVP Link (optional)</Label>
-              <Input value={eRsvpLink} onChange={(e) => setERsvpLink(e.target.value)} placeholder="https://…" className="h-9" maxLength={500} />
-            </div>
-            <div>
-              <Label className="text-xs mb-1.5 block">Description</Label>
-              <Textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder="Event details…" className="min-h-[60px]" maxLength={2000} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button disabled={!eTitle.trim() || createEvent.isPending} onClick={() => createEvent.mutate()} className="gap-1.5">
-              {createEvent.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />} Create Event
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
-      ) : events.length === 0 ? (
-        <Card className="border-dashed border-2 border-border/40">
-          <CardContent className="py-12 text-center">
-            <Calendar className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No events yet. Create the first one!</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {events.map((ev: any, i: number) => {
-            const EvIcon = getEventIcon(ev.event_type);
-            const count = rsvpCounts.get(ev.id) || 0;
-            const hasRsvp = myRsvps.has(ev.id);
-            const isOwner = ev.user_id === user?.id;
-            const isPast = ev.event_date && new Date(ev.event_date) < new Date();
-
-            return (
-              <motion.div key={ev.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Card className={`border-border/50 hover:shadow-md transition-all ${isPast ? "opacity-60" : ""}`}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <EvIcon className="h-4 w-4 text-primary" />
-                        </div>
-                        <Badge variant="secondary" className="text-[10px]">{EVENT_TYPES.find((t) => t.value === ev.event_type)?.label || ev.event_type}</Badge>
-                      </div>
-                      {isOwner && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteEvent.mutate(ev.id)}>
-                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
-                      )}
-                    </div>
-                    <h4 className="font-semibold text-foreground mb-1">{ev.title}</h4>
-                    {ev.company_name && <p className="text-xs text-muted-foreground mb-2">{ev.company_name}</p>}
-                    {ev.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{ev.description}</p>}
-                    <div className="space-y-1.5 mb-4">
-                      {ev.event_date && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Calendar className="h-3 w-3" /> {format(new Date(ev.event_date), "MMM d, yyyy 'at' h:mm a")}
-                        </p>
-                      )}
-                      {ev.location && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <MapPin className="h-3 w-3" /> {ev.location}
-                        </p>
-                      )}
-                      {ev.is_virtual && (
-                        <p className="text-xs text-primary flex items-center gap-1.5"><Video className="h-3 w-3" /> Virtual event</p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between border-t border-border/40 pt-3">
-                      <span className="text-xs text-muted-foreground">{count} attending</span>
-                      <div className="flex items-center gap-2">
-                        {ev.rsvp_link && (
-                          <a href={ev.rsvp_link} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" variant="outline" className="text-xs gap-1 h-8 rounded-full">
-                              <ExternalLink className="h-3 w-3" /> Link
-                            </Button>
-                          </a>
-                        )}
-                        <Button size="sm" variant={hasRsvp ? "secondary" : "default"}
-                          className={`text-xs gap-1 h-8 rounded-full ${hasRsvp ? "" : ""}`}
-                          onClick={() => toggleRsvp.mutate(ev.id)} disabled={toggleRsvp.isPending}>
-                          {hasRsvp ? <><Check className="h-3 w-3" /> Going</> : <><Plus className="h-3 w-3" /> RSVP</>}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ═══════════════════════════════════════
    ─── Main Page ───
    ═══════════════════════════════════════ */
@@ -1820,7 +1543,7 @@ const Spark = () => {
   const { companyId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mainTab, setMainTab] = useState<"page" | "directory" | "rfqs" | "events">("page");
+  const [mainTab, setMainTab] = useState<"page" | "directory" | "rfqs">("page");
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
   const isViewingOther = !!companyId;
@@ -1952,7 +1675,6 @@ const Spark = () => {
                     { value: "page", label: "My Page", icon: Building2 },
                     { value: "directory", label: "Explore", icon: Search },
                     { value: "rfqs", label: "RFQs", icon: Package },
-                    { value: "events", label: "Events", icon: Calendar },
                   ].map((tab) => (
                     <button key={tab.value}
                       onClick={() => setMainTab(tab.value as any)}
@@ -1975,8 +1697,6 @@ const Spark = () => {
           <CompanyDirectory onSelectCompany={handleSelectCompany} />
         ) : mainTab === "rfqs" && !isViewingOther ? (
           <MarketplaceTab />
-        ) : mainTab === "events" && !isViewingOther ? (
-          <EventsTab />
         ) : (
           <>
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
