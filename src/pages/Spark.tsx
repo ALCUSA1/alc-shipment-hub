@@ -1919,7 +1919,7 @@ const Spark = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
         {/* ── Page Header ── */}
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between mb-6">
