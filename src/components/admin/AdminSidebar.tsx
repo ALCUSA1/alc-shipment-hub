@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   GitBranch, FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3, CreditCard
+  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3, CreditCard, Calculator
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +32,7 @@ const navGroups = [
     label: "Finance & Sales",
     items: [
       { title: "Accounting", url: "/admin/accounting", icon: DollarSign },
+      { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
       { title: "Payment Settings", url: "/admin/payment-settings", icon: CreditCard },
       { title: "Rate Trends", url: "/admin/rate-trends", icon: TrendingUp },
       { title: "CRM", url: "/admin/crm", icon: Building2 },
