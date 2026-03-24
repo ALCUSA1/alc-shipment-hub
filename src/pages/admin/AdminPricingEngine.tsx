@@ -791,6 +791,16 @@ const AdminPricingEngine = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ── Pricing Rules Brain ── */}
+        <TabsContent value="brain" className="mt-0">
+          <PricingRulesBrainTab />
+        </TabsContent>
+
+        {/* ── Simulation ── */}
+        <TabsContent value="simulation" className="mt-0">
+          <SimulationPanel />
+        </TabsContent>
       </Tabs>
     </AdminLayout>
   );
