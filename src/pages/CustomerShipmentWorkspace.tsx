@@ -168,9 +168,19 @@ const CustomerShipmentWorkspace = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { role: companyRole } = useCompanyRole();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
   const [sparkShareOpen, setSparkShareOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Filter tabs based on company role
+  const visibleTabs = useMemo(() =>
+    CUSTOMER_TABS.filter(tab => canSeeTab(companyRole, tab.id as WorkspaceTab)),
+    [companyRole]
+  );
+  const canEdit = hasCapability(companyRole, "edit_shipment");
+  const canUploadDocs = hasCapability(companyRole, "upload_documents");
+  const isReadOnly = companyRole === "viewer";
 
   /* ── Realtime ── */
   useEffect(() => {
