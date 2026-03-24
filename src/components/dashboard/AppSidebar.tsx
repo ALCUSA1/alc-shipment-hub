@@ -47,6 +47,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { signOut, user } = useAuth();
   const { roles } = useUserRole();
+  const { role: companyRole } = useCompanyRole();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
