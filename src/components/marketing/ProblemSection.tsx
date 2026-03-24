@@ -1,14 +1,14 @@
-import { Mail, FileSpreadsheet, Clock, Search, AlertTriangle, Layers } from "lucide-react";
+import { Calculator, FileSpreadsheet, EyeOff, TrendingDown, Mail, Layers } from "lucide-react";
 import { ScrollReveal, StaggerContainer, staggerItemVariants } from "@/components/motion/ScrollReveal";
 import { motion } from "framer-motion";
 
 const problems = [
-  { icon: Mail, text: "Shippers coordinate freight, trucking, and warehouses through scattered email threads." },
-  { icon: FileSpreadsheet, text: "Trucking companies receive pickup instructions by phone with incomplete details." },
-  { icon: Search, text: "Warehouse teams lack structured cargo arrival and release instructions." },
-  { icon: Clock, text: "Freight quote requests require extensive back and forth communication." },
-  { icon: AlertTriangle, text: "Shipment updates arrive inconsistently from different logistics parties." },
-  { icon: Layers, text: "No centralized workspace exists to coordinate all logistics operations." },
+  { icon: Calculator, text: "Pricing is manual and inconsistent — every quote starts from scratch." },
+  { icon: FileSpreadsheet, text: "Costs are spread across spreadsheets, emails, and disconnected systems." },
+  { icon: EyeOff, text: "Margins are unclear — teams don't know true profitability until it's too late." },
+  { icon: TrendingDown, text: "Profit leakage happens silently through hidden fees and missed surcharges." },
+  { icon: Mail, text: "Too much back-and-forth between shippers, carriers, and partners." },
+  { icon: Layers, text: "No single system connects pricing, operations, and financial visibility." },
 ];
 
 export function ProblemSection() {
@@ -18,10 +18,10 @@ export function ProblemSection() {
         <ScrollReveal>
           <p className="text-sm font-medium text-accent mb-4 tracking-wide uppercase">The Problem</p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Shipment coordination is fragmented.
+            Most logistics teams don't know their true cost before quoting.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mb-16">
-            Logistics parties operate in silos, creating delays and miscommunication across the supply chain.
+            Without real-time cost visibility, every shipment is a margin gamble.
           </p>
         </ScrollReveal>
 

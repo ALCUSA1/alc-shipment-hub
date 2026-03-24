@@ -1,16 +1,15 @@
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { HeroSection } from "@/components/marketing/HeroSection";
+import { PricingEngineSection } from "@/components/marketing/PricingEngineSection";
 import { TrustedBySection } from "@/components/marketing/TrustedBySection";
 import { PlatformStatsSection } from "@/components/marketing/PlatformStatsSection";
 import { ProblemSection } from "@/components/marketing/ProblemSection";
-import { CategorySection } from "@/components/marketing/CategorySection";
-import { BeforeAfterSection } from "@/components/marketing/BeforeAfterSection";
-import { IndustriesSection } from "@/components/marketing/IndustriesSection";
+import { SolutionSection } from "@/components/marketing/SolutionSection";
 import { WorkflowSection } from "@/components/marketing/WorkflowSection";
-import { ServiceAssuranceSection } from "@/components/marketing/ServiceAssuranceSection";
+import { ShipmentWorkspaceSection } from "@/components/marketing/ShipmentWorkspaceSection";
+import { ProfitVisibilitySection } from "@/components/marketing/ProfitVisibilitySection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
-import { FocusLanesSection } from "@/components/marketing/FocusLanesSection";
-import { PartnerAccessSection } from "@/components/marketing/PartnerAccessSection";
+import { NetworkSection } from "@/components/marketing/NetworkSection";
 import { SecuritySection } from "@/components/marketing/SecuritySection";
 import { CTASection } from "@/components/marketing/CTASection";
 import { SEO } from "@/components/SEO";
@@ -19,22 +18,21 @@ const Index = () => {
   return (
     <MarketingLayout>
       <SEO
-        title="ALC Shipper Portal — Freight, Trucking & Warehouse Coordination"
-        description="Coordinate freight, trucking, warehouses, documents, and shipment tracking across all logistics parties in one modern workspace."
+        title="ALC Shipper Portal — Price, Manage & Profit from Every Shipment"
+        description="Turn carrier rates into profitable quotes, coordinate execution, and track margins — all in one logistics operating system."
         canonical="https://alcshipper.com/"
       />
       <HeroSection />
+      <PricingEngineSection />
       <TrustedBySection />
-      <PlatformStatsSection />
       <ProblemSection />
-      <CategorySection />
-      <BeforeAfterSection />
-      <IndustriesSection />
+      <SolutionSection />
       <WorkflowSection />
-      <ServiceAssuranceSection />
+      <ShipmentWorkspaceSection />
+      <ProfitVisibilitySection />
+      <PlatformStatsSection />
       <FeaturesSection />
-      <FocusLanesSection />
-      <PartnerAccessSection />
+      <NetworkSection />
       <SecuritySection />
       <CTASection />
     </MarketingLayout>
