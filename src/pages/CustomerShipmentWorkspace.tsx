@@ -324,9 +324,22 @@ const CustomerShipmentWorkspace = () => {
             <Button variant="electric" size="sm" onClick={() => setActiveTab("tracking")}>
               <Eye className="mr-2 h-3.5 w-3.5" />Track Shipment
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setSparkShareOpen(true)} className="gap-1.5">
+              <Sparkles className="h-3.5 w-3.5" />Share via Spark
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* ── SPARK SHARE DIALOG ── */}
+      {s && (
+        <SparkShareDialog
+          open={sparkShareOpen}
+          onOpenChange={setSparkShareOpen}
+          shipment={s}
+          onNavigateToSpark={() => navigate("/dashboard/spark")}
+        />
+      )}
 
       {/* ── ALERTS ── */}
       {alerts.length > 0 && (
