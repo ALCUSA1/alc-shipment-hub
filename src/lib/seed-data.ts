@@ -176,6 +176,58 @@ export async function autoSeedIfEmpty(userId: string) {
 
   await supabase.from("shipment_financials").insert(financialEntries);
 
+  // --- Shipment Charges (customer-facing charges for CustomerFinancialsTab) ---
+  const chargeEntries = insertedShipments.flatMap((s, i) => {
+    const freightAmt = [3200, 2800, 5600, 2400, 4200, 1800, 5200, 1600, 3000, 4800][i] || 3000;
+    const terminalAmt = [450, 350, 600, 280, 380, 220, 520, 180, 320, 420][i] || 300;
+    const docAmt = [75, 75, 75, 75, 75, 75, 75, 75, 75, 75][i];
+    const charges: any[] = [
+      { shipment_id: s.id, charge_type: "freight", description: `${s.mode === "air" ? "Air" : "Ocean"} freight`, amount: freightAmt, currency: "USD", who_pays: "shipper", payment_status: ["booked", "in_transit", "arrived", "delivered"].includes(s.status) ? "paid" : "unpaid" },
+      { shipment_id: s.id, charge_type: "terminal", description: "Terminal handling charge", amount: terminalAmt, currency: "USD", who_pays: "shipper", payment_status: s.status === "delivered" ? "paid" : "unpaid" },
+      { shipment_id: s.id, charge_type: "documentation", description: "Documentation & processing", amount: docAmt, currency: "USD", who_pays: "shipper", payment_status: "unpaid" },
+    ];
+    if (i % 3 === 0) {
+      charges.push({ shipment_id: s.id, charge_type: "customs", description: "Customs clearance", amount: 150, currency: "USD", who_pays: "shipper", payment_status: "unpaid" });
+    }
+    if (i % 4 === 0) {
+      charges.push({ shipment_id: s.id, charge_type: "insurance", description: "Cargo insurance premium", amount: 220, currency: "USD", who_pays: "shipper", payment_status: "unpaid" });
+    }
+    return charges;
+  });
+
+  await supabase.from("shipment_charges").insert(chargeEntries);
+
+  // --- Tracking Events (for shipment workspace milestones) ---
+  const trackingEntries = insertedShipments.flatMap((s, i) => {
+    const events: any[] = [
+      { shipment_id: s.id, milestone: "request_created", location: s.origin_port || "Origin", event_date: format(subDays(now, 40 - i * 3), "yyyy-MM-dd'T'HH:mm:ss"), source: "system" },
+    ];
+    if (["booked", "in_transit", "arrived", "delivered"].includes(s.status)) {
+      events.push(
+        { shipment_id: s.id, milestone: "pricing_completed", location: s.origin_port || "Origin", event_date: format(subDays(now, 38 - i * 3), "yyyy-MM-dd'T'HH:mm:ss"), source: "system" },
+        { shipment_id: s.id, milestone: "booking_confirmed", location: s.origin_port || "Origin", event_date: format(subDays(now, 35 - i * 3), "yyyy-MM-dd'T'HH:mm:ss"), source: "carrier" },
+      );
+    }
+    if (["in_transit", "arrived", "delivered"].includes(s.status)) {
+      events.push(
+        { shipment_id: s.id, milestone: "departed", location: s.origin_port || "Origin", event_date: format(subDays(now, 30 - i * 3), "yyyy-MM-dd'T'HH:mm:ss"), source: "carrier" },
+      );
+    }
+    if (["arrived", "delivered"].includes(s.status)) {
+      events.push(
+        { shipment_id: s.id, milestone: "arrived_destination", location: s.destination_port || "Destination", event_date: format(subDays(now, 10 - i), "yyyy-MM-dd'T'HH:mm:ss"), source: "carrier" },
+      );
+    }
+    if (s.status === "delivered") {
+      events.push(
+        { shipment_id: s.id, milestone: "delivered", location: s.destination_port || "Destination", event_date: format(subDays(now, 5 - i), "yyyy-MM-dd'T'HH:mm:ss"), source: "system" },
+      );
+    }
+    return events;
+  });
+
+  await supabase.from("tracking_events").insert(trackingEntries);
+
   // --- Leads (Pipeline) ---
   const leads = [
     { full_name: "Sarah Chen", company_name: "Shenzhen Electronics Co.", email: "schen@szelectronics.cn", phone: "+86-755-555-0101", stage: "qualified", score: 85, source: "referral", notes: "Interested in regular ocean FCL from Shenzhen to LA" },
