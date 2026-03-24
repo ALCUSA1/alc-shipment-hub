@@ -564,6 +564,26 @@ const ShipmentDetail = () => {
           <AiShipmentAssistant shipmentContext={shipmentContext} />
         </TabsContent>
 
+        {/* ── MESSAGES TAB ── */}
+        <TabsContent value="messages" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-accent" />
+                Shipment Messages
+              </CardTitle>
+              <CardDescription>Communication thread for this shipment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <MessageSquare className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">No messages yet</p>
+                <p className="text-xs text-muted-foreground">Use the chat drawer to start a conversation about this shipment.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* ── FINANCIALS TAB ── */}
         <TabsContent value="financials" className="mt-6 space-y-6">
           <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
