@@ -17,6 +17,7 @@ import {
   MessageSquare, Activity, BarChart3, Ship, Plane, Truck,
   Shield, Download, Receipt, Eye, AlertTriangle, CheckCircle2,
   Anchor, Globe, Container, CalendarDays, RefreshCw, Info,
+  Share2, Sparkles, Phone, Mail, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
