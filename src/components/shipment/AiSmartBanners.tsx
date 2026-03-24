@@ -78,6 +78,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: CreditCard,
           message: "Payment has not been collected yet — shipment is already in transit.",
           severity: "warning",
+          priority: "urgent",
         });
       }
     }
