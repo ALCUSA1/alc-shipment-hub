@@ -31,6 +31,7 @@ const navGroups = [
       { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
       { title: "Pipeline", url: "/dashboard/pipeline", icon: Layers },
       { title: "Spark", url: "/dashboard/spark", icon: Megaphone },
+      { title: "Opportunities", url: "/dashboard/opportunities", icon: Target },
       { title: "Earnings", url: "/dashboard/earnings", icon: Wallet },
     ],
   },

@@ -160,6 +160,7 @@ const App = () => (
             <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
             <Route path="/dashboard/spark" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
             <Route path="/dashboard/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
+            <Route path="/dashboard/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
