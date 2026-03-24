@@ -241,6 +241,8 @@ const AdminPricingEngine = () => {
             { value: "calculator", label: "Calculator", icon: Calculator },
             { value: "rules", label: "Margin Rules", icon: Target },
             { value: "splits", label: "Revenue Split Rules", icon: Users },
+            { value: "brain", label: "Pricing Rules Brain", icon: Brain },
+            { value: "simulation", label: "Simulation", icon: Play },
           ].map(tab => (
             <TabsTrigger
               key={tab.value}
