@@ -416,6 +416,72 @@ export type Database = {
         }
         Relationships: []
       }
+      approvals: {
+        Row: {
+          approval_type: string
+          assigned_to_user_id: string | null
+          company_id: string
+          created_at: string
+          decided_at: string | null
+          decision_note: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reason_note: string | null
+          requested_at: string
+          requested_by_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approval_type: string
+          assigned_to_user_id?: string | null
+          company_id: string
+          created_at?: string
+          decided_at?: string | null
+          decision_note?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason_note?: string | null
+          requested_at?: string
+          requested_by_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approval_type?: string
+          assigned_to_user_id?: string | null
+          company_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decision_note?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason_note?: string | null
+          requested_at?: string
+          requested_by_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -1016,6 +1082,60 @@ export type Database = {
           },
           {
             foreignKeyName: "company_documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          invited_at: string | null
+          is_active: boolean
+          joined_at: string | null
+          role: Database["public"]["Enums"]["company_role"]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["company_role"]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "company_directory"
@@ -2082,6 +2202,69 @@ export type Database = {
           },
         ]
       }
+      fixed_cost_profiles: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          fixed_cost_per_shipment: number | null
+          id: string
+          monthly_marketing_cost: number
+          monthly_office_cost: number
+          monthly_shipment_volume: number
+          monthly_software_cost: number
+          monthly_team_cost: number
+          monthly_tech_cost: number
+          profile_name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          fixed_cost_per_shipment?: number | null
+          id?: string
+          monthly_marketing_cost?: number
+          monthly_office_cost?: number
+          monthly_shipment_volume?: number
+          monthly_software_cost?: number
+          monthly_team_cost?: number
+          monthly_tech_cost?: number
+          profile_name?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          fixed_cost_per_shipment?: number | null
+          id?: string
+          monthly_marketing_cost?: number
+          monthly_office_cost?: number
+          monthly_shipment_volume?: number
+          monthly_software_cost?: number
+          monthly_team_cost?: number
+          monthly_tech_cost?: number
+          profile_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_cost_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_cost_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forwarder_customers: {
         Row: {
           accepted_at: string | null
@@ -2713,6 +2896,299 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_cost_lines: {
+        Row: {
+          amount: number
+          cost_category: string
+          cost_type: string
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          pricing_scenario_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          cost_category: string
+          cost_type: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_scenario_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cost_category?: string
+          cost_type?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          pricing_scenario_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_cost_lines_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_outputs: {
+        Row: {
+          break_even_price: number
+          contribution_margin_percent: number
+          contribution_profit: number
+          created_at: string
+          fixed_cost_per_shipment: number
+          gross_margin_percent: number
+          gross_profit: number
+          id: string
+          minimum_acceptable_sell_price: number
+          net_margin_percent: number
+          net_profit: number
+          pricing_scenario_id: string
+          recommended_sell_price: number
+          stretch_sell_price: number
+          total_direct_cost: number
+          total_network_payout_cost: number
+          total_variable_cost: number
+          true_total_cost: number
+          updated_at: string
+        }
+        Insert: {
+          break_even_price?: number
+          contribution_margin_percent?: number
+          contribution_profit?: number
+          created_at?: string
+          fixed_cost_per_shipment?: number
+          gross_margin_percent?: number
+          gross_profit?: number
+          id?: string
+          minimum_acceptable_sell_price?: number
+          net_margin_percent?: number
+          net_profit?: number
+          pricing_scenario_id: string
+          recommended_sell_price?: number
+          stretch_sell_price?: number
+          total_direct_cost?: number
+          total_network_payout_cost?: number
+          total_variable_cost?: number
+          true_total_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          break_even_price?: number
+          contribution_margin_percent?: number
+          contribution_profit?: number
+          created_at?: string
+          fixed_cost_per_shipment?: number
+          gross_margin_percent?: number
+          gross_profit?: number
+          id?: string
+          minimum_acceptable_sell_price?: number
+          net_margin_percent?: number
+          net_profit?: number
+          pricing_scenario_id?: string
+          recommended_sell_price?: number
+          stretch_sell_price?: number
+          total_direct_cost?: number
+          total_network_payout_cost?: number
+          total_variable_cost?: number
+          true_total_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_outputs_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: true
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_rules: {
+        Row: {
+          active: boolean
+          capacity_loose_adjustment: number
+          capacity_normal_adjustment: number
+          capacity_tight_adjustment: number
+          company_id: string
+          competition_high_adjustment: number
+          competition_low_adjustment: number
+          competition_normal_adjustment: number
+          created_at: string
+          high_volume_customer_adjustment: number
+          id: string
+          minimum_margin_percent: number
+          shipment_type: string
+          stretch_margin_percent: number
+          target_margin_percent: number
+          updated_at: string
+          urgency_priority_adjustment: number
+          urgency_standard_adjustment: number
+          urgency_urgent_adjustment: number
+        }
+        Insert: {
+          active?: boolean
+          capacity_loose_adjustment?: number
+          capacity_normal_adjustment?: number
+          capacity_tight_adjustment?: number
+          company_id: string
+          competition_high_adjustment?: number
+          competition_low_adjustment?: number
+          competition_normal_adjustment?: number
+          created_at?: string
+          high_volume_customer_adjustment?: number
+          id?: string
+          minimum_margin_percent?: number
+          shipment_type: string
+          stretch_margin_percent?: number
+          target_margin_percent?: number
+          updated_at?: string
+          urgency_priority_adjustment?: number
+          urgency_standard_adjustment?: number
+          urgency_urgent_adjustment?: number
+        }
+        Update: {
+          active?: boolean
+          capacity_loose_adjustment?: number
+          capacity_normal_adjustment?: number
+          capacity_tight_adjustment?: number
+          company_id?: string
+          competition_high_adjustment?: number
+          competition_low_adjustment?: number
+          competition_normal_adjustment?: number
+          created_at?: string
+          high_volume_customer_adjustment?: number
+          id?: string
+          minimum_margin_percent?: number
+          shipment_type?: string
+          stretch_margin_percent?: number
+          target_margin_percent?: number
+          updated_at?: string
+          urgency_priority_adjustment?: number
+          urgency_standard_adjustment?: number
+          urgency_urgent_adjustment?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_scenarios: {
+        Row: {
+          adjustment_percent: number | null
+          approved_at: string | null
+          approved_by_user_id: string | null
+          base_margin_percent: number | null
+          company_id: string
+          created_at: string
+          created_by_user_id: string
+          final_margin_percent: number | null
+          first_shipment_discount_amount: number | null
+          id: string
+          is_active: boolean
+          is_selected: boolean
+          manual_override: boolean
+          minimum_margin_percent: number | null
+          override_reason: string | null
+          pricing_status: string
+          scenario_name: string
+          shipment_id: string
+          shipment_type: string | null
+          stretch_margin_percent: number | null
+          updated_at: string
+        }
+        Insert: {
+          adjustment_percent?: number | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          base_margin_percent?: number | null
+          company_id: string
+          created_at?: string
+          created_by_user_id: string
+          final_margin_percent?: number | null
+          first_shipment_discount_amount?: number | null
+          id?: string
+          is_active?: boolean
+          is_selected?: boolean
+          manual_override?: boolean
+          minimum_margin_percent?: number | null
+          override_reason?: string | null
+          pricing_status?: string
+          scenario_name?: string
+          shipment_id: string
+          shipment_type?: string | null
+          stretch_margin_percent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          adjustment_percent?: number | null
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          base_margin_percent?: number | null
+          company_id?: string
+          created_at?: string
+          created_by_user_id?: string
+          final_margin_percent?: number | null
+          first_shipment_discount_amount?: number | null
+          id?: string
+          is_active?: boolean
+          is_selected?: boolean
+          manual_override?: boolean
+          minimum_margin_percent?: number | null
+          override_reason?: string | null
+          pricing_status?: string
+          scenario_name?: string
+          shipment_id?: string
+          shipment_type?: string | null
+          stretch_margin_percent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_scenarios_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pricing_scenarios_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           about: string | null
@@ -2966,6 +3442,125 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      revenue_split_rules: {
+        Row: {
+          active: boolean
+          company_id: string
+          created_at: string
+          default_collaboration_percent: number
+          default_platform_percent: number
+          default_referral_percent: number
+          id: string
+          minimum_platform_retained_profit: number | null
+          shipment_type: string | null
+          split_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id: string
+          created_at?: string
+          default_collaboration_percent?: number
+          default_platform_percent?: number
+          default_referral_percent?: number
+          id?: string
+          minimum_platform_retained_profit?: number | null
+          shipment_type?: string | null
+          split_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          created_at?: string
+          default_collaboration_percent?: number
+          default_platform_percent?: number
+          default_referral_percent?: number
+          id?: string
+          minimum_platform_retained_profit?: number | null
+          shipment_type?: string | null
+          split_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_split_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_split_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_splits: {
+        Row: {
+          collaboration_amount: number
+          collaboration_percent: number
+          created_at: string
+          id: string
+          margin_pool_amount: number
+          network_amount: number
+          network_percent: number
+          platform_amount: number
+          platform_percent: number
+          pricing_scenario_id: string
+          referral_amount: number
+          referral_percent: number
+          retained_platform_profit: number
+          split_type: string
+          updated_at: string
+        }
+        Insert: {
+          collaboration_amount?: number
+          collaboration_percent?: number
+          created_at?: string
+          id?: string
+          margin_pool_amount?: number
+          network_amount?: number
+          network_percent?: number
+          platform_amount?: number
+          platform_percent?: number
+          pricing_scenario_id: string
+          referral_amount?: number
+          referral_percent?: number
+          retained_platform_profit?: number
+          split_type?: string
+          updated_at?: string
+        }
+        Update: {
+          collaboration_amount?: number
+          collaboration_percent?: number
+          created_at?: string
+          id?: string
+          margin_pool_amount?: number
+          network_amount?: number
+          network_percent?: number
+          platform_amount?: number
+          platform_percent?: number
+          pricing_scenario_id?: string
+          referral_amount?: number
+          referral_percent?: number
+          retained_platform_profit?: number
+          split_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_splits_pricing_scenario_id_fkey"
+            columns: ["pricing_scenario_id"]
+            isOneToOne: true
+            referencedRelation: "pricing_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rfq_bids: {
         Row: {
@@ -3339,6 +3934,64 @@ export type Database = {
           },
         ]
       }
+      shipment_messages: {
+        Row: {
+          attachment_json: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          message_body: string
+          sender_user_id: string
+          shipment_id: string
+          updated_at: string
+          visibility_scope: string
+        }
+        Insert: {
+          attachment_json?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          message_body: string
+          sender_user_id: string
+          shipment_id: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Update: {
+          attachment_json?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          message_body?: string
+          sender_user_id?: string
+          shipment_id?: string
+          updated_at?: string
+          visibility_scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_milestones: {
         Row: {
           completed_by: string | null
@@ -3576,6 +4229,53 @@ export type Database = {
           },
         ]
       }
+      shipment_services: {
+        Row: {
+          additional_services_json: Json | null
+          created_at: string
+          customs_clearance: boolean
+          id: string
+          insurance: boolean
+          shipment_id: string
+          special_handling: boolean
+          trucking: boolean
+          updated_at: string
+          warehousing: boolean
+        }
+        Insert: {
+          additional_services_json?: Json | null
+          created_at?: string
+          customs_clearance?: boolean
+          id?: string
+          insurance?: boolean
+          shipment_id: string
+          special_handling?: boolean
+          trucking?: boolean
+          updated_at?: string
+          warehousing?: boolean
+        }
+        Update: {
+          additional_services_json?: Json | null
+          created_at?: string
+          customs_clearance?: boolean
+          id?: string
+          insurance?: boolean
+          shipment_id?: string
+          special_handling?: boolean
+          trucking?: boolean
+          updated_at?: string
+          warehousing?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_services_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: true
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_templates: {
         Row: {
           cargo: Json | null
@@ -3661,10 +4361,14 @@ export type Database = {
           airline: string | null
           airport_of_departure: string | null
           airport_of_destination: string | null
+          archived_at: string | null
+          assigned_ops_user_id: string | null
+          assigned_pricing_user_id: string | null
           available_for_pickup_date: string | null
           booking_confirmed_date: string | null
           booking_ref: string | null
           booking_terms: string | null
+          capacity_condition: string | null
           cargo_arrival_date: string | null
           cargo_loaded_date: string | null
           cargo_received_date: string | null
@@ -3674,11 +4378,13 @@ export type Database = {
           chargeable_weight: number | null
           commodity_item_number: string | null
           company_id: string | null
+          competition_level: string | null
           container_count: number | null
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
           customer_reference: string | null
+          customer_type_snapshot: string | null
           customs_clearance_date: string | null
           cy_cutoff: string | null
           declared_value: number | null
@@ -3718,6 +4424,8 @@ export type Database = {
           invoice_currency: string | null
           invoice_date: string | null
           invoice_number: string | null
+          is_first_shipment: boolean | null
+          lifecycle_stage: string | null
           mawb_number: string | null
           mode: string
           nature_and_quantity: string | null
@@ -3736,6 +4444,7 @@ export type Database = {
           pickup_validated: boolean | null
           place_of_delivery: string | null
           place_of_receipt: string | null
+          priority_level: string | null
           quote_reference: string | null
           rate_basis_type: string | null
           rate_class: string | null
@@ -3769,10 +4478,14 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          archived_at?: string | null
+          assigned_ops_user_id?: string | null
+          assigned_pricing_user_id?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
+          capacity_condition?: string | null
           cargo_arrival_date?: string | null
           cargo_loaded_date?: string | null
           cargo_received_date?: string | null
@@ -3782,11 +4495,13 @@ export type Database = {
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          competition_level?: string | null
           container_count?: number | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
@@ -3826,6 +4541,8 @@ export type Database = {
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          is_first_shipment?: boolean | null
+          lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
@@ -3844,6 +4561,7 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
           rate_class?: string | null
@@ -3877,10 +4595,14 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          archived_at?: string | null
+          assigned_ops_user_id?: string | null
+          assigned_pricing_user_id?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
           booking_terms?: string | null
+          capacity_condition?: string | null
           cargo_arrival_date?: string | null
           cargo_loaded_date?: string | null
           cargo_received_date?: string | null
@@ -3890,11 +4612,13 @@ export type Database = {
           chargeable_weight?: number | null
           commodity_item_number?: string | null
           company_id?: string | null
+          competition_level?: string | null
           container_count?: number | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
           customer_reference?: string | null
+          customer_type_snapshot?: string | null
           customs_clearance_date?: string | null
           cy_cutoff?: string | null
           declared_value?: number | null
@@ -3934,6 +4658,8 @@ export type Database = {
           invoice_currency?: string | null
           invoice_date?: string | null
           invoice_number?: string | null
+          is_first_shipment?: boolean | null
+          lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
@@ -3952,6 +4678,7 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
           rate_class?: string | null
@@ -4809,6 +5536,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_company_role: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["company_role"]
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -4818,6 +5549,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
     }
@@ -4831,6 +5566,15 @@ export type Database = {
         | "driver"
         | "warehouse"
         | "forwarder"
+      company_role:
+        | "admin"
+        | "pricing_manager"
+        | "operations_manager"
+        | "sales_manager"
+        | "customer_user"
+        | "finance_user"
+        | "partner_user"
+        | "viewer"
       company_status:
         | "prospect"
         | "pending_compliance"
@@ -4973,6 +5717,16 @@ export const Constants = {
         "driver",
         "warehouse",
         "forwarder",
+      ],
+      company_role: [
+        "admin",
+        "pricing_manager",
+        "operations_manager",
+        "sales_manager",
+        "customer_user",
+        "finance_user",
+        "partner_user",
+        "viewer",
       ],
       company_status: [
         "prospect",
