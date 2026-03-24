@@ -6,9 +6,11 @@ import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { canAccessRoute } from "@/lib/permissions";
+import { canSeeNavItem, type NavItemKey } from "@/lib/company-permissions";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
