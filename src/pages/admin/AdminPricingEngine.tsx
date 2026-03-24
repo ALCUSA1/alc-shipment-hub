@@ -228,7 +228,11 @@ const AdminPricingEngine = () => {
   );
 
   return (
-    <AdminLayout title="Pricing Engine" subtitle="LRN Cost Model — Calculate true cost, sell price, and revenue splits">
+    <AdminLayout>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Pricing Engine</h1>
+        <p className="text-sm text-muted-foreground">LRN Cost Model — Calculate true cost, sell price, and revenue splits</p>
+      </div>
       <Tabs defaultValue="calculator">
         <TabsList className="bg-transparent p-0 gap-1 mb-6">
           {[
