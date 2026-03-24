@@ -26,8 +26,10 @@ import {
   Plus, AtSign, ExternalLink, MapPin, Building2, Briefcase,
   Search, ArrowLeft, Edit3, Globe2, Phone, Mail, Handshake,
   ShoppingCart, Star, Calendar, Check, X, Clock, Award, Video,
-  Mic, ChevronRight, DollarSign, Ship, Package, MapPinned
+  Mic, ChevronRight, DollarSign, Ship, Package, MapPinned,
+  Bookmark, ThumbsUp, PartyPopper, Rocket, UserCheck
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
@@ -45,6 +47,170 @@ const EVENT_TYPES = [
   { value: "announcement", label: "Announcement", icon: Megaphone },
   { value: "networking", label: "Networking", icon: Users2 },
 ];
+
+const REACTION_TYPES = [
+  { type: "like", emoji: "❤️", icon: Heart, label: "Like" },
+  { type: "fire", emoji: "🔥", icon: Flame, label: "Fire" },
+  { type: "insightful", emoji: "⚡", icon: Zap, label: "Insightful" },
+  { type: "congrats", emoji: "👏", icon: PartyPopper, label: "Congrats" },
+];
+
+/* ─── Welcome Banner ─── */
+function WelcomeBanner({ onAction }: { onAction: (tab: string) => void }) {
+  const { data: stats } = useQuery({
+    queryKey: ["spark-stats"],
+    queryFn: async () => {
+      const [companies, rfqs, events] = await Promise.all([
+        supabase.from("companies").select("id", { count: "exact", head: true }),
+        supabase.from("rfq_posts").select("id", { count: "exact", head: true }).eq("status", "open"),
+        supabase.from("spark_events").select("id", { count: "exact", head: true }).gte("event_date", new Date().toISOString()),
+      ]);
+      return { companies: companies.count || 0, rfqs: rfqs.count || 0, events: events.count || 0 };
+    },
+    staleTime: 60_000,
+  });
+
+  return (
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] via-[hsl(var(--primary)/0.85)] to-[hsl(220,80%,25%)] p-6 md:p-8 mb-6">
+      <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-xl" />
+      <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-white/5 blur-lg" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-5 w-5 text-white/80" />
+          <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">Spark Network</span>
+        </div>
+        <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Welcome to the community</h2>
+        <div className="flex items-center gap-4 mt-3 flex-wrap">
+          {stats && (
+            <>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.companies}</strong> companies</span>
+              <span className="text-white/30">·</span>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.rfqs}</strong> active RFQs</span>
+              <span className="text-white/30">·</span>
+              <span className="text-sm text-white/70"><strong className="text-white">{stats.events}</strong> upcoming events</span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-5">
+          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+            onClick={() => onAction("marketplace")}>
+            <ShoppingCart className="h-3.5 w-3.5" /> Browse RFQs
+          </Button>
+          <Button size="sm" className="rounded-full px-5 gap-1.5 bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm shadow-md"
+            onClick={() => onAction("directory")}>
+            <Users2 className="h-3.5 w-3.5" /> Find Partners
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Trending Sidebar ─── */
+function TrendingSidebar() {
+  const { data: latestRfqs = [] } = useQuery({
+    queryKey: ["spark-trending-rfqs"],
+    queryFn: async () => {
+      const { data } = await supabase.from("rfq_posts").select("id, title, origin, destination, created_at")
+        .eq("status", "open").order("created_at", { ascending: false }).limit(3);
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: eventCount = 0 } = useQuery({
+    queryKey: ["spark-trending-events"],
+    queryFn: async () => {
+      const { count } = await supabase.from("spark_events").select("id", { count: "exact", head: true })
+        .gte("event_date", new Date().toISOString());
+      return count || 0;
+    },
+    staleTime: 30_000,
+  });
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+      <Card className="border-border/50 shadow-sm overflow-hidden">
+        <div className="px-5 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/30">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-sm text-foreground">Trending on Spark</h3>
+          </div>
+        </div>
+        <CardContent className="p-5 space-y-4">
+          {latestRfqs.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Latest RFQs</p>
+              <div className="space-y-2">
+                {latestRfqs.map((rfq: any) => (
+                  <div key={rfq.id} className="flex items-center gap-2 text-xs">
+                    <Package className="h-3 w-3 text-primary/60 shrink-0" />
+                    <span className="text-foreground truncate">
+                      {rfq.origin && rfq.destination ? `${rfq.origin} → ${rfq.destination}` : rfq.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {eventCount > 0 && (
+            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg px-3 py-2">
+              <Calendar className="h-3.5 w-3.5 text-primary" />
+              <span className="text-foreground"><strong>{eventCount}</strong> upcoming event{eventCount !== 1 ? "s" : ""}</span>
+            </div>
+          )}
+          {latestRfqs.length === 0 && eventCount === 0 && (
+            <p className="text-xs text-muted-foreground/50 italic text-center py-2">No trending activity yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ─── Profile Completeness ─── */
+function ProfileCompleteness({ profile, company }: { profile: CompanyProfile; company: CompanyData | null }) {
+  const navigate = useNavigate();
+  const checks = [
+    { label: "Avatar", done: !!profile.avatar_url },
+    { label: "Tagline", done: !!profile.tagline },
+    { label: "About", done: !!profile.about },
+    { label: "Services", done: !!(profile.services && profile.services.length > 0) },
+    { label: "Cover photo", done: !!profile.cover_url },
+  ];
+  const completed = checks.filter((c) => c.done).length;
+  const pct = Math.round((completed / checks.length) * 100);
+
+  if (pct === 100) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <Card className="border-border/50 shadow-sm border-l-4 border-l-primary">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-primary" /> Profile strength
+            </h3>
+            <span className="text-xs font-bold text-primary">{pct}%</span>
+          </div>
+          <Progress value={pct} className="h-2 mb-3" />
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {checks.map((c) => (
+              <Badge key={c.label} variant="secondary"
+                className={`text-[10px] ${c.done ? "bg-emerald-500/10 text-emerald-600 line-through opacity-60" : "bg-muted text-muted-foreground"}`}>
+                {c.done && <Check className="h-2.5 w-2.5 mr-0.5" />}{c.label}
+              </Badge>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" className="text-xs gap-1.5 rounded-full w-full" onClick={() => navigate("/dashboard/account")}>
+            <Edit3 className="h-3 w-3" /> Complete Profile
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 /* ─── Types ─── */
 interface CompanyProfile {
@@ -662,7 +828,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
                 </Button>
               </div>
               <Button size="sm" disabled={!content.trim() || createPost.isPending} onClick={() => createPost.mutate()}
-                className="rounded-full px-5 gap-2 shadow-md shadow-primary/20">
+                className={`rounded-full px-5 gap-2 shadow-md shadow-primary/20 transition-all ${content.trim() && !createPost.isPending ? "animate-pulse hover:animate-none" : ""}`}>
                 {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />} Publish
               </Button>
             </motion.div>
@@ -695,15 +861,16 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
     queryFn: async () => { const { data } = await supabase.from("profiles").select("full_name, avatar_url, company_name").eq("user_id", currentUserId).maybeSingle(); return data; },
   });
 
-  const hasLiked = reactions.some((r: any) => r.user_id === currentUserId && r.reaction_type === "like");
-  const likeCount = reactions.filter((r: any) => r.reaction_type === "like").length;
+  const getReactionsByType = (type: string) => reactions.filter((r: any) => r.reaction_type === type);
+  const hasReacted = (type: string) => reactions.some((r: any) => r.user_id === currentUserId && r.reaction_type === type);
+  const totalReactions = reactions.length;
 
-  const toggleLike = useMutation({
-    mutationFn: async () => {
-      if (hasLiked) {
-        await supabase.from("feed_reactions").delete().eq("post_id", post.id).eq("user_id", currentUserId).eq("reaction_type", "like");
+  const toggleReaction = useMutation({
+    mutationFn: async (type: string) => {
+      if (hasReacted(type)) {
+        await supabase.from("feed_reactions").delete().eq("post_id", post.id).eq("user_id", currentUserId).eq("reaction_type", type);
       } else {
-        await supabase.from("feed_reactions").insert({ post_id: post.id, user_id: currentUserId, reaction_type: "like" });
+        await supabase.from("feed_reactions").insert({ post_id: post.id, user_id: currentUserId, reaction_type: type });
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["feed-reactions", post.id] }),
@@ -801,18 +968,41 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
               {post.tags.map((tag: string) => <Badge key={tag} variant="secondary" className="text-[10px] bg-primary/5 text-primary border-primary/10">#{tag}</Badge>)}
             </div>
           )}
-          <div className="flex items-center gap-1 border-t border-border/40 pt-2.5 ml-[52px]">
-            <Button variant="ghost" size="sm" className={`text-xs gap-1.5 rounded-full px-3 ${hasLiked ? "text-red-500 bg-red-500/5" : "text-muted-foreground hover:text-red-500"}`}
-              onClick={() => toggleLike.mutate()}>
-              <Heart className={`h-3.5 w-3.5 ${hasLiked ? "fill-red-500" : ""}`} />{likeCount > 0 ? likeCount : "Like"}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+          <div className="flex items-center gap-1 border-t border-border/40 pt-2.5 ml-[52px] flex-wrap">
+            {/* Emoji reaction summary */}
+            {totalReactions > 0 && (
+              <div className="flex items-center gap-1 mr-2 mb-1">
+                {REACTION_TYPES.filter((rt) => getReactionsByType(rt.type).length > 0).map((rt) => (
+                  <span key={rt.type} className="text-xs flex items-center gap-0.5 bg-muted/50 rounded-full px-1.5 py-0.5">
+                    {rt.emoji} <span className="text-muted-foreground">{getReactionsByType(rt.type).length}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Reaction buttons */}
+            {REACTION_TYPES.map((rt) => {
+              const active = hasReacted(rt.type);
+              return (
+                <Button key={rt.type} variant="ghost" size="sm"
+                  className={`text-xs gap-1 rounded-full px-2.5 h-8 ${active ? "bg-primary/5 text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={() => toggleReaction.mutate(rt.type)} disabled={toggleReaction.isPending}
+                  title={rt.label}>
+                  <span className="text-sm">{rt.emoji}</span>
+                </Button>
+              );
+            })}
+            <Separator orientation="vertical" className="h-5 mx-1" />
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
               onClick={() => setShowComments(!showComments)}>
               <MessageCircle className="h-3.5 w-3.5" /> Comment
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
               onClick={() => sharePost.mutate()} disabled={sharePost.isPending}>
               <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8 ml-auto"
+              title="Bookmark">
+              <Bookmark className="h-3.5 w-3.5" />
             </Button>
           </div>
           <AnimatePresence>
@@ -1641,17 +1831,17 @@ const Spark = () => {
           </div>
           {!isViewingOther && (
             <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as any)}>
-              <TabsList className="bg-muted/50 p-1 rounded-full">
-                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+              <TabsList className="bg-muted/50 p-1 rounded-full border border-border/30">
+                <TabsTrigger value="page" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Building2 className="h-3.5 w-3.5" /> My Page
                 </TabsTrigger>
-                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="directory" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Search className="h-3.5 w-3.5" /> Explore
                 </TabsTrigger>
-                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="marketplace" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <ShoppingCart className="h-3.5 w-3.5" /> Marketplace
                 </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm">
+                <TabsTrigger value="events" className="gap-1.5 rounded-full text-xs px-4 data-[state=active]:shadow-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Calendar className="h-3.5 w-3.5" /> Events
                 </TabsTrigger>
               </TabsList>
@@ -1668,6 +1858,7 @@ const Spark = () => {
           <EventsTab />
         ) : (
           <>
+            {isOwner && !isViewingOther && <WelcomeBanner onAction={(tab) => setMainTab(tab as any)} />}
             <BrandHero profile={displayProfile} company={activeCompany ?? null} isOwner={isOwner}
               ownCompanyId={ownCompany?.id || null} onEdit={() => navigate("/dashboard/account")} />
 
@@ -1677,14 +1868,26 @@ const Spark = () => {
                 {postsLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary/40" /></div>
                 ) : posts.length === 0 ? (
-                  <Card className="border-dashed border-2 border-border/40">
-                    <CardContent className="py-12 text-center">
-                      <Sparkles className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">
-                        {isOwner ? "Share your first spark to light up your company page!" : "No posts yet from this company."}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
+                    <Card className="border-dashed border-2 border-border/40 bg-gradient-to-br from-primary/[0.02] to-transparent">
+                      <CardContent className="py-16 text-center">
+                        <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}>
+                          <Sparkles className="h-10 w-10 text-primary/30 mx-auto mb-4" />
+                        </motion.div>
+                        <h3 className="text-base font-semibold text-foreground mb-1">
+                          {isOwner ? "Light up your Spark page" : "No posts yet"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                          {isOwner ? "Share updates, rate alerts, or promote your services to the Spark community." : "This company hasn't posted yet. Check back soon!"}
+                        </p>
+                        {isOwner && (
+                          <Button size="sm" className="mt-5 rounded-full px-6 gap-1.5 shadow-md shadow-primary/20">
+                            <Send className="h-3.5 w-3.5" /> Post your first update
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ) : (
                   posts.map((post: any, i: number) => (
                     <PostCard key={post.id} post={post} currentUserId={user!.id} index={i} isAdmin={isAdmin} />
@@ -1693,7 +1896,9 @@ const Spark = () => {
               </div>
 
               <div className="space-y-5 hidden lg:block">
+                {isOwner && <ProfileCompleteness profile={displayProfile} company={activeCompany ?? null} />}
                 <AboutSection profile={displayProfile} company={activeCompany ?? null} />
+                <TrendingSidebar />
                 {activeCompany?.id && <PartnersCard companyId={activeCompany.id} />}
                 {activeCompany?.id && (
                   <ReviewsCard
