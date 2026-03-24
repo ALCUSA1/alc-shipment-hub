@@ -109,6 +109,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: Shield,
           message: "Customs/AES filing has not been submitted — required before vessel departure.",
           severity: "warning",
+          priority: "urgent",
         });
       }
     }
