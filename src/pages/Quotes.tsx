@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
+import { QuoteShareActions } from "@/components/quotes/QuoteShareActions";
 import { BackButton } from "@/components/shared/BackButton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
@@ -477,6 +478,7 @@ const Quotes = () => {
                                 )}
                               </Button>
                             )}
+                            <QuoteShareActions quote={q} />
                             {q.shipment_id && (
                               <Button size="sm" variant="ghost" asChild>
                                 <Link to={`/dashboard/shipments/${q.shipment_id}`}>

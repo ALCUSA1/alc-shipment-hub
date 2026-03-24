@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { QuoteShareActions } from "@/components/quotes/QuoteShareActions";
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -50,12 +51,13 @@ const ForwarderQuotes = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Valid Until</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
@@ -79,11 +81,14 @@ const ForwarderQuotes = () => {
                     <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(q.created_at), "MMM d, yyyy")}
                     </TableCell>
+                    <TableCell>
+                      <QuoteShareActions quote={{ id: q.id, amount: q.amount, status: q.status, valid_until: q.valid_until, created_at: q.created_at }} />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12">
+                  <TableCell colSpan={6} className="text-center py-12">
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
                     <p className="text-sm text-muted-foreground">No quotes yet</p>
                   </TableCell>
