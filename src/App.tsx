@@ -118,6 +118,8 @@ import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
 import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
 import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
 import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
+import Support from "./pages/Support";
+import Ideas from "./pages/Ideas";
 
 const queryClient = new QueryClient();
 
