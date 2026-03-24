@@ -49,7 +49,7 @@ const AdminShipmentDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("*, companies(company_name)")
+        .select("*, companies!shipments_company_id_fkey(company_name)")
         .eq("id", id!)
         .maybeSingle();
       if (error) throw error;

@@ -13,7 +13,7 @@ const AdminActivity = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shipments")
-        .select("id, shipment_ref, status, origin_port, destination_port, created_at, updated_at, companies(company_name)")
+        .select("id, shipment_ref, status, origin_port, destination_port, created_at, updated_at, companies!shipments_company_id_fkey(company_name)")
         .order("updated_at", { ascending: false })
         .limit(50);
       if (error) throw error;
