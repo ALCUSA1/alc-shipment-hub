@@ -140,7 +140,8 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border text-sm ${severityStyles[banner.severity]}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="font-medium text-xs">{banner.message}</span>
+              <span className="font-medium text-xs flex-1">{banner.message}</span>
+              <PriorityBadge priority={banner.priority} size="sm" />
             </motion.div>
           );
         })}
