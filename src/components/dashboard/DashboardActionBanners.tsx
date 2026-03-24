@@ -250,6 +250,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-red-50",
       textColor: "text-red-700",
       iconColor: "text-red-600",
+      sortOrder: 0,
     });
   }
 
