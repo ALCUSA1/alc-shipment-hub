@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { AiPricingRecommendation } from "./AiPricingRecommendation";
 import { DealScorePanel } from "./DealScorePanel";
+import { RateIntelligencePanel } from "./RateIntelligencePanel";
 
 /* ── Formatting helpers ── */
 const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -584,6 +585,17 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Rate Intelligence */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <RateIntelligencePanel
+              carrierBuyRate={carrierBuyRate}
+              shipmentType={shipmentType || mode || "fcl"}
+              customerType={customerType}
+              origin={originPort || ""}
+              destination={destinationPort || ""}
+            />
           </div>
 
           {/* AI Pricing Recommendation */}
