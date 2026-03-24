@@ -119,6 +119,8 @@ const ShipmentDetail = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isAdmin, isOpsManager, isSales } = useUserRole();
+  const isAdminOrInternal = isAdmin || isOpsManager || isSales;
   const [deleting, setDeleting] = useState(false);
   const [showDocGen, setShowDocGen] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
