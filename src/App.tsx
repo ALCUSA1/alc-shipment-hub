@@ -108,6 +108,7 @@ import AdminMaterials from "./pages/admin/AdminMaterials";
 import AdminPaymentSettings from "./pages/admin/AdminPaymentSettings";
 import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
 import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
+import AdminRateIntelligence from "./pages/admin/AdminRateIntelligence";
 import PricingPreview from "./pages/PricingPreview";
 
 const queryClient = new QueryClient();
