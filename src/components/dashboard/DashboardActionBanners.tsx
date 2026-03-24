@@ -153,6 +153,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-blue-50",
       textColor: "text-blue-700",
       iconColor: "text-blue-600",
+      sortOrder: 2,
     });
   }
 
