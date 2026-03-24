@@ -309,6 +309,9 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* Spending Summary */}
+      {!loading && !isEmpty && <SpendingSummary />}
+
       {/* Recent Shipments */}
       {!loading && recentShipments.length > 0 && (
         <Card>
