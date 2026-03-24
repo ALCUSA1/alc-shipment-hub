@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShipmentPnL } from "@/components/shipment/ShipmentPnL";
+import { RecommendedForYou } from "@/components/smart/RecommendedForYou";
 import { format, subMonths, startOfMonth, endOfMonth, formatDistanceToNow } from "date-fns";
 import {
   Package, DollarSign, Truck, Warehouse, Clock, ArrowRight, TrendingUp,
