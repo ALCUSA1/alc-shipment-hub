@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
+import { hasCapability } from "@/lib/company-permissions";
 import { BulkOperationsPanel } from "@/components/shipment/BulkOperationsPanel";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,6 +79,8 @@ const Shipments = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { role: companyRole } = useCompanyRole();
+  const canCreate = hasCapability(companyRole, "create_shipment");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
@@ -215,9 +219,11 @@ const Shipments = () => {
             {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Seed Pending Data
           </Button>
-          <Button variant="electric" asChild>
-            <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
-          </Button>
+          {canCreate && (
+            <Button variant="electric" asChild>
+              <Link to="/dashboard/shipments/new"><Plus className="mr-2 h-4 w-4" /> New Shipment</Link>
+            </Button>
+          )}
         </div>
       </div>
 

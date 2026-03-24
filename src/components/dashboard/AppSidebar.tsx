@@ -6,9 +6,11 @@ import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { canAccessRoute } from "@/lib/permissions";
+import { canSeeNavItem, type NavItemKey } from "@/lib/company-permissions";
 import alcLogo from "@/assets/alc-logo.png";
 import {
   Sidebar,
@@ -23,21 +25,21 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 
-const primaryNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Shipments", url: "/dashboard/shipments", icon: Package },
-  { title: "Requests", url: "/dashboard/quotes", icon: Inbox },
-  { title: "Customers", url: "/dashboard/crm", icon: ContactRound },
-  { title: "Partners", url: "/dashboard/partners", icon: Users },
-  { title: "Financials", url: "/dashboard/accounting", icon: DollarSign },
-  { title: "Team", url: "/dashboard/team", icon: Shield },
+const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, navKey: "dashboard" },
+  { title: "Shipments", url: "/dashboard/shipments", icon: Package, navKey: "shipments" },
+  { title: "Requests", url: "/dashboard/quotes", icon: Inbox, navKey: "quotes" },
+  { title: "Customers", url: "/dashboard/crm", icon: ContactRound, navKey: "crm" },
+  { title: "Partners", url: "/dashboard/partners", icon: Users, navKey: "partners" },
+  { title: "Financials", url: "/dashboard/accounting", icon: DollarSign, navKey: "accounting" },
+  { title: "Team", url: "/dashboard/team", icon: Shield, navKey: "team" },
 ];
 
-const secondaryNav = [
-  { title: "Spark", url: "/dashboard/spark", icon: Sparkles },
-  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-  { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp },
-  { title: "Settings", url: "/dashboard/account", icon: Settings },
+const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
+  { title: "Spark", url: "/dashboard/spark", icon: Sparkles, navKey: "spark" },
+  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, navKey: "analytics" },
+  { title: "Rate Trends", url: "/dashboard/rate-trends", icon: TrendingUp, navKey: "rate-trends" },
+  { title: "Settings", url: "/dashboard/account", icon: Settings, navKey: "account" },
 ];
 
 export function AppSidebar() {
@@ -45,6 +47,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const { signOut, user } = useAuth();
   const { roles } = useUserRole();
+  const { role: companyRole } = useCompanyRole();
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -70,7 +73,7 @@ export function AppSidebar() {
   };
 
   const renderNavItems = (items: typeof primaryNav) => {
-    const visible = items.filter((item) => canAccessRoute(item.url, roles));
+    const visible = items.filter((item) => canAccessRoute(item.url, roles) && canSeeNavItem(companyRole, item.navKey));
     if (visible.length === 0) return null;
     return (
       <SidebarMenu>

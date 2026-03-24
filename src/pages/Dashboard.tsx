@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
+import { canSeeDashboardSection, hasCapability } from "@/lib/company-permissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, subDays, format, startOfDay } from "date-fns";
@@ -56,6 +58,12 @@ const PIPELINE_STAGES = [
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { role: companyRole } = useCompanyRole();
+  const canCreateShipment = hasCapability(companyRole, "create_shipment");
+  const showFinancials = canSeeDashboardSection(companyRole, "financials");
+  const showPipeline = canSeeDashboardSection(companyRole, "pipeline");
+  const showAlerts = canSeeDashboardSection(companyRole, "alerts");
+  const showCta = canSeeDashboardSection(companyRole, "cta");
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({ active: 0, pendingPricing: 0, quoteReady: 0, awaitingApproval: 0, booked: 0, inTransit: 0, delivered: 0, delayed: 0, missingDocs: 0 });
   const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
@@ -137,11 +145,13 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Shipment lifecycle overview</p>
         </div>
-        <Button variant="electric" asChild>
-          <Link to="/dashboard/shipments/new">
-            <Plus className="mr-2 h-4 w-4" />Start a Shipment
-          </Link>
-        </Button>
+        {showCta && (
+          <Button variant="electric" asChild>
+            <Link to="/dashboard/shipments/new">
+              <Plus className="mr-2 h-4 w-4" />Start a Shipment
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Getting Started */}
@@ -188,7 +198,7 @@ const Dashboard = () => {
       </div>
 
       {/* Tasks & Alerts — Moved up, prominent */}
-      {!loading && hasAlerts && (
+      {!loading && hasAlerts && showAlerts && (
         <Card className="mb-6 border-yellow-200 dark:border-yellow-800/40 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -366,7 +376,7 @@ const Dashboard = () => {
       )}
 
       {/* Spending Summary */}
-      {!loading && !isEmpty && <SpendingSummary />}
+      {!loading && !isEmpty && showFinancials && <SpendingSummary />}
 
       {/* Recent Shipments */}
       {!loading && recentShipments.length > 0 && (

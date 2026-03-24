@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
+import { canSeeTab, hasCapability, type WorkspaceTab } from "@/lib/company-permissions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -166,9 +168,19 @@ const CustomerShipmentWorkspace = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { role: companyRole } = useCompanyRole();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
   const [sparkShareOpen, setSparkShareOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Filter tabs based on company role
+  const visibleTabs = useMemo(() =>
+    CUSTOMER_TABS.filter(tab => canSeeTab(companyRole, tab.id as WorkspaceTab)),
+    [companyRole]
+  );
+  const canEdit = hasCapability(companyRole, "edit_shipment");
+  const canUploadDocs = hasCapability(companyRole, "upload_documents");
+  const isReadOnly = companyRole === "viewer";
 
   /* ── Realtime ── */
   useEffect(() => {
@@ -465,7 +477,7 @@ const CustomerShipmentWorkspace = () => {
       {/* ── TABBED WORKSPACE ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-1 bg-transparent p-0 border-b border-border rounded-none pb-0">
-          {CUSTOMER_TABS.map(tab => (
+          {visibleTabs.map(tab => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
