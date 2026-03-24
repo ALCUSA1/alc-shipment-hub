@@ -6,6 +6,8 @@ import { AiShipmentAssistant } from "@/components/shipment/AiShipmentAssistant";
 import { AiShipmentSummary } from "@/components/shipment/AiShipmentSummary";
 import { AiSmartBanners } from "@/components/shipment/AiSmartBanners";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
+import { CustomerFinancialsTab } from "@/components/shipment/CustomerFinancialsTab";
+import { useUserRole } from "@/hooks/useUserRole";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { AirBookingPanel } from "@/components/shipment/AirBookingPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
@@ -117,6 +119,8 @@ const ShipmentDetail = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isAdmin, isOpsManager, isSales } = useUserRole();
+  const isAdminOrInternal = isAdmin || isOpsManager || isSales;
   const [deleting, setDeleting] = useState(false);
   const [showDocGen, setShowDocGen] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
@@ -586,9 +590,19 @@ const ShipmentDetail = () => {
 
         {/* ── FINANCIALS TAB ── */}
         <TabsContent value="financials" className="mt-6 space-y-6">
-          <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
-          <ShipmentChargesPanel shipmentId={id!} />
-          <PaymentStatusCard shipmentId={id!} />
+          {isAdminOrInternal ? (
+            <>
+              <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
+              <ShipmentChargesPanel shipmentId={id!} />
+              <PaymentStatusCard shipmentId={id!} />
+            </>
+          ) : (
+            <CustomerFinancialsTab
+              shipmentId={id!}
+              shipmentRef={shipment.shipment_ref}
+              customerName={(shipment as any).companies?.company_name}
+            />
+          )}
         </TabsContent>
 
         {/* ── ACTIVITY LOG TAB ── */}
