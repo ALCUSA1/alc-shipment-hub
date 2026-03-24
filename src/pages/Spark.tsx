@@ -1224,7 +1224,7 @@ function MarketplaceTab() {
     return (
       <div>
         <Button variant="ghost" size="sm" className="mb-4 gap-1.5" onClick={() => setSelectedRfq(null)}>
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Marketplace
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to RFQs
         </Button>
         <Card className="border-border/50">
           <CardContent className="p-6">
