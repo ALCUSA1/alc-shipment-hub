@@ -17,11 +17,11 @@ export function SpendingSummary() {
     queryFn: async () => {
       const { data: quotes, error } = await supabase
         .from("quotes")
-        .select("id, amount, currency, shipment_id, created_at, shipments!inner(shipment_type, mode, created_at)")
+        .select("id, amount, currency, shipment_id, created_at, carrier, container_type")
         .in("status", ["accepted", "converted"])
         .order("created_at", { ascending: true });
       if (error) { console.error("[SpendingSummary] query error:", error); throw error; }
-      console.log("[SpendingSummary] fetched quotes:", quotes?.length, "sample:", quotes?.slice(0, 2));
+      console.log("[SpendingSummary] fetched quotes:", quotes?.length);
       return quotes || [];
     },
     enabled: !!user,
