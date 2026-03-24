@@ -586,6 +586,39 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
             </div>
           </div>
 
+          {/* AI Pricing Recommendation */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <AiPricingRecommendation
+              carrierBuyRate={carrierBuyRate}
+              trueCost={calc.trueCost}
+              currentMargin={calc.adjustedMargin}
+              currentSellPrice={calc.sellPrice}
+              netProfit={calc.netProfit}
+              platformRetained={calc.platformRetained}
+              shipmentType={shipmentType || mode || "fcl"}
+              customerType={customerType}
+              urgency={urgency}
+              onApplyRecommendation={(margin) => {
+                setManualMarginOverride(margin);
+                toast.success("AI recommendation applied");
+              }}
+            />
+          </div>
+
+          {/* Deal Score */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <DealScorePanel
+              netProfit={calc.netProfit}
+              platformRetained={calc.platformRetained}
+              netMargin={calc.netMargin}
+              sellPrice={calc.sellPrice}
+              trueCost={calc.trueCost}
+              customerType={customerType}
+              urgency={urgency}
+              shipmentType={shipmentType || mode || "fcl"}
+            />
+          </div>
+
           {/* Alerts */}
           <div className="space-y-2">
             {isDanger && (
