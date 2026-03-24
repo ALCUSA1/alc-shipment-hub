@@ -5708,6 +5708,8 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      scenario_company_id: { Args: { _scenario_id: string }; Returns: string }
+      shipment_company_id: { Args: { _shipment_id: string }; Returns: string }
     }
     Enums: {
       app_role:
