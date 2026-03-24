@@ -23,6 +23,7 @@ import Dashboard from "./pages/Dashboard";
 import Shipments from "./pages/Shipments";
 import NewShipmentWizard from "./pages/NewShipmentWizard";
 import ShipmentDetail from "./pages/ShipmentDetail";
+import CustomerShipmentWorkspace from "./pages/CustomerShipmentWorkspace";
 import Quotes from "./pages/Quotes";
 import NewQuote from "./pages/NewQuote";
 import QuoteApproval from "./pages/QuoteApproval";
