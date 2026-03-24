@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
+import { hasCapability } from "@/lib/company-permissions";
 import { BulkOperationsPanel } from "@/components/shipment/BulkOperationsPanel";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
