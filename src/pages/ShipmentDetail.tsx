@@ -170,11 +170,14 @@ const ShipmentDetail = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, queryClient]);
 
-  const { data: shipment, isLoading } = useQuery({
+  const { data: shipment, isLoading, error: shipmentError } = useQuery({
     queryKey: ["shipment", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shipments").select("*, companies(company_name)").eq("id", id!).single();
-      if (error) throw error;
+      const { data, error } = await supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name)").eq("id", id!).maybeSingle();
+      if (error) {
+        console.error("[ShipmentDetail] query error:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!id,
