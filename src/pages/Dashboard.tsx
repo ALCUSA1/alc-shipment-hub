@@ -67,7 +67,7 @@ const Dashboard = () => {
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "booked"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "in_transit"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "delivered"),
-        supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, mode, created_at, updated_at, etd, eta, companies(company_name)").order("updated_at", { ascending: false }).limit(8),
+        supabase.from("shipments").select("id, shipment_ref, origin_port, destination_port, status, mode, created_at, updated_at, etd, eta, companies!shipments_company_id_fkey(company_name)").order("updated_at", { ascending: false }).limit(8),
         supabase.from("documents").select("id", { count: "exact" }).eq("status", "pending"),
       ]);
 
