@@ -56,6 +56,7 @@ import Team from "./pages/Team";
 import Accounting from "./pages/Accounting";
 import RateTrends from "./pages/RateTrends";
 import Pipeline from "./pages/Pipeline";
+import Earnings from "./pages/Earnings";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import PendingApproval from "./pages/PendingApproval";
@@ -157,6 +158,7 @@ const App = () => (
             <Route path="/dashboard/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/dashboard/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
             <Route path="/dashboard/spark" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
+            <Route path="/dashboard/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
