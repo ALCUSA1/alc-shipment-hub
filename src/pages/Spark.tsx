@@ -968,18 +968,41 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
               {post.tags.map((tag: string) => <Badge key={tag} variant="secondary" className="text-[10px] bg-primary/5 text-primary border-primary/10">#{tag}</Badge>)}
             </div>
           )}
-          <div className="flex items-center gap-1 border-t border-border/40 pt-2.5 ml-[52px]">
-            <Button variant="ghost" size="sm" className={`text-xs gap-1.5 rounded-full px-3 ${hasLiked ? "text-red-500 bg-red-500/5" : "text-muted-foreground hover:text-red-500"}`}
-              onClick={() => toggleLike.mutate()}>
-              <Heart className={`h-3.5 w-3.5 ${hasLiked ? "fill-red-500" : ""}`} />{likeCount > 0 ? likeCount : "Like"}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+          <div className="flex items-center gap-1 border-t border-border/40 pt-2.5 ml-[52px] flex-wrap">
+            {/* Emoji reaction summary */}
+            {totalReactions > 0 && (
+              <div className="flex items-center gap-1 mr-2 mb-1">
+                {REACTION_TYPES.filter((rt) => getReactionsByType(rt.type).length > 0).map((rt) => (
+                  <span key={rt.type} className="text-xs flex items-center gap-0.5 bg-muted/50 rounded-full px-1.5 py-0.5">
+                    {rt.emoji} <span className="text-muted-foreground">{getReactionsByType(rt.type).length}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Reaction buttons */}
+            {REACTION_TYPES.map((rt) => {
+              const active = hasReacted(rt.type);
+              return (
+                <Button key={rt.type} variant="ghost" size="sm"
+                  className={`text-xs gap-1 rounded-full px-2.5 h-8 ${active ? "bg-primary/5 text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={() => toggleReaction.mutate(rt.type)} disabled={toggleReaction.isPending}
+                  title={rt.label}>
+                  <span className="text-sm">{rt.emoji}</span>
+                </Button>
+              );
+            })}
+            <Separator orientation="vertical" className="h-5 mx-1" />
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
               onClick={() => setShowComments(!showComments)}>
               <MessageCircle className="h-3.5 w-3.5" /> Comment
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3"
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8"
               onClick={() => sharePost.mutate()} disabled={sharePost.isPending}>
               <Share2 className="h-3.5 w-3.5" />{post.share_count > 0 ? post.share_count : "Share"}
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-muted-foreground hover:text-primary rounded-full px-3 h-8 ml-auto"
+              title="Bookmark">
+              <Bookmark className="h-3.5 w-3.5" />
             </Button>
           </div>
           <AnimatePresence>
