@@ -184,9 +184,9 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
         content: quoteEmbed,
         post_type: "promotion",
         author_name: profile?.full_name || "User",
-        author_company: profile?.company_name || null,
-        author_avatar: profile?.avatar_url || null,
-      } as any);
+        company_name: profile?.company_name || null,
+        author_avatar_url: profile?.avatar_url || null,
+      });
 
       toast({ title: "Shared on Spark!", description: "Your quote has been posted to the Spark feed." });
       setSparkDialogOpen(false);
