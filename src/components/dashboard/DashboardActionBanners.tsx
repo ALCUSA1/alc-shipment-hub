@@ -16,6 +16,7 @@ interface ActionBanner {
   bgColor: string;
   textColor: string;
   iconColor: string;
+  sortOrder: number; // 0=critical, 1=urgent, 2=attention, 3=normal
 }
 
 export function DashboardActionBanners() {
