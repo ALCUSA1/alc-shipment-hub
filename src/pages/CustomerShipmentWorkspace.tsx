@@ -109,6 +109,8 @@ const CustomerShipmentWorkspace = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  const [sparkShareOpen, setSparkShareOpen] = useState(false);
+  const navigate = useNavigate();
 
   /* ── Realtime ── */
   useEffect(() => {
