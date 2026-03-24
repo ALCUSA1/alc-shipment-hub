@@ -16,6 +16,7 @@ interface ActionBanner {
   bgColor: string;
   textColor: string;
   iconColor: string;
+  sortOrder: number; // 0=critical, 1=urgent, 2=attention, 3=normal
 }
 
 export function DashboardActionBanners() {
@@ -136,6 +137,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-accent/5",
       textColor: "text-accent",
       iconColor: "text-accent",
+      sortOrder: 2,
     });
   }
 
@@ -151,6 +153,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-blue-50",
       textColor: "text-blue-700",
       iconColor: "text-blue-600",
+      sortOrder: 2,
     });
   }
 
@@ -166,6 +169,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-orange-50",
       textColor: "text-orange-700",
       iconColor: "text-orange-600",
+      sortOrder: 1,
     });
   }
 
@@ -181,6 +185,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-purple-50",
       textColor: "text-purple-700",
       iconColor: "text-purple-600",
+      sortOrder: 1,
     });
   }
 
@@ -196,6 +201,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-emerald-50",
       textColor: "text-emerald-700",
       iconColor: "text-emerald-600",
+      sortOrder: 1,
     });
   }
 
@@ -212,6 +218,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-teal-50",
       textColor: "text-teal-700",
       iconColor: "text-teal-600",
+      sortOrder: 3,
     });
   }
 
@@ -227,6 +234,7 @@ export function DashboardActionBanners() {
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-700",
       iconColor: "text-indigo-600",
+      sortOrder: 3,
     });
   }
 
@@ -242,10 +250,14 @@ export function DashboardActionBanners() {
       bgColor: "bg-red-50",
       textColor: "text-red-700",
       iconColor: "text-red-600",
+      sortOrder: 0,
     });
   }
 
   if (banners.length === 0) return null;
+
+  // Sort by priority: critical first, normal last
+  banners.sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
     <div className="flex flex-wrap gap-3 mb-6">

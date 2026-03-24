@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Clock, FileText, CreditCard, Anchor, Shield } from "lucide-react";
 import { differenceInHours, differenceInDays, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { PriorityBadge, type CustomerPriority } from "@/components/shared/PriorityBadge";
 
 interface Props {
   shipment: Record<string, any>;
@@ -15,6 +16,7 @@ interface Banner {
   icon: React.ElementType;
   message: string;
   severity: "warning" | "critical" | "info";
+  priority: CustomerPriority;
 }
 
 export function AiSmartBanners({ shipment, documents, payments, customsFilings }: Props) {
@@ -39,6 +41,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Clock,
             message: `⏰ ${c.label} is in ${hoursLeft} hours — act now to avoid delays.`,
             severity: "critical",
+            priority: "critical",
           });
         } else if (hoursLeft > 24 && hoursLeft <= 72) {
           items.push({
@@ -46,6 +49,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Clock,
             message: `${c.label} is approaching in ${Math.ceil(hoursLeft / 24)} days.`,
             severity: "warning",
+            priority: "attention_needed",
           });
         }
       }
@@ -60,6 +64,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: FileText,
           message: `${pending.length} document${pending.length > 1 ? "s" : ""} still pending — complete before vessel departure.`,
           severity: pending.length >= 3 ? "critical" : "warning",
+          priority: pending.length >= 3 ? "urgent" : "attention_needed",
         });
       }
     }
@@ -73,6 +78,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: CreditCard,
           message: "Payment has not been collected yet — shipment is already in transit.",
           severity: "warning",
+          priority: "urgent",
         });
       }
     }
@@ -88,6 +94,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
             icon: Anchor,
             message: `ETD is in ${daysToEtd} day${daysToEtd !== 1 ? "s" : ""} but no carrier booking exists yet.`,
             severity: "critical",
+            priority: "critical",
           });
         }
       }
@@ -102,6 +109,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
           icon: Shield,
           message: "Customs/AES filing has not been submitted — required before vessel departure.",
           severity: "warning",
+          priority: "urgent",
         });
       }
     }
@@ -132,7 +140,8 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg border text-sm ${severityStyles[banner.severity]}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="font-medium text-xs">{banner.message}</span>
+              <span className="font-medium text-xs flex-1">{banner.message}</span>
+              <PriorityBadge priority={banner.priority} size="sm" />
             </motion.div>
           );
         })}

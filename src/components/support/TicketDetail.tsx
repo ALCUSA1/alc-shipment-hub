@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, User, Headphones } from "lucide-react";
+import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -80,6 +81,7 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
               <h2 className="text-lg font-semibold text-foreground">{ticket.subject}</h2>
             </div>
             <div className="flex items-center gap-2">
+              <PriorityBadge priority={(ticket as any).priority || "normal"} />
               <Badge variant="outline">{ticket.category}</Badge>
               <Badge variant={sc.variant}>{sc.label}</Badge>
             </div>
