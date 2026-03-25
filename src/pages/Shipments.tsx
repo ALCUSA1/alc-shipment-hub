@@ -309,6 +309,7 @@ const Shipments = () => {
                         }}
                       />
                     </th>
+                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_ref")}>
                       <span className="inline-flex items-center">Reference<SortIcon col="shipment_ref" /></span>
                     </th>
                     <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("customer")}>
