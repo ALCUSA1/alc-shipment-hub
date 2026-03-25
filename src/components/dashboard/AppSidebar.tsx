@@ -122,7 +122,16 @@ export function AppSidebar() {
                 activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
               >
                 <item.icon className="mr-2 h-4 w-4" />
-                {!collapsed && <span>{item.title}</span>}
+                {!collapsed && (
+                  <span className="flex-1 flex items-center justify-between">
+                    <span>{item.title}</span>
+                    {item.navKey === "messages" && unreadCount > 0 && (
+                      <Badge variant="default" className="h-4 min-w-4 px-1 text-[9px] leading-none ml-auto">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </Badge>
+                    )}
+                  </span>
+                )}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
