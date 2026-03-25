@@ -81,9 +81,16 @@ const WarehouseInbound = () => {
                 <div key={order.id} className="rounded-lg border p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {order.cargo_description || "Incoming cargo"}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">
+                          {order.cargo_description || "Incoming cargo"}
+                        </p>
+                        {(order as any).shipments?.shipment_ref && (
+                          <Badge variant="outline" className="text-[10px]">
+                            <Ship className="h-3 w-3 mr-1" /> {(order as any).shipments.shipment_ref}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         {order.num_packages && (
                           <span className="flex items-center gap-1"><Package className="h-3 w-3" />{order.num_packages} pkgs</span>
