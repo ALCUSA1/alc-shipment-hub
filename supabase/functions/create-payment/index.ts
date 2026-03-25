@@ -117,8 +117,9 @@ serve(async (req) => {
     ];
     if (isMultiCarrier) {
       descriptionParts.push(`Split across ${carrier_splits.length} shipping lines`);
-      carrier_splits.forEach((s: { carrier_name: string; amount: number }) => {
-        descriptionParts.push(`${s.carrier_name}: $${s.amount.toLocaleString()}`);
+      carrier_splits.forEach((s: { carrier_name: string; amount: number; bl_number?: string }) => {
+        const blLabel = s.bl_number ? ` (BL: ${s.bl_number})` : "";
+        descriptionParts.push(`${s.carrier_name}: $${s.amount.toLocaleString()}${blLabel}`);
       });
     } else if (carrier) {
       descriptionParts.unshift(`Carrier: ${carrier}`);

@@ -87,6 +87,7 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
           amount: charge.amount,
           currency: charge.currency,
           payment_method: "bank_transfer",
+          bl_number: blNumber || charge.bl_number || undefined,
           metadata: {
             charge_id: charge.id,
             charge_type: charge.charge_type,

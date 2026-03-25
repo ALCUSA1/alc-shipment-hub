@@ -84,15 +84,17 @@ serve(async (req) => {
 
       try {
         // Create Stripe transfer to carrier's Connect account
+        const blRef = split.bl_number ? `BL: ${split.bl_number} — ` : "";
         const transfer = await stripe.transfers.create({
           amount: Math.round(netAmount * 100), // cents
           currency: split.currency.toLowerCase(),
           destination: split.carrier_stripe_account_id,
-          description: `Settlement for carrier ${split.carrier_name} — Payment ${split.payment_id}`,
+          description: `${blRef}Freight settlement — ${split.carrier_name} — Payment ${split.payment_id}`,
           metadata: {
             payment_id: split.payment_id,
             split_id: split.id,
             carrier_name: split.carrier_name,
+            ...(split.bl_number ? { bl_number: split.bl_number } : {}),
           },
         });
 
