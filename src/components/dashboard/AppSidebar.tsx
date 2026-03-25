@@ -72,6 +72,36 @@ export function AppSidebar() {
   const companyLabel = profile?.company_name || "ALC Shipper Portal";
   const userName = (profile as any)?.full_name || user?.email?.split("@")[0] || "User";
 
+  // Unread message count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["sidebar-unread", user?.id],
+    queryFn: async () => {
+      const { data: participations } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id, last_read_at")
+        .eq("user_id", user!.id);
+      if (!participations?.length) return 0;
+
+      let count = 0;
+      for (const p of participations) {
+        const { data: latest } = await supabase
+          .from("messages")
+          .select("created_at")
+          .eq("conversation_id", p.conversation_id)
+          .neq("sender_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latest && new Date(latest.created_at) > new Date(p.last_read_at || "1970-01-01")) {
+          count++;
+        }
+      }
+      return count;
+    },
+    enabled: !!user,
+    refetchInterval: 10000,
+  });
+
   const handleLogout = async () => {
     await signOut();
     navigate("/");
