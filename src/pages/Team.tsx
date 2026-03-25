@@ -572,6 +572,51 @@ const Team = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Member Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-primary" />
+                Edit Team Member
+              </DialogTitle>
+              <DialogDescription>Update this member's information and role.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-title">Department / Title</Label>
+                <Input id="edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. Logistics Coordinator" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Role</Label>
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ROLES).map(([value, def]) => (
+                      <SelectItem key={value} value={value}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{def.label}</span>
+                          <span className="text-xs text-muted-foreground">{def.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={saving || !editName.trim()} className="bg-primary text-primary-foreground">
+                {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
