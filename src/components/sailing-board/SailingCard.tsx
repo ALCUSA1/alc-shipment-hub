@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { ScoredSailing } from "./types";
+import { SailingReminderButton } from "./SailingReminderButton";
 
 const LABEL_CONFIG: Record<string, { bg: string; icon: any }> = {
   Recommended: { bg: "bg-accent/10 text-accent border-accent/20", icon: Sparkles },
