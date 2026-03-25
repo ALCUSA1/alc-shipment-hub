@@ -1,74 +1,64 @@
 
 
-## Recommendation: Unified Alerts & Reminders Hub
+## Plan: Add Wire Transfer / Bank Transfer Payment Option
 
-### Current State
+### What We're Building
+Enable customers to pay via bank wire transfer (ACH or Fedwire) through Stripe's `customer_balance` payment method. Stripe generates unique bank transfer instructions (routing number, account number, reference code) that the customer uses to send funds from their bank.
 
-Right now, alerts are scattered across the platform:
-- **Rate Alerts** (`rate_alerts` table) — set from Rate Trends page and Carrier Rate Selector, threshold-based price alerts
-- **Sailing Reminders** (`sailing_reminders` table) — set from Sailing Intelligence Board bell icon, date/price range with scheduled remind_at
-- Both notify via in-app notifications + email, but there is **no single place** to view, manage, edit, or create all alerts
+### How It Works (Stripe Bank Transfers)
+1. Customer clicks "Pay via Bank Transfer"
+2. Stripe Checkout opens with `customer_balance` payment method enabled
+3. Stripe displays wire transfer instructions (bank details + unique reference code)
+4. Customer initiates the wire from their bank using those instructions
+5. Stripe matches the incoming funds and marks payment complete (ACH: 1-3 days, Wire: same day)
 
-### What to Build
+**Important**: Stripe requires a `customer` object (not just `customer_email`) for bank transfers — we already create customers in `create-payment`, so this is covered.
 
-A dedicated **"My Alerts"** page accessible from the sidebar that unifies both alert types into one management hub.
+### Changes
 
-### Page Structure
+#### 1. Update `create-payment` Edge Function
+- Add `payment_method: "bank_transfer"` as an accepted parameter from the frontend
+- When `payment_method` is `"bank_transfer"`:
+  - Add `"customer_balance"` to `payment_method_types`
+  - Add `payment_method_options.customer_balance` config specifying `funding_type: "bank_transfer"` and the appropriate transfer type (`us_bank_transfer` for USD, `eu_bank_transfer` for EUR, `gb_bank_transfer` for GBP)
+- Keep `"card"` in the list so customer can choose either method at checkout
 
-```text
-┌─────────────────────────────────────────────┐
-│  🔔 My Alerts                  [+ New Alert]│
-├──────────┬──────────┬───────────────────────-│
-│ All (12) │ Rate (5) │ Sailing (7)            │
-├──────────┴──────────┴───────────────────────-│
-│                                              │
-│  ┌─ Rate Alert Card ───────────────────────┐ │
-│  │ CNSHA → USLAX  |  40HC  |  < $2,500    │ │
-│  │ Carrier: Any  |  Status: Active (green) │ │
-│  │              [Edit] [Pause] [Delete]    │ │
-│  └─────────────────────────────────────────┘ │
-│                                              │
-│  ┌─ Sailing Reminder Card ─────────────────┐ │
-│  │ MSC — CNSHA → USLAX                    │ │
-│  │ Dates: Mar 25 – Apr 8  |  $2k – $2.8k  │ │
-│  │ Remind: Mar 28 9:00 AM | ✅ Triggered   │ │
-│  │              [Edit] [Re-arm] [Delete]   │ │
-│  └─────────────────────────────────────────┘ │
-│                                              │
-│  Empty state: "No alerts yet. Set rate or   │
-│  sailing alerts to get notified."            │
-└─────────────────────────────────────────────┘
+#### 2. Update `PaymentStatusCard.tsx`
+- Add a second button "Pay via Bank Transfer" (with a `Landmark`/bank icon) alongside the existing "Pay Now" card button
+- Clicking it calls `create-payment` with `payment_method: "bank_transfer"`
+- Add a note below: "Wire transfers typically settle within 1-3 business days"
+
+#### 3. Update `ShipmentChargesPanel.tsx`
+- Add a "Wire Transfer" option next to the existing "Pay" button for unpaid charges
+- Same pattern: calls `create-payment` with `payment_method: "bank_transfer"`
+
+#### 4. Update `PaymentSuccess.tsx`
+- Handle the `processing` state better for bank transfers — show messaging like "Your bank transfer instructions have been sent. Funds typically arrive within 1-3 business days."
+- Stripe may not redirect to success_url for bank transfers until funds arrive, so the existing "processing" state handling already partially covers this
+
+#### 5. Update `verify-payment` Edge Function
+- No changes needed — it already handles `session.payment_status === "unpaid"` → `"pending"` which covers the bank transfer waiting period
+
+### Technical Details
+
+**Stripe Checkout session config for bank transfers:**
+```typescript
+payment_method_types: ["customer_balance", "card"],
+payment_method_options: {
+  customer_balance: {
+    funding_type: "bank_transfer",
+    bank_transfer: {
+      type: "us_bank_transfer", // for USD
+    },
+  },
+},
 ```
 
-### Key Features
+**Key constraint**: `customer` (not `customer_email`) is required — already handled since we create/find customers in the function.
 
-1. **Tabbed view** — All / Rate Alerts / Sailing Reminders
-2. **Create new** — "+ New Alert" button opens a choice between Rate Alert or Sailing Reminder, then the respective dialog
-3. **Status indicators** — Active (green), Paused (gray), Triggered (blue), Expired (red)
-4. **Quick actions** — Edit, Pause/Resume, Re-arm (for triggered reminders), Delete
-5. **Filters** — by route, status, date range
-6. **Alert history** — show triggered alerts with the notification that was sent
-
-### Technical Plan
-
-| Step | Details |
-|------|---------|
-| **New route** | `/alerts` — add to sidebar under existing nav items |
-| **New page** | `src/pages/Alerts.tsx` — fetches from both `rate_alerts` and `sailing_reminders` tables |
-| **Sidebar update** | Add "Alerts" item with bell icon + active count badge to `AppSidebar.tsx` |
-| **Reuse existing dialogs** | `RateAlertDialog` for rate alerts, `SailingReminderButton` dialog extracted into standalone `SailingReminderDialog` |
-| **Edit capability** | Add edit mode to both dialogs (currently create-only) |
-| **Pause/Resume** | Toggle `is_active` on `rate_alerts`; add `is_active` column to `sailing_reminders` via migration |
-| **Re-arm** | Reset `is_triggered` and set new `remind_at` for expired sailing reminders |
-| **Route registration** | Add to `App.tsx` router |
-
-### Why This Makes Sense
-
-- Users currently have no way to see what alerts they've set without going back to the exact page where they created them
-- A central hub lets users manage everything in one place — like how Google Flights shows "Tracked Prices"
-- It naturally extends both existing systems without replacing them — the inline bell buttons and "Set Rate Alert" actions still work, they just feed into this central view
-
-### No Database Schema Changes Required (except one small addition)
-
-- Add `is_active` boolean column to `sailing_reminders` (defaulting to `true`) to support pause/resume
+### Files to Modify
+1. `supabase/functions/create-payment/index.ts` — add bank transfer payment method support
+2. `src/components/shipment/PaymentStatusCard.tsx` — add "Pay via Bank Transfer" button
+3. `src/components/shipment/ShipmentChargesPanel.tsx` — add wire transfer option
+4. `src/pages/PaymentSuccess.tsx` — improve bank transfer pending state messaging
 
