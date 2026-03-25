@@ -31,7 +31,7 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
           // Ignore own messages
           if (msg.sender_id === userId) return;
 
-          // If user is viewing this conversation, skip toast (message appends live)
+          // If user is viewing this conversation, skip toast
           if (activeConvRef.current === msg.conversation_id) return;
 
           // Check if user is a participant
@@ -44,14 +44,6 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
 
           if (!participation) return;
 
-          // Determine scope
-          const { data: conv } = await supabase
-            .from("conversations")
-            .select("scope")
-            .eq("id", msg.conversation_id)
-            .maybeSingle();
-
-          const scopeLabel = conv?.scope === "internal" ? "Team" : "External";
           const senderName = msg.sender_name || "Someone";
           const preview = msg.content?.slice(0, 80) || "Sent an attachment";
 
@@ -62,8 +54,14 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
               onClick: () => navigate(`/dashboard/messages?conv=${msg.conversation_id}`),
             },
             duration: 5000,
-            className: "cursor-pointer",
           });
+
+          // Play notification sound
+          try {
+            const audio = new Audio("data:audio/wav;base64,UklGRl9vT19teleXBldGVyZQBkYXRhAA==");
+            audio.volume = 0.3;
+            audio.play().catch(() => {});
+          } catch {}
         }
       )
       .subscribe();
