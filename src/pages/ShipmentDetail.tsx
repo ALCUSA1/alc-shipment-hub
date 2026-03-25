@@ -462,6 +462,7 @@ const ShipmentDetail = () => {
 
         {/* ── DOCUMENTS TAB ── */}
         <TabsContent value="documents" className="mt-6 space-y-6">
+          <ShipmentDocumentPack shipmentId={id!} shipmentRef={shipment.shipment_ref} mode={isAirShipment ? "air" : "ocean"} />
           <DocumentChecklist shipmentId={id!} userId={shipment.user_id} />
           <AmendmentPanel shipmentId={id!} vesselDeparted={isInTransitOrBeyond} />
         </TabsContent>
