@@ -18,6 +18,7 @@ interface CompanyDirectoryDialogProps {
   currentUserId: string;
   currentCompanyName: string;
   scope: ConversationScope;
+  teammateUserIds?: string[];
 }
 
 export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, currentUserId, currentCompanyName, scope }: CompanyDirectoryDialogProps) {
