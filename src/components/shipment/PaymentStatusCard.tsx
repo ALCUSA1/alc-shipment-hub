@@ -102,10 +102,17 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
         </div>
 
         {!isPaid && quote.status === "accepted" && displayAmount > 0 && (
-          <Button variant="electric" className="w-full" onClick={handlePayNow} disabled={paying}>
-            {paying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
-            Pay Now
-          </Button>
+          <div className="space-y-2">
+            <Button variant="electric" className="w-full" onClick={handlePayNow} disabled={paying || payingWire}>
+              {paying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+              Pay Now
+            </Button>
+            <Button variant="outline" className="w-full" onClick={handlePayWire} disabled={paying || payingWire}>
+              {payingWire ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Landmark className="h-4 w-4 mr-2" />}
+              Pay via Bank Transfer
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">Wire transfers typically settle within 1–3 business days</p>
+          </div>
         )}
 
         {payments.length > 0 && (
