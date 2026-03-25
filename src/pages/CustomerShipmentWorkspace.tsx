@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CustomerFinancialsTab } from "@/components/shipment/CustomerFinancialsTab";
+import { LogisticsServicesPanel } from "@/components/shipment/LogisticsServicesPanel";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -67,8 +68,8 @@ const CUSTOMER_TABS = [
   { id: "overview", label: "Overview", icon: Package },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
   { id: "booking", label: "Booking", icon: Anchor },
+  { id: "logistics", label: "Logistics Services", icon: Truck },
   { id: "compliance", label: "Compliance", icon: Shield },
-  { id: "trucking", label: "Trucking", icon: Truck },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "financials", label: "Financials", icon: BarChart3 },
   { id: "messages", label: "Messages", icon: MessageSquare },
@@ -762,9 +763,9 @@ const CustomerShipmentWorkspace = () => {
           )}
         </TabsContent>
 
-        {/* ══ TRUCKING TAB ══ */}
-        <TabsContent value="trucking" className="mt-6 space-y-6">
-          <CustomerTruckingSection pickups={truckPickups || []} />
+        {/* ══ LOGISTICS SERVICES TAB ══ */}
+        <TabsContent value="logistics" className="mt-6 space-y-6">
+          <LogisticsServicesPanel shipmentId={id!} shipmentRef={shipment.shipment_ref} />
         </TabsContent>
 
         {/* ══ DOCUMENTS TAB ══ */}

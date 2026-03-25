@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, Package, Weight, Box, Check, X, Lock } from "lucide-react";
+import { PackageOpen, Package, Weight, Box, Check, X, Lock, Ship, MapPin, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WarehouseInbound = () => {
@@ -18,7 +18,7 @@ const WarehouseInbound = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("warehouse_orders")
-        .select("*")
+        .select("*, shipments!warehouse_orders_shipment_id_fkey(shipment_ref, origin_port, destination_port)")
         .eq("warehouse_user_id", user!.id)
         .eq("order_type", "receiving")
         .order("created_at", { ascending: false });
@@ -81,9 +81,16 @@ const WarehouseInbound = () => {
                 <div key={order.id} className="rounded-lg border p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {order.cargo_description || "Incoming cargo"}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">
+                          {order.cargo_description || "Incoming cargo"}
+                        </p>
+                        {(order as any).shipments?.shipment_ref && (
+                          <Badge variant="outline" className="text-[10px]">
+                            <Ship className="h-3 w-3 mr-1" /> {(order as any).shipments.shipment_ref}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         {order.num_packages && (
                           <span className="flex items-center gap-1"><Package className="h-3 w-3" />{order.num_packages} pkgs</span>
