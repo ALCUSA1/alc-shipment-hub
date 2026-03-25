@@ -60,6 +60,7 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
     try {
       await onSend(draft.trim(), []);
       setDraft("");
+      clearTyping();
     } catch {
       toast.error("Failed to send message");
     }
