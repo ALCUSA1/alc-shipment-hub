@@ -74,7 +74,7 @@ export default function Alerts() {
   // Delete sailing reminder
   const deleteSailingReminder = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("sailing_reminders" as any).delete().eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder deleted"); },
