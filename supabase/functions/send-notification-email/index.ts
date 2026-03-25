@@ -119,6 +119,31 @@ const TEMPLATES: Record<string, (data: Record<string, unknown>) => { subject: st
       </div>
     `,
   }),
+
+  sailing_reminder: (data) => ({
+    subject: `🔔 Rate Alert: ${data.carrier || "Carrier"} — ${data.origin || "?"} → ${data.destination || "?"}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        <div style="background: #0A1628; border-radius: 12px; padding: 32px; color: #fff;">
+          <h1 style="font-size: 20px; margin: 0 0 8px;">🔔 Sailing Rate Alert</h1>
+          <p style="color: #94a3b8; font-size: 14px; margin: 0 0 24px;">Your rate alert is now due. Check availability for your target criteria!</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Carrier</td><td style="padding: 8px 0; color: #fff; font-size: 13px; text-align: right;">${data.carrier || "—"}</td></tr>
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Route</td><td style="padding: 8px 0; color: #fff; font-size: 13px; text-align: right;">${data.origin || "—"} → ${data.destination || "—"}</td></tr>
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">ETD</td><td style="padding: 8px 0; color: #fff; font-size: 13px; text-align: right;">${data.etd || "Flexible"}</td></tr>
+            <tr style="border-top: 1px solid #1e293b;"><td colspan="2" style="padding: 12px 0 4px; color: #60a5fa; font-size: 12px; font-weight: 600;">YOUR CRITERIA</td></tr>
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Date Window</td><td style="padding: 8px 0; color: #fff; font-size: 13px; text-align: right;">${data.date_from || "Any"} — ${data.date_to || "Any"}</td></tr>
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Target Price</td><td style="padding: 8px 0; color: #10b981; font-size: 13px; font-weight: 600; text-align: right;">${data.price_min || "Any"} — ${data.price_max || "Any"}</td></tr>
+            <tr><td style="padding: 8px 0; color: #64748b; font-size: 13px;">Rate at Alert</td><td style="padding: 8px 0; color: #f59e0b; font-size: 13px; text-align: right;">${data.current_rate || "—"} ${data.currency || ""}</td></tr>
+          </table>
+          <div style="margin-top: 24px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">Log in to search and book this sailing now.</p>
+          </div>
+        </div>
+        <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 16px;">ALC Forwarding Platform</p>
+      </div>
+    `,
+  }),
 };
 
 Deno.serve(async (req) => {

@@ -4274,11 +4274,16 @@ export type Database = {
           carrier: string
           container_type: string | null
           created_at: string
+          date_from: string | null
+          date_to: string | null
           destination_port: string
+          email_sent: boolean
           etd: string | null
           id: string
           is_triggered: boolean
           origin_port: string
+          price_max: number | null
+          price_min: number | null
           remind_at: string
           sailing_data: Json | null
           user_id: string
@@ -4287,11 +4292,16 @@ export type Database = {
           carrier: string
           container_type?: string | null
           created_at?: string
+          date_from?: string | null
+          date_to?: string | null
           destination_port: string
+          email_sent?: boolean
           etd?: string | null
           id?: string
           is_triggered?: boolean
           origin_port: string
+          price_max?: number | null
+          price_min?: number | null
           remind_at: string
           sailing_data?: Json | null
           user_id: string
@@ -4300,11 +4310,16 @@ export type Database = {
           carrier?: string
           container_type?: string | null
           created_at?: string
+          date_from?: string | null
+          date_to?: string | null
           destination_port?: string
+          email_sent?: boolean
           etd?: string | null
           id?: string
           is_triggered?: boolean
           origin_port?: string
+          price_max?: number | null
+          price_min?: number | null
           remind_at?: string
           sailing_data?: Json | null
           user_id?: string

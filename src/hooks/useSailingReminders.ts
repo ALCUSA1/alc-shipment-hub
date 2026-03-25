@@ -9,7 +9,11 @@ export interface SailingReminderInput {
   destination_port: string;
   container_type?: string;
   etd?: string;
-  remind_at: string; // ISO string
+  remind_at: string;
+  date_from?: string;
+  date_to?: string;
+  price_min?: number;
+  price_max?: number;
   sailing_data?: any;
 }
 
@@ -42,13 +46,17 @@ export function useSailingReminders() {
         container_type: input.container_type || null,
         etd: input.etd || null,
         remind_at: input.remind_at,
+        date_from: input.date_from || null,
+        date_to: input.date_to || null,
+        price_min: input.price_min ?? null,
+        price_max: input.price_max ?? null,
         sailing_data: input.sailing_data || null,
       } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sailing-reminders"] });
-      toast.success("Reminder set! You'll be notified when this sailing is available.");
+      toast.success("Rate alert set! You'll be notified via app and email.");
     },
     onError: (err: any) => toast.error(err.message || "Failed to set reminder"),
   });
