@@ -31,6 +31,21 @@ export default function Messages() {
     teamMembers,
   } = useChatDrawer();
 
+  // Real-time toast notifications for messages from other conversations
+  useMessageNotifications({
+    userId: user?.id,
+    activeConversationId,
+    currentUserName,
+  });
+
+  // Open conversation from URL param (e.g. from toast notification click)
+  useEffect(() => {
+    const convParam = searchParams.get("conv");
+    if (convParam && convParam !== activeConversationId) {
+      setActiveConversationId(convParam);
+    }
+  }, [searchParams]);
+
   const handleSelectTeamMember = (member: { user_id: string; full_name: string; email: string }) => {
     handleSelectUser({
       user_id: member.user_id,
