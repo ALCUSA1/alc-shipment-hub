@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, Package, Weight, Box, Check, X, Lock } from "lucide-react";
+import { PackageOpen, Package, Weight, Box, Check, X, Lock, Ship, MapPin, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WarehouseInbound = () => {
