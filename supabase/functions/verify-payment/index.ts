@@ -74,12 +74,38 @@ serve(async (req) => {
         .eq("id", session.metadata.charge_id);
     }
 
-    // Auto-generate Seaway Bill document when payment is completed
+    // Post-payment processing when completed
     if (newStatus === "completed") {
       const shipmentId = session.metadata?.shipment_id;
       const userId = user.id;
+
+      // Auto-settle multi-carrier splits
+      if (session.metadata?.is_multi_carrier === "true") {
+        const { data: paymentRow } = await supabaseAdmin
+          .from("payments")
+          .select("id")
+          .eq("stripe_session_id", session_id)
+          .single();
+
+        if (paymentRow?.id) {
+          try {
+            const settleUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/settle-carriers`;
+            await fetch(settleUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+              },
+              body: JSON.stringify({ payment_id: paymentRow.id }),
+            });
+          } catch (settleErr) {
+            console.error("Auto-settle trigger failed:", settleErr);
+          }
+        }
+      }
+
+      // Auto-generate Seaway Bill document
       if (shipmentId) {
-        // Check if SWB already exists for this shipment
         const { data: existing } = await supabaseAdmin
           .from("documents")
           .select("id")
