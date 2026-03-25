@@ -299,7 +299,16 @@ const Shipments = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_ref")}>
+                    <th className="p-4 w-10">
+                      <Checkbox
+                        checked={paginatedRows.length > 0 && paginatedRows.every(s => selectedIds.has(s.id))}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedIds);
+                          paginatedRows.forEach(s => checked ? next.add(s.id) : next.delete(s.id));
+                          setSelectedIds(next);
+                        }}
+                      />
+                    </th>
                       <span className="inline-flex items-center">Reference<SortIcon col="shipment_ref" /></span>
                     </th>
                     <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("customer")}>
