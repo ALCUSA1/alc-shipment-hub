@@ -23,6 +23,7 @@ export default function Messages() {
     currentCompanyName,
     handleSend,
     handleSelectUser,
+    teammateUserIds,
   } = useChatDrawer();
 
   return (
