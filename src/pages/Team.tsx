@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole, type AppRole } from "@/hooks/useUserRole";
+import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -40,14 +40,14 @@ const ROLES: Record<string, RoleDef> = {
     color: "text-amber-600",
     badgeBg: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   },
-  ops_manager: {
+  operations_manager: {
     label: "Operations",
     description: "Create & manage shipments, upload documents, track shipments",
     icon: Settings2,
     color: "text-blue-600",
     badgeBg: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   },
-  sales: {
+  finance_user: {
     label: "Finance",
     description: "View financials, invoices, manage payments",
     icon: DollarSign,
@@ -63,19 +63,29 @@ const ROLES: Record<string, RoleDef> = {
   },
 };
 
+type TeamMember = {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  title: string | null;
+  status: string;
+  roles: { id: string; role: string }[];
+  created_at: string;
+};
+
 /* ── Permissions matrix ────────────────────────────── */
 
 const PERMISSIONS = [
-  { key: "create_shipment", label: "Create Shipment", admin: true, ops_manager: true, sales: false, viewer: false },
-  { key: "edit_shipment", label: "Edit Shipment", admin: true, ops_manager: true, sales: false, viewer: false },
-  { key: "view_shipment", label: "View Shipment", admin: true, ops_manager: true, sales: true, viewer: true },
-  { key: "access_financials", label: "Access Financials", admin: true, ops_manager: false, sales: true, viewer: false },
-  { key: "download_invoices", label: "Download Invoices", admin: true, ops_manager: false, sales: true, viewer: true },
-  { key: "upload_documents", label: "Upload Documents", admin: true, ops_manager: true, sales: false, viewer: false },
-  { key: "view_documents", label: "View Documents", admin: true, ops_manager: true, sales: true, viewer: true },
-  { key: "send_messages", label: "Send Messages", admin: true, ops_manager: true, sales: true, viewer: false },
-  { key: "manage_team", label: "Manage Team", admin: true, ops_manager: false, sales: false, viewer: false },
-  { key: "access_admin", label: "Access Admin Features", admin: true, ops_manager: false, sales: false, viewer: false },
+  { key: "create_shipment", label: "Create Shipment", admin: true, operations_manager: true, finance_user: false, viewer: false },
+  { key: "edit_shipment", label: "Edit Shipment", admin: true, operations_manager: true, finance_user: false, viewer: false },
+  { key: "view_shipment", label: "View Shipment", admin: true, operations_manager: true, finance_user: true, viewer: true },
+  { key: "access_financials", label: "Access Financials", admin: true, operations_manager: false, finance_user: true, viewer: false },
+  { key: "download_invoices", label: "Download Invoices", admin: true, operations_manager: false, finance_user: true, viewer: true },
+  { key: "upload_documents", label: "Upload Documents", admin: true, operations_manager: true, finance_user: false, viewer: false },
+  { key: "view_documents", label: "View Documents", admin: true, operations_manager: true, finance_user: true, viewer: true },
+  { key: "send_messages", label: "Send Messages", admin: true, operations_manager: true, finance_user: true, viewer: false },
+  { key: "manage_team", label: "Manage Team", admin: true, operations_manager: false, finance_user: false, viewer: false },
+  { key: "access_admin", label: "Access Admin Features", admin: true, operations_manager: false, finance_user: false, viewer: false },
 ];
 
 /* ── Status helpers ────────────────────────────────── */
@@ -97,7 +107,7 @@ function statusBadge(status: string) {
 
 const Team = () => {
   const { user } = useAuth();
-  const { isAdmin, isLoading: roleLoading } = useUserRole();
+  const { companyId, isOwnerOrAdmin, isLoading: companyRoleLoading } = useCompanyRole();
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -108,7 +118,7 @@ const Team = () => {
 
   /* ── Edit member state ─────────────────────────── */
   const [editOpen, setEditOpen] = useState(false);
-  const [editMember, setEditMember] = useState<any>(null);
+  const [editMember, setEditMember] = useState<TeamMember | null>(null);
   const [editName, setEditName] = useState("");
   const [editRole, setEditRole] = useState("");
   const [editTitle, setEditTitle] = useState("");
@@ -116,68 +126,69 @@ const Team = () => {
 
   /* ── Data fetching ─────────────────────────────── */
 
-  const { data: teamMembers, isLoading: teamLoading } = useQuery({
-    queryKey: ["team-members"],
+  const { data: teamMembers, isLoading: teamLoading } = useQuery<TeamMember[]>({
+    queryKey: ["team-members", companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("id, user_id, role, created_at");
+      const { data: members, error } = await supabase
+        .from("company_members")
+        .select("id, user_id, role, title, created_at, joined_at, is_active")
+        .eq("company_id", companyId!)
+        .eq("is_active", true)
+        .order("joined_at", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true });
       if (error) throw error;
 
-      const userIds = [...new Set(data.map((r: any) => r.user_id))];
-      const { data: profiles } = await supabase
+      const userIds = [...new Set((members || []).map((member) => member.user_id))];
+      if (!userIds.length) return [];
+
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, full_name, email")
         .in("user_id", userIds);
+      if (profilesError) throw profilesError;
 
-      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      const profileMap = new Map((profiles || []).map((profile) => [profile.user_id, profile]));
 
-      const userMap = new Map<string, {
-        user_id: string;
-        full_name: string | null;
-        email: string | null;
-        status: string;
-        roles: { id: string; role: string }[];
-        created_at: string;
-      }>();
-
-      for (const r of data) {
-        if (!userMap.has(r.user_id)) {
-          const profile = profileMap.get(r.user_id);
-          userMap.set(r.user_id, {
-            user_id: r.user_id,
-            full_name: profile?.full_name || null,
-            email: profile?.email || null,
-            status: "active",
-            roles: [],
-            created_at: r.created_at,
-          });
-        }
-        userMap.get(r.user_id)!.roles.push({ id: r.id, role: r.role });
-      }
-      return Array.from(userMap.values());
+      return (members || []).map((member) => {
+        const profile = profileMap.get(member.user_id);
+        return {
+          user_id: member.user_id,
+          full_name: profile?.full_name || null,
+          email: profile?.email || null,
+          title: member.title || null,
+          status: member.is_active ? "active" : "disabled",
+          roles: [{ id: member.id, role: member.role }],
+          created_at: member.joined_at || member.created_at,
+        };
+      });
     },
-    enabled: isAdmin,
+    enabled: !!companyId && isOwnerOrAdmin,
   });
 
   /* ── Actions ───────────────────────────────────── */
 
   const handleInvite = async () => {
-    if (!inviteEmail || !inviteRole) return;
+    if (!inviteEmail || !inviteRole || !companyId) return;
     setInviting(true);
     try {
       const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: { email: inviteEmail, role: inviteRole, full_name: inviteName },
+        body: {
+          email: inviteEmail,
+          role: inviteRole,
+          full_name: inviteName,
+          title: inviteTitle,
+          company_id: companyId,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast({ title: "Invitation Sent", description: `${inviteEmail} invited as ${ROLES[inviteRole]?.label || inviteRole}` });
+      toast({ title: "Invitation Sent", description: `${inviteEmail} added to your team.` });
       setInviteOpen(false);
       setInviteEmail("");
       setInviteName("");
       setInviteRole("");
       setInviteTitle("");
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
     } catch (err: any) {
       toast({ title: "Invite Failed", description: err.message, variant: "destructive" });
     } finally {
@@ -185,35 +196,37 @@ const Team = () => {
     }
   };
 
-  const handleChangeRole = async (roleId: string, newRole: string) => {
+  const handleChangeRole = async (membershipId: string, newRole: string) => {
     try {
       const { error } = await supabase
-        .from("user_roles")
+        .from("company_members")
         .update({ role: newRole as any })
-        .eq("id", roleId);
+        .eq("id", membershipId);
       if (error) throw error;
       toast({ title: "Role Updated", description: `Changed to ${ROLES[newRole]?.label || newRole}` });
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
-  const handleRemoveUser = async (member: typeof teamMembers extends (infer T)[] | undefined ? T : never) => {
-    if (!member) return;
+  const handleRemoveUser = async (member: TeamMember) => {
+    const membershipId = member.roles[0]?.id;
+    if (!membershipId) return;
     try {
-      for (const r of member.roles) {
-        const { error } = await supabase.from("user_roles").delete().eq("id", r.id);
-        if (error) throw error;
-      }
+      const { error } = await supabase
+        .from("company_members")
+        .update({ is_active: false })
+        .eq("id", membershipId);
+      if (error) throw error;
       toast({ title: "User Removed", description: `${member.full_name || "User"} has been removed from the team.` });
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
-  const openEditMember = (member: any) => {
+  const openEditMember = (member: TeamMember) => {
     setEditMember(member);
     setEditName(member.full_name || "");
     setEditRole(member.roles[0]?.role || "viewer");
@@ -231,23 +244,18 @@ const Team = () => {
         .eq("user_id", editMember.user_id);
       if (profileErr) throw profileErr;
 
-      const currentRole = editMember.roles[0];
-      if (currentRole && currentRole.role !== editRole) {
-        const { error: roleErr } = await supabase
-          .from("user_roles")
-          .update({ role: editRole as any })
-          .eq("id", currentRole.id);
-        if (roleErr) throw roleErr;
+      const membershipId = editMember.roles[0]?.id;
+      if (membershipId) {
+        const { error: memberErr } = await supabase
+          .from("company_members")
+          .update({ role: editRole as any, title: editTitle.trim() || null })
+          .eq("id", membershipId);
+        if (memberErr) throw memberErr;
       }
-
-      await supabase
-        .from("company_members")
-        .update({ title: editTitle.trim() || null })
-        .eq("user_id", editMember.user_id);
 
       toast({ title: "Member Updated", description: `${editName || "User"}'s information has been saved.` });
       setEditOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -257,7 +265,7 @@ const Team = () => {
 
   /* ── Loading / Access checks ────────────────────── */
 
-  if (roleLoading) {
+  if (companyRoleLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-4 p-6">
@@ -268,20 +276,20 @@ const Team = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!isOwnerOrAdmin || !companyId) {
     return (
       <DashboardLayout>
         <div className="text-center py-20">
           <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Access Restricted</h2>
-          <p className="text-muted-foreground">Only administrators can manage team members.</p>
+          <p className="text-muted-foreground">Only company admins can manage team members.</p>
         </div>
       </DashboardLayout>
     );
   }
 
   const totalMembers = teamMembers?.length || 0;
-  const activeMembers = teamMembers?.filter(m => m.status === "active").length || 0;
+  const activeMembers = teamMembers?.filter((member) => member.status === "active").length || 0;
 
   /* ── Render ─────────────────────────────────────── */
 
@@ -558,7 +566,7 @@ const Team = () => {
                       {PERMISSIONS.map((perm) => (
                         <TableRow key={perm.key}>
                           <TableCell className="pl-6 font-medium text-sm">{perm.label}</TableCell>
-                          {(["admin", "ops_manager", "sales", "viewer"] as const).map((role) => (
+                          {(["admin", "operations_manager", "finance_user", "viewer"] as const).map((role) => (
                             <TableCell key={role} className="text-center">
                               {perm[role] ? (
                                 <Check className="h-4 w-4 text-emerald-500 mx-auto" />
