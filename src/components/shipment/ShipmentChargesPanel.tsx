@@ -34,7 +34,7 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   processing: "bg-blue-100 text-blue-700",
 };
 
-export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) {
+export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPanelProps) {
   const [payingId, setPayingId] = useState<string | null>(null);
   const [wirePayingId, setWirePayingId] = useState<string | null>(null);
 
