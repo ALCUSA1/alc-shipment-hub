@@ -174,7 +174,10 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
         </Button>
         <Textarea
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (e.target.value.trim()) sendTyping();
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Type a message…"
           className="min-h-[40px] max-h-[120px] resize-none text-sm"
