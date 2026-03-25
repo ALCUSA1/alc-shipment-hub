@@ -60,5 +60,8 @@ verify_jwt = false
 [functions.sync-carrier-rates]
 verify_jwt = false
 
+[functions.settle-carriers]
+verify_jwt = false
+
 [functions.shipment-workflow]
 verify_jwt = false
