@@ -163,6 +163,9 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
         <div ref={bottomRef} />
       </ScrollArea>
 
+      {/* Typing Indicator */}
+      <TypingIndicator text={typingText} />
+
       {/* Input */}
       <div className="border-t border-border p-3 flex items-end gap-2 bg-background shrink-0">
         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
