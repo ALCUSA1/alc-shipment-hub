@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { hasCapability } from "@/lib/company-permissions";
 import { BulkOperationsPanel } from "@/components/shipment/BulkOperationsPanel";
+import { ShipmentMultiSelectActions } from "@/components/shipment/ShipmentMultiSelectActions";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown, Trash2, Loader2, Copy } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { BackButton } from "@/components/shared/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,6 +86,7 @@ const Shipments = () => {
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const seedPendingShipments = async () => {
     if (!user) return;
@@ -230,8 +233,13 @@ const Shipments = () => {
       </div>
 
       {/* Bulk Operations */}
-      <div className="mb-6">
+      <div className="mb-6 space-y-3">
         <BulkOperationsPanel shipments={shipments || []} />
+        <ShipmentMultiSelectActions
+          selectedIds={selectedIds}
+          shipments={shipments || []}
+          onClearSelection={() => setSelectedIds(new Set())}
+        />
       </div>
 
       {/* Filters */}
@@ -291,6 +299,16 @@ const Shipments = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
+                    <th className="p-4 w-10">
+                      <Checkbox
+                        checked={paginatedRows.length > 0 && paginatedRows.every(s => selectedIds.has(s.id))}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedIds);
+                          paginatedRows.forEach(s => checked ? next.add(s.id) : next.delete(s.id));
+                          setSelectedIds(next);
+                        }}
+                      />
+                    </th>
                     <th className="text-left font-medium text-muted-foreground p-4 cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => toggleSort("shipment_ref")}>
                       <span className="inline-flex items-center">Reference<SortIcon col="shipment_ref" /></span>
                     </th>
@@ -313,7 +331,17 @@ const Shipments = () => {
                   {paginatedRows.map((s) => {
                     const companyName = (s.companies as any)?.company_name;
                     return (
-                      <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
+                      <tr key={s.id} className={`border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer ${selectedIds.has(s.id) ? "bg-accent/5" : ""}`} onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(s.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedIds);
+                              checked ? next.add(s.id) : next.delete(s.id);
+                              setSelectedIds(next);
+                            }}
+                          />
+                        </td>
                         <td className="p-4 font-mono font-medium text-accent">{s.shipment_ref}</td>
                         <td className="p-4 text-foreground">{companyName || <span className="text-muted-foreground">—</span>}</td>
                         <td className="p-4 text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</td>
