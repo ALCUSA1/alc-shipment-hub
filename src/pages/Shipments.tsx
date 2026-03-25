@@ -233,8 +233,13 @@ const Shipments = () => {
       </div>
 
       {/* Bulk Operations */}
-      <div className="mb-6">
+      <div className="mb-6 space-y-3">
         <BulkOperationsPanel shipments={shipments || []} />
+        <ShipmentMultiSelectActions
+          selectedIds={selectedIds}
+          shipments={shipments || []}
+          onClearSelection={() => setSelectedIds(new Set())}
+        />
       </div>
 
       {/* Filters */}
