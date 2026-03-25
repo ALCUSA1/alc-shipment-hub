@@ -195,12 +195,28 @@ const NewShipmentWizard = () => {
     <DashboardLayout>
       <div className="max-w-3xl mx-auto px-1">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <BackButton />
-          <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">New Shipment</h1>
-            <p className="text-[11px] text-muted-foreground">Create a shipment request and submit for pricing.</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div>
+              <h1 className="text-lg font-semibold text-foreground tracking-tight">New Shipment</h1>
+              <p className="text-[11px] text-muted-foreground">Create a shipment request and submit for pricing.</p>
+            </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-accent/40 text-accent hover:bg-accent/10"
+            onClick={() => {
+              const params = new URLSearchParams();
+              if (origin) params.set("origin", origin);
+              if (destination) params.set("destination", destination);
+              navigate(`/book${params.toString() ? `?${params}` : ""}`);
+            }}
+          >
+            <Ship className="h-3.5 w-3.5" />
+            Search & Book Instantly
+          </Button>
         </div>
 
         {/* Stepper */}
