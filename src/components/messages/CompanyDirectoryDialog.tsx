@@ -68,13 +68,11 @@ export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, curre
   const filteredUsers = users.filter((u) => {
     if (u.user_id === currentUserId) return false;
 
-    if (currentCompanyName) {
-      const isSameCompany =
-        u.company_name?.toLowerCase() === currentCompanyName.toLowerCase();
+    // Use company_members to determine teammates
+    const isTeammate = teammateUserIds.includes(u.user_id);
 
-      if (scope === "internal" && !isSameCompany) return false;
-      if (scope === "external" && isSameCompany) return false;
-    }
+    if (scope === "internal" && !isTeammate) return false;
+    if (scope === "external" && isTeammate) return false;
 
     const q = search.toLowerCase();
     if (!q) return true;
