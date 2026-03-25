@@ -256,6 +256,11 @@ const App = () => (
             <Route path="/trucking/quotes" element={<TruckingGate><TruckingQuotes /></TruckingGate>} />
             <Route path="/trucking/assignments" element={<TruckingGate><TruckingAssignments /></TruckingGate>} />
             <Route path="/trucking/account" element={<TruckingGate><TruckingAccount /></TruckingGate>} />
+            <Route path="/trucking/schedule" element={<TruckingGate><TruckingSchedule /></TruckingGate>} />
+            <Route path="/trucking/documents" element={<TruckingGate><TruckingDocuments /></TruckingGate>} />
+            <Route path="/trucking/messages" element={<TruckingGate><TruckingMessages /></TruckingGate>} />
+            <Route path="/trucking/team" element={<TruckingGate><TruckingTeam /></TruckingGate>} />
+            <Route path="/trucking/settings" element={<TruckingGate><TruckingSettings /></TruckingGate>} />
 
             {/* Driver Portal */}
             <Route path="/driver" element={<DriverGate><DriverDashboard /></DriverGate>} />
