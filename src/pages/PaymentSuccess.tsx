@@ -71,6 +71,17 @@ const PaymentSuccess = () => {
                   </Link>
                 </Button>
               </div>
+            ) : result?.status === "pending" ? (
+              <div className="space-y-4">
+                <Landmark className="h-14 w-14 text-accent mx-auto" />
+                <h2 className="text-xl font-bold text-foreground">Bank Transfer Instructions Sent</h2>
+                <p className="text-sm text-muted-foreground">
+                  Your wire transfer instructions have been generated. Please complete the transfer from your bank using the details provided by Stripe. Funds typically arrive within <span className="font-semibold text-foreground">1–3 business days</span>.
+                </p>
+                <Button variant="electric" asChild>
+                  <Link to="/dashboard/quotes">Back to Quotes</Link>
+                </Button>
+              </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-yellow-600 font-medium">Payment is being processed</p>

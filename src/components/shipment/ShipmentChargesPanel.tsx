@@ -156,20 +156,36 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
                   {Number(charge.amount).toLocaleString()} {charge.currency}
                 </span>
                 {charge.payment_status === "unpaid" && charge.who_pays === "shipper" && (
-                  <Button
-                    variant="electric"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => handlePay(charge)}
-                    disabled={payingId === charge.id}
-                  >
-                    {payingId === charge.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : (
-                      <CreditCard className="h-3 w-3 mr-1" />
-                    )}
-                    Pay
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="electric"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => handlePay(charge)}
+                      disabled={payingId === charge.id || wirePayingId === charge.id}
+                    >
+                      {payingId === charge.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <CreditCard className="h-3 w-3 mr-1" />
+                      )}
+                      Pay
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => handleWirePay(charge)}
+                      disabled={payingId === charge.id || wirePayingId === charge.id}
+                    >
+                      {wirePayingId === charge.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Landmark className="h-3 w-3 mr-1" />
+                      )}
+                      Wire
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>

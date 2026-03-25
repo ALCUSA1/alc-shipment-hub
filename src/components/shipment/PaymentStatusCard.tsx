@@ -79,6 +79,25 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
     }
   };
 
+  const handlePayWire = async () => {
+    setPayingWire(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { quoteId: quote.id, shipmentId, payment_method: "bank_transfer" },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        toast({ title: "Bank transfer initiated", description: "Follow the wire instructions to complete your payment." });
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPayingWire(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">

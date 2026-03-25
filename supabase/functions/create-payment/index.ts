@@ -166,6 +166,19 @@ serve(async (req) => {
       };
     }
 
+    // Add bank transfer payment method options if requested
+    if (isBankTransfer) {
+      sessionParams.payment_method_options = {
+        ...sessionParams.payment_method_options,
+        customer_balance: {
+          funding_type: "bank_transfer",
+          bank_transfer: {
+            type: bankTransferTypeMap[currLower] || "us_bank_transfer",
+          },
+        },
+      };
+    }
+
     const session = await stripe.checkout.sessions.create(sessionParams);
 
     // Record payment in DB
