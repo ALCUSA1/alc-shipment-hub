@@ -10,6 +10,7 @@ import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 export default function Messages() {
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const {
     user,
