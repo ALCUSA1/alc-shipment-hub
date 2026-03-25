@@ -34,7 +34,7 @@ const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[
   { title: "Partners", url: "/dashboard/partners", icon: Users, navKey: "partners" },
   { title: "Financials", url: "/dashboard/accounting", icon: DollarSign, navKey: "accounting" },
   { title: "Team", url: "/dashboard/team", icon: Shield, navKey: "team" },
-  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare, navKey: "messages" as NavItemKey },
+  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare, navKey: "messages" },
 ];
 
 const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
