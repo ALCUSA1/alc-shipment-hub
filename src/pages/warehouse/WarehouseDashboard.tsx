@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { PackageOpen, Boxes, PackageCheck, DollarSign, Clock, FileText, Ship, MapPin, ArrowRight } from "lucide-react";
+import { PackageOpen, Boxes, PackageCheck, DollarSign, Clock, FileText, Ship, MapPin, ArrowRight, Truck, Calendar, Info, Warehouse } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -20,27 +20,24 @@ const WarehouseDashboard = () => {
         .select("*, shipments!warehouse_orders_shipment_id_fkey(shipment_ref, origin_port, destination_port, status)")
         .eq("warehouse_user_id", user!.id)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(30);
       if (error) throw error;
       return data;
     },
     enabled: !!user,
   });
 
-  const pendingInbound = orders.filter((o) => o.order_type === "receiving" && o.status === "pending").length;
-  const inStorage = orders.filter((o) => o.order_type === "storage" && (o.status === "in_progress" || o.status === "confirmed")).length;
-  const pendingRelease = orders.filter((o) => o.order_type === "release" && o.status === "pending").length;
-  const unbilledTotal = orders
-    .filter((o) => o.billing_status === "unbilled")
-    .reduce((sum, o) => sum + (Number(o.handling_fee) || 0) + (Number(o.total_storage_charges) || 0), 0);
-
-  const recentOrders = orders.slice(0, 5);
+  const inboundPending = orders.filter((o) => o.order_type === "receiving" && ["pending", "confirmed"].includes(o.status));
+  const outboundPending = orders.filter((o) => o.order_type === "release" && ["pending", "in_progress"].includes(o.status));
+  const inStorage = orders.filter((o) => o.status === "in_progress" || o.status === "confirmed");
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayAppointments = orders.filter((o) => o.expected_date === todayStr);
 
   const stats = [
-    { label: "Pending Receiving", value: pendingInbound, icon: PackageOpen, color: "text-yellow-600", bgColor: "bg-yellow-500/10" },
-    { label: "Items in Storage", value: inStorage, icon: Boxes, color: "text-accent", bgColor: "bg-accent/10" },
-    { label: "Pending Releases", value: pendingRelease, icon: PackageCheck, color: "text-orange-600", bgColor: "bg-orange-500/10" },
-    { label: "Unbilled Revenue", value: `$${unbilledTotal.toLocaleString()}`, icon: DollarSign, color: "text-green-600", bgColor: "bg-green-500/10" },
+    { label: "Inbound Cargo", value: inboundPending.length, icon: PackageOpen, color: "text-yellow-600", bgColor: "bg-yellow-500/10" },
+    { label: "Outbound / Release", value: outboundPending.length, icon: PackageCheck, color: "text-orange-600", bgColor: "bg-orange-500/10" },
+    { label: "In Storage", value: inStorage.length, icon: Boxes, color: "text-accent", bgColor: "bg-accent/10" },
+    { label: "Today's Appointments", value: todayAppointments.length, icon: Calendar, color: "text-blue-600", bgColor: "bg-blue-500/10" },
   ];
 
   const statusStyle: Record<string, string> = {
@@ -53,19 +50,28 @@ const WarehouseDashboard = () => {
 
   return (
     <WarehouseLayout>
-      <div className="mb-8">
+      {/* Role responsibility banner */}
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20 mb-6">
+        <Warehouse className="h-5 w-5 text-accent mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-foreground">You are responsible for cargo handling and release</p>
+          <p className="text-xs text-muted-foreground">Manage inbound receiving, storage operations, and coordinate with trucking companies for cargo pickup.</p>
+        </div>
+      </div>
+
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Operations Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Shipment-linked warehouse operations at a glance</p>
+        <p className="text-sm text-muted-foreground">Warehouse operations at a glance</p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((s) => (
           <Card key={s.label}>
-            <CardContent className="p-6">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{s.label}</p>
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">{s.value}</p>
                 </div>
                 <div className={cn("p-3 rounded-lg", s.bgColor)}>
@@ -78,48 +84,52 @@ const WarehouseDashboard = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Orders with Shipment Context */}
+        {/* Inbound Cargo */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              Recent Orders
+              <PackageOpen className="h-4 w-4 text-yellow-600" />
+              Inbound Cargo (Expected Arrivals)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No orders yet.</p>
+            {inboundPending.length === 0 ? (
+              <div className="text-center py-8">
+                <PackageOpen className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No pending inbound cargo.</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {recentOrders.map((order: any) => {
+                {inboundPending.slice(0, 5).map((order: any) => {
                   const shipment = order.shipments;
                   return (
-                    <div key={order.id} className="p-3 rounded-lg border space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
+                    <Link key={order.id} to="/warehouse/inbound" className="block">
+                      <div className="p-3 rounded-lg border hover:border-accent/50 transition-colors space-y-1.5">
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-foreground capitalize">{order.order_type}</p>
+                            <span className="text-sm font-medium text-foreground">{order.cargo_description || "Incoming cargo"}</span>
                             {shipment?.shipment_ref && (
                               <Badge variant="outline" className="text-[10px]">
-                                <Ship className="h-3 w-3 mr-1" /> {shipment.shipment_ref}
+                                <Ship className="h-3 w-3 mr-1" />{shipment.shipment_ref}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {order.cargo_description || "No description"} · {order.num_packages || 0} pkgs
+                          <Badge className={cn("text-[10px]", statusStyle[order.status])} variant="secondary">
+                            {order.status}
+                          </Badge>
+                        </div>
+                        {order.expected_date && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-3 w-3" /> Expected: {order.expected_date}
                           </p>
-                        </div>
-                        <Badge className={statusStyle[order.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                          {order.status.replace(/_/g, " ")}
-                        </Badge>
+                        )}
+                        {order.trucking_company_name && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Truck className="h-3 w-3" /> Arriving via: {order.trucking_company_name}
+                          </p>
+                        )}
                       </div>
-                      {shipment && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {shipment.origin_port || "—"} <ArrowRight className="h-3 w-3" /> {shipment.destination_port || "—"}
-                        </div>
-                      )}
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -127,32 +137,86 @@ const WarehouseDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Outbound / Release */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <PackageCheck className="h-4 w-4 text-orange-600" />
+              Outbound Cargo (Ready for Pickup)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/warehouse/inbound" className="block">
-              <Button variant="electric" className="w-full justify-start">
-                <PackageOpen className="h-4 w-4 mr-2" /> View Inbound Orders
-              </Button>
-            </Link>
-            <Link to="/warehouse/releases" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <PackageCheck className="h-4 w-4 mr-2" /> Process Releases
-              </Button>
-            </Link>
-            <Link to="/warehouse/schedule" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Clock className="h-4 w-4 mr-2" /> View Schedule
-              </Button>
-            </Link>
-            <Link to="/warehouse/documents" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" /> Upload Documents
-              </Button>
-            </Link>
+          <CardContent>
+            {outboundPending.length === 0 ? (
+              <div className="text-center py-8">
+                <PackageCheck className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No pending releases.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {outboundPending.slice(0, 5).map((order: any) => {
+                  const shipment = order.shipments;
+                  return (
+                    <Link key={order.id} to="/warehouse/releases" className="block">
+                      <div className="p-3 rounded-lg border hover:border-accent/50 transition-colors space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-foreground">{order.cargo_description || "Release order"}</span>
+                            {shipment?.shipment_ref && (
+                              <Badge variant="outline" className="text-[10px]">
+                                <Ship className="h-3 w-3 mr-1" />{shipment.shipment_ref}
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge className={cn("text-[10px]", statusStyle[order.status])} variant="secondary">
+                            {order.status?.replace(/_/g, " ")}
+                          </Badge>
+                        </div>
+                        {order.release_to_name && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Truck className="h-3 w-3" /> Pickup by: {order.release_to_name}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* What to do next */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Info className="h-4 w-4 text-accent" />
+              What to do next
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <Link to="/warehouse/inbound" className="block">
+                <div className="p-4 rounded-lg border border-dashed hover:border-accent/50 transition-colors text-center">
+                  <PackageOpen className="h-6 w-6 text-accent mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Process Inbound</p>
+                  <p className="text-[10px] text-muted-foreground">Confirm cargo arrivals and log receiving</p>
+                </div>
+              </Link>
+              <Link to="/warehouse/releases" className="block">
+                <div className="p-4 rounded-lg border border-dashed hover:border-accent/50 transition-colors text-center">
+                  <PackageCheck className="h-6 w-6 text-accent mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Process Releases</p>
+                  <p className="text-[10px] text-muted-foreground">Authorize and confirm cargo release</p>
+                </div>
+              </Link>
+              <Link to="/warehouse/documents" className="block">
+                <div className="p-4 rounded-lg border border-dashed hover:border-accent/50 transition-colors text-center">
+                  <FileText className="h-6 w-6 text-accent mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Upload Documents</p>
+                  <p className="text-[10px] text-muted-foreground">Submit receiving and release documents</p>
+                </div>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

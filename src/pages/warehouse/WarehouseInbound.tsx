@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, Package, Weight, Box, Check, X, Lock, Ship, MapPin, ArrowRight } from "lucide-react";
+import { PackageOpen, Package, Weight, Box, Check, X, Lock, Ship, Truck, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const WarehouseInbound = () => {
   const { user } = useAuth();
@@ -50,7 +51,6 @@ const WarehouseInbound = () => {
     cancelled: "bg-destructive/10 text-destructive",
   };
 
-  // Statuses where no further actions are allowed
   const isFinalStatus = (status: string) => ["completed", "rejected", "cancelled"].includes(status);
 
   return (
@@ -77,81 +77,79 @@ const WarehouseInbound = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
-                <div key={order.id} className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">
-                          {order.cargo_description || "Incoming cargo"}
-                        </p>
-                        {(order as any).shipments?.shipment_ref && (
-                          <Badge variant="outline" className="text-[10px]">
-                            <Ship className="h-3 w-3 mr-1" /> {(order as any).shipments.shipment_ref}
-                          </Badge>
-                        )}
+              {orders.map((order) => {
+                const shipment = (order as any).shipments;
+                return (
+                  <div key={order.id} className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">
+                            {order.cargo_description || "Incoming cargo"}
+                          </p>
+                          {shipment?.shipment_ref && (
+                            <Badge variant="outline" className="text-[10px]">
+                              <Ship className="h-3 w-3 mr-1" /> {shipment.shipment_ref}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          {order.num_packages && (
+                            <span className="flex items-center gap-1"><Package className="h-3 w-3" />{order.num_packages} pkgs</span>
+                          )}
+                          {order.weight && (
+                            <span className="flex items-center gap-1"><Weight className="h-3 w-3" />{order.weight} kg</span>
+                          )}
+                          {order.volume && (
+                            <span className="flex items-center gap-1"><Box className="h-3 w-3" />{order.volume} CBM</span>
+                          )}
+                          {order.expected_date && (
+                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />Expected: {order.expected_date}</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {order.num_packages && (
-                          <span className="flex items-center gap-1"><Package className="h-3 w-3" />{order.num_packages} pkgs</span>
-                        )}
-                        {order.weight && (
-                          <span className="flex items-center gap-1"><Weight className="h-3 w-3" />{order.weight} kg</span>
-                        )}
-                        {order.volume && (
-                          <span className="flex items-center gap-1"><Box className="h-3 w-3" />{order.volume} CBM</span>
-                        )}
-                        {order.expected_date && <span>Expected: {order.expected_date}</span>}
-                      </div>
+                      <Badge className={cn("text-[10px]", statusStyle[order.status] || "bg-secondary text-muted-foreground")} variant="secondary">
+                        {order.status.replace(/_/g, " ")}
+                      </Badge>
                     </div>
-                    <Badge className={statusStyle[order.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                      {order.status.replace(/_/g, " ")}
-                    </Badge>
+
+                    {/* Trucking coordination: who is delivering */}
+                    {(order as any).trucking_company_name && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <Truck className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Expected trucking company: <strong className="text-foreground">{(order as any).trucking_company_name}</strong></span>
+                      </div>
+                    )}
+
+                    {order.handling_instructions && (
+                      <p className="text-xs text-muted-foreground border-t pt-2">{order.handling_instructions}</p>
+                    )}
+
+                    {order.status === "pending" && (
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}>
+                          <Check className="h-3.5 w-3.5 mr-1" /> Confirm Cargo Received
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}>
+                          <X className="h-3.5 w-3.5 mr-1" /> Reject
+                        </Button>
+                      </div>
+                    )}
+                    {order.status === "confirmed" && (
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}>
+                          Mark Completed
+                        </Button>
+                      </div>
+                    )}
+                    {isFinalStatus(order.status) && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
+                        <Lock className="h-3 w-3" /> No further actions — order is {order.status}
+                      </p>
+                    )}
                   </div>
-
-                  {order.handling_instructions && (
-                    <p className="text-xs text-muted-foreground border-t pt-2">{order.handling_instructions}</p>
-                  )}
-
-                  {/* Action buttons — only for actionable states */}
-                  {order.status === "pending" && (
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "confirmed" })}
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" /> Accept & Confirm Receipt
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}
-                      >
-                        <X className="h-3.5 w-3.5 mr-1" /> Reject
-                      </Button>
-                    </div>
-                  )}
-                  {order.status === "confirmed" && (
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}
-                      >
-                        Mark Completed
-                      </Button>
-                    </div>
-                  )}
-                  {isFinalStatus(order.status) && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
-                      <Lock className="h-3 w-3" /> No further actions — order is {order.status}
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
