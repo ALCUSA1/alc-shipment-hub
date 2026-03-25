@@ -20,6 +20,7 @@ import {
   Ship, Check, ArrowRight, ArrowLeft, Loader2, Package, MapPin,
   FileText, Upload, Shield, CheckCircle2, Plus, Plane, Truck as TruckIcon,
 } from "lucide-react";
+import { PortSelector } from "@/components/shipment/PortSelector";
 
 const STEPS = [
   "Shipment Info",
