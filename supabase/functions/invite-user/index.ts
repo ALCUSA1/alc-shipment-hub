@@ -2,9 +2,18 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const validRoles = [
+  "admin",
+  "pricing_manager",
+  "operations_manager",
+  "sales_manager",
+  "customer_user",
+  "finance_user",
+  "viewer",
+] as const;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,66 +28,126 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify the calling user is an admin
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized");
 
-    const { data: isAdmin } = await userClient.rpc("has_role", {
+    const { data: isGlobalAdmin } = await userClient.rpc("has_role", {
       _user_id: user.id,
       _role: "admin",
     });
-    if (!isAdmin) throw new Error("Only admins can invite users");
 
-    const { email, role, full_name } = await req.json();
+    const { data: inviterMembership, error: membershipError } = await userClient
+      .from("company_members")
+      .select("company_id, role")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    if (membershipError) throw membershipError;
+
+    const isCompanyAdmin = inviterMembership?.role === "admin";
+    if (!isGlobalAdmin && !isCompanyAdmin) {
+      throw new Error("Only company admins can invite users");
+    }
+
+    const { email, role, full_name, title, company_id } = await req.json();
     if (!email || !role) throw new Error("Email and role are required");
-
-    const validRoles = ["admin", "ops_manager", "sales", "viewer", "trucker"];
     if (!validRoles.includes(role)) throw new Error("Invalid role");
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const targetCompanyId = company_id || inviterMembership?.company_id;
+    if (!targetCompanyId) throw new Error("No company selected for invite");
 
-    // Check if user already exists
+    const { data: companyData, error: companyError } = await adminClient
+      .from("companies")
+      .select("company_name")
+      .eq("id", targetCompanyId)
+      .maybeSingle();
+    if (companyError) throw companyError;
+
+    const upsertMembership = async (userId: string) => {
+      const { data: existingMembership, error: existingMembershipError } = await adminClient
+        .from("company_members")
+        .select("id")
+        .eq("company_id", targetCompanyId)
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+      if (existingMembershipError) throw existingMembershipError;
+
+      if (existingMembership?.id) {
+        const { error } = await adminClient
+          .from("company_members")
+          .update({ role, title: title || null, is_active: true })
+          .eq("id", existingMembership.id);
+        if (error) throw error;
+        return existingMembership.id;
+      }
+
+      const { data: insertedMembership, error: insertError } = await adminClient
+        .from("company_members")
+        .insert({
+          company_id: targetCompanyId,
+          user_id: userId,
+          role,
+          title: title || null,
+          is_active: true,
+          joined_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (insertError) throw insertError;
+        return insertedMembership.id;
+    };
+
+    const upsertProfile = async (userId: string, userEmail: string) => {
+      const { error } = await adminClient
+        .from("profiles")
+        .upsert({
+          user_id: userId,
+          full_name: full_name || null,
+          email: userEmail,
+          company_name: companyData?.company_name || null,
+        }, { onConflict: "user_id" });
+      if (error) throw error;
+    };
+
     const { data: listData, error: listError } = await adminClient.auth.admin.listUsers();
     if (listError) throw listError;
-    const existing = listData.users.find((u) => u.email === email);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existing = listData.users.find((listedUser) => listedUser.email?.toLowerCase() === normalizedEmail);
 
     if (existing) {
-      // User exists — just assign the role
-      const { error: roleError } = await adminClient
-        .from("user_roles")
-        .upsert({ user_id: existing.id, role }, { onConflict: "user_id,role" });
-      if (roleError) throw roleError;
+      await upsertMembership(existing.id);
+      await upsertProfile(existing.id, normalizedEmail);
 
       return new Response(
-        JSON.stringify({ message: `Assigned ${role} role to existing user ${email}`, user_id: existing.id }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ message: `Added existing user ${normalizedEmail} to the company team`, user_id: existing.id }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // New user — send invite email
-    const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(normalizedEmail, {
       data: { full_name: full_name || "" },
     });
     if (inviteError) throw inviteError;
-    const userId = inviteData.user.id;
 
-    // Assign role (upsert to avoid duplicate errors)
-    const { error: roleError } = await adminClient
-      .from("user_roles")
-      .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
-    if (roleError) throw roleError;
+    const invitedUserId = inviteData.user.id;
+    await upsertMembership(invitedUserId);
+    await upsertProfile(invitedUserId, normalizedEmail);
 
     return new Response(
-      JSON.stringify({ message: `Invited ${email} as ${role}`, user_id: userId }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ message: `Invited ${normalizedEmail} to the company team`, user_id: invitedUserId }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     return new Response(
       JSON.stringify({ error: err.message }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

@@ -566,7 +566,7 @@ const Team = () => {
                       {PERMISSIONS.map((perm) => (
                         <TableRow key={perm.key}>
                           <TableCell className="pl-6 font-medium text-sm">{perm.label}</TableCell>
-                          {(["admin", "ops_manager", "sales", "viewer"] as const).map((role) => (
+                          {(["admin", "operations_manager", "finance_user", "viewer"] as const).map((role) => (
                             <TableCell key={role} className="text-center">
                               {perm[role] ? (
                                 <Check className="h-4 w-4 text-emerald-500 mx-auto" />
