@@ -259,12 +259,32 @@ const NewShipmentWizard = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Origin</Label>
-                      <Input placeholder="e.g. Shanghai, CNSHA" value={origin} onChange={(e) => setOrigin(e.target.value)} className="mt-1" />
+                      <Label className="text-xs text-muted-foreground">
+                        {shipmentType === "air" ? "Origin Airport" : "Origin Port"}
+                      </Label>
+                      <div className="mt-1">
+                        <PortSelector
+                          ports={ports}
+                          value={origin}
+                          onValueChange={setOrigin}
+                          placeholder={shipmentType === "air" ? "Select origin airport..." : "Select origin port..."}
+                          mode={shipmentType === "air" ? "air" : "ocean"}
+                        />
+                      </div>
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">Destination</Label>
-                      <Input placeholder="e.g. Los Angeles, USLAX" value={destination} onChange={(e) => setDestination(e.target.value)} className="mt-1" />
+                      <Label className="text-xs text-muted-foreground">
+                        {shipmentType === "air" ? "Destination Airport" : "Destination Port"}
+                      </Label>
+                      <div className="mt-1">
+                        <PortSelector
+                          ports={ports}
+                          value={destination}
+                          onValueChange={setDestination}
+                          placeholder={shipmentType === "air" ? "Select destination airport..." : "Select destination port..."}
+                          mode={shipmentType === "air" ? "air" : "ocean"}
+                        />
+                      </div>
                     </div>
                   </div>
 
