@@ -8,10 +8,10 @@ import { CountrySelector } from "@/components/shared/CountrySelector";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Building2, Package, Truck, Loader2, ArrowRight, SkipForward } from "lucide-react";
+import { Building2, Package, Truck, Loader2, ArrowRight, SkipForward, Warehouse, Ship } from "lucide-react";
 import alcLogo from "@/assets/alc-logo.png";
 
-type OrgType = "shipper" | "service_provider";
+type OrgType = "shipper" | "freight_forwarder" | "trucking_provider" | "warehouse_provider";
 
 const ORG_TYPES = [
   {
@@ -19,12 +19,32 @@ const ORG_TYPES = [
     label: "Importer / Exporter",
     description: "I need logistics services to move my goods",
     icon: Package,
+    companyType: "customer",
+    route: "/dashboard",
   },
   {
-    value: "service_provider" as OrgType,
-    label: "Service Provider",
-    description: "I provide freight, trucking, or warehouse services",
+    value: "freight_forwarder" as OrgType,
+    label: "Freight Forwarder",
+    description: "I manage freight forwarding operations",
+    icon: Ship,
+    companyType: "forwarder",
+    route: "/forwarder",
+  },
+  {
+    value: "trucking_provider" as OrgType,
+    label: "Trucking Provider",
+    description: "I provide pickup, delivery, and drayage services",
     icon: Truck,
+    companyType: "trucking_company",
+    route: "/trucking",
+  },
+  {
+    value: "warehouse_provider" as OrgType,
+    label: "Warehouse Provider",
+    description: "I operate warehouses and handle cargo storage",
+    icon: Warehouse,
+    companyType: "warehouse",
+    route: "/warehouse",
   },
 ];
 
@@ -38,19 +58,18 @@ const Onboarding = () => {
   const [saving, setSaving] = useState(false);
 
   const canSubmit = companyName.trim() && orgType;
+  const selectedOrg = ORG_TYPES.find((t) => t.value === orgType);
 
   const handleSubmit = async () => {
-    if (!user || !canSubmit) return;
+    if (!user || !canSubmit || !selectedOrg) return;
     setSaving(true);
-
-    const companyType = orgType === "shipper" ? "customer" : "vendor";
 
     const { error } = await supabase.from("companies").insert({
       user_id: user.id,
       company_name: companyName.trim(),
       country,
       ein: registrationNumber.trim() || null,
-      company_type: companyType,
+      company_type: selectedOrg.companyType,
     });
 
     if (error) {
@@ -65,9 +84,9 @@ const Onboarding = () => {
     // Store onboarding flag
     localStorage.setItem(`onboarding_complete_${user.id}`, "true");
 
-    toast({ title: "Organization created", description: "Welcome aboard! Redirecting to your dashboard." });
+    toast({ title: "Organization created", description: "Welcome aboard! Redirecting to your portal." });
     setSaving(false);
-    navigate("/dashboard");
+    navigate(selectedOrg.route);
   };
 
   const handleSkip = () => {
@@ -138,7 +157,7 @@ const Onboarding = () => {
                 id="reg-number"
                 value={registrationNumber}
                 onChange={(e) => setRegistrationNumber(e.target.value)}
-                placeholder="EIN, GST, VAT number…"
+                placeholder="EIN, GST, VAT, MC/DOT number…"
                 className="mt-1.5"
               />
             </div>

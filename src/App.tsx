@@ -38,6 +38,11 @@ import TruckingOrders from "./pages/trucking/TruckingOrders";
 import TruckingOrderDetail from "./pages/trucking/TruckingOrderDetail";
 import TruckingQuotes from "./pages/trucking/TruckingQuotes";
 import TruckingAccount from "./pages/trucking/TruckingAccount";
+import TruckingSchedule from "./pages/trucking/TruckingSchedule";
+import TruckingDocuments from "./pages/trucking/TruckingDocuments";
+import TruckingMessages from "./pages/trucking/TruckingMessages";
+import TruckingTeam from "./pages/trucking/TruckingTeam";
+import TruckingSettings from "./pages/trucking/TruckingSettings";
 import { DriverGate } from "./components/driver/DriverGate";
 import { WarehouseGate } from "./components/warehouse/WarehouseGate";
 import WarehouseDashboard from "./pages/warehouse/WarehouseDashboard";
@@ -47,6 +52,11 @@ import WarehouseReleases from "./pages/warehouse/WarehouseReleases";
 import WarehouseBilling from "./pages/warehouse/WarehouseBilling";
 import WarehouseFacility from "./pages/warehouse/WarehouseFacility";
 import WarehouseAccount from "./pages/warehouse/WarehouseAccount";
+import WarehouseSchedule from "./pages/warehouse/WarehouseSchedule";
+import WarehouseDocuments from "./pages/warehouse/WarehouseDocuments";
+import WarehouseMessages from "./pages/warehouse/WarehouseMessages";
+import WarehouseTeam from "./pages/warehouse/WarehouseTeam";
+import WarehouseSettings from "./pages/warehouse/WarehouseSettings";
 import DriverDashboard from "./pages/driver/DriverDashboard";
 import DriverAssignmentDetail from "./pages/driver/DriverAssignmentDetail";
 import DriverAccount from "./pages/driver/DriverAccount";
@@ -246,6 +256,11 @@ const App = () => (
             <Route path="/trucking/quotes" element={<TruckingGate><TruckingQuotes /></TruckingGate>} />
             <Route path="/trucking/assignments" element={<TruckingGate><TruckingAssignments /></TruckingGate>} />
             <Route path="/trucking/account" element={<TruckingGate><TruckingAccount /></TruckingGate>} />
+            <Route path="/trucking/schedule" element={<TruckingGate><TruckingSchedule /></TruckingGate>} />
+            <Route path="/trucking/documents" element={<TruckingGate><TruckingDocuments /></TruckingGate>} />
+            <Route path="/trucking/messages" element={<TruckingGate><TruckingMessages /></TruckingGate>} />
+            <Route path="/trucking/team" element={<TruckingGate><TruckingTeam /></TruckingGate>} />
+            <Route path="/trucking/settings" element={<TruckingGate><TruckingSettings /></TruckingGate>} />
 
             {/* Driver Portal */}
             <Route path="/driver" element={<DriverGate><DriverDashboard /></DriverGate>} />
@@ -260,6 +275,11 @@ const App = () => (
             <Route path="/warehouse/billing" element={<WarehouseGate><WarehouseBilling /></WarehouseGate>} />
             <Route path="/warehouse/facility" element={<WarehouseGate><WarehouseFacility /></WarehouseGate>} />
             <Route path="/warehouse/account" element={<WarehouseGate><WarehouseAccount /></WarehouseGate>} />
+            <Route path="/warehouse/schedule" element={<WarehouseGate><WarehouseSchedule /></WarehouseGate>} />
+            <Route path="/warehouse/documents" element={<WarehouseGate><WarehouseDocuments /></WarehouseGate>} />
+            <Route path="/warehouse/messages" element={<WarehouseGate><WarehouseMessages /></WarehouseGate>} />
+            <Route path="/warehouse/team" element={<WarehouseGate><WarehouseTeam /></WarehouseGate>} />
+            <Route path="/warehouse/settings" element={<WarehouseGate><WarehouseSettings /></WarehouseGate>} />
 
             <Route path="*" element={<NotFound />} />
             </Routes>
