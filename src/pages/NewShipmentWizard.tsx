@@ -21,6 +21,7 @@ import {
   FileText, Upload, Shield, CheckCircle2, Plus, Plane, Truck as TruckIcon,
 } from "lucide-react";
 import { PortSelector } from "@/components/shipment/PortSelector";
+import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
 
 const STEPS = [
   "Shipment Info",
