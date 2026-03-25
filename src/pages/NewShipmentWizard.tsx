@@ -21,6 +21,7 @@ import {
   FileText, Upload, Shield, CheckCircle2, Plus, Plane, Truck as TruckIcon,
 } from "lucide-react";
 import { PortSelector } from "@/components/shipment/PortSelector";
+import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
 
 const STEPS = [
   "Shipment Info",
@@ -344,7 +345,14 @@ const NewShipmentWizard = () => {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">HS Code</Label>
-                      <Input placeholder="e.g. 8471.30.01.00" value={hsCode} onChange={(e) => setHsCode(e.target.value)} className="mt-1" />
+                      <div className="mt-1">
+                        <HsCodeAutocomplete
+                          value={hsCode}
+                          commodity={commodity}
+                          onChange={setHsCode}
+                          placeholder="e.g. 8471.30.01.00"
+                        />
+                      </div>
                     </div>
                   </div>
 
