@@ -7,6 +7,8 @@ import { AiShipmentSummary } from "@/components/shipment/AiShipmentSummary";
 import { AiSmartBanners } from "@/components/shipment/AiSmartBanners";
 import { PaymentStatusCard } from "@/components/shipment/PaymentStatusCard";
 import { CustomerFinancialsTab } from "@/components/shipment/CustomerFinancialsTab";
+import { DocumentLifecycleTimeline } from "@/components/shipment/DocumentLifecycleTimeline";
+import { FinancialStatusPanel } from "@/components/shipment/FinancialStatusPanel";
 import { useUserRole } from "@/hooks/useUserRole";
 import { VesselBookingPanel } from "@/components/shipment/VesselBookingPanel";
 import { AirBookingPanel } from "@/components/shipment/AirBookingPanel";
