@@ -26,6 +26,33 @@ export function useChatDrawer() {
   const currentUserName = profile?.full_name || profile?.company_name || "Me";
   const currentCompanyName = profile?.company_name || "";
 
+  // Fetch teammate user IDs via company_members table
+  const { data: teammateUserIds = [] } = useQuery({
+    queryKey: ["teammate-user-ids", user?.id],
+    queryFn: async () => {
+      // Get current user's company IDs
+      const { data: myMemberships } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("is_active", true);
+      if (!myMemberships?.length) return [];
+
+      const companyIds = myMemberships.map((m) => m.company_id);
+
+      // Get all active members in those companies
+      const { data: coMembers } = await supabase
+        .from("company_members")
+        .select("user_id")
+        .in("company_id", companyIds)
+        .eq("is_active", true);
+
+      const ids = [...new Set((coMembers || []).map((m) => m.user_id).filter((id) => id !== user!.id))];
+      return ids;
+    },
+    enabled: !!user,
+  });
+
   const { data: conversations = [], isLoading: convsLoading } = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: async () => {
@@ -165,13 +192,11 @@ export function useChatDrawer() {
   const handleSelectUser = useCallback(
     async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
-      // When company names are set, determine scope from company match
-      // When company names are missing, preserve the current active scope tab
+      // Determine scope based on company_members relationship
       let scope: ConversationScope = activeScope;
-      if (currentCompanyName && selectedUser.company_name) {
-        const isSameCompany =
-          selectedUser.company_name.toLowerCase() === currentCompanyName.toLowerCase();
-        scope = isSameCompany ? "internal" : "external";
+      if (teammateUserIds.length > 0 || currentCompanyName) {
+        const isTeammate = teammateUserIds.includes(selectedUser.user_id);
+        scope = isTeammate ? "internal" : "external";
       }
 
       const { data: myParticipations } = await supabase
@@ -210,7 +235,7 @@ export function useChatDrawer() {
       setActiveScope(scope);
       setActiveConversationId(conv.id);
     },
-    [user, currentCompanyName, currentUserName, activeScope, queryClient]
+    [user, teammateUserIds, currentCompanyName, currentUserName, activeScope, queryClient]
   );
 
   const unreadCount = conversations.filter((c) => c.unread).length;
@@ -233,5 +258,6 @@ export function useChatDrawer() {
     unreadCount,
     handleSend,
     handleSelectUser,
+    teammateUserIds,
   };
 }

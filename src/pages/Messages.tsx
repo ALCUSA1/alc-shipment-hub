@@ -23,6 +23,7 @@ export default function Messages() {
     currentCompanyName,
     handleSend,
     handleSelectUser,
+    teammateUserIds,
   } = useChatDrawer();
 
   return (
@@ -58,6 +59,7 @@ export default function Messages() {
         currentUserId={user?.id || ""}
         currentCompanyName={currentCompanyName}
         scope={activeScope}
+        teammateUserIds={teammateUserIds}
       />
     </DashboardLayout>
   );
