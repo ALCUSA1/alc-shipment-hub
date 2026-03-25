@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 
     // Fetch all shipment data in parallel
     const [shipRes, partiesRes, cargoRes, containersRes, profileRes] = await Promise.all([
-      supabase.from("shipments").select("*, companies(company_name, address, city, state, zip, country, phone, email, ein)").eq("id", shipment_id).single(),
+      supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name, address, city, state, zip, country, phone, email, ein)").eq("id", shipment_id).single(),
       supabase.from("shipment_parties").select("*").eq("shipment_id", shipment_id),
       supabase.from("cargo").select("*").eq("shipment_id", shipment_id),
       supabase.from("containers").select("*").eq("shipment_id", shipment_id),
