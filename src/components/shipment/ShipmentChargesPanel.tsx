@@ -10,6 +10,7 @@ import { format } from "date-fns";
 
 interface ShipmentChargesPanelProps {
   shipmentId: string;
+  blNumber?: string;
 }
 
 const CHARGE_TYPE_LABELS: Record<string, string> = {
@@ -33,7 +34,7 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   processing: "bg-blue-100 text-blue-700",
 };
 
-export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) {
+export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPanelProps) {
   const [payingId, setPayingId] = useState<string | null>(null);
   const [wirePayingId, setWirePayingId] = useState<string | null>(null);
 
@@ -58,6 +59,7 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
           shipment_id: shipmentId,
           amount: charge.amount,
           currency: charge.currency,
+          bl_number: blNumber || charge.bl_number || undefined,
           metadata: {
             charge_id: charge.id,
             charge_type: charge.charge_type,
@@ -85,6 +87,7 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
           amount: charge.amount,
           currency: charge.currency,
           payment_method: "bank_transfer",
+          bl_number: blNumber || charge.bl_number || undefined,
           metadata: {
             charge_id: charge.id,
             charge_type: charge.charge_type,

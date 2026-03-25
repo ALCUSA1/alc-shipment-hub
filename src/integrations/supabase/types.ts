@@ -3131,6 +3131,7 @@ export type Database = {
       payment_splits: {
         Row: {
           amount: number
+          bl_number: string | null
           carrier_name: string
           carrier_stripe_account_id: string | null
           created_at: string
@@ -3146,6 +3147,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bl_number?: string | null
           carrier_name: string
           carrier_stripe_account_id?: string | null
           created_at?: string
@@ -3161,6 +3163,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bl_number?: string | null
           carrier_name?: string
           carrier_stripe_account_id?: string | null
           created_at?: string

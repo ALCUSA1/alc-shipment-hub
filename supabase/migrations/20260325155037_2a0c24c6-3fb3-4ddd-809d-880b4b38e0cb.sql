@@ -1,0 +1,1 @@
+ALTER TABLE public.payment_splits ADD COLUMN bl_number TEXT;
