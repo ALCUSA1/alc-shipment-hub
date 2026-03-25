@@ -1,64 +1,44 @@
 
 
-## Plan: Add Wire Transfer / Bank Transfer Payment Option
+## Plan: Add BL-Level Payment Reconciliation
 
 ### What We're Building
-Enable customers to pay via bank wire transfer (ACH or Fedwire) through Stripe's `customer_balance` payment method. Stripe generates unique bank transfer instructions (routing number, account number, reference code) that the customer uses to send funds from their bank.
-
-### How It Works (Stripe Bank Transfers)
-1. Customer clicks "Pay via Bank Transfer"
-2. Stripe Checkout opens with `customer_balance` payment method enabled
-3. Stripe displays wire transfer instructions (bank details + unique reference code)
-4. Customer initiates the wire from their bank using those instructions
-5. Stripe matches the incoming funds and marks payment complete (ACH: 1-3 days, Wire: same day)
-
-**Important**: Stripe requires a `customer` object (not just `customer_email`) for bank transfers — we already create customers in `create-payment`, so this is covered.
+Add Bill of Lading (BL) number tracking to the payment splitting system so that when funds are transferred to each shipping line's Stripe Connect account, the BL number is included in the transfer description and metadata. This allows shipping lines to match incoming payments to specific BLs and release cargo accordingly.
 
 ### Changes
 
-#### 1. Update `create-payment` Edge Function
-- Add `payment_method: "bank_transfer"` as an accepted parameter from the frontend
-- When `payment_method` is `"bank_transfer"`:
-  - Add `"customer_balance"` to `payment_method_types`
-  - Add `payment_method_options.customer_balance` config specifying `funding_type: "bank_transfer"` and the appropriate transfer type (`us_bank_transfer` for USD, `eu_bank_transfer` for EUR, `gb_bank_transfer` for GBP)
-- Keep `"card"` in the list so customer can choose either method at checkout
+#### 1. Database Migration — Add `bl_number` to `payment_splits`
+Add a nullable `bl_number TEXT` column to the existing `payment_splits` table.
 
-#### 2. Update `PaymentStatusCard.tsx`
-- Add a second button "Pay via Bank Transfer" (with a `Landmark`/bank icon) alongside the existing "Pay Now" card button
-- Clicking it calls `create-payment` with `payment_method: "bank_transfer"`
-- Add a note below: "Wire transfers typically settle within 1-3 business days"
-
-#### 3. Update `ShipmentChargesPanel.tsx`
-- Add a "Wire Transfer" option next to the existing "Pay" button for unpaid charges
-- Same pattern: calls `create-payment` with `payment_method: "bank_transfer"`
-
-#### 4. Update `PaymentSuccess.tsx`
-- Handle the `processing` state better for bank transfers — show messaging like "Your bank transfer instructions have been sent. Funds typically arrive within 1-3 business days."
-- Stripe may not redirect to success_url for bank transfers until funds arrive, so the existing "processing" state handling already partially covers this
-
-#### 5. Update `verify-payment` Edge Function
-- No changes needed — it already handles `session.payment_status === "unpaid"` → `"pending"` which covers the bank transfer waiting period
-
-### Technical Details
-
-**Stripe Checkout session config for bank transfers:**
-```typescript
-payment_method_types: ["customer_balance", "card"],
-payment_method_options: {
-  customer_balance: {
-    funding_type: "bank_transfer",
-    bank_transfer: {
-      type: "us_bank_transfer", // for USD
-    },
-  },
-},
+```sql
+ALTER TABLE public.payment_splits ADD COLUMN bl_number TEXT;
 ```
 
-**Key constraint**: `customer` (not `customer_email`) is required — already handled since we create/find customers in the function.
+#### 2. Update `create-payment` Edge Function
+- Accept `bl_number` in each item of the `carrier_splits` array:
+  ```typescript
+  carrier_splits: [
+    { carrier_name: "MSC", amount: 8000, bl_number: "MSCU1234567" },
+    { carrier_name: "Hapag-Lloyd", amount: 5000, bl_number: "HLCU7654321" }
+  ]
+  ```
+- Store `bl_number` in the `payment_splits` insert for each carrier
+- Include BL numbers in the Checkout line item description
+
+#### 3. Update `settle-carriers` Edge Function
+- Include `bl_number` in the Stripe Transfer `description` and `metadata`:
+  ```typescript
+  description: `BL: ${split.bl_number} — Freight settlement — ${split.carrier_name}`,
+  metadata: { bl_number: split.bl_number, ... }
+  ```
+- This is what the shipping line sees on their Stripe dashboard for reconciliation
+
+#### 4. Update `ShipmentChargesPanel.tsx`
+- When calling `create-payment` with `carrier_splits`, include `bl_number` from the charge's metadata or shipment data so it flows through to settlement
 
 ### Files to Modify
-1. `supabase/functions/create-payment/index.ts` — add bank transfer payment method support
-2. `src/components/shipment/PaymentStatusCard.tsx` — add "Pay via Bank Transfer" button
-3. `src/components/shipment/ShipmentChargesPanel.tsx` — add wire transfer option
-4. `src/pages/PaymentSuccess.tsx` — improve bank transfer pending state messaging
+1. **New migration** — Add `bl_number` column to `payment_splits`
+2. `supabase/functions/create-payment/index.ts` — Accept and store `bl_number` per split
+3. `supabase/functions/settle-carriers/index.ts` — Include BL in transfer description + metadata
+4. `src/components/shipment/ShipmentChargesPanel.tsx` — Pass BL number in payment requests
 
