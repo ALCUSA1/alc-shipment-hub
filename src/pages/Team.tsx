@@ -456,7 +456,11 @@ const Team = () => {
                                         <span className="text-xs text-muted-foreground ml-1.5">(you)</span>
                                       )}
                                     </p>
-                                    <p className="text-xs text-muted-foreground mt-0.5">{member.user_id.slice(0, 8)}…</p>
+                                    {member.email ? (
+                                      <p className="text-xs text-muted-foreground mt-0.5">{member.email}</p>
+                                    ) : (
+                                      <p className="text-xs text-muted-foreground mt-0.5">{member.user_id.slice(0, 8)}…</p>
+                                    )}
                                   </div>
                                 </div>
                               </TableCell>
