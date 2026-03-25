@@ -4280,6 +4280,7 @@ export type Database = {
           email_sent: boolean
           etd: string | null
           id: string
+          is_active: boolean
           is_triggered: boolean
           origin_port: string
           price_max: number | null
@@ -4298,6 +4299,7 @@ export type Database = {
           email_sent?: boolean
           etd?: string | null
           id?: string
+          is_active?: boolean
           is_triggered?: boolean
           origin_port: string
           price_max?: number | null
@@ -4316,6 +4318,7 @@ export type Database = {
           email_sent?: boolean
           etd?: string | null
           id?: string
+          is_active?: boolean
           is_triggered?: boolean
           origin_port?: string
           price_max?: number | null
