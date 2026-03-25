@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatPanel, ChatProfilePanel } from "@/components/messages/ChatPanel";
 import { CompanyDirectoryDialog } from "@/components/messages/CompanyDirectoryDialog";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
+import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 
 export default function Messages() {
   const [directoryOpen, setDirectoryOpen] = useState(false);
