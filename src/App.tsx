@@ -120,6 +120,7 @@ import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
 import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
 import Support from "./pages/Support";
 import Ideas from "./pages/Ideas";
+import Alerts from "./pages/Alerts";
 
 const queryClient = new QueryClient();
 
@@ -184,6 +185,7 @@ const App = () => (
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
             <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="/dashboard/ideas" element={<ProtectedRoute><Ideas /></ProtectedRoute>} />
+            <Route path="/dashboard/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
