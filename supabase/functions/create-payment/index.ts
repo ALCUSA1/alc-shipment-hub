@@ -238,6 +238,7 @@ serve(async (req) => {
           platform_fee: splitFee,
           currency: currency.toUpperCase(),
           status: "pending",
+          bl_number: split.bl_number || null,
         });
       }
 

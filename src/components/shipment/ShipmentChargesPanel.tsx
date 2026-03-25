@@ -10,6 +10,7 @@ import { format } from "date-fns";
 
 interface ShipmentChargesPanelProps {
   shipmentId: string;
+  blNumber?: string;
 }
 
 const CHARGE_TYPE_LABELS: Record<string, string> = {
