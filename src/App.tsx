@@ -275,6 +275,11 @@ const App = () => (
             <Route path="/warehouse/billing" element={<WarehouseGate><WarehouseBilling /></WarehouseGate>} />
             <Route path="/warehouse/facility" element={<WarehouseGate><WarehouseFacility /></WarehouseGate>} />
             <Route path="/warehouse/account" element={<WarehouseGate><WarehouseAccount /></WarehouseGate>} />
+            <Route path="/warehouse/schedule" element={<WarehouseGate><WarehouseSchedule /></WarehouseGate>} />
+            <Route path="/warehouse/documents" element={<WarehouseGate><WarehouseDocuments /></WarehouseGate>} />
+            <Route path="/warehouse/messages" element={<WarehouseGate><WarehouseMessages /></WarehouseGate>} />
+            <Route path="/warehouse/team" element={<WarehouseGate><WarehouseTeam /></WarehouseGate>} />
+            <Route path="/warehouse/settings" element={<WarehouseGate><WarehouseSettings /></WarehouseGate>} />
 
             <Route path="*" element={<NotFound />} />
             </Routes>
