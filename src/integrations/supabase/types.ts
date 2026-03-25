@@ -3128,6 +3128,62 @@ export type Database = {
           },
         ]
       }
+      payment_splits: {
+        Row: {
+          amount: number
+          carrier_name: string
+          carrier_stripe_account_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          payment_id: string
+          platform_fee: number
+          settled_at: string | null
+          status: string
+          stripe_transfer_id: string | null
+          transfer_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          carrier_name: string
+          carrier_stripe_account_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_id: string
+          platform_fee?: number
+          settled_at?: string | null
+          status?: string
+          stripe_transfer_id?: string | null
+          transfer_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          carrier_name?: string
+          carrier_stripe_account_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_id?: string
+          platform_fee?: number
+          settled_at?: string | null
+          status?: string
+          stripe_transfer_id?: string | null
+          transfer_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_splits_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
