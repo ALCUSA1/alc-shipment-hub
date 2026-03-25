@@ -127,7 +127,7 @@ const Team = () => {
       const userIds = [...new Set(data.map((r: any) => r.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name")
+        .select("user_id, full_name, email")
         .in("user_id", userIds);
 
       const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
@@ -147,7 +147,7 @@ const Team = () => {
           userMap.set(r.user_id, {
             user_id: r.user_id,
             full_name: profile?.full_name || null,
-            email: null,
+            email: profile?.email || null,
             status: "active",
             roles: [],
             created_at: r.created_at,
