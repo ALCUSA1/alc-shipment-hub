@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { PackageOpen, Boxes, PackageCheck, DollarSign, Clock, FileText } from "lucide-react";
+import { PackageOpen, Boxes, PackageCheck, DollarSign, Clock, FileText, Ship, MapPin, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -17,7 +17,7 @@ const WarehouseDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("warehouse_orders")
-        .select("*")
+        .select("*, shipments!warehouse_orders_shipment_id_fkey(shipment_ref, origin_port, destination_port, status)")
         .eq("warehouse_user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -55,9 +55,10 @@ const WarehouseDashboard = () => {
     <WarehouseLayout>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Operations Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Your warehouse operations at a glance</p>
+        <p className="text-sm text-muted-foreground">Shipment-linked warehouse operations at a glance</p>
       </div>
 
+      {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((s) => (
           <Card key={s.label}>
@@ -77,7 +78,7 @@ const WarehouseDashboard = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Orders */}
+        {/* Recent Orders with Shipment Context */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -90,19 +91,37 @@ const WarehouseDashboard = () => {
               <p className="text-sm text-muted-foreground text-center py-8">No orders yet.</p>
             ) : (
               <div className="space-y-3">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground capitalize">{order.order_type}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {order.cargo_description || "No description"} · {order.num_packages || 0} pkgs
-                      </p>
+                {recentOrders.map((order: any) => {
+                  const shipment = order.shipments;
+                  return (
+                    <div key={order.id} className="p-3 rounded-lg border space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-foreground capitalize">{order.order_type}</p>
+                            {shipment?.shipment_ref && (
+                              <Badge variant="outline" className="text-[10px]">
+                                <Ship className="h-3 w-3 mr-1" /> {shipment.shipment_ref}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {order.cargo_description || "No description"} · {order.num_packages || 0} pkgs
+                          </p>
+                        </div>
+                        <Badge className={statusStyle[order.status] || "bg-secondary text-muted-foreground"} variant="secondary">
+                          {order.status.replace(/_/g, " ")}
+                        </Badge>
+                      </div>
+                      {shipment && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {shipment.origin_port || "—"} <ArrowRight className="h-3 w-3" /> {shipment.destination_port || "—"}
+                        </div>
+                      )}
                     </div>
-                    <Badge className={statusStyle[order.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                      {order.status.replace(/_/g, " ")}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -116,26 +135,22 @@ const WarehouseDashboard = () => {
           <CardContent className="space-y-3">
             <Link to="/warehouse/inbound" className="block">
               <Button variant="electric" className="w-full justify-start">
-                <PackageOpen className="h-4 w-4 mr-2" />
-                View Inbound Orders
+                <PackageOpen className="h-4 w-4 mr-2" /> View Inbound Orders
               </Button>
             </Link>
             <Link to="/warehouse/releases" className="block">
               <Button variant="outline" className="w-full justify-start">
-                <PackageCheck className="h-4 w-4 mr-2" />
-                Process Releases
+                <PackageCheck className="h-4 w-4 mr-2" /> Process Releases
               </Button>
             </Link>
             <Link to="/warehouse/schedule" className="block">
               <Button variant="outline" className="w-full justify-start">
-                <Clock className="h-4 w-4 mr-2" />
-                View Schedule
+                <Clock className="h-4 w-4 mr-2" /> View Schedule
               </Button>
             </Link>
             <Link to="/warehouse/documents" className="block">
               <Button variant="outline" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" />
-                Upload Documents
+                <FileText className="h-4 w-4 mr-2" /> Upload Documents
               </Button>
             </Link>
           </CardContent>
