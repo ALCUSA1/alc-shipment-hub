@@ -1,8 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { ConversationItem, ConversationScope } from "@/components/messages/ConversationList";
+import type { ConversationScope } from "@/components/messages/ConversationList";
+
+export interface ConversationItem {
+  id: string;
+  otherUserId: string;
+  otherName: string;
+  otherCompany?: string;
+  otherEmail?: string;
+  otherRole?: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unread: boolean;
+  scope: ConversationScope;
+}
+
+export interface TeamMember {
+  user_id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  title: string;
+  hasConversation: boolean;
+  conversationId?: string;
+}
 
 export function useChatDrawer() {
   const { user } = useAuth();
@@ -15,7 +38,7 @@ export function useChatDrawer() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, company_name")
+        .select("full_name, company_name, email")
         .eq("user_id", user!.id)
         .maybeSingle();
       return data;
@@ -27,8 +50,8 @@ export function useChatDrawer() {
   const currentCompanyName = profile?.company_name || "";
 
   // Fetch teammate user IDs via company_members table
-  const { data: teammateUserIds = [] } = useQuery({
-    queryKey: ["teammate-user-ids", user?.id],
+  const { data: teammateData } = useQuery({
+    queryKey: ["teammate-data", user?.id],
     queryFn: async () => {
       // Get current user's company IDs
       const { data: myMemberships } = await supabase
@@ -36,21 +59,51 @@ export function useChatDrawer() {
         .select("company_id")
         .eq("user_id", user!.id)
         .eq("is_active", true);
-      if (!myMemberships?.length) return [];
+      if (!myMemberships?.length) return { userIds: [] as string[], companyIds: [] as string[] };
 
       const companyIds = myMemberships.map((m) => m.company_id);
 
       // Get all active members in those companies
       const { data: coMembers } = await supabase
         .from("company_members")
-        .select("user_id")
+        .select("user_id, role, title")
         .in("company_id", companyIds)
         .eq("is_active", true);
 
       const ids = [...new Set((coMembers || []).map((m) => m.user_id).filter((id) => id !== user!.id))];
-      return ids;
+      return { userIds: ids, companyIds, memberDetails: coMembers || [] };
     },
     enabled: !!user,
+  });
+
+  const teammateUserIds = teammateData?.userIds || [];
+
+  // Fetch full team member profiles
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["team-members-messaging", teammateUserIds],
+    queryFn: async () => {
+      if (!teammateUserIds.length) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, email, company_name")
+        .in("user_id", teammateUserIds);
+      
+      const memberDetails = teammateData?.memberDetails || [];
+      
+      return (profiles || []).map(p => {
+        const memberInfo = memberDetails.find((m: any) => m.user_id === p.user_id);
+        return {
+          user_id: p.user_id,
+          full_name: p.full_name || "Unnamed User",
+          email: p.email || "",
+          role: memberInfo?.role || "viewer",
+          title: memberInfo?.title || "",
+          hasConversation: false,
+          conversationId: undefined,
+        } as TeamMember;
+      });
+    },
+    enabled: teammateUserIds.length > 0,
   });
 
   const { data: conversations = [], isLoading: convsLoading } = useQuery({
@@ -90,16 +143,17 @@ export function useChatDrawer() {
           .map((p) => p.user_id)
       )];
 
-      let profileMap: Record<string, { name: string; company: string }> = {};
+      let profileMap: Record<string, { name: string; company: string; email: string }> = {};
       if (otherUserIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, full_name, company_name")
+          .select("user_id, full_name, company_name, email")
           .in("user_id", otherUserIds);
         (profiles || []).forEach((p) => {
           profileMap[p.user_id] = {
             name: p.full_name || p.company_name || "Unknown",
             company: p.company_name || "",
+            email: p.email || "",
           };
         });
       }
@@ -120,14 +174,21 @@ export function useChatDrawer() {
         const lastRead = lastReadMap[cid];
         const unread = latestMsg ? new Date(latestMsg.created_at) > new Date(lastRead) : false;
 
+        // Re-classify scope based on actual membership
+        const otherUserId = otherParticipant?.user_id || "";
+        const isTeammate = teammateUserIds.includes(otherUserId);
+        const correctScope: ConversationScope = isTeammate ? "internal" : "external";
+
         return {
           id: cid,
+          otherUserId,
           otherName,
           otherCompany: otherProfile?.company || "",
+          otherEmail: otherProfile?.email || "",
           lastMessage: latestMsg?.content || null,
           lastMessageAt: latestMsg?.created_at || null,
           unread,
-          scope: scopeMap[cid] || "external",
+          scope: correctScope,
         };
       });
 
@@ -142,6 +203,18 @@ export function useChatDrawer() {
     enabled: !!user,
     refetchInterval: 10000,
   });
+
+  // Enrich team members with conversation data
+  const enrichedTeamMembers = useMemo(() => {
+    return teamMembers.map(tm => {
+      const conv = conversations.find(c => c.otherUserId === tm.user_id && c.scope === "internal");
+      return {
+        ...tm,
+        hasConversation: !!conv,
+        conversationId: conv?.id,
+      };
+    });
+  }, [teamMembers, conversations]);
 
   const { data: messages = [], isLoading: msgsLoading } = useQuery({
     queryKey: ["messages", activeConversationId],
@@ -192,13 +265,10 @@ export function useChatDrawer() {
   const handleSelectUser = useCallback(
     async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
-      // Determine scope based on company_members relationship
-      let scope: ConversationScope = activeScope;
-      if (teammateUserIds.length > 0 || currentCompanyName) {
-        const isTeammate = teammateUserIds.includes(selectedUser.user_id);
-        scope = isTeammate ? "internal" : "external";
-      }
+      const isTeammate = teammateUserIds.includes(selectedUser.user_id);
+      const scope: ConversationScope = isTeammate ? "internal" : "external";
 
+      // Check for existing conversation
       const { data: myParticipations } = await supabase
         .from("conversation_participants")
         .select("conversation_id")
@@ -235,12 +305,12 @@ export function useChatDrawer() {
       setActiveScope(scope);
       setActiveConversationId(conv.id);
     },
-    [user, teammateUserIds, currentCompanyName, currentUserName, activeScope, queryClient]
+    [user, teammateUserIds, currentCompanyName, currentUserName, queryClient]
   );
 
   const unreadCount = conversations.filter((c) => c.unread).length;
 
-  const activeConv = conversations.find((c) => c.id === activeConversationId) as (ConversationItem & { otherCompany?: string }) | undefined;
+  const activeConv = conversations.find((c) => c.id === activeConversationId) as ConversationItem | undefined;
 
   return {
     user,
@@ -259,5 +329,6 @@ export function useChatDrawer() {
     handleSend,
     handleSelectUser,
     teammateUserIds,
+    teamMembers: enrichedTeamMembers,
   };
 }
