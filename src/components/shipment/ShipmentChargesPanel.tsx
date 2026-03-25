@@ -35,6 +35,7 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
 
 export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) {
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [wirePayingId, setWirePayingId] = useState<string | null>(null);
 
   const { data: charges = [] } = useQuery({
     queryKey: ["shipment_charges", shipmentId],
