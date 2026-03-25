@@ -43,12 +43,12 @@ export default function Alerts() {
     queryKey: ["sailing-reminders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("sailing_reminders" as any)
+        .from("sailing_reminders")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return data ?? [];
     },
     enabled: !!user,
   });
