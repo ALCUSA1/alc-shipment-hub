@@ -23,7 +23,7 @@ export function MarketingNav() {
     <nav aria-label="Main navigation" className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
         <Link to="/" className="flex items-center gap-2 font-bold text-lg text-foreground">
-          <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto" />
+          <img src={alcLogo} alt="ALC Logo" className="h-11 w-auto" />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
