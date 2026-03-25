@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CustomerFinancialsTab } from "@/components/shipment/CustomerFinancialsTab";
+import { LogisticsServicesPanel } from "@/components/shipment/LogisticsServicesPanel";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { Link, useParams, useSearchParams } from "react-router-dom";
