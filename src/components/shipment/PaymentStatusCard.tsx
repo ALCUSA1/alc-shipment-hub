@@ -22,6 +22,7 @@ const paymentStyles: Record<string, { bg: string; text: string; icon: React.Elem
 
 export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
   const [paying, setPaying] = useState(false);
+  const [payingWire, setPayingWire] = useState(false);
 
   const { data: quote } = useQuery({
     queryKey: ["shipment-quote-payment", shipmentId],
