@@ -603,6 +603,11 @@ const ShipmentDetail = () => {
 
         {/* ── FINANCIALS TAB ── */}
         <TabsContent value="financials" className="mt-6 space-y-6">
+          {/* Document & Payment Lifecycle Timeline */}
+          <DocumentLifecycleTimeline shipmentId={id!} />
+          {/* Financial Status & Payment Flow */}
+          <FinancialStatusPanel shipmentId={id!} />
+
           {isAdminOrInternal ? (
             <>
               <ShipmentPnL shipmentId={id!} quoteAmount={(quotes || []).reduce((sum, q) => sum + (q.amount || 0), 0)} shipmentStatus={shipment.status} />
