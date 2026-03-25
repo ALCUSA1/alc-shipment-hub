@@ -120,7 +120,7 @@ const WarehouseReleases = () => {
                       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-green-50 dark:bg-green-950/20 p-2 rounded-lg border border-green-200 dark:border-green-800">
                         <Truck className="h-3.5 w-3.5 text-green-600" />
                         <span>Pickup by: <strong className="text-foreground">{order.release_to_name}</strong>
-                          {order.scheduled_date && <> · Scheduled: {order.scheduled_date}</>}
+                          {order.expected_date && <> · Scheduled: {order.expected_date}</>}
                         </span>
                       </div>
                     )}

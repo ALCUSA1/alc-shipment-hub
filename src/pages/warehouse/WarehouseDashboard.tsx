@@ -31,7 +31,7 @@ const WarehouseDashboard = () => {
   const outboundPending = orders.filter((o) => o.order_type === "release" && ["pending", "in_progress"].includes(o.status));
   const inStorage = orders.filter((o) => o.status === "in_progress" || o.status === "confirmed");
   const todayStr = new Date().toISOString().split("T")[0];
-  const todayAppointments = orders.filter((o) => o.expected_date === todayStr || o.scheduled_date === todayStr);
+  const todayAppointments = orders.filter((o) => o.expected_date === todayStr);
 
   const stats = [
     { label: "Inbound Cargo", value: inboundPending.length, icon: PackageOpen, color: "text-yellow-600", bgColor: "bg-yellow-500/10" },
