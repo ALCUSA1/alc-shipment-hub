@@ -6,6 +6,7 @@ import { ChatDrawer, ChatFloatingButton } from "@/components/messages/ChatDrawer
 import { useChatDrawer } from "@/hooks/useChatDrawer";
 import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSailingReminderChecker } from "@/hooks/useSailingReminderChecker";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
