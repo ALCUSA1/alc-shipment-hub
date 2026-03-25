@@ -83,7 +83,7 @@ export default function Alerts() {
   // Toggle sailing reminder active
   const toggleSailingReminder = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase.from("sailing_reminders" as any).update({ is_active } as any).eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").update({ is_active }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder updated"); },
