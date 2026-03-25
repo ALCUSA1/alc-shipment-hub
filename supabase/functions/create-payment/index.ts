@@ -25,7 +25,18 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { quote_id, shipment_id, amount, currency = "USD", shipment_ref, carrier } = await req.json();
+    const {
+      quote_id,
+      shipment_id,
+      amount,
+      currency = "USD",
+      shipment_ref,
+      carrier,
+      // NEW: multi-carrier splits array
+      // Each item: { carrier_name, amount }
+      carrier_splits,
+    } = await req.json();
+
     if (!amount || amount <= 0) throw new Error("Invalid amount");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -48,15 +59,18 @@ serve(async (req) => {
     const feeValue = settings?.platform_fee_value || 5;
     const connectEnabled = settings?.stripe_connect_enabled || false;
 
-    // Calculate platform fee
+    // Determine if this is a multi-carrier payment
+    const isMultiCarrier = Array.isArray(carrier_splits) && carrier_splits.length > 1;
+
+    // Calculate total platform fee
     const platformFee = feeType === "percent"
       ? Math.round(amount * (feeValue / 100) * 100) / 100
       : Math.min(feeValue, amount);
     const carrierAmount = amount - platformFee;
 
-    // Look up carrier's Stripe Connect account
+    // For single-carrier payments, try destination charge as before
     let carrierStripeAccountId: string | null = null;
-    if (connectEnabled && carrier) {
+    if (!isMultiCarrier && connectEnabled && carrier) {
       const { data: carrierProfile } = await supabaseAdmin
         .from("carrier_payment_profiles")
         .select("stripe_account_id, payment_method, is_active")
@@ -82,11 +96,21 @@ serve(async (req) => {
     // Build payment method types based on currency
     const paymentMethodTypes: string[] = ["card"];
     const currLower = currency.toLowerCase();
-    if (currLower === "usd") {
-      paymentMethodTypes.push("us_bank_account");
-    }
-    if (currLower === "eur") {
-      paymentMethodTypes.push("sepa_debit");
+    if (currLower === "usd") paymentMethodTypes.push("us_bank_account");
+    if (currLower === "eur") paymentMethodTypes.push("sepa_debit");
+
+    // Build line item description
+    const descriptionParts = [
+      `Platform fee: $${platformFee.toLocaleString()}`,
+    ];
+    if (isMultiCarrier) {
+      descriptionParts.push(`Split across ${carrier_splits.length} shipping lines`);
+      carrier_splits.forEach((s: { carrier_name: string; amount: number }) => {
+        descriptionParts.push(`${s.carrier_name}: $${s.amount.toLocaleString()}`);
+      });
+    } else if (carrier) {
+      descriptionParts.unshift(`Carrier: ${carrier}`);
+      descriptionParts.push(`Carrier settlement: $${carrierAmount.toLocaleString()}`);
     }
 
     // Build checkout session options
@@ -99,11 +123,7 @@ serve(async (req) => {
             currency: currLower,
             product_data: {
               name: `Freight Payment${shipment_ref ? ` — ${shipment_ref}` : ""}`,
-              description: [
-                carrier ? `Carrier: ${carrier}` : null,
-                `Platform fee: $${platformFee.toLocaleString()}`,
-                `Carrier settlement: $${carrierAmount.toLocaleString()}`,
-              ].filter(Boolean).join(" | "),
+              description: descriptionParts.filter(Boolean).join(" | "),
             },
             unit_amount: Math.round(amount * 100),
           },
@@ -120,11 +140,12 @@ serve(async (req) => {
         carrier: carrier || "",
         platform_fee: platformFee.toString(),
         carrier_amount: carrierAmount.toString(),
+        is_multi_carrier: isMultiCarrier ? "true" : "false",
       },
     };
 
-    // If carrier has Stripe Connect account, use destination charge
-    if (carrierStripeAccountId) {
+    // For single-carrier with Stripe Connect, use destination charge
+    if (carrierStripeAccountId && !isMultiCarrier) {
       sessionParams.payment_intent_data = {
         application_fee_amount: Math.round(platformFee * 100),
         transfer_data: {
@@ -136,7 +157,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create(sessionParams);
 
     // Record payment in DB
-    await supabaseAdmin.from("payments").insert({
+    const { data: paymentRow } = await supabaseAdmin.from("payments").insert({
       quote_id: quote_id || null,
       shipment_id: shipment_id || null,
       user_id: user.id,
@@ -147,9 +168,56 @@ serve(async (req) => {
       payment_method: "stripe_checkout",
       platform_fee: platformFee,
       carrier_amount: carrierAmount,
-      carrier_settlement_status: carrierStripeAccountId ? "auto_pending" : "manual_pending",
-      carrier_name: carrier || null,
-    });
+      carrier_settlement_status: isMultiCarrier
+        ? "multi_pending"
+        : carrierStripeAccountId
+          ? "auto_pending"
+          : "manual_pending",
+      carrier_name: isMultiCarrier ? null : (carrier || null),
+    }).select("id").single();
+
+    // For multi-carrier payments, create split records
+    if (isMultiCarrier && paymentRow?.id) {
+      // Distribute platform fee proportionally across carriers
+      const totalCarrierAmount = carrier_splits.reduce(
+        (sum: number, s: { amount: number }) => sum + s.amount, 0
+      );
+
+      const splits = [];
+      for (const split of carrier_splits) {
+        // Proportional fee per carrier
+        const splitFee = totalCarrierAmount > 0
+          ? Math.round(platformFee * (split.amount / totalCarrierAmount) * 100) / 100
+          : 0;
+
+        // Look up carrier's Stripe Connect account
+        let stripeAccountId: string | null = null;
+        if (connectEnabled) {
+          const { data: profile } = await supabaseAdmin
+            .from("carrier_payment_profiles")
+            .select("stripe_account_id, payment_method, is_active")
+            .eq("carrier_name", split.carrier_name)
+            .eq("is_active", true)
+            .single();
+
+          if (profile?.stripe_account_id && profile.payment_method === "stripe_connect") {
+            stripeAccountId = profile.stripe_account_id;
+          }
+        }
+
+        splits.push({
+          payment_id: paymentRow.id,
+          carrier_name: split.carrier_name,
+          carrier_stripe_account_id: stripeAccountId,
+          amount: split.amount,
+          platform_fee: splitFee,
+          currency: currency.toUpperCase(),
+          status: "pending",
+        });
+      }
+
+      await supabaseAdmin.from("payment_splits").insert(splits);
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
