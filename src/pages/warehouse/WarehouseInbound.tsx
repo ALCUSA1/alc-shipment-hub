@@ -18,7 +18,7 @@ const WarehouseInbound = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("warehouse_orders")
-        .select("*")
+        .select("*, shipments!warehouse_orders_shipment_id_fkey(shipment_ref, origin_port, destination_port)")
         .eq("warehouse_user_id", user!.id)
         .eq("order_type", "receiving")
         .order("created_at", { ascending: false });
