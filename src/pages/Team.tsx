@@ -213,6 +213,48 @@ const Team = () => {
     }
   };
 
+  const openEditMember = (member: any) => {
+    setEditMember(member);
+    setEditName(member.full_name || "");
+    setEditRole(member.roles[0]?.role || "viewer");
+    setEditTitle(member.title || "");
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editMember) return;
+    setSaving(true);
+    try {
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({ full_name: editName.trim() })
+        .eq("user_id", editMember.user_id);
+      if (profileErr) throw profileErr;
+
+      const currentRole = editMember.roles[0];
+      if (currentRole && currentRole.role !== editRole) {
+        const { error: roleErr } = await supabase
+          .from("user_roles")
+          .update({ role: editRole as any })
+          .eq("id", currentRole.id);
+        if (roleErr) throw roleErr;
+      }
+
+      await supabase
+        .from("company_members")
+        .update({ title: editTitle.trim() || null })
+        .eq("user_id", editMember.user_id);
+
+      toast({ title: "Member Updated", description: `${editName || "User"}'s information has been saved.` });
+      setEditOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   /* ── Loading / Access checks ────────────────────── */
 
   if (roleLoading) {
