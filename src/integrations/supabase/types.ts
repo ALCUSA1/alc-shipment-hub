@@ -3714,6 +3714,7 @@ export type Database = {
           company_name: string | null
           cover_url: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           logo_url: string | null
@@ -3731,6 +3732,7 @@ export type Database = {
           company_name?: string | null
           cover_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           logo_url?: string | null
@@ -3748,6 +3750,7 @@ export type Database = {
           company_name?: string | null
           cover_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           logo_url?: string | null
