@@ -67,6 +67,7 @@ const NAV_ROLES: Record<NavItemKey, CompanyRole[]> = {
   support:      ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
   ideas:        ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
   account:      ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
+  alerts:       ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
 };
 
 export function canSeeNavItem(role: CompanyRole | null, item: NavItemKey): boolean {
