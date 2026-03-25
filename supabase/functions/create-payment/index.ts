@@ -32,9 +32,8 @@ serve(async (req) => {
       currency = "USD",
       shipment_ref,
       carrier,
-      // NEW: multi-carrier splits array
-      // Each item: { carrier_name, amount }
       carrier_splits,
+      payment_method, // "bank_transfer" or undefined (defaults to card)
     } = await req.json();
 
     if (!amount || amount <= 0) throw new Error("Invalid amount");
