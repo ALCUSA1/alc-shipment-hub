@@ -46,6 +46,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     currentUserName,
   });
 
+  // Check for due sailing reminders
+  useSailingReminderChecker();
+
   const pageTitle = routeTitles[location.pathname] || 
     (location.pathname.includes("/shipments/") ? "Shipment Workspace" : "");
 
