@@ -43,12 +43,12 @@ export default function Alerts() {
     queryKey: ["sailing-reminders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("sailing_reminders" as any)
+        .from("sailing_reminders")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return data ?? [];
     },
     enabled: !!user,
   });
@@ -74,7 +74,7 @@ export default function Alerts() {
   // Delete sailing reminder
   const deleteSailingReminder = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("sailing_reminders" as any).delete().eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder deleted"); },
@@ -83,7 +83,7 @@ export default function Alerts() {
   // Toggle sailing reminder active
   const toggleSailingReminder = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase.from("sailing_reminders" as any).update({ is_active } as any).eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").update({ is_active }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder updated"); },
@@ -93,7 +93,7 @@ export default function Alerts() {
   const rearmReminder = useMutation({
     mutationFn: async (id: string) => {
       const newRemindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await supabase.from("sailing_reminders" as any).update({ is_triggered: false, remind_at: newRemindAt, is_active: true, email_sent: false } as any).eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").update({ is_triggered: false, remind_at: newRemindAt, is_active: true, email_sent: false }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder re-armed for 24h from now"); },
