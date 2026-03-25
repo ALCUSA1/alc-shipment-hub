@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Package, Inbox, ContactRound, Users, Settings, LogOut,
   TrendingUp, BarChart3, DollarSign, Search, Shield, User, Sparkles,
-  LifeBuoy, Lightbulb,
+  LifeBuoy, Lightbulb, MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { canAccessRoute } from "@/lib/permissions";
 import { canSeeNavItem, type NavItemKey } from "@/lib/company-permissions";
 import alcLogo from "@/assets/alc-logo.png";
@@ -34,6 +35,7 @@ const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[
   { title: "Partners", url: "/dashboard/partners", icon: Users, navKey: "partners" },
   { title: "Financials", url: "/dashboard/accounting", icon: DollarSign, navKey: "accounting" },
   { title: "Team", url: "/dashboard/team", icon: Shield, navKey: "team" },
+  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare, navKey: "messages" },
 ];
 
 const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
@@ -70,6 +72,36 @@ export function AppSidebar() {
   const companyLabel = profile?.company_name || "ALC Shipper Portal";
   const userName = (profile as any)?.full_name || user?.email?.split("@")[0] || "User";
 
+  // Unread message count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["sidebar-unread", user?.id],
+    queryFn: async () => {
+      const { data: participations } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id, last_read_at")
+        .eq("user_id", user!.id);
+      if (!participations?.length) return 0;
+
+      let count = 0;
+      for (const p of participations) {
+        const { data: latest } = await supabase
+          .from("messages")
+          .select("created_at")
+          .eq("conversation_id", p.conversation_id)
+          .neq("sender_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latest && new Date(latest.created_at) > new Date(p.last_read_at || "1970-01-01")) {
+          count++;
+        }
+      }
+      return count;
+    },
+    enabled: !!user,
+    refetchInterval: 10000,
+  });
+
   const handleLogout = async () => {
     await signOut();
     navigate("/");
@@ -90,7 +122,16 @@ export function AppSidebar() {
                 activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
               >
                 <item.icon className="mr-2 h-4 w-4" />
-                {!collapsed && <span>{item.title}</span>}
+                {!collapsed && (
+                  <span className="flex-1 flex items-center justify-between">
+                    <span>{item.title}</span>
+                    {item.navKey === "messages" && unreadCount > 0 && (
+                      <Badge variant="default" className="h-4 min-w-4 px-1 text-[9px] leading-none ml-auto">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </Badge>
+                    )}
+                  </span>
+                )}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatPanel, ChatProfilePanel } from "@/components/messages/ChatPanel";
 import { CompanyDirectoryDialog } from "@/components/messages/CompanyDirectoryDialog";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
+import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 
 export default function Messages() {
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const {
     user,
@@ -27,6 +30,21 @@ export default function Messages() {
     teammateUserIds,
     teamMembers,
   } = useChatDrawer();
+
+  // Real-time toast notifications for messages from other conversations
+  useMessageNotifications({
+    userId: user?.id,
+    activeConversationId,
+    currentUserName,
+  });
+
+  // Open conversation from URL param (e.g. from toast notification click)
+  useEffect(() => {
+    const convParam = searchParams.get("conv");
+    if (convParam && convParam !== activeConversationId) {
+      setActiveConversationId(convParam);
+    }
+  }, [searchParams]);
 
   const handleSelectTeamMember = (member: { user_id: string; full_name: string; email: string }) => {
     handleSelectUser({

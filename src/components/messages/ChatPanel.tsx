@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "./MessageBubble";
+import { TypingIndicator } from "./TypingIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import type { ConversationScope } from "./ConversationList";
 
 interface Message {
@@ -46,6 +48,7 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
   const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { typingText, sendTyping, clearTyping } = useTypingIndicator(conversationId, currentUserId, currentUserName);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,6 +60,7 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
     try {
       await onSend(draft.trim(), []);
       setDraft("");
+      clearTyping();
     } catch {
       toast.error("Failed to send message");
     }
@@ -159,6 +163,9 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
         <div ref={bottomRef} />
       </ScrollArea>
 
+      {/* Typing Indicator */}
+      <TypingIndicator text={typingText} />
+
       {/* Input */}
       <div className="border-t border-border p-3 flex items-end gap-2 bg-background shrink-0">
         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
@@ -167,7 +174,10 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
         </Button>
         <Textarea
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (e.target.value.trim()) sendTyping();
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Type a message…"
           className="min-h-[40px] max-h-[120px] resize-none text-sm"
