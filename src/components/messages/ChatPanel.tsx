@@ -48,6 +48,7 @@ export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail,
   const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { typingText, sendTyping, clearTyping } = useTypingIndicator(conversationId, currentUserId, currentUserName);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
