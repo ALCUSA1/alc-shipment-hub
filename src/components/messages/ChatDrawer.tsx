@@ -32,6 +32,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     currentCompanyName,
     handleSend,
     handleSelectUser,
+    teammateUserIds,
   } = useChatDrawer();
 
   const handleSelectConversation = (id: string) => {
