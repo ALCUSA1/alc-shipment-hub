@@ -26,6 +26,33 @@ export function useChatDrawer() {
   const currentUserName = profile?.full_name || profile?.company_name || "Me";
   const currentCompanyName = profile?.company_name || "";
 
+  // Fetch teammate user IDs via company_members table
+  const { data: teammateUserIds = [] } = useQuery({
+    queryKey: ["teammate-user-ids", user?.id],
+    queryFn: async () => {
+      // Get current user's company IDs
+      const { data: myMemberships } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user!.id)
+        .eq("is_active", true);
+      if (!myMemberships?.length) return [];
+
+      const companyIds = myMemberships.map((m) => m.company_id);
+
+      // Get all active members in those companies
+      const { data: coMembers } = await supabase
+        .from("company_members")
+        .select("user_id")
+        .in("company_id", companyIds)
+        .eq("is_active", true);
+
+      const ids = [...new Set((coMembers || []).map((m) => m.user_id).filter((id) => id !== user!.id))];
+      return ids;
+    },
+    enabled: !!user,
+  });
+
   const { data: conversations = [], isLoading: convsLoading } = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: async () => {
