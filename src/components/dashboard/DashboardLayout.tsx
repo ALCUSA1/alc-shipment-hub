@@ -4,6 +4,7 @@ import { AppSidebar } from "./AppSidebar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ChatDrawer, ChatFloatingButton } from "@/components/messages/ChatDrawer";
 import { useChatDrawer } from "@/hooks/useChatDrawer";
+import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,8 +35,15 @@ const routeTitles: Record<string, string> = {
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [chatOpen, setChatOpen] = useState(false);
-  const { unreadCount } = useChatDrawer();
+  const { unreadCount, user: chatUser, currentUserName, activeConversationId } = useChatDrawer();
   const { user } = useAuth();
+
+  // Global real-time message notifications
+  useMessageNotifications({
+    userId: chatUser?.id,
+    activeConversationId,
+    currentUserName,
+  });
 
   const pageTitle = routeTitles[location.pathname] || 
     (location.pathname.includes("/shipments/") ? "Shipment Workspace" : "");
