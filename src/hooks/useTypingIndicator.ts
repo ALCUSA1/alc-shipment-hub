@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const TYPING_TIMEOUT = 3000; // ms before typing indicator disappears
-const TYPING_DEBOUNCE = 1000; // ms debounce for sending typing events
+const TYPING_TIMEOUT = 3000;
+const TYPING_DEBOUNCE = 1000;
 
 interface TypingUser {
   userId: string;
@@ -12,15 +12,17 @@ interface TypingUser {
 export function useTypingIndicator(conversationId: string | null, currentUserId: string, currentUserName: string) {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const lastSentRef = useRef(0);
-  const timeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Subscribe to typing presence
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
 
     const channel = supabase.channel(`typing-${conversationId}`, {
       config: { presence: { key: currentUserId } },
     });
+
+    channelRef.current = channel;
 
     channel
       .on("presence", { event: "sync" }, () => {
@@ -38,55 +40,38 @@ export function useTypingIndicator(conversationId: string | null, currentUserId:
       .on("presence", { event: "leave" }, ({ key }) => {
         setTypingUsers((prev) => prev.filter((u) => u.userId !== key));
       })
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ typing: false, userName: currentUserName });
+        }
+      });
 
     return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       supabase.removeChannel(channel);
+      channelRef.current = null;
       setTypingUsers([]);
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId, currentUserName]);
 
-  // Send typing event (debounced)
   const sendTyping = useCallback(() => {
-    if (!conversationId || !currentUserId) return;
+    if (!channelRef.current) return;
     const now = Date.now();
     if (now - lastSentRef.current < TYPING_DEBOUNCE) return;
     lastSentRef.current = now;
 
-    const channel = supabase.channel(`typing-${conversationId}`, {
-      config: { presence: { key: currentUserId } },
-    });
+    channelRef.current.track({ typing: true, userName: currentUserName });
 
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        await channel.track({ typing: true, userName: currentUserName });
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      channelRef.current?.track({ typing: false, userName: currentUserName });
+    }, TYPING_TIMEOUT);
+  }, [currentUserName]);
 
-        // Auto-stop typing after timeout
-        if (timeoutsRef.current[conversationId]) {
-          clearTimeout(timeoutsRef.current[conversationId]);
-        }
-        timeoutsRef.current[conversationId] = setTimeout(async () => {
-          await channel.track({ typing: false, userName: currentUserName });
-        }, TYPING_TIMEOUT);
-      }
-    });
-  }, [conversationId, currentUserId, currentUserName]);
-
-  // Clear typing on send
   const clearTyping = useCallback(() => {
-    if (!conversationId || !currentUserId) return;
-    const channel = supabase.channel(`typing-${conversationId}`, {
-      config: { presence: { key: currentUserId } },
-    });
-    channel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        await channel.track({ typing: false, userName: currentUserName });
-      }
-    });
-    if (timeoutsRef.current[conversationId]) {
-      clearTimeout(timeoutsRef.current[conversationId]);
-    }
-  }, [conversationId, currentUserId, currentUserName]);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    channelRef.current?.track({ typing: false, userName: currentUserName });
+  }, [currentUserName]);
 
   const typingText = typingUsers.length === 0
     ? null
