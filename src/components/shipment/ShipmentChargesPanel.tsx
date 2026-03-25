@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, CreditCard, Loader2, Receipt } from "lucide-react";
+import { DollarSign, CreditCard, Loader2, Receipt, Landmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
 
 export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) {
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [wirePayingId, setWirePayingId] = useState<string | null>(null);
 
   const { data: charges = [] } = useQuery({
     queryKey: ["shipment_charges", shipmentId],
@@ -72,6 +73,33 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setPayingId(null);
+    }
+  };
+
+  const handleWirePay = async (charge: any) => {
+    setWirePayingId(charge.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: {
+          shipment_id: shipmentId,
+          amount: charge.amount,
+          currency: charge.currency,
+          payment_method: "bank_transfer",
+          metadata: {
+            charge_id: charge.id,
+            charge_type: charge.charge_type,
+            description: charge.description,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setWirePayingId(null);
     }
   };
 
@@ -128,20 +156,36 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
                   {Number(charge.amount).toLocaleString()} {charge.currency}
                 </span>
                 {charge.payment_status === "unpaid" && charge.who_pays === "shipper" && (
-                  <Button
-                    variant="electric"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => handlePay(charge)}
-                    disabled={payingId === charge.id}
-                  >
-                    {payingId === charge.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                    ) : (
-                      <CreditCard className="h-3 w-3 mr-1" />
-                    )}
-                    Pay
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="electric"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => handlePay(charge)}
+                      disabled={payingId === charge.id || wirePayingId === charge.id}
+                    >
+                      {payingId === charge.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <CreditCard className="h-3 w-3 mr-1" />
+                      )}
+                      Pay
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => handleWirePay(charge)}
+                      disabled={payingId === charge.id || wirePayingId === charge.id}
+                    >
+                      {wirePayingId === charge.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Landmark className="h-3 w-3 mr-1" />
+                      )}
+                      Wire
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>

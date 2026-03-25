@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle, Loader2, ArrowRight, Landmark } from "lucide-react";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -69,6 +69,17 @@ const PaymentSuccess = () => {
                   <Link to="/dashboard/quotes">
                     View Quotes <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
+                </Button>
+              </div>
+            ) : result?.status === "pending" ? (
+              <div className="space-y-4">
+                <Landmark className="h-14 w-14 text-accent mx-auto" />
+                <h2 className="text-xl font-bold text-foreground">Bank Transfer Instructions Sent</h2>
+                <p className="text-sm text-muted-foreground">
+                  Your wire transfer instructions have been generated. Please complete the transfer from your bank using the details provided by Stripe. Funds typically arrive within <span className="font-semibold text-foreground">1–3 business days</span>.
+                </p>
+                <Button variant="electric" asChild>
+                  <Link to="/dashboard/quotes">Back to Quotes</Link>
                 </Button>
               </div>
             ) : (

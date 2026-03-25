@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertCircle, Loader2, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ const paymentStyles: Record<string, { bg: string; text: string; icon: React.Elem
 
 export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
   const [paying, setPaying] = useState(false);
+  const [payingWire, setPayingWire] = useState(false);
 
   const { data: quote } = useQuery({
     queryKey: ["shipment-quote-payment", shipmentId],
@@ -78,6 +79,25 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
     }
   };
 
+  const handlePayWire = async () => {
+    setPayingWire(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: { quoteId: quote.id, shipmentId, payment_method: "bank_transfer" },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        toast({ title: "Bank transfer initiated", description: "Follow the wire instructions to complete your payment." });
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPayingWire(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -101,10 +121,17 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
         </div>
 
         {!isPaid && quote.status === "accepted" && displayAmount > 0 && (
-          <Button variant="electric" className="w-full" onClick={handlePayNow} disabled={paying}>
-            {paying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
-            Pay Now
-          </Button>
+          <div className="space-y-2">
+            <Button variant="electric" className="w-full" onClick={handlePayNow} disabled={paying || payingWire}>
+              {paying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+              Pay Now
+            </Button>
+            <Button variant="outline" className="w-full" onClick={handlePayWire} disabled={paying || payingWire}>
+              {payingWire ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Landmark className="h-4 w-4 mr-2" />}
+              Pay via Bank Transfer
+            </Button>
+            <p className="text-[10px] text-muted-foreground text-center">Wire transfers typically settle within 1–3 business days</p>
+          </div>
         )}
 
         {payments.length > 0 && (

@@ -32,9 +32,8 @@ serve(async (req) => {
       currency = "USD",
       shipment_ref,
       carrier,
-      // NEW: multi-carrier splits array
-      // Each item: { carrier_name, amount }
       carrier_splits,
+      payment_method, // "bank_transfer" or undefined (defaults to card)
     } = await req.json();
 
     if (!amount || amount <= 0) throw new Error("Invalid amount");
@@ -93,11 +92,24 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Build payment method types based on currency
+    // Build payment method types based on currency and requested method
+    const isBankTransfer = payment_method === "bank_transfer";
     const paymentMethodTypes: string[] = ["card"];
     const currLower = currency.toLowerCase();
-    if (currLower === "usd") paymentMethodTypes.push("us_bank_account");
-    if (currLower === "eur") paymentMethodTypes.push("sepa_debit");
+
+    if (isBankTransfer) {
+      paymentMethodTypes.push("customer_balance");
+    } else {
+      if (currLower === "usd") paymentMethodTypes.push("us_bank_account");
+      if (currLower === "eur") paymentMethodTypes.push("sepa_debit");
+    }
+
+    // Bank transfer type mapping
+    const bankTransferTypeMap: Record<string, string> = {
+      usd: "us_bank_transfer",
+      eur: "eu_bank_transfer",
+      gbp: "gb_bank_transfer",
+    };
 
     // Build line item description
     const descriptionParts = [
@@ -150,6 +162,19 @@ serve(async (req) => {
         application_fee_amount: Math.round(platformFee * 100),
         transfer_data: {
           destination: carrierStripeAccountId,
+        },
+      };
+    }
+
+    // Add bank transfer payment method options if requested
+    if (isBankTransfer) {
+      sessionParams.payment_method_options = {
+        ...sessionParams.payment_method_options,
+        customer_balance: {
+          funding_type: "bank_transfer",
+          bank_transfer: {
+            type: bankTransferTypeMap[currLower] || "us_bank_transfer",
+          },
         },
       };
     }
