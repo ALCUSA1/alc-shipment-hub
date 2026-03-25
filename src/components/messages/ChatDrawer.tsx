@@ -33,6 +33,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     handleSend,
     handleSelectUser,
     teammateUserIds,
+    teamMembers,
   } = useChatDrawer();
 
   const handleSelectConversation = (id: string) => {
@@ -45,25 +46,27 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     setView("list");
   };
 
+  const handleSelectTeamMember = (member: { user_id: string; full_name: string; email: string }) => {
+    handleSelectUser({
+      user_id: member.user_id,
+      full_name: member.full_name,
+      company_name: currentCompanyName,
+    });
+    setView("chat");
+  };
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       )}
 
-      {/* Drawer panel */}
       <div
         className={cn(
-          "fixed top-0 right-0 z-50 h-full w-[380px] max-w-[calc(100vw-3rem)] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 z-50 h-full w-[400px] max-w-[calc(100vw-3rem)] bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-3 h-12 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             {view === "chat" && (
@@ -74,14 +77,11 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
             <span className="font-semibold text-sm text-foreground">Messages</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onClose}>
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onClose}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {view === "list" ? (
             <ConversationList
@@ -91,19 +91,24 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
               onScopeChange={setActiveScope}
               onSelect={handleSelectConversation}
               onNewChat={() => setDirectoryOpen(true)}
+              onSelectTeamMember={handleSelectTeamMember}
               loading={convsLoading}
+              teamMembers={teamMembers}
             />
           ) : (
             <ChatPanel
               conversationId={activeConversationId}
               otherName={activeConv?.otherName || ""}
               otherCompany={activeConv?.otherCompany || ""}
+              otherEmail={activeConv?.otherEmail || ""}
               scope={activeConv?.scope}
               currentUserId={user?.id || ""}
               currentUserName={currentUserName}
               messages={messages}
               onSend={handleSend}
               loading={msgsLoading}
+              showProfile={false}
+              onToggleProfile={() => {}}
             />
           )}
         </div>
@@ -124,19 +129,10 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
 
 export function ChatFloatingButton({ unreadCount, onClick }: { unreadCount: number; onClick: () => void }) {
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      className="relative h-9 w-9"
-      onClick={onClick}
-      title="Messages"
-    >
+    <Button size="icon" variant="ghost" className="relative h-9 w-9" onClick={onClick} title="Messages">
       <MessageSquare className="h-4 w-4" />
       {unreadCount > 0 && (
-        <Badge
-          variant="default"
-          className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none pointer-events-none"
-        >
+        <Badge variant="default" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none pointer-events-none">
           {unreadCount > 9 ? "9+" : unreadCount}
         </Badge>
       )}
