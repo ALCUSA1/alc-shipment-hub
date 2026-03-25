@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { StartShipmentModal } from "./StartShipmentModal";
 import alcLogo from "@/assets/alc-logo.png";
 
 const navLinks = [
