@@ -92,11 +92,24 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Build payment method types based on currency
+    // Build payment method types based on currency and requested method
+    const isBankTransfer = payment_method === "bank_transfer";
     const paymentMethodTypes: string[] = ["card"];
     const currLower = currency.toLowerCase();
-    if (currLower === "usd") paymentMethodTypes.push("us_bank_account");
-    if (currLower === "eur") paymentMethodTypes.push("sepa_debit");
+
+    if (isBankTransfer) {
+      paymentMethodTypes.push("customer_balance");
+    } else {
+      if (currLower === "usd") paymentMethodTypes.push("us_bank_account");
+      if (currLower === "eur") paymentMethodTypes.push("sepa_debit");
+    }
+
+    // Bank transfer type mapping
+    const bankTransferTypeMap: Record<string, string> = {
+      usd: "us_bank_transfer",
+      eur: "eu_bank_transfer",
+      gbp: "gb_bank_transfer",
+    };
 
     // Build line item description
     const descriptionParts = [
