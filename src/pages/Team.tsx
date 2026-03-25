@@ -106,6 +106,14 @@ const Team = () => {
   const [inviteTitle, setInviteTitle] = useState("");
   const [inviting, setInviting] = useState(false);
 
+  /* ── Edit member state ─────────────────────────── */
+  const [editOpen, setEditOpen] = useState(false);
+  const [editMember, setEditMember] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+
   /* ── Data fetching ─────────────────────────────── */
 
   const { data: teamMembers, isLoading: teamLoading } = useQuery({
@@ -202,6 +210,48 @@ const Team = () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const openEditMember = (member: any) => {
+    setEditMember(member);
+    setEditName(member.full_name || "");
+    setEditRole(member.roles[0]?.role || "viewer");
+    setEditTitle(member.title || "");
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editMember) return;
+    setSaving(true);
+    try {
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({ full_name: editName.trim() })
+        .eq("user_id", editMember.user_id);
+      if (profileErr) throw profileErr;
+
+      const currentRole = editMember.roles[0];
+      if (currentRole && currentRole.role !== editRole) {
+        const { error: roleErr } = await supabase
+          .from("user_roles")
+          .update({ role: editRole as any })
+          .eq("id", currentRole.id);
+        if (roleErr) throw roleErr;
+      }
+
+      await supabase
+        .from("company_members")
+        .update({ title: editTitle.trim() || null })
+        .eq("user_id", editMember.user_id);
+
+      toast({ title: "Member Updated", description: `${editName || "User"}'s information has been saved.` });
+      setEditOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -433,13 +483,18 @@ const Team = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-48">
+                                      <DropdownMenuItem onClick={() => openEditMember(member)}>
+                                        <Pencil className="h-3.5 w-3.5 mr-2" />
+                                        Edit Member
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
                                       {Object.entries(ROLES).map(([key, def]) => (
                                         primaryRole?.role !== key && (
                                           <DropdownMenuItem
                                             key={key}
                                             onClick={() => handleChangeRole(primaryRole.id, key)}
                                           >
-                                            <Pencil className="h-3.5 w-3.5 mr-2" />
+                                            <Settings2 className="h-3.5 w-3.5 mr-2" />
                                             Change to {def.label}
                                           </DropdownMenuItem>
                                         )
@@ -517,6 +572,51 @@ const Team = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Member Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-primary" />
+                Edit Team Member
+              </DialogTitle>
+              <DialogDescription>Update this member's information and role.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-title">Department / Title</Label>
+                <Input id="edit-title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="e.g. Logistics Coordinator" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Role</Label>
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ROLES).map(([value, def]) => (
+                      <SelectItem key={value} value={value}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{def.label}</span>
+                          <span className="text-xs text-muted-foreground">{def.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={saving || !editName.trim()} className="bg-primary text-primary-foreground">
+                {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
