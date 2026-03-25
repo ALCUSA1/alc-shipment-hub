@@ -331,7 +331,17 @@ const Shipments = () => {
                   {paginatedRows.map((s) => {
                     const companyName = (s.companies as any)?.company_name;
                     return (
-                      <tr key={s.id} className="border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
+                      <tr key={s.id} className={`border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer ${selectedIds.has(s.id) ? "bg-accent/5" : ""}`} onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(s.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedIds);
+                              checked ? next.add(s.id) : next.delete(s.id);
+                              setSelectedIds(next);
+                            }}
+                          />
+                        </td>
                         <td className="p-4 font-mono font-medium text-accent">{s.shipment_ref}</td>
                         <td className="p-4 text-foreground">{companyName || <span className="text-muted-foreground">—</span>}</td>
                         <td className="p-4 text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</td>
