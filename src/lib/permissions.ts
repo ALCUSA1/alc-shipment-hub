@@ -18,7 +18,6 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
   "/driver":                ["driver"],
   "/trucking":              ["trucker"],
   "/warehouse":             ["warehouse"],
-  "/warehouse":             ["warehouse"],
 };
 
 /**
