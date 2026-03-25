@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageCheck, Phone, User, Check, X, Lock } from "lucide-react";
+import { PackageCheck, Phone, User, Check, X, Lock, Ship, Truck, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const WarehouseReleases = () => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ const WarehouseReleases = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("warehouse_orders")
-        .select("*")
+        .select("*, shipments!warehouse_orders_shipment_id_fkey(shipment_ref, origin_port, destination_port)")
         .eq("warehouse_user_id", user!.id)
         .eq("order_type", "release")
         .order("created_at", { ascending: false });
@@ -79,75 +80,82 @@ const WarehouseReleases = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
-                <div key={order.id} className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {order.cargo_description || "Release order"}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {order.release_to_name && (
-                          <span className="flex items-center gap-1"><User className="h-3 w-3" />{order.release_to_name}</span>
-                        )}
-                        {order.release_to_phone && (
-                          <a href={`tel:${order.release_to_phone}`} className="flex items-center gap-1 text-accent hover:underline">
-                            <Phone className="h-3 w-3" />{order.release_to_phone}
-                          </a>
-                        )}
-                        {order.container_numbers?.length > 0 && (
-                          <span>Containers: {order.container_numbers.join(", ")}</span>
-                        )}
+              {orders.map((order) => {
+                const shipment = (order as any).shipments;
+                return (
+                  <div key={order.id} className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">
+                            {order.cargo_description || "Release order"}
+                          </p>
+                          {shipment?.shipment_ref && (
+                            <Badge variant="outline" className="text-[10px]">
+                              <Ship className="h-3 w-3 mr-1" /> {shipment.shipment_ref}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          {order.release_to_name && (
+                            <span className="flex items-center gap-1"><User className="h-3 w-3" />{order.release_to_name}</span>
+                          )}
+                          {order.release_to_phone && (
+                            <a href={`tel:${order.release_to_phone}`} className="flex items-center gap-1 text-accent hover:underline">
+                              <Phone className="h-3 w-3" />{order.release_to_phone}
+                            </a>
+                          )}
+                          {order.container_numbers?.length > 0 && (
+                            <span>Containers: {order.container_numbers.join(", ")}</span>
+                          )}
+                        </div>
                       </div>
+                      <Badge className={cn("text-[10px]", statusStyle[order.status] || "bg-secondary text-muted-foreground")} variant="secondary">
+                        {order.status.replace(/_/g, " ")}
+                      </Badge>
                     </div>
-                    <Badge className={statusStyle[order.status] || "bg-secondary text-muted-foreground"} variant="secondary">
-                      {order.status.replace(/_/g, " ")}
-                    </Badge>
+
+                    {/* Trucking coordination: who is picking up */}
+                    {order.release_to_name && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-green-50 dark:bg-green-950/20 p-2 rounded-lg border border-green-200 dark:border-green-800">
+                        <Truck className="h-3.5 w-3.5 text-green-600" />
+                        <span>Pickup by: <strong className="text-foreground">{order.release_to_name}</strong>
+                          {order.scheduled_date && <> · Scheduled: {order.scheduled_date}</>}
+                        </span>
+                      </div>
+                    )}
+
+                    {order.release_authorization && (
+                      <p className="text-xs text-muted-foreground border-t pt-2">
+                        <strong>Authorization:</strong> {order.release_authorization}
+                      </p>
+                    )}
+
+                    {order.status === "pending" && (
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "in_progress" })}>
+                          <Check className="h-3.5 w-3.5 mr-1" /> Accept & Start Processing
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}>
+                          <X className="h-3.5 w-3.5 mr-1" /> Reject
+                        </Button>
+                      </div>
+                    )}
+                    {order.status === "in_progress" && (
+                      <div className="flex gap-2 pt-1">
+                        <Button size="sm" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}>
+                          Confirm Cargo Released
+                        </Button>
+                      </div>
+                    )}
+                    {isFinalStatus(order.status) && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
+                        <Lock className="h-3 w-3" /> No further actions — order is {order.status}
+                      </p>
+                    )}
                   </div>
-
-                  {order.release_authorization && (
-                    <p className="text-xs text-muted-foreground border-t pt-2">
-                      <strong>Authorization:</strong> {order.release_authorization}
-                    </p>
-                  )}
-
-                  {order.status === "pending" && (
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "in_progress" })}
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" /> Accept & Start Processing
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "rejected" })}
-                      >
-                        <X className="h-3.5 w-3.5 mr-1" /> Reject
-                      </Button>
-                    </div>
-                  )}
-                  {order.status === "in_progress" && (
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        disabled={updateStatus.isPending}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: "completed" })}
-                      >
-                        Mark Released
-                      </Button>
-                    </div>
-                  )}
-                  {isFinalStatus(order.status) && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1 border-t">
-                      <Lock className="h-3 w-3" /> No further actions — order is {order.status}
-                    </p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

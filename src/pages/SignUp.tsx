@@ -2,19 +2,63 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import alcLogo from "@/assets/alc-logo.png";
+import { Package, Ship, Truck, Warehouse, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
-  { value: "viewer", label: "Shipper", companyType: "shipper", description: "I need to ship goods" },
-  { value: "forwarder", label: "Freight Forwarder", companyType: "forwarder", description: "I manage freight forwarding operations" },
-  { value: "trucker", label: "Carrier (Back Office)", companyType: "trucking_company", description: "I manage trucking operations" },
-  { value: "driver", label: "Driver", companyType: "trucking_company", description: "I drive and deliver cargo" },
-  { value: "warehouse", label: "Warehouse Operator", companyType: "warehouse", description: "I operate a warehouse" },
+  {
+    value: "viewer",
+    label: "Shipper / Importer / Exporter",
+    companyType: "shipper",
+    icon: Package,
+    description: "I need logistics services to move my goods",
+    responsibilities: [
+      "Create and manage shipments end-to-end",
+      "Track cargo in real-time",
+      "Manage documents and financials",
+    ],
+  },
+  {
+    value: "forwarder",
+    label: "Freight Forwarder",
+    companyType: "forwarder",
+    icon: Ship,
+    description: "I manage freight forwarding operations",
+    responsibilities: [
+      "Coordinate shipments across carriers",
+      "Manage pricing and customer quotes",
+      "Oversee end-to-end logistics execution",
+    ],
+  },
+  {
+    value: "trucker",
+    label: "Trucking Provider",
+    companyType: "trucking_company",
+    icon: Truck,
+    description: "I provide pickup, delivery, and drayage services",
+    responsibilities: [
+      "Receive pickup and delivery orders",
+      "Manage drivers and update shipment status",
+      "Upload proof of delivery documents",
+    ],
+  },
+  {
+    value: "warehouse",
+    label: "Warehouse Provider",
+    companyType: "warehouse",
+    icon: Warehouse,
+    description: "I operate warehouses and handle cargo storage",
+    responsibilities: [
+      "Manage inbound and outbound cargo",
+      "Coordinate with trucking companies for pickup",
+      "Handle cargo release and storage operations",
+    ],
+  },
 ] as const;
 
 const SignUp = () => {
@@ -37,7 +81,6 @@ const SignUp = () => {
 
     const roleOption = ROLE_OPTIONS.find((r) => r.value === selectedRole);
 
-    // 1. Create auth user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -53,8 +96,6 @@ const SignUp = () => {
       return;
     }
 
-    // 2. Insert signup request (user must confirm email first, so this may fail if RLS requires auth)
-    // We store it after signup — the user_id is available from the response
     if (data.user) {
       await supabase.from("signup_requests").insert({
         user_id: data.user.id,
@@ -80,54 +121,79 @@ const SignUp = () => {
         <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full bg-accent/5 blur-3xl" />
         <div className="max-w-md text-center relative z-10">
           <img src={alcLogo} alt="ALC Logo" className="h-14 w-auto mx-auto mb-8 brightness-0 invert" />
-          <h2 className="text-3xl font-bold text-primary-foreground mb-3 tracking-tight">ALC Shipper Portal</h2>
+          <h2 className="text-3xl font-bold text-primary-foreground mb-3 tracking-tight">Join the Logistics Network</h2>
           <p className="text-primary-foreground/50 text-sm leading-relaxed">
-            Join the platform — whether you're a shipper, freight forwarder, carrier, or warehouse operator.
+            Whether you're shipping goods, managing freight, hauling cargo, or operating a warehouse — your operations start here.
           </p>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
-          <Link to="/" className="flex items-center gap-2 font-bold text-lg text-foreground mb-8 lg:hidden">
+      <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+        <div className="w-full max-w-lg">
+          <Link to="/" className="flex items-center gap-2 font-bold text-lg text-foreground mb-6 lg:hidden">
             <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Create your account</h1>
-          <p className="text-sm text-muted-foreground mb-8">Get started with ALC Logistics</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Create your account</h1>
+          <p className="text-sm text-muted-foreground mb-6">Select your role and get started with ALC Logistics</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Step 1: Role Selection */}
             <div>
-              <Label htmlFor="account-type">I am a…</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <span className="font-medium">{opt.label}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">— {opt.description}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="mb-3 block text-sm font-semibold">Step 1 — What describes you best?</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {ROLE_OPTIONS.map((opt) => {
+                  const isSelected = selectedRole === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSelectedRole(opt.value)}
+                      className={cn(
+                        "relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all hover:border-accent/50",
+                        isSelected ? "border-accent bg-accent/5 shadow-sm" : "border-border bg-card"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <opt.icon className={cn("h-5 w-5", isSelected ? "text-accent" : "text-muted-foreground")} />
+                        <span className="text-sm font-semibold text-foreground">{opt.label}</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-tight">{opt.description}</p>
+                      <ul className="space-y-1 mt-1">
+                        {opt.responsibilities.map((r) => (
+                          <li key={r} className="text-[10px] text-muted-foreground flex items-start gap-1">
+                            <CheckCircle2 className={cn("h-3 w-3 mt-0.5 shrink-0", isSelected ? "text-accent" : "text-muted-foreground/50")} />
+                            {r}
+                          </li>
+                        ))}
+                      </ul>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div>
-              <Label htmlFor="company">Company name</Label>
-              <Input id="company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Logistics Inc." className="mt-1.5" />
+
+            {/* Step 2: Account Details */}
+            <div className="space-y-3">
+              <Label className="block text-sm font-semibold">Step 2 — Account details</Label>
+              <div>
+                <Label htmlFor="company">Company name</Label>
+                <Input id="company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Logistics Inc." className="mt-1.5" />
+              </div>
+              <div>
+                <Label htmlFor="name">Full name</Label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" className="mt-1.5" required />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="mt-1.5" required />
+              </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1.5" required minLength={6} />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="name">Full name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" className="mt-1.5" required />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="mt-1.5" required />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1.5" required minLength={6} />
-            </div>
+
             <Button variant="electric" className="w-full h-11" type="submit" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
             </Button>
@@ -135,7 +201,7 @@ const SignUp = () => {
           <p className="text-xs text-muted-foreground mt-4 text-center leading-relaxed">
             Your account will be reviewed by our team before access is granted.
           </p>
-          <p className="text-sm text-muted-foreground mt-4 text-center">
+          <p className="text-sm text-muted-foreground mt-3 text-center">
             Already have an account? <Link to="/login" className="text-accent font-medium hover:underline">Log in</Link>
           </p>
         </div>
