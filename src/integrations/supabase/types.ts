@@ -4269,6 +4269,48 @@ export type Database = {
           },
         ]
       }
+      sailing_reminders: {
+        Row: {
+          carrier: string
+          container_type: string | null
+          created_at: string
+          destination_port: string
+          etd: string | null
+          id: string
+          is_triggered: boolean
+          origin_port: string
+          remind_at: string
+          sailing_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          carrier: string
+          container_type?: string | null
+          created_at?: string
+          destination_port: string
+          etd?: string | null
+          id?: string
+          is_triggered?: boolean
+          origin_port: string
+          remind_at: string
+          sailing_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          carrier?: string
+          container_type?: string | null
+          created_at?: string
+          destination_port?: string
+          etd?: string | null
+          id?: string
+          is_triggered?: boolean
+          origin_port?: string
+          remind_at?: string
+          sailing_data?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       shipment_amendments: {
         Row: {
           amendment_type: string
