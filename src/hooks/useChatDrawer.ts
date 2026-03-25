@@ -192,13 +192,11 @@ export function useChatDrawer() {
   const handleSelectUser = useCallback(
     async (selectedUser: { user_id: string; full_name: string; company_name: string }) => {
       if (!user) return;
-      // When company names are set, determine scope from company match
-      // When company names are missing, preserve the current active scope tab
+      // Determine scope based on company_members relationship
       let scope: ConversationScope = activeScope;
-      if (currentCompanyName && selectedUser.company_name) {
-        const isSameCompany =
-          selectedUser.company_name.toLowerCase() === currentCompanyName.toLowerCase();
-        scope = isSameCompany ? "internal" : "external";
+      if (teammateUserIds.length > 0 || currentCompanyName) {
+        const isTeammate = teammateUserIds.includes(selectedUser.user_id);
+        scope = isTeammate ? "internal" : "external";
       }
 
       const { data: myParticipations } = await supabase
