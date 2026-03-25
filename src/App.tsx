@@ -120,6 +120,7 @@ import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
 import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
 import Support from "./pages/Support";
 import Ideas from "./pages/Ideas";
+import Alerts from "./pages/Alerts";
 
 const queryClient = new QueryClient();
 
