@@ -85,6 +85,14 @@ const NewShipmentWizard = () => {
     enabled: !!user,
   });
 
+  const { data: ports = [] } = useQuery({
+    queryKey: ["ports-wizard"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      return data || [];
+    },
+  });
+
   const canProceed = useMemo(() => {
     switch (step) {
       case 0: return !!origin && !!destination && !!shipmentType;
