@@ -118,6 +118,7 @@ export function SailingCard({ sailing, isTop, onSelect }: SailingCardProps) {
               <p className="text-xs text-muted-foreground">{sailing.currency} / container</p>
             </div>
             <div className="flex items-center gap-2">
+              <SailingReminderButton sailing={sailing} />
               <Button variant={isTop ? "electric" : "outline"} onClick={onSelect} className="whitespace-nowrap">
                 Select Sailing <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
