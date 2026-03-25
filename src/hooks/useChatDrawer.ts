@@ -258,5 +258,6 @@ export function useChatDrawer() {
     unreadCount,
     handleSend,
     handleSelectUser,
+    teammateUserIds,
   };
 }
