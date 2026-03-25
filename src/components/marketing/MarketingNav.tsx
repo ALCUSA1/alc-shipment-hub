@@ -55,8 +55,8 @@ export function MarketingNav() {
             <Button variant="ghost" asChild size="sm">
               <Link to="/login">Log In</Link>
             </Button>
-            <Button variant="electric" size="sm" onClick={() => { setOpen(false); setShowSignup(true); }}>
-              Start a Shipment
+            <Button variant="electric" size="sm" asChild>
+              <Link to="/sign-up" onClick={() => setOpen(false)}>Sign Up</Link>
             </Button>
           </div>
         </div>
