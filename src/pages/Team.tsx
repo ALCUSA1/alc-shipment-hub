@@ -106,6 +106,14 @@ const Team = () => {
   const [inviteTitle, setInviteTitle] = useState("");
   const [inviting, setInviting] = useState(false);
 
+  /* ── Edit member state ─────────────────────────── */
+  const [editOpen, setEditOpen] = useState(false);
+  const [editMember, setEditMember] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+
   /* ── Data fetching ─────────────────────────────── */
 
   const { data: teamMembers, isLoading: teamLoading } = useQuery({
