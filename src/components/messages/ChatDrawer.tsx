@@ -115,6 +115,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
         currentUserId={user?.id || ""}
         currentCompanyName={currentCompanyName}
         scope={activeScope}
+        teammateUserIds={teammateUserIds}
       />
     </>
   );
