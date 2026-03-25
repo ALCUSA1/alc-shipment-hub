@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, PackageOpen, Boxes, PackageCheck, Receipt, Building2, User, LogOut } from "lucide-react";
+import { LayoutDashboard, PackageOpen, Boxes, PackageCheck, Receipt, Building2, User, LogOut, Calendar, FileText, MessageSquare, Users, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import alcLogo from "@/assets/alc-logo.png";
@@ -9,8 +9,13 @@ const navItems = [
   { label: "Inbound Orders", icon: PackageOpen, href: "/warehouse/inbound" },
   { label: "Inventory", icon: Boxes, href: "/warehouse/inventory" },
   { label: "Release Orders", icon: PackageCheck, href: "/warehouse/releases" },
+  { label: "Schedule", icon: Calendar, href: "/warehouse/schedule" },
+  { label: "Documents", icon: FileText, href: "/warehouse/documents" },
+  { label: "Messages", icon: MessageSquare, href: "/warehouse/messages" },
+  { label: "Team", icon: Users, href: "/warehouse/team" },
   { label: "Billing", icon: Receipt, href: "/warehouse/billing" },
   { label: "My Facility", icon: Building2, href: "/warehouse/facility" },
+  { label: "Settings", icon: Settings, href: "/warehouse/settings" },
   { label: "Account", icon: User, href: "/warehouse/account" },
 ];
 

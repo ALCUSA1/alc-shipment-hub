@@ -1,14 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, FileText, User, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, Package, FileText, User, LogOut, Users, Calendar, MessageSquare, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import alcLogo from "@/assets/alc-logo.png";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/trucking" },
-  { label: "Available Orders", icon: Package, href: "/trucking/orders" },
-  { label: "My Quotes", icon: FileText, href: "/trucking/quotes" },
+  { label: "Orders", icon: Package, href: "/trucking/orders" },
+  { label: "Schedule", icon: Calendar, href: "/trucking/schedule" },
   { label: "Driver Assignments", icon: Users, href: "/trucking/assignments" },
+  { label: "Documents", icon: FileText, href: "/trucking/documents" },
+  { label: "Messages", icon: MessageSquare, href: "/trucking/messages" },
+  { label: "Team", icon: Users, href: "/trucking/team" },
+  { label: "Settings", icon: Settings, href: "/trucking/settings" },
   { label: "Account", icon: User, href: "/trucking/account" },
 ];
 
