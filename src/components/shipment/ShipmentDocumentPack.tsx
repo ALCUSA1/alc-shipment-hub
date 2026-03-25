@@ -46,22 +46,22 @@ export function ShipmentDocumentPack({ shipmentId, shipmentRef, mode }: Props) {
   const docDateMap: Record<string, string> = {};
   (documents || []).forEach(d => { docDateMap[d.doc_type] = d.created_at; });
 
-  const allDocs: DocItem[] = [
+  const allDocs: DocItem[] = ([
     { key: "shipping_instruction", label: "Shipping Instruction (SI)", icon: FileText,
-      status: existingTypes.has("shipping_instruction") || existingTypes.has("si") ? "available" : "pending" },
+      status: existingTypes.has("shipping_instruction") || existingTypes.has("si") ? "available" as const : "pending" as const },
     { key: "bill_of_lading", label: mode === "air" ? "Air Waybill (AWB)" : "House Bill of Lading (HBL)", icon: Ship,
-      status: existingTypes.has("bill_of_lading") || existingTypes.has("hbl") || existingTypes.has("hawb") ? "available" : "pending" },
+      status: existingTypes.has("bill_of_lading") || existingTypes.has("hbl") || existingTypes.has("hawb") ? "available" as const : "pending" as const },
     { key: "master_bill_of_lading", label: mode === "air" ? "Master AWB (MAWB)" : "Master Bill of Lading (MBL)", icon: Ship,
-      status: existingTypes.has("master_bill_of_lading") || existingTypes.has("mbl") || existingTypes.has("mawb") ? "available" : "pending" },
+      status: existingTypes.has("master_bill_of_lading") || existingTypes.has("mbl") || existingTypes.has("mawb") ? "available" as const : "pending" as const },
     { key: "commercial_invoice", label: "Commercial Invoice", icon: Receipt,
-      status: existingTypes.has("commercial_invoice") ? "available" : "pending" },
+      status: existingTypes.has("commercial_invoice") ? "available" as const : "pending" as const },
     { key: "packing_list", label: "Packing List", icon: Package,
-      status: existingTypes.has("packing_list") ? "available" : "pending" },
+      status: existingTypes.has("packing_list") ? "available" as const : "pending" as const },
     { key: "sea_waybill", label: "Sea Waybill (SWB)", icon: Ship,
-      status: existingTypes.has("sea_waybill") || existingTypes.has("swb") ? "available" : mode === "air" ? "not_applicable" : "pending" },
+      status: existingTypes.has("sea_waybill") || existingTypes.has("swb") ? "available" as const : mode === "air" ? "not_applicable" as const : "pending" as const },
     { key: "certificate_of_origin", label: "Certificate of Origin", icon: FileText,
-      status: existingTypes.has("certificate_of_origin") ? "available" : "pending" },
-  ].filter(d => d.status !== "not_applicable");
+      status: existingTypes.has("certificate_of_origin") ? "available" as const : "pending" as const },
+  ] satisfies DocItem[]).filter(d => d.status !== "not_applicable");
 
   const handleDownloadAll = async () => {
     setGeneratingPack(true);
