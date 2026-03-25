@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MessageBubble } from "./MessageBubble";
+import { TypingIndicator } from "./TypingIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import type { ConversationScope } from "./ConversationList";
 
 interface Message {
