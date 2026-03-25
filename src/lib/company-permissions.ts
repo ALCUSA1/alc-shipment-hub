@@ -50,7 +50,7 @@ export function hasCapability(role: CompanyRole | null, capability: PortalCapabi
 /**
  * Navigation items visible to each role.
  */
-export type NavItemKey = "dashboard" | "shipments" | "quotes" | "crm" | "partners" | "accounting" | "team" | "messages" | "spark" | "analytics" | "rate-trends" | "account" | "support" | "ideas";
+export type NavItemKey = "dashboard" | "shipments" | "quotes" | "crm" | "partners" | "accounting" | "team" | "messages" | "spark" | "analytics" | "rate-trends" | "account" | "support" | "ideas" | "alerts";
 
 const NAV_ROLES: Record<NavItemKey, CompanyRole[]> = {
   dashboard:    ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
