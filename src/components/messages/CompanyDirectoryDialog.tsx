@@ -21,7 +21,7 @@ interface CompanyDirectoryDialogProps {
   teammateUserIds?: string[];
 }
 
-export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, currentUserId, currentCompanyName, scope }: CompanyDirectoryDialogProps) {
+export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, currentUserId, currentCompanyName, scope, teammateUserIds = [] }: CompanyDirectoryDialogProps) {
   const [search, setSearch] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [inviteName, setInviteName] = useState("");
