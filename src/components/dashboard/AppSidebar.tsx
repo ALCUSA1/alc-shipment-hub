@@ -10,6 +10,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useCompanyRole } from "@/hooks/useCompanyRole";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { canAccessRoute } from "@/lib/permissions";
 import { canSeeNavItem, type NavItemKey } from "@/lib/company-permissions";
 import alcLogo from "@/assets/alc-logo.png";
