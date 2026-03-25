@@ -86,6 +86,7 @@ const Shipments = () => {
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const seedPendingShipments = async () => {
     if (!user) return;
