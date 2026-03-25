@@ -59,6 +59,7 @@ export default function Messages() {
         currentUserId={user?.id || ""}
         currentCompanyName={currentCompanyName}
         scope={activeScope}
+        teammateUserIds={teammateUserIds}
       />
     </DashboardLayout>
   );
