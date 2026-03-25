@@ -483,13 +483,18 @@ const Team = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-48">
+                                      <DropdownMenuItem onClick={() => openEditMember(member)}>
+                                        <Pencil className="h-3.5 w-3.5 mr-2" />
+                                        Edit Member
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
                                       {Object.entries(ROLES).map(([key, def]) => (
                                         primaryRole?.role !== key && (
                                           <DropdownMenuItem
                                             key={key}
                                             onClick={() => handleChangeRole(primaryRole.id, key)}
                                           >
-                                            <Pencil className="h-3.5 w-3.5 mr-2" />
+                                            <Settings2 className="h-3.5 w-3.5 mr-2" />
                                             Change to {def.label}
                                           </DropdownMenuItem>
                                         )
