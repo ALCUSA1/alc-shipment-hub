@@ -78,12 +78,13 @@ export function canSeeNavItem(role: CompanyRole | null, item: NavItemKey): boole
 /**
  * Shipment workspace tabs visible to each role.
  */
-export type WorkspaceTab = "overview" | "tracking" | "booking" | "compliance" | "trucking" | "documents" | "financials" | "messages" | "activity";
+export type WorkspaceTab = "overview" | "tracking" | "booking" | "logistics" | "compliance" | "trucking" | "documents" | "financials" | "messages" | "activity";
 
 const TAB_ROLES: Record<WorkspaceTab, CompanyRole[]> = {
   overview:    ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
   tracking:    ["admin", "operations_manager", "sales_manager", "pricing_manager", "customer_user", "viewer"],
   booking:     ["admin", "operations_manager", "sales_manager", "pricing_manager", "customer_user"],
+  logistics:   ["admin", "operations_manager", "sales_manager", "pricing_manager", "customer_user"],
   compliance:  ["admin", "operations_manager", "sales_manager", "pricing_manager"],
   trucking:    ["admin", "operations_manager"],
   documents:   ["admin", "operations_manager", "sales_manager", "pricing_manager", "finance_user", "customer_user", "viewer"],
