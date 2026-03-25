@@ -6,6 +6,7 @@ import { ChatDrawer, ChatFloatingButton } from "@/components/messages/ChatDrawer
 import { useChatDrawer } from "@/hooks/useChatDrawer";
 import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSailingReminderChecker } from "@/hooks/useSailingReminderChecker";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     activeConversationId,
     currentUserName,
   });
+
+  // Check for due sailing reminders
+  useSailingReminderChecker();
 
   const pageTitle = routeTitles[location.pathname] || 
     (location.pathname.includes("/shipments/") ? "Shipment Workspace" : "");
