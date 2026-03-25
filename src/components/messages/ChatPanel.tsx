@@ -43,6 +43,7 @@ function getInitials(name: string) {
 }
 
 export function ChatPanel({ conversationId, otherName, otherCompany, otherEmail, scope, currentUserId, currentUserName, messages, onSend, loading, showProfile, onToggleProfile }: ChatPanelProps) {
+  // Force clean remount after typing indicator refactor
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
