@@ -93,7 +93,7 @@ export default function Alerts() {
   const rearmReminder = useMutation({
     mutationFn: async (id: string) => {
       const newRemindAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await supabase.from("sailing_reminders" as any).update({ is_triggered: false, remind_at: newRemindAt, is_active: true, email_sent: false } as any).eq("id", id);
+      const { error } = await supabase.from("sailing_reminders").update({ is_triggered: false, remind_at: newRemindAt, is_active: true, email_sent: false }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["sailing-reminders"] }); toast.success("Reminder re-armed for 24h from now"); },
