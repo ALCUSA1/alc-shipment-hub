@@ -76,6 +76,33 @@ export function ShipmentChargesPanel({ shipmentId }: ShipmentChargesPanelProps) 
     }
   };
 
+  const handleWirePay = async (charge: any) => {
+    setWirePayingId(charge.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-payment", {
+        body: {
+          shipment_id: shipmentId,
+          amount: charge.amount,
+          currency: charge.currency,
+          payment_method: "bank_transfer",
+          metadata: {
+            charge_id: charge.id,
+            charge_type: charge.charge_type,
+            description: charge.description,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.message, variant: "destructive" });
+    } finally {
+      setWirePayingId(null);
+    }
+  };
+
   if (charges.length === 0) return null;
 
   const unpaidTotal = charges
