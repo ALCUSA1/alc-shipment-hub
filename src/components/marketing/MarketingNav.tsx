@@ -63,7 +63,5 @@ export function MarketingNav() {
       )}
     </nav>
     </header>
-    <StartShipmentModal open={showSignup} onOpenChange={setShowSignup} />
-    </>
   );
 }
