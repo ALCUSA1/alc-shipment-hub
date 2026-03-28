@@ -92,6 +92,7 @@ export function DocumentChecklist({
   paymentStatus,
 }: DocumentChecklistProps) {
   const queryClient = useQueryClient();
+  const { generatePdf, generating } = useDocumentPdf();
   const [updating, setUpdating] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
