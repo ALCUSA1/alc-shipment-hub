@@ -134,6 +134,17 @@ const UnifiedBookingFlow = () => {
   const [saving, setSaving] = useState(false);
   const [bookingLater, setBookingLater] = useState(false);
 
+  // AES / Customs form state
+  const [aesExporterName, setAesExporterName] = useState("");
+  const [aesExporterEin, setAesExporterEin] = useState("");
+  const [aesConsigneeName, setAesConsigneeName] = useState("");
+  const [aesConsigneeAddress, setAesConsigneeAddress] = useState("");
+  const [aesCountryOfDestination, setAesCountryOfDestination] = useState("");
+  const [aesBrokerName, setAesBrokerName] = useState("");
+  const [aesBrokerEmail, setAesBrokerEmail] = useState("");
+  const [aesAesCitation, setAesAesCitation] = useState("");
+  const [aesFilingId, setAesFilingId] = useState<string | null>(null);
+
   /* ── Data queries (once we have a shipment) ── */
   const { data: shipment } = useQuery({
     queryKey: ["book-shipment", shipmentId],
@@ -183,6 +194,15 @@ const UnifiedBookingFlow = () => {
     enabled: !!shipmentId,
   });
 
+  const { data: customsFiling } = useQuery({
+    queryKey: ["book-customs", shipmentId],
+    queryFn: async () => {
+      const { data } = await supabase.from("customs_filings").select("*").eq("shipment_id", shipmentId!).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      return data;
+    },
+    enabled: !!shipmentId,
+  });
+
   // Pre-populate form from existing data
   useEffect(() => {
     if (cargo?.[0]) {
@@ -209,6 +229,30 @@ const UnifiedBookingFlow = () => {
       setNeedsInsurance(shipmentServices.insurance || false);
     }
   }, [cargo, containers, parties, shipmentServices]);
+
+  // Pre-populate AES form from existing customs filing or party data
+  useEffect(() => {
+    if (customsFiling) {
+      setAesExporterName(customsFiling.exporter_name || "");
+      setAesExporterEin(customsFiling.exporter_ein || "");
+      setAesConsigneeName(customsFiling.consignee_name || "");
+      setAesConsigneeAddress(customsFiling.consignee_address || "");
+      setAesCountryOfDestination(customsFiling.country_of_destination || "");
+      setAesBrokerName(customsFiling.broker_name || "");
+      setAesBrokerEmail(customsFiling.broker_email || "");
+      setAesAesCitation(customsFiling.aes_citation || "");
+      setAesFilingId(customsFiling.id);
+    } else if (parties) {
+      // Auto-fill from party data if no customs filing exists yet
+      const shipper = parties.find((p: any) => p.role === "shipper");
+      const consignee = parties.find((p: any) => p.role === "consignee");
+      if (shipper && !aesExporterName) setAesExporterName(shipper.company_name || "");
+      if (consignee && !aesConsigneeName) {
+        setAesConsigneeName(consignee.company_name || "");
+        setAesConsigneeAddress(consignee.address || "");
+      }
+    }
+  }, [customsFiling, parties]);
 
   // If arriving with an existing shipment ID (resume), jump to details
   useEffect(() => {
@@ -392,12 +436,46 @@ const UnifiedBookingFlow = () => {
       customs_clearance: needsCustoms, trucking: needsTrucking, warehousing: needsWarehouse, insurance: needsInsurance,
     } as any, { onConflict: "shipment_id" });
 
+    // Save AES / Customs filing data
+    if (aesExporterName || aesExporterEin || aesConsigneeName) {
+      const filingData = {
+        shipment_id: shipmentId,
+        user_id: user.id,
+        filing_type: "AES" as const,
+        status: "draft" as const,
+        exporter_name: aesExporterName || null,
+        exporter_ein: aesExporterEin || null,
+        consignee_name: aesConsigneeName || null,
+        consignee_address: aesConsigneeAddress || null,
+        country_of_destination: aesCountryOfDestination || null,
+        broker_name: aesBrokerName || null,
+        broker_email: aesBrokerEmail || null,
+        aes_citation: aesAesCitation || null,
+        port_of_export: shipment?.origin_port || null,
+        port_of_unlading: shipment?.destination_port || null,
+        mode_of_transport: shipment?.mode === "air" ? "air" : "vessel",
+        vessel_name: shipment?.vessel || null,
+        voyage_number: shipment?.voyage || null,
+        export_date: shipment?.etd || null,
+        hts_codes: cargo?.[0]?.hs_code ? [{ code: cargo[0].hs_code, description: cargo[0].commodity || "", quantity: cargo[0].num_packages, value: cargo[0].total_value }] : [],
+      };
+
+      if (aesFilingId) {
+        const { status, filing_type, shipment_id: _sid, user_id: _uid, ...updateData } = filingData;
+        await supabase.from("customs_filings").update(updateData).eq("id", aesFilingId);
+      } else {
+        const { data: newFiling } = await supabase.from("customs_filings").insert(filingData).select("id").single();
+        if (newFiling) setAesFilingId(newFiling.id);
+      }
+    }
+
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["book-cargo", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-parties", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-containers", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-services", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-shipment", shipmentId] }),
+      queryClient.invalidateQueries({ queryKey: ["book-customs", shipmentId] }),
     ]);
   };
 
@@ -580,23 +658,78 @@ const UnifiedBookingFlow = () => {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
             <div className="space-y-4">
-              <BookingSection title="Export Compliance (AES / EEI)" icon={Shield} defaultOpen={true}>
+              <BookingSection title="US Export Compliance (AES / EEI)" icon={Shield} defaultOpen={true}>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
+                    <Info className="h-4 w-4 text-accent mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">AES filing will be generated automatically</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Based on your cargo details and party information.</p>
+                      <p className="text-sm font-medium text-foreground">Electronic Export Information (EEI)</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Required for exports valued over $2,500 per Schedule B code. Complete the fields below to prepare your AES filing.</p>
                     </div>
                   </div>
+
+                  {/* Exporter / USPPI */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Exporter / USPPI</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><Label className="text-xs">Exporter Name (USPPI) *</Label><Input value={aesExporterName} onChange={e => setAesExporterName(e.target.value)} placeholder="Company legal name" className="mt-1" /></div>
+                      <div><Label className="text-xs">Exporter EIN *</Label><Input value={aesExporterEin} onChange={e => setAesExporterEin(e.target.value)} placeholder="XX-XXXXXXX" className="mt-1" /></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Consignee */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Ultimate Consignee</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><Label className="text-xs">Consignee Name *</Label><Input value={aesConsigneeName} onChange={e => setAesConsigneeName(e.target.value)} placeholder="Receiving company name" className="mt-1" /></div>
+                      <div><Label className="text-xs">Country of Destination *</Label><Input value={aesCountryOfDestination} onChange={e => setAesCountryOfDestination(e.target.value)} placeholder="e.g. China" className="mt-1" /></div>
+                      <div className="sm:col-span-2"><Label className="text-xs">Consignee Address</Label><Input value={aesConsigneeAddress} onChange={e => setAesConsigneeAddress(e.target.value)} placeholder="Full address" className="mt-1" /></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Broker */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Customs Broker (Optional)</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><Label className="text-xs">Broker Name</Label><Input value={aesBrokerName} onChange={e => setAesBrokerName(e.target.value)} placeholder="Broker company" className="mt-1" /></div>
+                      <div><Label className="text-xs">Broker Email</Label><Input value={aesBrokerEmail} onChange={e => setAesBrokerEmail(e.target.value)} placeholder="broker@example.com" className="mt-1" /></div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Exemption */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Exemption Citation</p>
+                    <div><Label className="text-xs">AES Exemption Citation</Label><Input value={aesAesCitation} onChange={e => setAesAesCitation(e.target.value)} placeholder="e.g. 30.37(a) — Under $2,500 per Schedule B" className="mt-1" /></div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Leave blank if filing is required. Enter 30.37(a) if shipment qualifies for low-value exemption.</p>
+                  </div>
+
+                  {/* Auto-filled route info */}
+                  {shipment && (
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Auto-filled from Shipment</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div><span className="text-muted-foreground">Port of Export</span><p className="font-medium">{shipment.origin_port || "—"}</p></div>
+                        <div><span className="text-muted-foreground">Port of Unlading</span><p className="font-medium">{shipment.destination_port || "—"}</p></div>
+                        <div><span className="text-muted-foreground">Mode</span><p className="font-medium">{shipment.mode === "air" ? "Air" : "Vessel"}</p></div>
+                        <div><span className="text-muted-foreground">Export Date</span><p className="font-medium">{shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"}</p></div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-3">
                     <Switch checked={needsCustoms} onCheckedChange={setNeedsCustoms} />
-                    <div><Label className="text-sm">Customs Clearance Service</Label><p className="text-xs text-muted-foreground">We handle customs documentation and clearance</p></div>
+                    <div><Label className="text-sm">Request Customs Clearance Service</Label><p className="text-xs text-muted-foreground">We handle the full customs clearance process on your behalf</p></div>
                   </div>
                 </div>
               </BookingSection>
 
-              <BookingSection title="Logistics Services" icon={Truck} defaultOpen={true}>
+              <BookingSection title="Additional Services" icon={Truck} defaultOpen={true}>
                 <div className="space-y-4">
                   {[
                     { key: "trucking", label: "Origin Trucking", desc: "Pickup from shipper to port", state: needsTrucking, setter: setNeedsTrucking, icon: Truck },
