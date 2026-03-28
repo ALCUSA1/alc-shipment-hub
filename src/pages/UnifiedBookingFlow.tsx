@@ -436,12 +436,46 @@ const UnifiedBookingFlow = () => {
       customs_clearance: needsCustoms, trucking: needsTrucking, warehousing: needsWarehouse, insurance: needsInsurance,
     } as any, { onConflict: "shipment_id" });
 
+    // Save AES / Customs filing data
+    if (aesExporterName || aesExporterEin || aesConsigneeName) {
+      const filingData = {
+        shipment_id: shipmentId,
+        user_id: user.id,
+        filing_type: "AES" as const,
+        status: "draft" as const,
+        exporter_name: aesExporterName || null,
+        exporter_ein: aesExporterEin || null,
+        consignee_name: aesConsigneeName || null,
+        consignee_address: aesConsigneeAddress || null,
+        country_of_destination: aesCountryOfDestination || null,
+        broker_name: aesBrokerName || null,
+        broker_email: aesBrokerEmail || null,
+        aes_citation: aesAesCitation || null,
+        port_of_export: shipment?.origin_port || null,
+        port_of_unlading: shipment?.destination_port || null,
+        mode_of_transport: shipment?.mode === "air" ? "air" : "vessel",
+        vessel_name: shipment?.vessel || null,
+        voyage_number: shipment?.voyage || null,
+        export_date: shipment?.etd || null,
+        hts_codes: cargo?.[0]?.hs_code ? [{ code: cargo[0].hs_code, description: cargo[0].commodity || "", quantity: cargo[0].num_packages, value: cargo[0].total_value }] : [],
+      };
+
+      if (aesFilingId) {
+        const { status, filing_type, shipment_id: _sid, user_id: _uid, ...updateData } = filingData;
+        await supabase.from("customs_filings").update(updateData).eq("id", aesFilingId);
+      } else {
+        const { data: newFiling } = await supabase.from("customs_filings").insert(filingData).select("id").single();
+        if (newFiling) setAesFilingId(newFiling.id);
+      }
+    }
+
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["book-cargo", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-parties", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-containers", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-services", shipmentId] }),
       queryClient.invalidateQueries({ queryKey: ["book-shipment", shipmentId] }),
+      queryClient.invalidateQueries({ queryKey: ["book-customs", shipmentId] }),
     ]);
   };
 
