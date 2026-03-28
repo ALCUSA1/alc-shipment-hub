@@ -182,6 +182,8 @@ const ShipmentWorkspace = () => {
   const [specialNotes, setSpecialNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [payingNow, setPayingNow] = useState(false);
+  const [bookingLater, setBookingLater] = useState(false);
 
   /* ── Realtime ── */
   useEffect(() => {
