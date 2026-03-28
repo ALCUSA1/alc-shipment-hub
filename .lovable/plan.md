@@ -1,30 +1,50 @@
 
 
-## Plan: Return User to Booking After Login
+## Fix: "record 'new' has no field 'name'" Error
 
-### Problem
-When an unauthenticated user clicks "Book Now" on a rate, they're redirected to `/login`. After login, they're sent to their default dashboard — losing the rate they wanted to book.
+### Root Cause
+The trigger function `notify_on_partner_assignment` on `shipment_parties` references `NEW.name`, but the table has `company_name` instead. There is no `name` column.
 
-### Changes
+### Fix
+One database migration to replace `NEW.name` with `NEW.company_name` in the trigger function:
 
-**1. `src/components/rate-search/RateResultsPanel.tsx`**
-- Before redirecting to `/login`, save the full rate selection object to `sessionStorage` under key `pendingBooking`
-- Pass a `returnTo` query param: `navigate("/login?returnTo=/rates")`
+```sql
+CREATE OR REPLACE FUNCTION public.notify_on_partner_assignment()
+RETURNS trigger AS $$
+DECLARE
+  _ship_ref text;
+  _ship_user uuid;
+BEGIN
+  SELECT shipment_ref, user_id INTO _ship_ref, _ship_user
+  FROM public.shipments WHERE id = NEW.shipment_id;
 
-**2. `src/pages/Login.tsx`**
-- Import `useSearchParams` to read `returnTo` query param
-- After successful login, if `returnTo` exists, navigate there instead of the role-based route
-- This brings user back to `/rates`
+  IF _ship_user IS NOT NULL THEN
+    INSERT INTO public.notifications (user_id, title, message, type, severity, metadata)
+    VALUES (
+      _ship_user,
+      'Partner Assigned',
+      COALESCE(NEW.company_name, 'Partner') || ' assigned as ' || COALESCE(NEW.role_type, NEW.role, 'partner') || ' on ' || COALESCE(_ship_ref, NEW.shipment_id::text),
+      'partner_assignment',
+      'info',
+      jsonb_build_object('shipment_id', NEW.shipment_id, 'partner_id', NEW.partner_id, 'role_type', COALESCE(NEW.role_type, NEW.role))
+    );
+  END IF;
 
-**3. `src/pages/RateSearch.tsx`**
-- On mount, check if user is authenticated AND `sessionStorage` has `pendingBooking`
-- If yes, retrieve the stored rate selection, call `createShipmentDraft()`, then redirect to `/dashboard/shipments/:id/workspace`
-- Clear `sessionStorage` after processing
-- Show a brief loading state during this auto-booking
+  INSERT INTO public.audit_log (table_name, record_id, action, user_id, new_data)
+  VALUES (
+    'shipment_parties',
+    NEW.id,
+    'PARTNER_ASSIGNED',
+    COALESCE(NEW.assigned_by_user_id, auth.uid()),
+    jsonb_build_object('partner_id', NEW.partner_id, 'name', NEW.company_name, 'role', COALESCE(NEW.role_type, NEW.role))
+  );
 
-### Result Flow
-1. User clicks "Book Now" → rate saved to sessionStorage → redirect to `/login?returnTo=/rates`
-2. User logs in → redirected to `/rates` (not dashboard)
-3. Rate search page detects pending booking → auto-creates shipment draft → redirects to workspace
-4. User continues booking seamlessly
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+### Impact
+- No code changes needed — only the trigger function is fixed
+- All references to `NEW.name` become `NEW.company_name`
 
