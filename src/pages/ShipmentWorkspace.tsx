@@ -444,7 +444,7 @@ const ShipmentWorkspace = () => {
 
   return (
     <DashboardLayout>
-      <SEO title={`${shipment.shipment_ref || "Shipment"} — Workspace`} />
+      <SEO title={`${shipment.shipment_ref || "Shipment"} — Workspace`} description="Manage your shipment booking, documents, and tracking in one place." />
 
       <div className="max-w-6xl mx-auto space-y-5">
         {/* Back + Ref */}
