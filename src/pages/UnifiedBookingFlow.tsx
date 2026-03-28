@@ -134,6 +134,17 @@ const UnifiedBookingFlow = () => {
   const [saving, setSaving] = useState(false);
   const [bookingLater, setBookingLater] = useState(false);
 
+  // AES / Customs form state
+  const [aesExporterName, setAesExporterName] = useState("");
+  const [aesExporterEin, setAesExporterEin] = useState("");
+  const [aesConsigneeName, setAesConsigneeName] = useState("");
+  const [aesConsigneeAddress, setAesConsigneeAddress] = useState("");
+  const [aesCountryOfDestination, setAesCountryOfDestination] = useState("");
+  const [aesBrokerName, setAesBrokerName] = useState("");
+  const [aesBrokerEmail, setAesBrokerEmail] = useState("");
+  const [aesAesCitation, setAesAesCitation] = useState("");
+  const [aesFilingId, setAesFilingId] = useState<string | null>(null);
+
   /* ── Data queries (once we have a shipment) ── */
   const { data: shipment } = useQuery({
     queryKey: ["book-shipment", shipmentId],
