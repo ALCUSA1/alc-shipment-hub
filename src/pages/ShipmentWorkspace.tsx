@@ -833,7 +833,7 @@ const ShipmentWorkspace = () => {
 
           {/* ── FINANCIALS TAB (post-booking) ── */}
           <TabsContent value="financials" className="mt-5">
-            <CustomerFinancialsTab shipmentId={id!} />
+            <CustomerFinancialsTab shipmentId={id!} shipmentRef={shipment.shipment_ref || ""} />
           </TabsContent>
 
           {/* ── MESSAGES TAB ── */}
