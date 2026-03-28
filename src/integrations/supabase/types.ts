@@ -5230,6 +5230,7 @@ export type Database = {
           company_id: string | null
           competition_level: string | null
           container_count: number | null
+          container_type: string | null
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
@@ -5348,6 +5349,7 @@ export type Database = {
           company_id?: string | null
           competition_level?: string | null
           container_count?: number | null
+          container_type?: string | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
@@ -5466,6 +5468,7 @@ export type Database = {
           company_id?: string | null
           competition_level?: string | null
           container_count?: number | null
+          container_type?: string | null
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
