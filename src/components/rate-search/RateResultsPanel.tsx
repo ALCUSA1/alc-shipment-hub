@@ -365,7 +365,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                                 freeTimeDays: null,
                               };
                               sessionStorage.setItem("pendingBooking", JSON.stringify(pendingRate));
-                              navigate("/login?returnTo=/rates");
+                              navigate("/login?returnTo=/book");
                               return;
                             }
                             const surchargesList = parseSurcharges(rate.surcharges);
