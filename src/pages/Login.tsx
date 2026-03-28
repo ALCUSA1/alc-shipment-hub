@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import alcLogo from "@/assets/alc-logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +26,13 @@ const Login = () => {
     if (error) {
       setLoading(false);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    // Check for returnTo param (e.g. from Book Now redirect)
+    const returnTo = searchParams.get("returnTo");
+    if (returnTo) {
+      setLoading(false);
+      navigate(returnTo);
       return;
     }
     // Role-based routing

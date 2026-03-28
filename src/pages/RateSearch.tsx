@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { RateSearchForm } from "@/components/rate-search/RateSearchForm";
 import { RateResultsPanel } from "@/components/rate-search/RateResultsPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { createShipmentDraft, type RateSelection } from "@/lib/create-shipment-draft";
+import { toast } from "sonner";
 import { Ship } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -18,9 +20,37 @@ interface SearchParams {
 
 const RateSearch = () => {
   const [urlParams] = useSearchParams();
+  const navigate = useNavigate();
   const [results, setResults] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
+  const [autoBooking, setAutoBooking] = useState(false);
+
+  // Resume pending booking after login redirect
+  useEffect(() => {
+    const pending = sessionStorage.getItem("pendingBooking");
+    if (!pending) return;
+
+    const resumeBooking = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setAutoBooking(true);
+      try {
+        const rateSelection: RateSelection = JSON.parse(pending);
+        sessionStorage.removeItem("pendingBooking");
+        const draft = await createShipmentDraft(rateSelection);
+        toast.success(`Shipment ${draft.shipment_ref} created!`);
+        navigate(`/dashboard/shipments/${draft.id}/workspace`);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to resume booking");
+        sessionStorage.removeItem("pendingBooking");
+        setAutoBooking(false);
+      }
+    };
+
+    resumeBooking();
+  }, [navigate]);
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
@@ -76,6 +106,17 @@ const RateSearch = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (autoBooking) {
+    return (
+      <MarketingLayout>
+        <div className="flex flex-col items-center justify-center py-32">
+          <div className="h-10 w-10 rounded-full border-2 border-accent border-t-transparent animate-spin mb-4" />
+          <p className="text-sm text-muted-foreground">Resuming your booking...</p>
+        </div>
+      </MarketingLayout>
+    );
+  }
 
   return (
     <MarketingLayout>
