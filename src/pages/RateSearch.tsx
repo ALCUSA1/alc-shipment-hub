@@ -107,6 +107,17 @@ const RateSearch = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (autoBooking) {
+    return (
+      <MarketingLayout>
+        <div className="flex flex-col items-center justify-center py-32">
+          <div className="h-10 w-10 rounded-full border-2 border-accent border-t-transparent animate-spin mb-4" />
+          <p className="text-sm text-muted-foreground">Resuming your booking...</p>
+        </div>
+      </MarketingLayout>
+    );
+  }
+
   return (
     <MarketingLayout>
       <SEO
