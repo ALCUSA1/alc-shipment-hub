@@ -156,7 +156,7 @@ const Login = () => {
                 </Button>
               </form>
               <p className="text-sm text-muted-foreground mt-6 text-center">
-                Don't have an account? <Link to="/signup" className="text-accent font-medium hover:underline">Sign up</Link>
+                Don't have an account? <Link to={searchParams.get("returnTo") ? `/signup?returnTo=${encodeURIComponent(searchParams.get("returnTo")!)}` : "/signup"} className="text-accent font-medium hover:underline">Sign up</Link>
               </p>
             </>
           )}
