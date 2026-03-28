@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +64,27 @@ const LIFECYCLE_STAGES = [
   { key: "delivered", label: "Delivered", icon: CheckCircle2 },
   { key: "financially_closed", label: "Closed", icon: Receipt },
 ];
+
+const BOOKING_TABS = [
+  { id: "booking", label: "Booking", icon: Anchor },
+  { id: "cargo", label: "Cargo & Parties", icon: Package },
+  { id: "compliance", label: "Compliance", icon: Shield },
+  { id: "logistics", label: "Logistics Services", icon: Truck },
+  { id: "documents", label: "Documents", icon: FileText },
+  { id: "payment", label: "Payment Summary", icon: DollarSign },
+] as const;
+
+const OPERATIONS_TABS = [
+  { id: "overview", label: "Overview", icon: Package },
+  { id: "tracking", label: "Tracking", icon: Clock },
+  { id: "booking", label: "Booking", icon: Anchor },
+  { id: "compliance", label: "Compliance", icon: Shield },
+  { id: "logistics", label: "Logistics", icon: Truck },
+  { id: "documents", label: "Documents", icon: FileText },
+  { id: "financials", label: "Financials", icon: BarChart3 },
+  { id: "messages", label: "Messages", icon: MessageSquare },
+  { id: "activity", label: "Activity", icon: Activity },
+] as const;
 
 /* ── Booking Section Component ── */
 function BookingSection({ title, icon: Icon, children, defaultOpen = false }: {
@@ -134,7 +155,6 @@ function PriceHeader({ shipment, financials }: { shipment: any; financials: any[
 /* ── Main Component ── */
 const ShipmentWorkspace = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -229,6 +249,16 @@ const ShipmentWorkspace = () => {
     enabled: !!id,
   });
 
+  const { data: shipmentServices } = useQuery({
+    queryKey: ["ws-services", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("shipment_services").select("*").eq("shipment_id", id!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
   // Pre-populate form from existing data
   useEffect(() => {
     if (cargo?.[0]) {
@@ -252,76 +282,118 @@ const ShipmentWorkspace = () => {
     }
   }, [cargo, containers, parties]);
 
+  useEffect(() => {
+    if (!shipmentServices) return;
+
+    setNeedsCustoms(shipmentServices.customs_clearance || false);
+    setNeedsTrucking(shipmentServices.trucking || false);
+    setNeedsWarehouse(shipmentServices.warehousing || false);
+    setNeedsInsurance(shipmentServices.insurance || false);
+  }, [shipmentServices]);
+
   const isDraft = shipment?.lifecycle_stage === "draft" || shipment?.status === "draft";
   const isBooking = isDraft || shipment?.lifecycle_stage === "pending_pricing";
+  const TABS = isBooking ? BOOKING_TABS : OPERATIONS_TABS;
+
+  useEffect(() => {
+    if (!TABS.some((tab) => tab.id === activeTab)) {
+      setActiveTab(TABS[0].id);
+    }
+  }, [TABS, activeTab]);
+
+  const persistDraft = async () => {
+    if (!id || !user) throw new Error("Please log in to continue.");
+
+    const existingCargo = cargo?.[0];
+    if (existingCargo) {
+      const { error } = await supabase.from("cargo").update({
+        commodity: commodity || null,
+        hs_code: hsCode || null,
+        gross_weight: weight ? parseFloat(weight) : null,
+        volume: volume ? parseFloat(volume) : null,
+        num_packages: numPackages ? parseInt(numPackages) : null,
+        dangerous_goods: dangerousGoods,
+      }).eq("id", existingCargo.id);
+      if (error) throw error;
+    } else if (commodity || weight || hsCode) {
+      const { error } = await supabase.from("cargo").insert({
+        shipment_id: id,
+        commodity: commodity || null,
+        hs_code: hsCode || null,
+        gross_weight: weight ? parseFloat(weight) : null,
+        volume: volume ? parseFloat(volume) : null,
+        num_packages: numPackages ? parseInt(numPackages) : null,
+        dangerous_goods: dangerousGoods,
+      });
+      if (error) throw error;
+    }
+
+    const upsertParty = async (role: string, companyName: string, address: string) => {
+      if (!companyName) return;
+
+      const existing = parties?.find(p => p.role === role);
+      if (existing) {
+        const { error } = await supabase
+          .from("shipment_parties")
+          .update({ company_name: companyName, address: address || null })
+          .eq("id", existing.id);
+        if (error) throw error;
+        return;
+      }
+
+      const { error } = await supabase.from("shipment_parties").insert({
+        shipment_id: id,
+        role,
+        company_name: companyName,
+        address: address || null,
+        assigned_by_user_id: user.id,
+      });
+      if (error) throw error;
+    };
+
+    await upsertParty("shipper", shipperName, shipperAddress);
+    await upsertParty("consignee", consigneeName, consigneeAddress);
+    if (notifyParty) await upsertParty("notify_party", notifyParty, "");
+
+    if (containers?.[0]) {
+      const { error } = await supabase.from("containers").update({ quantity: parseInt(containerQty) || 1 }).eq("id", containers[0].id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from("containers").insert({
+        shipment_id: id,
+        container_type: "40hc",
+        quantity: parseInt(containerQty) || 1,
+      });
+      if (error) throw error;
+    }
+
+    const { error: notesError } = await supabase.from("shipments").update({ notes: specialNotes || null } as any).eq("id", id);
+    if (notesError) throw notesError;
+
+    const { error: servicesError } = await supabase.from("shipment_services").upsert({
+      shipment_id: id,
+      customs_clearance: needsCustoms,
+      trucking: needsTrucking,
+      warehousing: needsWarehouse,
+      insurance: needsInsurance,
+    } as any, { onConflict: "shipment_id" });
+    if (servicesError) throw servicesError;
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["ws-cargo", id] }),
+      queryClient.invalidateQueries({ queryKey: ["ws-parties", id] }),
+      queryClient.invalidateQueries({ queryKey: ["ws-containers", id] }),
+      queryClient.invalidateQueries({ queryKey: ["ws-services", id] }),
+      queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] }),
+    ]);
+  };
 
   /* ── Save Draft ── */
   const handleSaveDraft = async () => {
     if (!id || !user) return;
     setSaving(true);
     try {
-      // Upsert cargo
-      const existingCargo = cargo?.[0];
-      if (existingCargo) {
-        await supabase.from("cargo").update({
-          commodity: commodity || null,
-          hs_code: hsCode || null,
-          gross_weight: weight ? parseFloat(weight) : null,
-          volume: volume ? parseFloat(volume) : null,
-          num_packages: numPackages ? parseInt(numPackages) : null,
-          dangerous_goods: dangerousGoods,
-        }).eq("id", existingCargo.id);
-      } else if (commodity || weight || hsCode) {
-        await supabase.from("cargo").insert({
-          shipment_id: id,
-          commodity: commodity || null,
-          hs_code: hsCode || null,
-          gross_weight: weight ? parseFloat(weight) : null,
-          volume: volume ? parseFloat(volume) : null,
-          num_packages: numPackages ? parseInt(numPackages) : null,
-          dangerous_goods: dangerousGoods,
-        });
-      }
-
-      // Upsert parties
-      const upsertParty = async (role: string, companyName: string, address: string) => {
-        if (!companyName) return;
-        const existing = parties?.find(p => p.role === role);
-        if (existing) {
-          await supabase.from("shipment_parties").update({ company_name: companyName, address: address || null }).eq("id", existing.id);
-        } else {
-          await supabase.from("shipment_parties").insert({
-            shipment_id: id,
-            role,
-            company_name: companyName,
-            address: address || null,
-            assigned_by_user_id: user.id,
-          });
-        }
-      };
-      await upsertParty("shipper", shipperName, shipperAddress);
-      await upsertParty("consignee", consigneeName, consigneeAddress);
-      if (notifyParty) await upsertParty("notify_party", notifyParty, "");
-
-      // Update container qty
-      if (containers?.[0]) {
-        await supabase.from("containers").update({ quantity: parseInt(containerQty) || 1 }).eq("id", containers[0].id);
-      } else {
-        await supabase.from("containers").insert({
-          shipment_id: id,
-          container_type: "40hc",
-          quantity: parseInt(containerQty) || 1,
-        });
-      }
-
-      // Save special notes
-      if (specialNotes) {
-        await supabase.from("shipments").update({ notes: specialNotes } as any).eq("id", id);
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["ws-cargo", id] });
-      queryClient.invalidateQueries({ queryKey: ["ws-parties", id] });
-      queryClient.invalidateQueries({ queryKey: ["ws-containers", id] });
+      await persistDraft();
       toast.success("Draft saved successfully");
     } catch (err: any) {
       toast.error(err.message || "Failed to save draft");
@@ -330,45 +402,25 @@ const ShipmentWorkspace = () => {
     }
   };
 
-  /* ── Submit Booking ── */
-  const handleSubmitBooking = async () => {
+  /* ── Save & Continue ── */
+  const handleContinueBooking = async () => {
     if (!id || !user) return;
     setSubmitting(true);
     try {
-      // Save draft first
-      await handleSaveDraft();
+      await persistDraft();
 
-      // Transition lifecycle: draft → pending_pricing
-      const { error: updateError } = await supabase.from("shipments").update({
-        status: "pending_pricing",
-        lifecycle_stage: "pending_pricing",
-      }).eq("id", id);
-      if (updateError) throw updateError;
+      const currentTabId = BOOKING_TABS.some((tab) => tab.id === activeTab) ? activeTab : BOOKING_TABS[0].id;
+      const currentIndex = BOOKING_TABS.findIndex((tab) => tab.id === currentTabId);
+      const nextTab = BOOKING_TABS[Math.min(currentIndex + 1, BOOKING_TABS.length - 1)].id;
 
-      // Create document checklist
-      const requiredDocs = ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction"];
-      if (needsCustoms) requiredDocs.push("customs_declaration", "aes_filing");
-      if (needsInsurance) requiredDocs.push("insurance_certificate");
-
-      const { error: docsError } = await supabase.from("documents").insert(
-        requiredDocs.map(docType => ({ shipment_id: id, user_id: user.id, doc_type: docType, status: "pending", file_url: "" }))
+      setActiveTab(nextTab);
+      toast.success(
+        nextTab === currentTabId
+          ? "Draft saved. Payment summary is ready."
+          : `Draft saved. Continue with ${BOOKING_TABS.find((tab) => tab.id === nextTab)?.label}.`
       );
-      if (docsError) console.warn("Doc insert warning:", docsError.message);
-
-      // Create services record
-      const { error: svcError } = await supabase.from("shipment_services").insert({
-        shipment_id: id,
-        customs_clearance: needsCustoms,
-        origin_trucking: needsTrucking,
-        warehousing: needsWarehouse,
-        insurance: needsInsurance,
-      } as any);
-      if (svcError) console.warn("Service insert warning:", svcError.message);
-
-      queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
-      toast.success("Booking submitted for pricing!");
     } catch (err: any) {
-      toast.error(err.message || "Failed to submit booking");
+      toast.error(err.message || "Failed to continue booking");
     } finally {
       setSubmitting(false);
     }
@@ -392,28 +444,6 @@ const ShipmentWorkspace = () => {
     if (currentStageIndex === req) return "current";
     return "upcoming";
   };
-
-  /* ── Tabs ── */
-  const TABS = isBooking
-    ? [
-        { id: "booking", label: "Booking", icon: Anchor },
-        { id: "cargo", label: "Cargo & Parties", icon: Package },
-        { id: "compliance", label: "Compliance", icon: Shield },
-        { id: "logistics", label: "Logistics Services", icon: Truck },
-        { id: "documents", label: "Documents", icon: FileText },
-        { id: "payment", label: "Payment Summary", icon: DollarSign },
-      ]
-    : [
-        { id: "overview", label: "Overview", icon: Package },
-        { id: "tracking", label: "Tracking", icon: Clock },
-        { id: "booking", label: "Booking", icon: Anchor },
-        { id: "compliance", label: "Compliance", icon: Shield },
-        { id: "logistics", label: "Logistics", icon: Truck },
-        { id: "documents", label: "Documents", icon: FileText },
-        { id: "financials", label: "Financials", icon: BarChart3 },
-        { id: "messages", label: "Messages", icon: MessageSquare },
-        { id: "activity", label: "Activity", icon: Activity },
-      ];
 
   /* ── Loading / Not Found ── */
   if (isLoading) {
