@@ -6,6 +6,7 @@ import { Ship, Clock, ChevronDown, ChevronUp, ArrowRight, TrendingDown, Zap, Anc
 import { format } from "date-fns";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { RouteMapPreview } from "./RouteMapPreview";
 import { CargoSummaryBar } from "./CargoSummaryBar";
 import { SailingScheduleSelector } from "./SailingScheduleSelector";
