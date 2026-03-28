@@ -745,7 +745,7 @@ const ShipmentWorkspace = () => {
                 </CardContent>
               </Card>
             ) : (
-              <DocumentChecklist shipmentId={id!} />
+              <DocumentChecklist shipmentId={id!} userId={user?.id || ""} />
             )}
           </TabsContent>
 
