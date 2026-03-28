@@ -133,7 +133,7 @@ const Dashboard = () => {
     return Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
   }, [recentShipments]);
 
-  const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0 || counts.awaitingApproval > 0;
+  const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0;
 
   const alertItems = [
     counts.delayed > 0 && { href: "/dashboard/shipments?status=delayed", icon: AlertTriangle, label: `${counts.delayed} shipment${counts.delayed > 1 ? "s" : ""} delayed`, color: "destructive" as const },
