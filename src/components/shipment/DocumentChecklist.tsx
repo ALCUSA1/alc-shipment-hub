@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, CheckCircle2, AlertCircle, Upload, Download, Loader2, Lock } from "lucide-react";
+import { FileText, CheckCircle2, AlertCircle, Upload, Download, Loader2, Lock, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useDocumentPdf } from "@/hooks/useDocumentPdf";
 
 import { DOC_TYPE_LABELS, DOC_SOURCE, DOC_SOURCE_META, type DocSource } from "@/lib/document-types";
 
