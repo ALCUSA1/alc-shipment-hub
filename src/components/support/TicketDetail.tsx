@@ -32,7 +32,11 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
   const { data: ticket } = useQuery({
     queryKey: ["support-ticket", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("support_tickets").select("*").eq("id", ticketId).single();
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select("*, shipments:shipment_id(id, reference, origin, destination)")
+        .eq("id", ticketId)
+        .single();
       if (error) throw error;
       return data;
     },
