@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -156,6 +156,7 @@ function PriceHeader({ shipment, financials }: { shipment: any; financials: any[
 /* ── Main Component ── */
 const ShipmentWorkspace = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -181,6 +182,8 @@ const ShipmentWorkspace = () => {
   const [specialNotes, setSpecialNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [payingNow, setPayingNow] = useState(false);
+  const [bookingLater, setBookingLater] = useState(false);
 
   /* ── Realtime ── */
   useEffect(() => {
@@ -789,32 +792,124 @@ const ShipmentWorkspace = () => {
 
           {/* ── PAYMENT SUMMARY TAB (booking mode) ── */}
           <TabsContent value="payment" className="mt-5">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-accent" /> Payment Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  {financials.filter(f => f.entry_type === "revenue").map(f => (
-                    <div key={f.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{f.description}</span>
-                      <span className="font-mono font-medium">${f.amount?.toLocaleString()}</span>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-accent" /> Payment Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Shipment overview */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm p-3 rounded-lg bg-muted/30">
+                    <div><p className="text-xs text-muted-foreground uppercase">Route</p><p className="font-medium">{shipment.origin_port || "—"} → {shipment.destination_port || "—"}</p></div>
+                    <div><p className="text-xs text-muted-foreground uppercase">Carrier</p><p className="font-medium">{shipment.carrier || "—"}</p></div>
+                    <div><p className="text-xs text-muted-foreground uppercase">Container</p><p className="font-medium">{containersSummary}</p></div>
+                    <div><p className="text-xs text-muted-foreground uppercase">ETD</p><p className="font-medium">{shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"}</p></div>
+                  </div>
+
+                  {/* Line items */}
+                  <div className="space-y-2">
+                    {financials.filter(f => f.entry_type === "revenue").length > 0 ? (
+                      financials.filter(f => f.entry_type === "revenue").map(f => (
+                        <div key={f.id} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">{f.description}</span>
+                          <span className="font-mono font-medium">${f.amount?.toLocaleString()}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Freight charges</span>
+                        <span className="font-mono font-medium text-muted-foreground">Pricing pending</span>
+                      </div>
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total Amount Due</span>
+                    <span className="text-accent">{sellTotal > 0 ? `$${sellTotal.toLocaleString()}` : "TBD"}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Payment Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">How would you like to proceed?</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button
+                    variant="electric"
+                    className="w-full h-12 text-base"
+                    disabled={payingNow || sellTotal <= 0}
+                    onClick={async () => {
+                      setPayingNow(true);
+                      try {
+                        await persistDraft();
+                        const { data, error } = await supabase.functions.invoke("create-payment", {
+                          body: {
+                            shipment_id: id,
+                            shipment_ref: shipment.shipment_ref,
+                            amount: sellTotal,
+                            currency: "USD",
+                            carrier: shipment.carrier,
+                          },
+                        });
+                        if (error) throw error;
+                        if (data?.url) {
+                          window.location.href = data.url;
+                        } else {
+                          throw new Error("No checkout URL returned");
+                        }
+                      } catch (err: any) {
+                        toast.error(err.message || "Failed to initiate payment");
+                        setPayingNow(false);
+                      }
+                    }}
+                  >
+                    {payingNow ? "Redirecting to payment..." : `Pay Now — $${sellTotal.toLocaleString()}`}
+                  </Button>
+
+                  <div className="relative">
+                    <Separator />
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">or</span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={bookingLater}
+                    onClick={async () => {
+                      setBookingLater(true);
+                      try {
+                        await persistDraft();
+                        // Transition to pending_pricing so ops team can finalize
+                        await supabase.from("shipments").update({
+                          lifecycle_stage: "pending_pricing",
+                          status: "pending_pricing",
+                        }).eq("id", id);
+                        toast.success("Booking confirmed! You can pay later from your dashboard.");
+                        navigate(`/dashboard/shipments/${id}/workspace`);
+                      } catch (err: any) {
+                        toast.error(err.message || "Failed to confirm booking");
+                      } finally {
+                        setBookingLater(false);
+                      }
+                    }}
+                  >
+                    {bookingLater ? "Confirming..." : "Book Now, Pay Later"}
+                  </Button>
+
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <div>
+                      <p><strong>Pay Now:</strong> Securely pay via credit card or bank transfer. Documents will be released upon payment confirmation.</p>
+                      <p className="mt-1"><strong>Book Now, Pay Later:</strong> Reserve your booking and pay before document release. An invoice will be sent to your email.</p>
                     </div>
-                  ))}
-                </div>
-                <Separator />
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total Amount Due</span>
-                  <span className="text-accent">${sellTotal.toLocaleString()}</span>
-                </div>
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <p>Payment will be requested after your booking is confirmed. You can pay via credit card or wire transfer.</p>
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* ── OVERVIEW TAB (post-booking) ── */}
@@ -903,19 +998,19 @@ const ShipmentWorkspace = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Bottom action bar for booking mode */}
-        {isBooking && (
+        {/* Bottom action bar for booking mode (hide on payment tab since it has its own actions) */}
+        {isBooking && activeTab !== "payment" && (
           <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t p-4 -mx-4 flex items-center justify-between">
             <div className="text-sm">
               <span className="text-muted-foreground">Total: </span>
-              <span className="text-lg font-bold text-accent">${sellTotal.toLocaleString()}</span>
+              <span className="text-lg font-bold text-accent">{sellTotal > 0 ? `$${sellTotal.toLocaleString()}` : "TBD"}</span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 {saving ? "Saving..." : "Save Draft"}
               </Button>
               <Button variant="electric" onClick={handleContinueBooking} disabled={submitting || saving}>
-                {submitting ? "Submitting..." : "Save & Continue"}
+                {submitting ? "Saving..." : "Save & Continue"}
               </Button>
             </div>
           </div>
