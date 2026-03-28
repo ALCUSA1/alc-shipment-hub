@@ -5284,6 +5284,7 @@ export type Database = {
           mawb_number: string | null
           mode: string
           nature_and_quantity: string | null
+          notes: string | null
           origin_port: string | null
           payment_terms: string | null
           pickup_city: string | null
@@ -5403,6 +5404,7 @@ export type Database = {
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
+          notes?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null
@@ -5522,6 +5524,7 @@ export type Database = {
           mawb_number?: string | null
           mode?: string
           nature_and_quantity?: string | null
+          notes?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null

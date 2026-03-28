@@ -1,0 +1,1 @@
+ALTER TABLE public.shipments ADD COLUMN notes text;
