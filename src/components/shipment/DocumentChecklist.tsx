@@ -96,6 +96,7 @@ export function DocumentChecklist({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [seeded, setSeeded] = useState(false);
 
   const { data: documents = [] } = useQuery({
     queryKey: ["documents", shipmentId],
@@ -112,9 +113,16 @@ export function DocumentChecklist({
 
   // Auto-seed required document placeholders if none exist
   const seedDocuments = useCallback(async () => {
-    if (seeding || documents.length > 0 || !userId) return;
+    if (seeding || seeded || documents.length > 0 || !userId) return;
     setSeeding(true);
     try {
+      // Double-check DB to avoid duplicates from race conditions
+      const { data: existing } = await supabase.from("documents").select("id").eq("shipment_id", shipmentId).limit(1);
+      if (existing && existing.length > 0) {
+        setSeeded(true);
+        queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
+        return;
+      }
       const requiredTypes = getRequiredDocTypes(
         shipmentMode, shipmentType, lifecycleStage,
         hasCustomsClearance, hasInsurance, hasDangerousGoods,
@@ -130,19 +138,20 @@ export function DocumentChecklist({
         const { error } = await supabase.from("documents").insert(rows);
         if (error) throw error;
         queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
+        setSeeded(true);
       }
     } catch (err: any) {
       console.error("Failed to seed documents:", err);
     } finally {
       setSeeding(false);
     }
-  }, [shipmentId, userId, documents.length, seeding, shipmentMode, shipmentType, lifecycleStage, hasCustomsClearance, hasInsurance, hasDangerousGoods, queryClient]);
+  }, [shipmentId, userId, documents.length, seeding, seeded, shipmentMode, shipmentType, lifecycleStage, hasCustomsClearance, hasInsurance, hasDangerousGoods, queryClient]);
 
   useEffect(() => {
-    if (documents.length === 0 && userId && !seeding) {
+    if (documents.length === 0 && userId && !seeding && !seeded) {
       seedDocuments();
     }
-  }, [documents.length, userId, seedDocuments, seeding]);
+  }, [documents.length, userId, seedDocuments, seeding, seeded]);
 
   const completedCount = documents.filter((d) => d.status === "completed" || d.status === "uploaded").length;
   const totalCount = documents.length;
