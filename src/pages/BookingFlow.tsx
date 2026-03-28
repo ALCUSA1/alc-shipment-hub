@@ -150,41 +150,42 @@ const BookingFlow = () => {
     }
   }, []);
 
-  const handleSelectSailing = useCallback((sailing: SailingOption) => {
+  const handleSelectSailing = useCallback(async (sailing: SailingOption) => {
     setSelectedSailing(sailing);
+    setIsLoading(true);
 
-    // Calculate pricing
-    const surcharges = Array.isArray(sailing.surcharges) ? sailing.surcharges : [];
-    const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
-    const thc = 150;
-    const docs = 45;
-    const totalCost = sailing.base_rate + surchargeTotal + thc + docs;
-    const margin = 0.12; // 12% margin
-    const sellPrice = Math.round(totalCost / (1 - margin));
+    try {
+      const surcharges = Array.isArray(sailing.surcharges) ? sailing.surcharges : [];
+      const rateSelection: RateSelection = {
+        rateId: sailing.id,
+        carrier: sailing.carrier,
+        originPort: sailing.origin_port,
+        destinationPort: sailing.destination_port,
+        mode: searchParams?.mode || "ocean",
+        containerType: sailing.container_type,
+        baseRate: sailing.base_rate,
+        surcharges,
+        totalRate: sailing.total_rate,
+        currency: sailing.currency,
+        transitDays: sailing.transit_days,
+        etd: sailing.etd || null,
+        eta: sailing.eta || null,
+        validFrom: sailing.valid_from,
+        validUntil: sailing.valid_until,
+        serviceLevel: sailing.service_level,
+        freeTimeDays: sailing.free_time_days,
+      };
 
-    const validUntil = new Date(sailing.valid_until);
-
-    setQuoteData({
-      sailing,
-      search: searchParams!,
-      costBreakdown: {
-        oceanFreight: sailing.base_rate,
-        surcharges: surchargeTotal,
-        thc,
-        documentation: docs,
-        totalCost,
-        sellPrice,
-        validUntil: validUntil.toISOString(),
-      },
-      aiInsight: sailing.ai_label === "Best Value"
-        ? "This option offers the best balance of cost and reliability. The carrier has a 96% on-time record for this lane."
-        : sailing.ai_label === "Fastest"
-        ? "Fastest transit available. Ideal for time-sensitive cargo. Slightly higher cost offset by reduced inventory holding."
-        : "This sailing provides strong service guarantees with extended free time at destination, reducing demurrage risk.",
-    });
-
-    setStep("quote");
-  }, [searchParams]);
+      const draft = await createShipmentDraft(rateSelection);
+      toast.success(`Shipment ${draft.shipment_ref} created — complete your booking`);
+      navigate(`/dashboard/shipments/${draft.id}/workspace`);
+    } catch (err: any) {
+      console.error("Draft creation error:", err);
+      toast.error(err.message || "Failed to create shipment. Please log in.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchParams, navigate]);
 
   const handleBookShipment = useCallback(async () => {
     if (!quoteData || !searchParams) return;
