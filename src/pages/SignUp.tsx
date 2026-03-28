@@ -226,7 +226,7 @@ const SignUp = () => {
             Your account will be reviewed by our team before access is granted.
           </p>
           <p className="text-sm text-muted-foreground mt-3 text-center">
-            Already have an account? <Link to="/login" className="text-accent font-medium hover:underline">Log in</Link>
+            Already have an account? <Link to={searchParams.get("returnTo") ? `/login?returnTo=${encodeURIComponent(searchParams.get("returnTo")!)}` : "/login"} className="text-accent font-medium hover:underline">Log in</Link>
           </p>
         </div>
       </div>
