@@ -126,6 +126,8 @@ function buildBookingLink(origin: string, destination: string, containerSize: st
 export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [bookingRateId, setBookingRateId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<ShippingFilters>({
     routing: "all",
     carrierType: "all",
