@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
             .eq("id", shipment_id)
             .single();
 
-          if (!ship || !["quote_ready", "awaiting_approval"].includes(ship.lifecycle_stage || "")) {
+          if (!ship || !["quote_ready"].includes(ship.lifecycle_stage || "")) {
             throw new Error("Shipment not in approvable state");
           }
 

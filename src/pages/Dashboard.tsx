@@ -138,7 +138,6 @@ const Dashboard = () => {
   const alertItems = [
     counts.delayed > 0 && { href: "/dashboard/shipments?status=delayed", icon: AlertTriangle, label: `${counts.delayed} shipment${counts.delayed > 1 ? "s" : ""} delayed`, color: "destructive" as const },
     counts.pendingPricing > 0 && { href: "/dashboard/quotes", icon: DollarSign, label: `${counts.pendingPricing} need pricing`, color: "amber" as const },
-    counts.awaitingApproval > 0 && { href: "/dashboard/shipments?status=awaiting_approval", icon: Clock, label: `${counts.awaitingApproval} awaiting approval`, color: "orange" as const },
     counts.missingDocs > 0 && { href: "/dashboard/shipments", icon: FileText, label: `${counts.missingDocs} missing documents`, color: "orange" as const },
   ].filter(Boolean) as { href: string; icon: any; label: string; color: "destructive" | "amber" | "orange" }[];
 

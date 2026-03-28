@@ -437,7 +437,7 @@ const UnifiedBookingFlow = () => {
     try {
       await persistDraft();
       const transitionPath: Record<string, string> = {
-        draft: "pending_pricing", pending_pricing: "quote_ready", quote_ready: "awaiting_approval", awaiting_approval: "booked",
+        draft: "pending_pricing", pending_pricing: "quote_ready", quote_ready: "booked",
       };
       let stage = shipment?.lifecycle_stage || shipment?.status || "draft";
       while (stage !== "booked" && transitionPath[stage]) {

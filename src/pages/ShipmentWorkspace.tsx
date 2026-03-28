@@ -193,7 +193,7 @@ const ShipmentWorkspace = () => {
   });
 
   /* ── Lifecycle helpers ── */
-  const stageOrder = ["draft", "pending_pricing", "quote_ready", "awaiting_approval", "booked", "in_transit", "delivered", "closed"];
+  const stageOrder = ["draft", "pending_pricing", "quote_ready", "booked", "in_transit", "delivered", "closed"];
   const currentStageIndex = stageOrder.indexOf(shipment?.lifecycle_stage || shipment?.status || "draft");
 
   const getLifecycleStatus = (stageKey: string) => {

@@ -46,7 +46,6 @@ const STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
   { value: "pending_pricing", label: "Pending Pricing" },
   { value: "quote_ready", label: "Quote Ready" },
-  { value: "awaiting_approval", label: "Awaiting Approval" },
   { value: "booked", label: "Booked" },
   { value: "in_transit", label: "In Transit" },
   { value: "delivered", label: "Delivered" },
