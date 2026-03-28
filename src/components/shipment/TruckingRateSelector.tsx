@@ -86,6 +86,8 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
   const [selectedOrigin, setSelectedOrigin] = useState<string | null>(null);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [transitLoading, setTransitLoading] = useState(false);
 
   const originRates = useMemo(() => generateRates(pickupLocation || originPort, originPort, "origin"), [pickupLocation, originPort]);
   const destRates = useMemo(() => generateRates(destinationPort, deliveryLocation || destinationPort, "destination"), [deliveryLocation, destinationPort]);
@@ -129,6 +131,7 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
       }
       queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
       queryClient.invalidateQueries({ queryKey: ["logistics-trucking-quotes", shipmentId] });
+      setConfirmed(true);
       toast.success("Trucking rates confirmed and added to shipment!");
     } catch (err: any) {
       toast.error(err.message || "Failed to confirm trucking");
@@ -136,6 +139,51 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
       setConfirming(false);
     }
   };
+
+  const handleMarkInTransit = async () => {
+    setTransitLoading(true);
+    try {
+      const { error } = await supabase.from("shipments").update({ lifecycle_stage: "in_transit", status: "in_transit" }).eq("id", shipmentId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["ws-shipment"] });
+      toast.success("Shipment is now in transit!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update");
+    } finally {
+      setTransitLoading(false);
+    }
+  };
+
+  /* ── If already confirmed, show success + next step ── */
+  if (confirmed) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="rounded-xl border-2 border-accent/20 bg-accent/5 p-6 text-center space-y-4">
+            <CheckCircle2 className="h-10 w-10 text-accent mx-auto" />
+            <div>
+              <p className="text-lg font-bold text-foreground">Trucking Confirmed</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedOriginRate && <span>{selectedOriginRate.carrier} (Origin) </span>}
+                {selectedOriginRate && selectedDestRate && <span>• </span>}
+                {selectedDestRate && <span>{selectedDestRate.carrier} (Destination) </span>}
+                — Total: <span className="font-semibold text-foreground">${total.toLocaleString()}</span>
+              </p>
+            </div>
+            <Button
+              onClick={handleMarkInTransit}
+              disabled={transitLoading}
+              size="lg"
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {transitLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <ArrowRight className="h-4 w-4 mr-1.5" />}
+              Continue — Mark In Transit
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
