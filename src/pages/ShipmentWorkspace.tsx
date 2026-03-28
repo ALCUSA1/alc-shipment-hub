@@ -406,22 +406,52 @@ const ShipmentWorkspace = () => {
     }
   };
 
+  /* ── Tab validation ── */
+  const validateTab = (tabId: string): string | null => {
+    switch (tabId) {
+      case "booking":
+        if (!shipment?.origin_port && !shipment?.destination_port) return "Origin and destination ports are required.";
+        return null;
+      case "cargo":
+        if (!commodity && !weight && !hsCode) return "Please provide cargo details (commodity, weight, or HS code).";
+        if (!shipperName) return "Shipper name is required.";
+        if (!consigneeName) return "Consignee name is required.";
+        return null;
+      case "compliance":
+        return null; // optional
+      case "logistics":
+        return null; // optional
+      case "documents":
+        return null; // informational
+      default:
+        return null;
+    }
+  };
+
   /* ── Save & Continue ── */
   const handleContinueBooking = async () => {
     if (!id || !user) return;
+
+    // Validate current tab before advancing
+    const currentTabId = BOOKING_TABS.some((tab) => tab.id === activeTab) ? activeTab : BOOKING_TABS[0].id;
+    const validationError = validateTab(currentTabId);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     setSubmitting(true);
     try {
       await persistDraft();
 
-      const currentTabId = BOOKING_TABS.some((tab) => tab.id === activeTab) ? activeTab : BOOKING_TABS[0].id;
       const currentIndex = BOOKING_TABS.findIndex((tab) => tab.id === currentTabId);
       const nextTab = BOOKING_TABS[Math.min(currentIndex + 1, BOOKING_TABS.length - 1)].id;
 
       setActiveTab(nextTab);
       toast.success(
         nextTab === currentTabId
-          ? "Draft saved. Payment summary is ready."
-          : `Draft saved. Continue with ${BOOKING_TABS.find((tab) => tab.id === nextTab)?.label}.`
+          ? "All steps complete. Review your payment options."
+          : `Saved. Continue with ${BOOKING_TABS.find((tab) => tab.id === nextTab)?.label}.`
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to continue booking");
