@@ -469,6 +469,9 @@ const ShipmentWorkspace = () => {
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 <Save className="h-3.5 w-3.5 mr-1.5" />{saving ? "Saving..." : "Save Draft"}
               </Button>
+              <Button variant="electric" size="sm" onClick={handleSubmitBooking} disabled={submitting || saving}>
+                <Send className="h-3.5 w-3.5 mr-1.5" />{submitting ? "Submitting..." : "Save & Continue"}
+              </Button>
             </div>
           )}
         </div>
@@ -875,6 +878,9 @@ const ShipmentWorkspace = () => {
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 {saving ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button variant="electric" onClick={handleSubmitBooking} disabled={submitting || saving}>
+                {submitting ? "Submitting..." : "Save & Continue"}
               </Button>
             </div>
           </div>
