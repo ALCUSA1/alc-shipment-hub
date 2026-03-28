@@ -83,7 +83,7 @@ const Dashboard = () => {
       const { count: delayed } = await supabase.from("shipments").select("id", { count: "exact" }).lt("eta", today).in("status", ["in_transit"]);
       setCounts({
         active: activeRes.count ?? 0, pendingPricing: pendingRes.count ?? 0, quoteReady: quoteRes.count ?? 0,
-        awaitingApproval: approvalRes.count ?? 0, booked: bookedRes.count ?? 0, inTransit: transitRes.count ?? 0,
+        booked: bookedRes.count ?? 0, inTransit: transitRes.count ?? 0,
         delivered: deliveredRes.count ?? 0, delayed: delayed ?? 0, missingDocs: docsRes.count ?? 0,
       });
       setRecentShipments((recentRes.data as ShipmentRow[]) ?? []);
