@@ -63,6 +63,7 @@ const ROLE_OPTIONS = [
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,6 +71,13 @@ const SignUp = () => {
   const [companyName, setCompanyName] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const pendingBooking = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem("pendingBooking");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
