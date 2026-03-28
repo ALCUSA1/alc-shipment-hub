@@ -20,9 +20,37 @@ interface SearchParams {
 
 const RateSearch = () => {
   const [urlParams] = useSearchParams();
+  const navigate = useNavigate();
   const [results, setResults] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
+  const [autoBooking, setAutoBooking] = useState(false);
+
+  // Resume pending booking after login redirect
+  useEffect(() => {
+    const pending = sessionStorage.getItem("pendingBooking");
+    if (!pending) return;
+
+    const resumeBooking = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setAutoBooking(true);
+      try {
+        const rateSelection: RateSelection = JSON.parse(pending);
+        sessionStorage.removeItem("pendingBooking");
+        const draft = await createShipmentDraft(rateSelection);
+        toast.success(`Shipment ${draft.shipment_ref} created!`);
+        navigate(`/dashboard/shipments/${draft.id}/workspace`);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to resume booking");
+        sessionStorage.removeItem("pendingBooking");
+        setAutoBooking(false);
+      }
+    };
+
+    resumeBooking();
+  }, [navigate]);
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);

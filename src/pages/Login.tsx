@@ -28,6 +28,13 @@ const Login = () => {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
       return;
     }
+    // Check for returnTo param (e.g. from Book Now redirect)
+    const returnTo = searchParams.get("returnTo");
+    if (returnTo) {
+      setLoading(false);
+      navigate(returnTo);
+      return;
+    }
     // Role-based routing
     const route = await getPostLoginRoute(data.user.id);
     setLoading(false);

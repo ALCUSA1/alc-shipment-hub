@@ -343,7 +343,29 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                             // Check auth first — redirect if not logged in
                             const { data: { user } } = await supabase.auth.getUser();
                             if (!user) {
-                              navigate("/login");
+                              // Save rate selection so we can resume after login
+                              const surchargesList = parseSurcharges(rate.surcharges);
+                              const pendingRate: RateSelection = {
+                                rateId: rate.id,
+                                carrier: rate.carrier,
+                                originPort: rate.origin_port,
+                                destinationPort: rate.destination_port,
+                                mode: (mode as "ocean" | "air") || "ocean",
+                                containerType: rate.container_type,
+                                baseRate: rate.base_rate,
+                                surcharges: surchargesList,
+                                totalRate: totalRate,
+                                currency: rate.currency,
+                                transitDays: rate.transit_days,
+                                etd: rate.valid_from,
+                                eta: null,
+                                validFrom: rate.valid_from,
+                                validUntil: rate.valid_until,
+                                serviceLevel: null,
+                                freeTimeDays: null,
+                              };
+                              sessionStorage.setItem("pendingBooking", JSON.stringify(pendingRate));
+                              navigate("/login?returnTo=/rates");
                               return;
                             }
                             const surchargesList = parseSurcharges(rate.surcharges);
