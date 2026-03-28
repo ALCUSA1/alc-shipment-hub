@@ -10,7 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
-import { DOC_TYPE_LABELS, DOC_CATEGORIES, getDocLabel, getCategoryForDocType } from "@/lib/document-types";
+import { DOC_TYPE_LABELS, DOC_SOURCE, DOC_SOURCE_META, type DocSource } from "@/lib/document-types";
 
 interface DocumentChecklistProps {
   shipmentId: string;
@@ -226,19 +226,20 @@ export function DocumentChecklist({
     );
   }
 
-  // Group documents by category
-  const categorized = DOC_CATEGORIES.map((cat) => ({
-    ...cat,
-    docs: documents.filter((d) => cat.docTypes.includes(d.doc_type)),
-  })).filter((cat) => cat.docs.length > 0);
-
-  const uncategorized = documents.filter(
-    (d) => !DOC_CATEGORIES.some((cat) => cat.docTypes.includes(d.doc_type))
-  );
+  // Group documents by source (platform / shipper / carrier)
+  const sourceOrder: DocSource[] = ["platform", "shipper", "carrier"];
+  const groupedBySource = sourceOrder.map((source) => ({
+    source,
+    meta: DOC_SOURCE_META[source],
+    docs: documents.filter((d) => (DOC_SOURCE[d.doc_type] || "shipper") === source),
+  })).filter((g) => g.docs.length > 0);
 
   const renderDocRow = (doc: any) => {
     const isCompleted = doc.status === "completed" || doc.status === "uploaded";
     const hasFile = !!doc.file_url;
+    const source = DOC_SOURCE[doc.doc_type] || "shipper";
+    const isCarrier = source === "carrier";
+    const isPlatform = source === "platform";
     return (
       <div
         key={doc.id}
@@ -255,8 +256,14 @@ export function DocumentChecklist({
           <p className={`text-sm font-medium ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
             {DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type}
           </p>
-          {doc.status === "uploaded" && (
+          {doc.status === "uploaded" ? (
             <p className="text-[10px] text-accent">File uploaded</p>
+          ) : isPlatform ? (
+            <p className="text-[10px] text-muted-foreground">Auto-generated from shipment data</p>
+          ) : isCarrier ? (
+            <p className="text-[10px] text-muted-foreground">Awaiting from shipping line</p>
+          ) : (
+            <p className="text-[10px] text-muted-foreground">Upload required</p>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -322,25 +329,20 @@ export function DocumentChecklist({
           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
         />
         <div className="space-y-5">
-          {categorized.map((cat) => (
-            <div key={cat.key}>
+          {groupedBySource.map((group) => (
+            <div key={group.source}>
               <div className="flex items-center gap-2 mb-2">
-                <cat.icon className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{cat.label}</h4>
+                <group.meta.icon className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.meta.label}</h4>
+                  <p className="text-[10px] text-muted-foreground/70">{group.meta.description}</p>
+                </div>
               </div>
               <div className="space-y-1">
-                {cat.docs.map(renderDocRow)}
+                {group.docs.map(renderDocRow)}
               </div>
             </div>
           ))}
-          {uncategorized.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Other</h4>
-              <div className="space-y-1">
-                {uncategorized.map(renderDocRow)}
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
