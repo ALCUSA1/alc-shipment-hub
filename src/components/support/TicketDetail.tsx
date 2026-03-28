@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, User, Headphones } from "lucide-react";
+import { ArrowLeft, Send, User, Headphones, Package } from "lucide-react";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,11 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
   const { data: ticket } = useQuery({
     queryKey: ["support-ticket", ticketId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("support_tickets").select("*").eq("id", ticketId).single();
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select("*, shipments:shipment_id(id, reference, origin, destination)")
+        .eq("id", ticketId)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -87,6 +91,14 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{ticket.description}</p>
+          {(ticket as any).shipments && (
+            <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-muted/50 w-fit">
+              <Package className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-foreground">
+                {(ticket as any).shipments.reference} — {(ticket as any).shipments.origin} → {(ticket as any).shipments.destination}
+              </span>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-3">Created {format(new Date(ticket.created_at), "MMM d, yyyy 'at' h:mm a")}</p>
         </CardContent>
       </Card>

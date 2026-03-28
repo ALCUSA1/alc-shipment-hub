@@ -40,7 +40,21 @@ export default function Support() {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState({ category: "", subject: "", description: "", priority: "normal" as CustomerPriority });
+  const [form, setForm] = useState({ category: "", subject: "", description: "", priority: "normal" as CustomerPriority, shipment_id: "" });
+
+  const { data: shipments = [] } = useQuery({
+    queryKey: ["user-shipments-for-ticket"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shipments")
+        .select("id, reference, origin, destination, status")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["support-tickets"],
@@ -58,20 +72,22 @@ export default function Support() {
   const createTicket = useMutation({
     mutationFn: async () => {
       const ref = `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const { error } = await supabase.from("support_tickets").insert({
+      const insertData: any = {
         user_id: user!.id,
         ticket_ref: ref,
         category: form.category.toLowerCase(),
         subject: form.subject,
         description: form.description,
         priority: form.priority,
-      } as any);
+      };
+      if (form.shipment_id) insertData.shipment_id = form.shipment_id;
+      const { error } = await supabase.from("support_tickets").insert(insertData);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       setCreateOpen(false);
-      setForm({ category: "", subject: "", description: "", priority: "normal" });
+      setForm({ category: "", subject: "", description: "", priority: "normal", shipment_id: "" });
       toast.success("Ticket created successfully");
     },
     onError: () => toast.error("Failed to create ticket"),
@@ -130,6 +146,19 @@ export default function Support() {
                     <SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger>
                     <SelectContent>
                       {PRIORITIES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Linked Shipment <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Select value={form.shipment_id} onValueChange={(v) => setForm((p) => ({ ...p, shipment_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select a shipment…" /></SelectTrigger>
+                    <SelectContent>
+                      {shipments.map((s: any) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.reference} — {s.origin} → {s.destination}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
