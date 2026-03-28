@@ -290,23 +290,28 @@ export function DocumentChecklist({
               onClick={() => handleDownload(doc.file_url!, doc.doc_type)}
               title="Download"
             >
-              <Download className="h-3.5 w-3.5 text-accent" />
+              <Download className="h-3.5 w-3.5" />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => handleUploadClick(doc.id)}
-            disabled={uploading === doc.id}
-            title="Upload file"
-          >
-            {uploading === doc.id ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-            )}
-          </Button>
+          {!isCarrier && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => handleUploadClick(doc.id)}
+              disabled={uploading === doc.id}
+              title="Upload file"
+            >
+              {uploading === doc.id ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </Button>
+          )}
+          {isCarrier && !isAvailable && (
+            <Download className="h-3.5 w-3.5 text-muted-foreground/40" />
+          )}
           <span className="text-[10px] text-muted-foreground w-10 text-right">
             {doc.created_at && !isNaN(new Date(doc.created_at).getTime()) ? format(new Date(doc.created_at), "MMM d") : "—"}
           </span>
