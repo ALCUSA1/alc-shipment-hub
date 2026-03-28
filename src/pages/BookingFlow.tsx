@@ -187,77 +187,9 @@ const BookingFlow = () => {
     }
   }, [searchParams, navigate]);
 
-  const handleBookShipment = useCallback(async () => {
-    if (!quoteData || !searchParams) return;
-    setIsLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please log in to book a shipment.");
-        navigate("/login");
-        return;
-      }
-
-      // Get user's company
-      const { data: membership } = await supabase
-        .from("company_members")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .limit(1)
-        .single();
-
-      const { data: shipment, error } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          company_id: membership?.company_id || null,
-          origin_port: searchParams.origin,
-          destination_port: searchParams.destination,
-          mode: searchParams.mode,
-          container_type: searchParams.containerSize,
-          status: "booked",
-          lifecycle_stage: "booked",
-          carrier: quoteData.sailing.carrier,
-          vessel: quoteData.sailing.carrier,
-          etd: quoteData.sailing.etd?.split("T")[0] || null,
-          eta: quoteData.sailing.eta?.split("T")[0] || null,
-          commodity: searchParams.commodity || null,
-          num_containers: searchParams.containers,
-        } as any)
-        .select("id, shipment_ref")
-        .single();
-
-      if (error) throw error;
-
-      // Insert financial record
-      if (shipment) {
-        await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          entry_type: "revenue",
-          category: "ocean_freight",
-          description: `${quoteData.sailing.carrier} - ${searchParams.origin} → ${searchParams.destination}`,
-          amount: quoteData.costBreakdown.sellPrice,
-          currency: "USD",
-        });
-      }
-
-      toast.success(`Shipment ${shipment?.shipment_ref || ''} booked successfully!`);
-      setStep("confirm");
-
-      // Redirect to workspace after a moment
-      setTimeout(() => {
-        navigate(`/dashboard/shipments/${shipment?.id}/workspace`);
-      }, 3000);
-    } catch (err: any) {
-      console.error("Booking error:", err);
-      toast.error(err.message || "Failed to create booking. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [quoteData, searchParams, navigate]);
+  // Note: handleBookShipment removed — sailing selection in handleSelectSailing
+  // already creates draft via createShipmentDraft and redirects to workspace.
+  // This is the unified booking flow: Rate Selection = Shipment Draft Creation.
 
   return (
     <DashboardLayout>
