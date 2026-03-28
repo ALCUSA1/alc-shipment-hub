@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -254,6 +255,60 @@ const ShipmentWorkspace = () => {
               </div>
               {companyName && <p className="text-xs text-muted-foreground">{companyName}</p>}
             </div>
+          </div>
+          {/* Action buttons based on lifecycle */}
+          <div className="flex items-center gap-2">
+            {(shipment.lifecycle_stage || shipment.status) === "quote_ready" && (
+              <Button
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.from("shipments").update({ lifecycle_stage: "booked", status: "booked" }).eq("id", shipment.id);
+                    if (error) throw error;
+                    queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
+                    toast.success("Shipment booked successfully!");
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to book shipment");
+                  }
+                }}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1.5" /> Confirm Booking
+              </Button>
+            )}
+            {(shipment.lifecycle_stage || shipment.status) === "booked" && (
+              <Button
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.from("shipments").update({ lifecycle_stage: "in_transit", status: "in_transit" }).eq("id", shipment.id);
+                    if (error) throw error;
+                    queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
+                    toast.success("Shipment marked as in transit!");
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to update shipment");
+                  }
+                }}
+                variant="outline"
+              >
+                <Ship className="h-4 w-4 mr-1.5" /> Mark In Transit
+              </Button>
+            )}
+            {(shipment.lifecycle_stage || shipment.status) === "in_transit" && (
+              <Button
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.from("shipments").update({ lifecycle_stage: "delivered", status: "delivered" }).eq("id", shipment.id);
+                    if (error) throw error;
+                    queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
+                    toast.success("Shipment marked as delivered!");
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to update shipment");
+                  }
+                }}
+                variant="outline"
+              >
+                <Check className="h-4 w-4 mr-1.5" /> Mark Delivered
+              </Button>
+            )}
           </div>
         </div>
 
