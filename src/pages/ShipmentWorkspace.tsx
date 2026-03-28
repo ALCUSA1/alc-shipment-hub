@@ -305,10 +305,10 @@ const ShipmentWorkspace = () => {
       // Update container qty
       if (containers?.[0]) {
         await supabase.from("containers").update({ quantity: parseInt(containerQty) || 1 }).eq("id", containers[0].id);
-      } else if (shipment?.container_type) {
+      } else {
         await supabase.from("containers").insert({
           shipment_id: id,
-          container_type: shipment.container_type,
+          container_type: "40hc",
           quantity: parseInt(containerQty) || 1,
         });
       }
