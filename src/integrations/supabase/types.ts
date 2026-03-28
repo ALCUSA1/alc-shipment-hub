@@ -1656,90 +1656,168 @@ export type Database = {
       customs_filings: {
         Row: {
           aes_citation: string | null
+          authorized_agent_address: string | null
+          authorized_agent_ein: string | null
+          authorized_agent_name: string | null
           broker_email: string | null
           broker_name: string | null
           broker_ref: string | null
+          carrier_identification_code: string | null
           carrier_name: string | null
           consignee_address: string | null
           consignee_name: string | null
+          containerized: boolean | null
           country_of_destination: string | null
           created_at: string
+          eei_exemption_citation: string | null
+          entry_number: string | null
           export_date: string | null
           exporter_ein: string | null
           exporter_name: string | null
+          filing_option: string | null
           filing_type: string
+          forwarder_authorization_language: string | null
+          hazardous_materials: boolean | null
           hts_codes: Json | null
           id: string
+          in_bond_code: string | null
           itn: string | null
+          loading_pier: string | null
+          method_of_transportation: string | null
           mode_of_transport: string | null
           notes: string | null
+          original_itn: string | null
           port_of_export: string | null
           port_of_unlading: string | null
+          related_parties: boolean | null
+          routed_export_transaction: boolean | null
           shipment_id: string
+          shipment_reference_number: string | null
+          shipper_certification_language: string | null
+          state_of_origin: string | null
           status: string
           submitted_at: string | null
+          title_of_shipper_representative: string | null
+          ultimate_consignee_type: string | null
           updated_at: string
           user_id: string
+          usppi_address: string | null
+          usppi_contact_name: string | null
+          usppi_email: string | null
+          usppi_phone: string | null
           vessel_name: string | null
           voyage_number: string | null
+          xtn: string | null
         }
         Insert: {
           aes_citation?: string | null
+          authorized_agent_address?: string | null
+          authorized_agent_ein?: string | null
+          authorized_agent_name?: string | null
           broker_email?: string | null
           broker_name?: string | null
           broker_ref?: string | null
+          carrier_identification_code?: string | null
           carrier_name?: string | null
           consignee_address?: string | null
           consignee_name?: string | null
+          containerized?: boolean | null
           country_of_destination?: string | null
           created_at?: string
+          eei_exemption_citation?: string | null
+          entry_number?: string | null
           export_date?: string | null
           exporter_ein?: string | null
           exporter_name?: string | null
+          filing_option?: string | null
           filing_type?: string
+          forwarder_authorization_language?: string | null
+          hazardous_materials?: boolean | null
           hts_codes?: Json | null
           id?: string
+          in_bond_code?: string | null
           itn?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
           mode_of_transport?: string | null
           notes?: string | null
+          original_itn?: string | null
           port_of_export?: string | null
           port_of_unlading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
           shipment_id: string
+          shipment_reference_number?: string | null
+          shipper_certification_language?: string | null
+          state_of_origin?: string | null
           status?: string
           submitted_at?: string | null
+          title_of_shipper_representative?: string | null
+          ultimate_consignee_type?: string | null
           updated_at?: string
           user_id: string
+          usppi_address?: string | null
+          usppi_contact_name?: string | null
+          usppi_email?: string | null
+          usppi_phone?: string | null
           vessel_name?: string | null
           voyage_number?: string | null
+          xtn?: string | null
         }
         Update: {
           aes_citation?: string | null
+          authorized_agent_address?: string | null
+          authorized_agent_ein?: string | null
+          authorized_agent_name?: string | null
           broker_email?: string | null
           broker_name?: string | null
           broker_ref?: string | null
+          carrier_identification_code?: string | null
           carrier_name?: string | null
           consignee_address?: string | null
           consignee_name?: string | null
+          containerized?: boolean | null
           country_of_destination?: string | null
           created_at?: string
+          eei_exemption_citation?: string | null
+          entry_number?: string | null
           export_date?: string | null
           exporter_ein?: string | null
           exporter_name?: string | null
+          filing_option?: string | null
           filing_type?: string
+          forwarder_authorization_language?: string | null
+          hazardous_materials?: boolean | null
           hts_codes?: Json | null
           id?: string
+          in_bond_code?: string | null
           itn?: string | null
+          loading_pier?: string | null
+          method_of_transportation?: string | null
           mode_of_transport?: string | null
           notes?: string | null
+          original_itn?: string | null
           port_of_export?: string | null
           port_of_unlading?: string | null
+          related_parties?: boolean | null
+          routed_export_transaction?: boolean | null
           shipment_id?: string
+          shipment_reference_number?: string | null
+          shipper_certification_language?: string | null
+          state_of_origin?: string | null
           status?: string
           submitted_at?: string | null
+          title_of_shipper_representative?: string | null
+          ultimate_consignee_type?: string | null
           updated_at?: string
           user_id?: string
+          usppi_address?: string | null
+          usppi_contact_name?: string | null
+          usppi_email?: string | null
+          usppi_phone?: string | null
           vessel_name?: string | null
           voyage_number?: string | null
+          xtn?: string | null
         }
         Relationships: [
           {
