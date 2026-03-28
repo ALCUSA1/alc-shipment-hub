@@ -5,12 +5,14 @@ import { Separator } from "@/components/ui/separator";
 import { Ship, Clock, ChevronDown, ChevronUp, ArrowRight, TrendingDown, Zap, Anchor, Container, Info } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { RouteMapPreview } from "./RouteMapPreview";
 import { CargoSummaryBar } from "./CargoSummaryBar";
 import { SailingScheduleSelector } from "./SailingScheduleSelector";
 import { ShippingPreferences, type ShippingFilters } from "./ShippingPreferences";
 import { PriceSummarySidebar } from "./PriceSummarySidebar";
+import { createShipmentDraft, type RateSelection } from "@/lib/create-shipment-draft";
+import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
 
 const PORT_NAMES: Record<string, string> = {
@@ -119,6 +121,8 @@ function buildBookingLink(origin: string, destination: string, containerSize: st
 export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [bookingRateId, setBookingRateId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<ShippingFilters>({
     routing: "all",
     carrierType: "all",
@@ -327,11 +331,45 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                     )}
 
                     <div className="flex justify-end mt-3">
-                      <Button variant="electric" size="sm" asChild>
-                        <Link to={buildBookingLink(origin, destination, containerSize, mode)}>
-                          Book Now
-                          <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                        </Link>
+                      <Button
+                        variant="electric"
+                        size="sm"
+                        disabled={bookingRateId === rate.id}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          setBookingRateId(rate.id);
+                          try {
+                            const surchargesList = parseSurcharges(rate.surcharges);
+                            const rateSelection: RateSelection = {
+                              rateId: rate.id,
+                              carrier: rate.carrier,
+                              originPort: rate.origin_port,
+                              destinationPort: rate.destination_port,
+                              mode: (mode as "ocean" | "air") || "ocean",
+                              containerType: rate.container_type,
+                              baseRate: rate.base_rate,
+                              surcharges: surchargesList,
+                              totalRate: totalRate,
+                              currency: rate.currency,
+                              transitDays: rate.transit_days,
+                              etd: rate.valid_from,
+                              eta: null,
+                              validFrom: rate.valid_from,
+                              validUntil: rate.valid_until,
+                              serviceLevel: null,
+                              freeTimeDays: null,
+                            };
+                            const draft = await createShipmentDraft(rateSelection);
+                            toast.success(`Shipment ${draft.shipment_ref} created!`);
+                            navigate(`/dashboard/shipments/${draft.id}/workspace`);
+                          } catch (err: any) {
+                            toast.error(err.message || "Failed to create shipment");
+                            setBookingRateId(null);
+                          }
+                        }}
+                      >
+                        {bookingRateId === rate.id ? "Creating..." : "Book Now"}
+                        <ArrowRight className="h-3.5 w-3.5 ml-1" />
                       </Button>
                     </div>
                   </CardContent>

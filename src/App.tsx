@@ -122,6 +122,7 @@ import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
 import AdminRateIntelligence from "./pages/admin/AdminRateIntelligence";
 import PricingPreview from "./pages/PricingPreview";
 import BookingFlow from "./pages/BookingFlow";
+import ShipmentWorkspace from "./pages/ShipmentWorkspace";
 import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
 import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
 import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
@@ -171,7 +172,7 @@ const App = () => (
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments/:id/workspace" element={<ProtectedRoute><CustomerShipmentWorkspace /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/:id/workspace" element={<ProtectedRoute><ShipmentWorkspace /></ProtectedRoute>} />
             <Route path="/dashboard/quotes" element={<RoleGate><Quotes /></RoleGate>} />
             <Route path="/dashboard/quotes/new" element={<ProtectedRoute><NewQuote /></ProtectedRoute>} />
             <Route path="/dashboard/trucking" element={<RoleGate><Trucking /></RoleGate>} />
