@@ -31,8 +31,10 @@ export interface ShipmentDraft {
  * Rate selection = Shipment draft creation.
  */
 export async function createShipmentDraft(rate: RateSelection): Promise<ShipmentDraft> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Please log in to book a shipment.");
+  // Use getSession to ensure JWT token is available for RLS
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error("Please log in to book a shipment.");
+  const user = session.user;
 
   // Get user's company
   const { data: membership } = await supabase
