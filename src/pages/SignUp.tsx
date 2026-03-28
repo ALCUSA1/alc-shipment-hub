@@ -118,7 +118,9 @@ const SignUp = () => {
       title: "Account created",
       description: "Please check your email to verify your account. Once verified and approved by our team, you'll be able to log in.",
     });
-    navigate("/login");
+    // Preserve returnTo for login page
+    const returnTo = searchParams.get("returnTo");
+    navigate(returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login");
   };
 
   return (
