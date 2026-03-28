@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
 import { RateSearchForm } from "@/components/rate-search/RateSearchForm";
 import { RateResultsPanel } from "@/components/rate-search/RateResultsPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { createShipmentDraft, type RateSelection } from "@/lib/create-shipment-draft";
+import { toast } from "sonner";
 import { Ship } from "lucide-react";
 import { motion } from "framer-motion";
 
