@@ -33,7 +33,7 @@ const statusColor: Record<string, string> = {
 
 const statusLabel: Record<string, string> = {
   draft: "Draft", pending_pricing: "Pricing", quote_ready: "Quote Ready",
-  awaiting_approval: "Approval", booked: "Booked", in_transit: "In Transit",
+  booked: "Booked", in_transit: "In Transit",
   delivered: "Delivered", closed: "Closed", cancelled: "Cancelled",
 };
 
@@ -46,7 +46,6 @@ interface ShipmentRow {
 const PIPELINE_STAGES = [
   { key: "pendingPricing", label: "Pending Pricing", fill: CHART_COLORS.amber },
   { key: "quoteReady", label: "Quote Ready", fill: CHART_COLORS.blue },
-  { key: "awaitingApproval", label: "Awaiting Approval", fill: CHART_COLORS.orange },
   { key: "booked", label: "Booked", fill: CHART_COLORS.indigo },
   { key: "inTransit", label: "In Transit", fill: CHART_COLORS.cyan },
   { key: "delivered", label: "Delivered", fill: CHART_COLORS.emerald },
@@ -60,7 +59,7 @@ const Dashboard = () => {
   const showAlerts = canSeeDashboardSection(companyRole, "alerts");
   const showCta = canSeeDashboardSection(companyRole, "cta");
   const [loading, setLoading] = useState(true);
-  const [counts, setCounts] = useState({ active: 0, pendingPricing: 0, quoteReady: 0, awaitingApproval: 0, booked: 0, inTransit: 0, delivered: 0, delayed: 0, missingDocs: 0 });
+  const [counts, setCounts] = useState({ active: 0, pendingPricing: 0, quoteReady: 0, booked: 0, inTransit: 0, delivered: 0, delayed: 0, missingDocs: 0 });
   const [recentShipments, setRecentShipments] = useState<ShipmentRow[]>([]);
   const [allShipments, setAllShipments] = useState<{ created_at: string }[]>([]);
 
@@ -69,11 +68,10 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-      const [activeRes, pendingRes, quoteRes, approvalRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes, trendRes] = await Promise.all([
+      const [activeRes, pendingRes, quoteRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes, trendRes] = await Promise.all([
         supabase.from("shipments").select("id", { count: "exact" }).in("status", ["booked", "in_transit"]),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "pending_pricing"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "quote_ready"),
-        supabase.from("shipments").select("id", { count: "exact" }).eq("status", "awaiting_approval"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "booked"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "in_transit"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "delivered"),
@@ -85,7 +83,7 @@ const Dashboard = () => {
       const { count: delayed } = await supabase.from("shipments").select("id", { count: "exact" }).lt("eta", today).in("status", ["in_transit"]);
       setCounts({
         active: activeRes.count ?? 0, pendingPricing: pendingRes.count ?? 0, quoteReady: quoteRes.count ?? 0,
-        awaitingApproval: approvalRes.count ?? 0, booked: bookedRes.count ?? 0, inTransit: transitRes.count ?? 0,
+        booked: bookedRes.count ?? 0, inTransit: transitRes.count ?? 0,
         delivered: deliveredRes.count ?? 0, delayed: delayed ?? 0, missingDocs: docsRes.count ?? 0,
       });
       setRecentShipments((recentRes.data as ShipmentRow[]) ?? []);
@@ -124,7 +122,7 @@ const Dashboard = () => {
     ? Math.round((counts.delivered / Math.max(counts.delivered + counts.delayed, 1)) * 100)
     : null;
 
-  const totalShipments = counts.active + counts.delivered + counts.pendingPricing + counts.quoteReady + counts.awaitingApproval;
+  const totalShipments = counts.active + counts.delivered + counts.pendingPricing + counts.quoteReady;
 
   const topLanes = useMemo(() => {
     const laneCounts: Record<string, number> = {};
@@ -135,12 +133,11 @@ const Dashboard = () => {
     return Object.entries(laneCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
   }, [recentShipments]);
 
-  const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0 || counts.awaitingApproval > 0;
+  const hasAlerts = counts.delayed > 0 || counts.missingDocs > 0 || counts.pendingPricing > 0;
 
   const alertItems = [
     counts.delayed > 0 && { href: "/dashboard/shipments?status=delayed", icon: AlertTriangle, label: `${counts.delayed} shipment${counts.delayed > 1 ? "s" : ""} delayed`, color: "destructive" as const },
     counts.pendingPricing > 0 && { href: "/dashboard/quotes", icon: DollarSign, label: `${counts.pendingPricing} need pricing`, color: "amber" as const },
-    counts.awaitingApproval > 0 && { href: "/dashboard/shipments?status=awaiting_approval", icon: Clock, label: `${counts.awaitingApproval} awaiting approval`, color: "orange" as const },
     counts.missingDocs > 0 && { href: "/dashboard/shipments", icon: FileText, label: `${counts.missingDocs} missing documents`, color: "orange" as const },
   ].filter(Boolean) as { href: string; icon: any; label: string; color: "destructive" | "amber" | "orange" }[];
 
