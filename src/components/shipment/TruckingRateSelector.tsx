@@ -86,6 +86,8 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
   const [selectedOrigin, setSelectedOrigin] = useState<string | null>(null);
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [transitLoading, setTransitLoading] = useState(false);
 
   const originRates = useMemo(() => generateRates(pickupLocation || originPort, originPort, "origin"), [pickupLocation, originPort]);
   const destRates = useMemo(() => generateRates(destinationPort, deliveryLocation || destinationPort, "destination"), [deliveryLocation, destinationPort]);
