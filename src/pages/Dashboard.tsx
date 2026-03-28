@@ -68,7 +68,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-      const [activeRes, pendingRes, quoteRes, approvalRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes, trendRes] = await Promise.all([
+      const [activeRes, pendingRes, quoteRes, bookedRes, transitRes, deliveredRes, recentRes, docsRes, trendRes] = await Promise.all([
         supabase.from("shipments").select("id", { count: "exact" }).in("status", ["booked", "in_transit"]),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "pending_pricing"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "quote_ready"),
