@@ -3,11 +3,12 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getPostLoginRoute } from "@/lib/role-routing";
 import alcLogo from "@/assets/alc-logo.png";
+import { Ship, ArrowRight } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
