@@ -40,7 +40,21 @@ export default function Support() {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [form, setForm] = useState({ category: "", subject: "", description: "", priority: "normal" as CustomerPriority });
+  const [form, setForm] = useState({ category: "", subject: "", description: "", priority: "normal" as CustomerPriority, shipment_id: "" });
+
+  const { data: shipments = [] } = useQuery({
+    queryKey: ["user-shipments-for-ticket"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shipments")
+        .select("id, reference, origin, destination, status")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["support-tickets"],
