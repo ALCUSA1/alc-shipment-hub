@@ -70,8 +70,6 @@ const BookingFlow = () => {
   const [step, setStep] = useState<FlowStep>("search");
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
   const [sailingOptions, setSailingOptions] = useState<SailingOption[]>([]);
-  const [selectedSailing, setSelectedSailing] = useState<SailingOption | null>(null);
-  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = useCallback(async (params: SearchParams) => {
