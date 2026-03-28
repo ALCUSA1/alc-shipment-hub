@@ -60,9 +60,9 @@ export interface QuoteData {
   aiInsight: string;
 }
 
-type FlowStep = "search" | "sailings" | "quote" | "confirm";
+type FlowStep = "search" | "sailings";
 
-const STEPS: FlowStep[] = ["search", "sailings", "quote", "confirm"];
+const STEPS: FlowStep[] = ["search", "sailings"];
 
 const BookingFlow = () => {
   const navigate = useNavigate();
