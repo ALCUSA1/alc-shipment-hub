@@ -20,6 +20,13 @@ const Login = () => {
   const [resetMode, setResetMode] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
+  const pendingBooking = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem("pendingBooking");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
