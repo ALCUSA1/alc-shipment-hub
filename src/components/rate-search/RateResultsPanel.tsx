@@ -116,7 +116,7 @@ function buildBookingLink(origin: string, destination: string, containerSize: st
   if (destination) params.set("destination", destination);
   if (containerSize) params.set("container", containerSize);
   if (mode) params.set("mode", mode);
-  return `/dashboard/shipments/new?${params.toString()}`;
+  return `/book?${params.toString()}`;
 }
 
 export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
