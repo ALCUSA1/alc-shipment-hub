@@ -828,7 +828,7 @@ const ShipmentWorkspace = () => {
 
           {/* ── TRACKING TAB ── */}
           <TabsContent value="tracking" className="mt-5">
-            <LiveTrackingPanel shipmentId={id!} />
+            <LiveTrackingPanel shipmentId={id!} mode={(shipment.mode as "ocean" | "air") || "ocean"} />
           </TabsContent>
 
           {/* ── FINANCIALS TAB (post-booking) ── */}
