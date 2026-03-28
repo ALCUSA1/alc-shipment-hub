@@ -236,33 +236,9 @@ const BookingFlow = () => {
             </motion.div>
           )}
 
-          {step === "quote" && quoteData && (
-            <motion.div
-              key="quote"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <QuotePreviewStep
-                quoteData={quoteData}
-                onBook={handleBookShipment}
-                onModify={() => setStep("sailings")}
-                isLoading={isLoading}
-              />
-            </motion.div>
-          )}
-
-          {step === "confirm" && (
-            <motion.div
-              key="confirm"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <BookingConfirmStep />
-            </motion.div>
-          )}
+          {/* Quote and Confirm steps removed — sailing selection now creates
+              shipment draft immediately and redirects to unified workspace.
+              This eliminates the fragmented booking path. */}
         </AnimatePresence>
       </div>
     </DashboardLayout>
