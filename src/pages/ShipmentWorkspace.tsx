@@ -998,19 +998,19 @@ const ShipmentWorkspace = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Bottom action bar for booking mode */}
-        {isBooking && (
+        {/* Bottom action bar for booking mode (hide on payment tab since it has its own actions) */}
+        {isBooking && activeTab !== "payment" && (
           <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t p-4 -mx-4 flex items-center justify-between">
             <div className="text-sm">
               <span className="text-muted-foreground">Total: </span>
-              <span className="text-lg font-bold text-accent">${sellTotal.toLocaleString()}</span>
+              <span className="text-lg font-bold text-accent">{sellTotal > 0 ? `$${sellTotal.toLocaleString()}` : "TBD"}</span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 {saving ? "Saving..." : "Save Draft"}
               </Button>
               <Button variant="electric" onClick={handleContinueBooking} disabled={submitting || saving}>
-                {submitting ? "Submitting..." : "Save & Continue"}
+                {submitting ? "Saving..." : "Save & Continue"}
               </Button>
             </div>
           </div>
