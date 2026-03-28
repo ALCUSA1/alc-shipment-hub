@@ -72,7 +72,6 @@ const Dashboard = () => {
         supabase.from("shipments").select("id", { count: "exact" }).in("status", ["booked", "in_transit"]),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "pending_pricing"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "quote_ready"),
-        supabase.from("shipments").select("id", { count: "exact" }).eq("status", "awaiting_approval"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "booked"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "in_transit"),
         supabase.from("shipments").select("id", { count: "exact" }).eq("status", "delivered"),
