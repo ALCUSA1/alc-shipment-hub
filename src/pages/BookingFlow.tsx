@@ -147,7 +147,6 @@ const BookingFlow = () => {
   }, []);
 
   const handleSelectSailing = useCallback(async (sailing: SailingOption) => {
-    setSelectedSailing(sailing);
     setIsLoading(true);
 
     try {
