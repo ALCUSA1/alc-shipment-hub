@@ -8,6 +8,7 @@ import { Shield, FileCheck, AlertCircle, Send, Loader2, CheckCircle2, Plane, Shi
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { AesFilingForm } from "./AesFilingForm";
 
 interface CustomsFilingPanelProps {
   shipmentId: string;
@@ -100,6 +101,10 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
     },
   });
 
+  const handleFilingSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ["customs_filings", shipmentId] });
+  };
+
   if (isLoading) {
     return <Skeleton className="h-32 w-full" />;
   }
@@ -145,8 +150,8 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
         const filingMilestones = (milestones || []).filter(
           (m) => m.filing_id === filing.id
         );
-        const htsCodes = Array.isArray(filing.hts_codes) ? filing.hts_codes : [];
-        const canSubmit = filing.status === "draft";
+        const isDraft = filing.status === "draft";
+        const canSubmit = isDraft;
         const isSubmitting = submitMutation.isPending;
         const filingIsAir = filing.mode_of_transport === "air";
 
@@ -209,52 +214,57 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
                 </div>
               )}
 
-              {/* Core filing info — mode-aware */}
-              <FilingDetails filing={filing} isAir={filingIsAir} />
-
-              {/* Broker info */}
-              {(filing.broker_name || filing.broker_email) && (
+              {/* Draft: Show editable form | Non-draft: Show read-only */}
+              {isDraft ? (
+                <AesFilingForm filing={filing} onSaved={handleFilingSaved} />
+              ) : (
                 <>
-                  <Separator />
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Broker Information
-                  </h4>
-                  <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
-                    <Row label="Broker" value={filing.broker_name || "—"} />
-                    <Row label="Broker Ref" value={filing.broker_ref || "—"} />
-                    <Row label="Broker Email" value={filing.broker_email || "—"} />
-                  </div>
-                </>
-              )}
+                  <FilingDetails filing={filing} isAir={filingIsAir} />
 
-              {/* HTS codes */}
-              {htsCodes.length > 0 && (
-                <>
-                  <Separator />
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    HTS / Schedule B Line Items
-                  </h4>
-                  <div className="space-y-2">
-                    {htsCodes.map((item: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Badge variant="outline" className="text-[10px] font-mono">
-                            {item.code || item.hts_code || "—"}
-                          </Badge>
-                          <span className="text-foreground">
-                            {item.description || item.commodity || "—"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-muted-foreground">
-                          {item.quantity && <span>{item.quantity} units</span>}
-                          {item.value && <span>${item.value}</span>}
-                        </div>
+                  {(filing.broker_name || filing.broker_email) && (
+                    <>
+                      <Separator />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        Broker Information
+                      </h4>
+                      <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
+                        <Row label="Broker" value={filing.broker_name || "—"} />
+                        <Row label="Broker Ref" value={filing.broker_ref || "—"} />
+                        <Row label="Broker Email" value={filing.broker_email || "—"} />
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
+
+                  {/* HTS codes */}
+                  {Array.isArray(filing.hts_codes) && filing.hts_codes.length > 0 && (
+                    <>
+                      <Separator />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        HTS / Schedule B Line Items
+                      </h4>
+                      <div className="space-y-2">
+                        {(filing.hts_codes as any[]).map((item: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline" className="text-[10px] font-mono">
+                                {item.code || item.hts_code || "—"}
+                              </Badge>
+                              <span className="text-foreground">
+                                {item.description || item.commodity || "—"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-muted-foreground">
+                              {item.quantity && <span>{item.quantity} units</span>}
+                              {item.value && <span>${item.value}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
 
@@ -290,8 +300,8 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
                 </>
               )}
 
-              {/* Notes */}
-              {filing.notes && (
+              {/* Notes (only for non-draft, draft has it in the form) */}
+              {!isDraft && filing.notes && (
                 <>
                   <Separator />
                   <div>
@@ -318,29 +328,15 @@ function FilingDetails({ filing, isAir }: { filing: any; isAir: boolean }) {
       <Row label="Exporter" value={filing.exporter_name || "—"} />
       <Row label="Exporter EIN" value={filing.exporter_ein || "—"} />
       <Row label="Consignee" value={filing.consignee_name || "—"} />
-      <Row
-        label="Country of Destination"
-        value={filing.country_of_destination || "—"}
-      />
+      <Row label="Country of Destination" value={filing.country_of_destination || "—"} />
       <Row label={isAir ? "Airport of Export" : "Port of Export"} value={filing.port_of_export || "—"} />
       <Row label={isAir ? "Airport of Unlading" : "Port of Unlading"} value={filing.port_of_unlading || "—"} />
-      <Row
-        label="Mode of Transport"
-        value={formatLabel(filing.mode_of_transport || "—")}
-      />
-      <Row
-        label="Export Date"
-        value={
-          filing.export_date
-            ? format(new Date(filing.export_date), "MMM d, yyyy")
-            : "—"
-        }
-      />
+      <Row label="Mode of Transport" value={formatLabel(filing.mode_of_transport || "—")} />
+      <Row label="Export Date" value={filing.export_date ? format(new Date(filing.export_date), "MMM d, yyyy") : "—"} />
       {isAir ? (
         <>
           <Row label="Airline" value={filing.vessel_name || filing.carrier_name || "—"} />
           <Row label="Flight Number" value={filing.voyage_number || "—"} />
-          <Row label="Carrier" value={filing.carrier_name || "—"} />
         </>
       ) : (
         <>
@@ -348,6 +344,11 @@ function FilingDetails({ filing, isAir }: { filing: any; isAir: boolean }) {
           <Row label="Voyage" value={filing.voyage_number || "—"} />
         </>
       )}
+      <Row label="Carrier ID" value={(filing as any).carrier_identification_code || "—"} />
+      <Row label="Filing Option" value={(filing as any).filing_option || "—"} />
+      <Row label="State of Origin" value={(filing as any).state_of_origin || "—"} />
+      <Row label="Containerized" value={(filing as any).containerized ? "Yes" : "No"} />
+      <Row label="Hazardous Materials" value={(filing as any).hazardous_materials ? "Yes" : "No"} />
     </div>
   );
 }
