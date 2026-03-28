@@ -283,16 +283,16 @@ const ShipmentWorkspace = () => {
       }
 
       // Upsert parties
-      const upsertParty = async (role: string, name: string, address: string) => {
-        if (!name) return;
+      const upsertParty = async (role: string, companyName: string, address: string) => {
+        if (!companyName) return;
         const existing = parties?.find(p => p.role === role);
         if (existing) {
-          await supabase.from("shipment_parties").update({ name, address: address || null }).eq("id", existing.id);
+          await supabase.from("shipment_parties").update({ company_name: companyName, address: address || null }).eq("id", existing.id);
         } else {
           await supabase.from("shipment_parties").insert({
             shipment_id: id,
             role,
-            name,
+            company_name: companyName,
             address: address || null,
             assigned_by_user_id: user.id,
           });
