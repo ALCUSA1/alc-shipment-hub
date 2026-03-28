@@ -46,7 +46,6 @@ interface ShipmentRow {
 const PIPELINE_STAGES = [
   { key: "pendingPricing", label: "Pending Pricing", fill: CHART_COLORS.amber },
   { key: "quoteReady", label: "Quote Ready", fill: CHART_COLORS.blue },
-  { key: "awaitingApproval", label: "Awaiting Approval", fill: CHART_COLORS.orange },
   { key: "booked", label: "Booked", fill: CHART_COLORS.indigo },
   { key: "inTransit", label: "In Transit", fill: CHART_COLORS.cyan },
   { key: "delivered", label: "Delivered", fill: CHART_COLORS.emerald },
