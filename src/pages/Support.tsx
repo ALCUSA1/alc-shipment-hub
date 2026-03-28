@@ -87,7 +87,7 @@ export default function Support() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       setCreateOpen(false);
-      setForm({ category: "", subject: "", description: "", priority: "normal" });
+      setForm({ category: "", subject: "", description: "", priority: "normal", shipment_id: "" });
       toast.success("Ticket created successfully");
     },
     onError: () => toast.error("Failed to create ticket"),
