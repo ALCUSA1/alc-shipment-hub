@@ -536,6 +536,14 @@ const CustomerShipmentWorkspace = () => {
             </div>
           </div>
 
+          {/* Document Lifecycle Bar */}
+          <DocumentLifecycleBar
+            documents={(documents || []).map(d => ({ doc_type: d.doc_type, status: d.status, created_at: d.created_at, file_url: d.file_url }))}
+            payments={[]}
+            customsFilings={(customsFilings || []).map(f => ({ status: f.status, itn: f.itn }))}
+            lifecycleStage={lifecycleStatus}
+          />
+
           {/* Shipment Summary */}
           <Card>
             <CardHeader><CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-accent" />Shipment Summary</CardTitle></CardHeader>
