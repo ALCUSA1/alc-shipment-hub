@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -9,19 +10,90 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
-import { DOC_TYPE_LABELS } from "@/lib/document-types";
+import { DOC_TYPE_LABELS, DOC_CATEGORIES, getDocLabel, getCategoryForDocType } from "@/lib/document-types";
 
 interface DocumentChecklistProps {
   shipmentId: string;
   userId: string;
+  shipmentMode?: string;
+  shipmentType?: string;
+  lifecycleStage?: string;
+  hasCustomsClearance?: boolean;
+  hasInsurance?: boolean;
+  hasDangerousGoods?: boolean;
 }
 
-export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps) {
+/**
+ * Returns the list of doc_types that should exist for this shipment
+ * based on mode, type, lifecycle, and services.
+ */
+function getRequiredDocTypes(
+  mode?: string,
+  shipmentType?: string,
+  lifecycleStage?: string,
+  hasCustomsClearance?: boolean,
+  hasInsurance?: boolean,
+  hasDangerousGoods?: boolean,
+): string[] {
+  const docs: string[] = [];
+
+  // Universal documents for every shipment
+  docs.push("commercial_invoice", "packing_list", "shipper_letter_of_instruction");
+
+  const isOcean = mode === "ocean" || mode === "sea";
+  const isAir = mode === "air";
+
+  if (isOcean) {
+    docs.push("bill_of_lading", "dock_receipt", "cargo_manifest");
+    // SWB is generated after payment
+    docs.push("seaway_bill");
+  }
+
+  if (isAir) {
+    docs.push("mawb", "hawb", "known_shipper_declaration");
+  }
+
+  // AES / Customs is always relevant for exports
+  if (shipmentType === "export" || !shipmentType) {
+    docs.push("aes_filing");
+  }
+
+  if (hasCustomsClearance) {
+    docs.push("customs_declaration");
+  }
+
+  if (hasInsurance) {
+    docs.push("insurance_certificate");
+  }
+
+  if (hasDangerousGoods) {
+    if (isAir) {
+      docs.push("dg_declaration_air");
+    }
+  }
+
+  docs.push("certificate_of_origin");
+
+  // Deduplicate
+  return [...new Set(docs)];
+}
+
+export function DocumentChecklist({
+  shipmentId,
+  userId,
+  shipmentMode,
+  shipmentType,
+  lifecycleStage,
+  hasCustomsClearance,
+  hasInsurance,
+  hasDangerousGoods,
+}: DocumentChecklistProps) {
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const { data: documents = [] } = useQuery({
     queryKey: ["documents", shipmentId],
@@ -35,6 +107,40 @@ export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps
       return data || [];
     },
   });
+
+  // Auto-seed required document placeholders if none exist
+  const seedDocuments = useCallback(async () => {
+    if (seeding || documents.length > 0 || !userId) return;
+    setSeeding(true);
+    try {
+      const requiredTypes = getRequiredDocTypes(
+        shipmentMode, shipmentType, lifecycleStage,
+        hasCustomsClearance, hasInsurance, hasDangerousGoods,
+      );
+      const rows = requiredTypes.map((docType) => ({
+        shipment_id: shipmentId,
+        user_id: userId,
+        doc_type: docType,
+        status: "pending",
+        file_url: "",
+      }));
+      if (rows.length > 0) {
+        const { error } = await supabase.from("documents").insert(rows);
+        if (error) throw error;
+        queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
+      }
+    } catch (err: any) {
+      console.error("Failed to seed documents:", err);
+    } finally {
+      setSeeding(false);
+    }
+  }, [shipmentId, userId, documents.length, seeding, shipmentMode, shipmentType, lifecycleStage, hasCustomsClearance, hasInsurance, hasDangerousGoods, queryClient]);
+
+  useEffect(() => {
+    if (documents.length === 0 && userId && !seeding) {
+      seedDocuments();
+    }
+  }, [documents.length, userId, seedDocuments, seeding]);
 
   const completedCount = documents.filter((d) => d.status === "completed" || d.status === "uploaded").length;
   const totalCount = documents.length;
@@ -112,14 +218,80 @@ export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 space-y-3">
-            <FileText className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-            <p className="text-sm text-muted-foreground">No documents have been generated or uploaded for this shipment yet.</p>
-            <p className="text-xs text-muted-foreground/70">Documents will appear here automatically as the shipment progresses, or you can upload them manually.</p>
+            <Loader2 className="h-8 w-8 text-muted-foreground/40 mx-auto animate-spin" />
+            <p className="text-sm text-muted-foreground">Preparing document checklist…</p>
           </div>
         </CardContent>
       </Card>
     );
   }
+
+  // Group documents by category
+  const categorized = DOC_CATEGORIES.map((cat) => ({
+    ...cat,
+    docs: documents.filter((d) => cat.docTypes.includes(d.doc_type)),
+  })).filter((cat) => cat.docs.length > 0);
+
+  const uncategorized = documents.filter(
+    (d) => !DOC_CATEGORIES.some((cat) => cat.docTypes.includes(d.doc_type))
+  );
+
+  const renderDocRow = (doc: any) => {
+    const isCompleted = doc.status === "completed" || doc.status === "uploaded";
+    const hasFile = !!doc.file_url;
+    return (
+      <div
+        key={doc.id}
+        className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+          isCompleted ? "bg-green-50 dark:bg-green-950/20" : "hover:bg-muted/50"
+        }`}
+      >
+        <Checkbox
+          checked={isCompleted}
+          disabled={updating === doc.id}
+          onCheckedChange={() => toggleStatus(doc.id, doc.status)}
+        />
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
+            {DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type}
+          </p>
+          {doc.status === "uploaded" && (
+            <p className="text-[10px] text-accent">File uploaded</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {hasFile && doc.file_url && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => handleDownload(doc.file_url!, doc.doc_type)}
+              title="Download"
+            >
+              <Download className="h-3.5 w-3.5 text-accent" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => handleUploadClick(doc.id)}
+            disabled={uploading === doc.id}
+            title="Upload file"
+          >
+            {uploading === doc.id ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+          </Button>
+          <span className="text-[10px] text-muted-foreground w-10 text-right">
+            {doc.created_at && !isNaN(new Date(doc.created_at).getTime()) ? format(new Date(doc.created_at), "MMM d") : "—"}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card>
@@ -149,63 +321,26 @@ export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps
           onChange={handleFileChange}
           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
         />
-        <div className="space-y-2">
-          {documents.map((doc) => {
-            const isCompleted = doc.status === "completed" || doc.status === "uploaded";
-            const hasFile = !!doc.file_url;
-            return (
-              <div
-                key={doc.id}
-                className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-                  isCompleted ? "bg-green-50 dark:bg-green-950/20" : "hover:bg-muted/50"
-                }`}
-              >
-                <Checkbox
-                  checked={isCompleted}
-                  disabled={updating === doc.id}
-                  onCheckedChange={() => toggleStatus(doc.id, doc.status)}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                    {DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type}
-                  </p>
-                  {doc.status === "uploaded" && (
-                    <p className="text-[10px] text-accent">File uploaded</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {hasFile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => handleDownload(doc.file_url!, doc.doc_type)}
-                      title="Download"
-                    >
-                      <Download className="h-3.5 w-3.5 text-accent" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => handleUploadClick(doc.id)}
-                    disabled={uploading === doc.id}
-                    title="Upload file"
-                  >
-                    {uploading === doc.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                  </Button>
-                  <span className="text-[10px] text-muted-foreground w-10 text-right">
-                    {doc.created_at && !isNaN(new Date(doc.created_at).getTime()) ? format(new Date(doc.created_at), "MMM d") : "—"}
-                  </span>
-                </div>
+        <div className="space-y-5">
+          {categorized.map((cat) => (
+            <div key={cat.key}>
+              <div className="flex items-center gap-2 mb-2">
+                <cat.icon className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{cat.label}</h4>
               </div>
-            );
-          })}
+              <div className="space-y-1">
+                {cat.docs.map(renderDocRow)}
+              </div>
+            </div>
+          ))}
+          {uncategorized.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Other</h4>
+              <div className="space-y-1">
+                {uncategorized.map(renderDocRow)}
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
