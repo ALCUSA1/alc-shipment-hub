@@ -306,16 +306,37 @@ export function DocumentChecklist({
               {isAvailable ? "Ready" : isPaymentBlocked ? "Held" : "Pending"}
             </Badge>
           )}
-          {isAvailable && (
+          {/* Always show download: file URL if available, otherwise generate PDF */}
+          {isAvailable ? (
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-accent hover:text-accent/80"
               onClick={() => handleDownload(doc.file_url!, doc.doc_type)}
-              title="Download"
+              title="Download file"
             >
               <Download className="h-3.5 w-3.5" />
             </Button>
+          ) : !isCarrier ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-accent hover:text-accent/80"
+              onClick={() => generatePdf(shipmentId, doc.doc_type, DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type)}
+              disabled={generating === doc.doc_type + shipmentId}
+              title="Generate & download PDF"
+            >
+              {generating === doc.doc_type + shipmentId ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <>
+                  <Printer className="h-3 w-3 mr-1" />
+                  PDF
+                </>
+              )}
+            </Button>
+          ) : (
+            <Download className="h-3.5 w-3.5 text-muted-foreground/40" />
           )}
           {!isCarrier && (
             <Button
@@ -332,9 +353,6 @@ export function DocumentChecklist({
                 <Upload className="h-3.5 w-3.5 text-muted-foreground" />
               )}
             </Button>
-          )}
-          {isCarrier && !isAvailable && (
-            <Download className="h-3.5 w-3.5 text-muted-foreground/40" />
           )}
           <span className="text-[10px] text-muted-foreground w-10 text-right">
             {doc.created_at && !isNaN(new Date(doc.created_at).getTime()) ? format(new Date(doc.created_at), "MMM d") : "—"}
