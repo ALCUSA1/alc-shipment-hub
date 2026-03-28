@@ -5,8 +5,6 @@ import { SEO } from "@/components/SEO";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookingSearchStep } from "@/components/booking-flow/BookingSearchStep";
 import { SailingBoardStep } from "@/components/booking-flow/SailingBoardStep";
-import { QuotePreviewStep } from "@/components/booking-flow/QuotePreviewStep";
-import { BookingConfirmStep } from "@/components/booking-flow/BookingConfirmStep";
 import { BookingProgressBar } from "@/components/booking-flow/BookingProgressBar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -62,9 +60,9 @@ export interface QuoteData {
   aiInsight: string;
 }
 
-type FlowStep = "search" | "sailings" | "quote" | "confirm";
+type FlowStep = "search" | "sailings";
 
-const STEPS: FlowStep[] = ["search", "sailings", "quote", "confirm"];
+const STEPS: FlowStep[] = ["search", "sailings"];
 
 const BookingFlow = () => {
   const navigate = useNavigate();
@@ -72,8 +70,6 @@ const BookingFlow = () => {
   const [step, setStep] = useState<FlowStep>("search");
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
   const [sailingOptions, setSailingOptions] = useState<SailingOption[]>([]);
-  const [selectedSailing, setSelectedSailing] = useState<SailingOption | null>(null);
-  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = useCallback(async (params: SearchParams) => {
@@ -151,7 +147,6 @@ const BookingFlow = () => {
   }, []);
 
   const handleSelectSailing = useCallback(async (sailing: SailingOption) => {
-    setSelectedSailing(sailing);
     setIsLoading(true);
 
     try {
@@ -187,77 +182,9 @@ const BookingFlow = () => {
     }
   }, [searchParams, navigate]);
 
-  const handleBookShipment = useCallback(async () => {
-    if (!quoteData || !searchParams) return;
-    setIsLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please log in to book a shipment.");
-        navigate("/login");
-        return;
-      }
-
-      // Get user's company
-      const { data: membership } = await supabase
-        .from("company_members")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .eq("is_active", true)
-        .limit(1)
-        .single();
-
-      const { data: shipment, error } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          company_id: membership?.company_id || null,
-          origin_port: searchParams.origin,
-          destination_port: searchParams.destination,
-          mode: searchParams.mode,
-          container_type: searchParams.containerSize,
-          status: "booked",
-          lifecycle_stage: "booked",
-          carrier: quoteData.sailing.carrier,
-          vessel: quoteData.sailing.carrier,
-          etd: quoteData.sailing.etd?.split("T")[0] || null,
-          eta: quoteData.sailing.eta?.split("T")[0] || null,
-          commodity: searchParams.commodity || null,
-          num_containers: searchParams.containers,
-        } as any)
-        .select("id, shipment_ref")
-        .single();
-
-      if (error) throw error;
-
-      // Insert financial record
-      if (shipment) {
-        await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          entry_type: "revenue",
-          category: "ocean_freight",
-          description: `${quoteData.sailing.carrier} - ${searchParams.origin} → ${searchParams.destination}`,
-          amount: quoteData.costBreakdown.sellPrice,
-          currency: "USD",
-        });
-      }
-
-      toast.success(`Shipment ${shipment?.shipment_ref || ''} booked successfully!`);
-      setStep("confirm");
-
-      // Redirect to workspace after a moment
-      setTimeout(() => {
-        navigate(`/dashboard/shipments/${shipment?.id}/workspace`);
-      }, 3000);
-    } catch (err: any) {
-      console.error("Booking error:", err);
-      toast.error(err.message || "Failed to create booking. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [quoteData, searchParams, navigate]);
+  // Note: handleBookShipment removed — sailing selection in handleSelectSailing
+  // already creates draft via createShipmentDraft and redirects to workspace.
+  // This is the unified booking flow: Rate Selection = Shipment Draft Creation.
 
   return (
     <DashboardLayout>
@@ -304,33 +231,9 @@ const BookingFlow = () => {
             </motion.div>
           )}
 
-          {step === "quote" && quoteData && (
-            <motion.div
-              key="quote"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <QuotePreviewStep
-                quoteData={quoteData}
-                onBook={handleBookShipment}
-                onModify={() => setStep("sailings")}
-                isLoading={isLoading}
-              />
-            </motion.div>
-          )}
-
-          {step === "confirm" && (
-            <motion.div
-              key="confirm"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <BookingConfirmStep />
-            </motion.div>
-          )}
+          {/* Quote and Confirm steps removed — sailing selection now creates
+              shipment draft immediately and redirects to unified workspace.
+              This eliminates the fragmented booking path. */}
         </AnimatePresence>
       </div>
     </DashboardLayout>

@@ -497,7 +497,7 @@ const NewShipment = () => {
 
       await Promise.all(inserts);
       toast({ title: "Shipment created", description: "All trade documents and records initialized." });
-      navigate(`/dashboard/shipments/${shipmentId}`);
+      navigate(`/dashboard/shipments/${shipmentId}/workspace`);
     } catch (err: any) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
     } finally {

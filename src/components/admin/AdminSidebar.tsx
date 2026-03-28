@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Database, Target, Calculator, CreditCard, Brain
+  Radio, ShieldCheck, Target, Calculator, CreditCard
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +27,6 @@ const navGroups = [
       { title: "Quotes", url: "/admin/quotes", icon: FileText },
       { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
       { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: TrendingUp },
-      { title: "Rate Trends", url: "/admin/rate-trends", icon: Activity },
       { title: "Commercial Command", url: "/admin/commercial", icon: Target },
     ],
   },
@@ -55,7 +54,6 @@ const navGroups = [
       { title: "API & Integrations", url: "/admin/api-health", icon: Radio },
       { title: "System Health", url: "/admin/system", icon: Server },
       { title: "Activity Feed", url: "/admin/activity", icon: Activity },
-      { title: "Data Explorer", url: "/admin/data", icon: Database },
       { title: "Notifications", url: "/admin/notifications", icon: Bell },
       { title: "Account", url: "/admin/account", icon: Settings },
     ],
