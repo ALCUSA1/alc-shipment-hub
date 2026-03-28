@@ -156,6 +156,7 @@ function PriceHeader({ shipment, financials }: { shipment: any; financials: any[
 /* ── Main Component ── */
 const ShipmentWorkspace = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
