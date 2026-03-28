@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, User, Headphones } from "lucide-react";
+import { ArrowLeft, Send, User, Headphones, Package } from "lucide-react";
 import { PriorityBadge } from "@/components/shared/PriorityBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
