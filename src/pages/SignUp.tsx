@@ -147,6 +147,20 @@ const SignUp = () => {
           <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-6">Select your role and get started with ALC Logistics</p>
 
+          {pendingBooking && (
+            <div className="mb-6 p-3 rounded-lg bg-accent/5 border border-accent/20">
+              <div className="flex items-center gap-2 mb-1">
+                <Ship className="h-4 w-4 text-accent" />
+                <p className="text-sm font-semibold text-foreground">Continuing your booking</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {pendingBooking.originPort} <ArrowRight className="inline h-3 w-3 mx-0.5" /> {pendingBooking.destinationPort}
+                {pendingBooking.carrier && <> · {pendingBooking.carrier}</>}
+                {pendingBooking.totalRate > 0 && <> · <span className="text-accent font-medium">${pendingBooking.totalRate.toLocaleString()}</span></>}
+              </p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Step 1: Role Selection */}
             <div>
