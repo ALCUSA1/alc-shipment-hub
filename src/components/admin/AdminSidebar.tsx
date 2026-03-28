@@ -1,9 +1,9 @@
 import {
   LayoutDashboard, Users, Activity, DollarSign, Server,
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
-  GitBranch, FileText, Truck, Warehouse, FileCheck,
+  FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Database, Target, FolderOpen, Mail, BarChart3, CreditCard, Calculator, Brain
+  Radio, ShieldCheck, Database, Target, Calculator, CreditCard, Brain
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,67 +12,50 @@ import { ImpersonationSwitcher } from "./ImpersonationSwitcher";
 
 const navGroups = [
   {
-    label: "Overview",
-    items: [
-      { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
-      { title: "Commercial Command", url: "/admin/commercial", icon: Activity },
-      { title: "Weekly Review", url: "/admin/weekly-review", icon: FileText },
-      { title: "Pipeline", url: "/admin/pipeline", icon: GitBranch },
-    ],
-  },
-  {
     label: "Operations",
     items: [
-      { title: "Quotes", url: "/admin/quotes", icon: FileText },
+      { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
       { title: "Shipments", url: "/admin/shipments", icon: Package },
-      { title: "Trucking", url: "/admin/trucking", icon: Truck },
+      { title: "Trucking Orders", url: "/admin/trucking", icon: Truck },
       { title: "Warehouses", url: "/admin/warehouses", icon: Warehouse },
       { title: "Documents", url: "/admin/documents", icon: FileCheck },
     ],
   },
   {
-    label: "Finance & Sales",
+    label: "Commercial",
+    items: [
+      { title: "Quotes", url: "/admin/quotes", icon: FileText },
+      { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
+      { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: TrendingUp },
+      { title: "Rate Trends", url: "/admin/rate-trends", icon: Activity },
+      { title: "Commercial Command", url: "/admin/commercial", icon: Target },
+    ],
+  },
+  {
+    label: "Finance",
     items: [
       { title: "Accounting", url: "/admin/accounting", icon: DollarSign },
-      { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
-      { title: "Payment Settings", url: "/admin/payment-settings", icon: CreditCard },
-      { title: "Rate Trends", url: "/admin/rate-trends", icon: TrendingUp },
-      { title: "CRM", url: "/admin/crm", icon: Building2 },
+      { title: "Payments", url: "/admin/payment-settings", icon: CreditCard },
+      { title: "Profit Intelligence", url: "/admin/profit", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "Network",
+    items: [
+      { title: "Companies", url: "/admin/customers", icon: Building2 },
+      { title: "CRM", url: "/admin/crm", icon: Users },
       { title: "Partners", url: "/admin/partners", icon: Handshake },
     ],
   },
   {
-    label: "Sales & Marketing",
+    label: "System",
     items: [
-      { title: "Sales Pipeline", url: "/admin/sales-pipeline", icon: Target },
-      { title: "Sales Analytics", url: "/admin/sales-analytics", icon: BarChart3 },
-      { title: "Email Campaigns", url: "/admin/campaigns", icon: Mail },
-      { title: "Materials Library", url: "/admin/materials", icon: FolderOpen },
-    ],
-  },
-  {
-    label: "Platform",
-    items: [
-      { title: "Users & Roles", url: "/admin/users", icon: Users },
-      { title: "Customer Lookup", url: "/admin/customers", icon: Search },
-      { title: "Activity Feed", url: "/admin/activity", icon: Activity },
-      { title: "Financials", url: "/admin/financials", icon: DollarSign },
-      { title: "Profit Intelligence", url: "/admin/profit", icon: TrendingUp },
-      { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: Activity },
-      { title: "Learning Insights", url: "/admin/learning-insights", icon: Brain },
-      { title: "Customer Pricing", url: "/admin/customer-pricing", icon: Users },
-      { title: "Market Ingestion", url: "/admin/market-ingestion", icon: Radio },
-      { title: "Lane Auto-Quote", url: "/admin/lane-auto-quote", icon: Target },
+      { title: "Users & Companies", url: "/admin/users", icon: UserCog },
       { title: "Compliance", url: "/admin/compliance", icon: ShieldCheck },
       { title: "API & Integrations", url: "/admin/api-health", icon: Radio },
       { title: "System Health", url: "/admin/system", icon: Server },
+      { title: "Activity Feed", url: "/admin/activity", icon: Activity },
       { title: "Data Explorer", url: "/admin/data", icon: Database },
-    ],
-  },
-  {
-    label: "Settings",
-    items: [
-      { title: "Team", url: "/admin/team", icon: UserCog },
       { title: "Notifications", url: "/admin/notifications", icon: Bell },
       { title: "Account", url: "/admin/account", icon: Settings },
     ],
