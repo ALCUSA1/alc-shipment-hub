@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
     const cargoItems = cargoRes.data || [];
     const containers = containersRes.data || [];
     const profile = profileRes.data?.[0] || {};
+    const customsFiling = filingRes.data?.[0] || null;
 
     const shipper = parties.find((p: any) => p.role === "shipper");
     const consignee = parties.find((p: any) => p.role === "consignee");
