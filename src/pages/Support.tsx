@@ -72,14 +72,16 @@ export default function Support() {
   const createTicket = useMutation({
     mutationFn: async () => {
       const ref = `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const { error } = await supabase.from("support_tickets").insert({
+      const insertData: any = {
         user_id: user!.id,
         ticket_ref: ref,
         category: form.category.toLowerCase(),
         subject: form.subject,
         description: form.description,
         priority: form.priority,
-      } as any);
+      };
+      if (form.shipment_id) insertData.shipment_id = form.shipment_id;
+      const { error } = await supabase.from("support_tickets").insert(insertData);
       if (error) throw error;
     },
     onSuccess: () => {
