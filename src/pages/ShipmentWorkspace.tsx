@@ -706,7 +706,7 @@ const ShipmentWorkspace = () => {
                 </BookingSection>
               </div>
             ) : (
-              <LogisticsServicesPanel shipmentId={id!} />
+              <LogisticsServicesPanel shipmentId={id!} shipmentRef={shipment.shipment_ref || ""} />
             )}
           </TabsContent>
 
