@@ -339,6 +339,12 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                           e.stopPropagation();
                           setBookingRateId(rate.id);
                           try {
+                            // Check auth first — redirect if not logged in
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (!user) {
+                              navigate("/login");
+                              return;
+                            }
                             const surchargesList = parseSurcharges(rate.surcharges);
                             const rateSelection: RateSelection = {
                               rateId: rate.id,
