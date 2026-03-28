@@ -245,9 +245,9 @@ const ShipmentWorkspace = () => {
       const shipper = parties.find(p => p.role === "shipper");
       const consignee = parties.find(p => p.role === "consignee");
       const notify = parties.find(p => p.role === "notify_party");
-      if (shipper) { setShipperName(shipper.name || ""); setShipperAddress(shipper.address || ""); }
-      if (consignee) { setConsigneeName(consignee.name || ""); setConsigneeAddress(consignee.address || ""); }
-      if (notify) setNotifyParty(notify.name || "");
+      if (shipper) { setShipperName(shipper.company_name || ""); setShipperAddress(shipper.address || ""); }
+      if (consignee) { setConsigneeName(consignee.company_name || ""); setConsigneeAddress(consignee.address || ""); }
+      if (notify) setNotifyParty(notify.company_name || "");
     }
   }, [cargo, containers, parties]);
 
