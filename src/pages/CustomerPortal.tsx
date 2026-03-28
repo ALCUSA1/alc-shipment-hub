@@ -179,7 +179,7 @@ const CustomerPortal = () => {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
-                        <Link to={`/dashboard/shipments/${s.id}`}><Eye className="mr-1 h-3 w-3" /> View</Link>
+                        <Link to={`/dashboard/shipments/${s.id}/customer`}><Eye className="mr-1 h-3 w-3" /> Open Workspace</Link>
                       </Button>
                     </td>
                   </tr>
