@@ -10,6 +10,7 @@ import { BookingConfirmStep } from "@/components/booking-flow/BookingConfirmStep
 import { BookingProgressBar } from "@/components/booking-flow/BookingProgressBar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createShipmentDraft, type RateSelection } from "@/lib/create-shipment-draft";
 
 export interface SearchParams {
   origin: string;
