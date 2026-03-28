@@ -108,6 +108,8 @@ function StatusCard({ icon: Icon, label, status, color }: { icon: any; label: st
 /* ── Spark Share Dialog ── */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
+import { CustomerFundingPanel } from "@/components/shipment/CustomerFundingPanel";
 
 function SparkShareDialog({ open, onOpenChange, shipment, onNavigateToSpark }: {
   open: boolean; onOpenChange: (o: boolean) => void; shipment: any; onNavigateToSpark: () => void;
