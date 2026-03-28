@@ -217,6 +217,44 @@ const UnifiedBookingFlow = () => {
     }
   }, [shipmentId]);
 
+  // Restore pending booking from sessionStorage after login redirect
+  useEffect(() => {
+    if (!user) return;
+    const pending = sessionStorage.getItem("pendingBooking");
+    if (!pending) return;
+    // Only process once
+    sessionStorage.removeItem("pendingBooking");
+    const doRestore = async () => {
+      try {
+        const rate: RateSelection = JSON.parse(pending);
+        setIsLoading(true);
+        toast.info("Restoring your selected quote...");
+        const draft = await createShipmentDraft(rate);
+        setShipmentId(draft.id);
+        // Populate searchParams so summary panel works
+        setSearchParams({
+          origin: rate.originPort,
+          destination: rate.destinationPort,
+          mode: rate.mode,
+          containerSize: rate.containerType,
+          containerType: rate.containerType,
+          commodity: "",
+          weight: "",
+          containers: 1,
+        });
+        toast.success(`Shipment ${draft.shipment_ref} created — continue your booking`);
+        setStep("details");
+      } catch (err: any) {
+        console.error("Failed to restore pending booking:", err);
+        toast.error("We couldn't restore your selected quote. Please search and select a rate again.");
+        setStep("search");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    doRestore();
+  }, [user]);
+
   /* ── Search handler ── */
   const handleSearch = useCallback(async (params: SearchParams) => {
     setIsLoading(true);
