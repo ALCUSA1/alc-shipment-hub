@@ -5,8 +5,6 @@ import { SEO } from "@/components/SEO";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookingSearchStep } from "@/components/booking-flow/BookingSearchStep";
 import { SailingBoardStep } from "@/components/booking-flow/SailingBoardStep";
-import { QuotePreviewStep } from "@/components/booking-flow/QuotePreviewStep";
-import { BookingConfirmStep } from "@/components/booking-flow/BookingConfirmStep";
 import { BookingProgressBar } from "@/components/booking-flow/BookingProgressBar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
