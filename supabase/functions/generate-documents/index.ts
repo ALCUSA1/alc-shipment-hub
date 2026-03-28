@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
           documents.packing_list = buildPackingList(ship, shipper, consignee, cargoItems, containers, today);
           break;
         case "shipper_letter_of_instruction":
-          documents.shipper_letter_of_instruction = buildSLI(ship, shipper, consignee, notifyParty, cargoItems, containers, forwarder, isAir);
+          documents.shipper_letter_of_instruction = buildSLI(ship, shipper, consignee, notifyParty, cargoItems, containers, forwarder, isAir, customsFiling);
           break;
         case "certificate_of_origin":
           documents.certificate_of_origin = buildCertificateOfOrigin(ship, shipper, consignee, cargoItems, today);
