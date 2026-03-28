@@ -90,15 +90,34 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
 
   const shipper = parties.find((p: any) => p.role === "shipper");
   const consignee = parties.find((p: any) => p.role === "consignee");
+  const forwarder = parties.find((p: any) => p.role === "freight_forwarder" || p.role === "forwarding_agent");
+
+  // Build full address from parts
+  const buildFullAddress = (party: any) => {
+    if (!party) return null;
+    const parts = [party.address, party.city, party.state, party.postal_code, party.country].filter(Boolean);
+    return parts.length > 0 ? parts.join(", ") : null;
+  };
+
+  // Try to get company EIN from the company record
+  let companyEin: string | null = null;
+  if (ship.company_id) {
+    const { data: company } = await supabase
+      .from("companies")
+      .select("ein")
+      .eq("id", ship.company_id)
+      .single();
+    companyEin = company?.ein || null;
+  }
 
   const htsCodes = cargoItems
     .filter((c: any) => c.hts_code || c.hs_code || c.schedule_b)
     .map((c: any) => ({
       code: c.hts_code || c.schedule_b || c.hs_code || "",
       description: c.commodity || "",
-      quantity: c.num_packages || null,
+      quantity: c.num_packages || c.pieces || null,
       value: c.total_value || null,
-      d_f: "D",
+      d_f: c.country_of_origin === "US" || c.country_of_origin === "USA" ? "D" : "F",
       shipping_weight_kg: c.gross_weight || null,
       vin_product_number: "",
       export_info_code: "",
@@ -110,11 +129,14 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
   const modeOfTransport = isAir ? "air" : "vessel";
   const vesselName = isAir ? (ship.airline || null) : (ship.vessel || null);
   const voyageNumber = isAir ? (ship.flight_number || null) : (ship.voyage || null);
-  const carrierName = isAir ? (ship.airline || null) : null;
+  const carrierName = isAir ? (ship.airline || null) : (ship.carrier || null);
   const portOfExport = isAir ? (ship.airport_of_departure || ship.origin_port || null) : (ship.origin_port || null);
   const portOfUnlading = isAir ? (ship.airport_of_destination || ship.destination_port || null) : (ship.destination_port || null);
 
   const methodOfTransportation = isAir ? "40" : (ship.container_type ? "11" : "10");
+
+  // Check for dangerous goods in cargo
+  const hasDangerousGoods = cargoItems.some((c: any) => c.dangerous_goods === true);
 
   const { data: filing, error: insertErr } = await supabase
     .from("customs_filings")
@@ -123,12 +145,21 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
       user_id: userId,
       filing_type: "AES",
       status: "draft",
-      exporter_name: shipper?.name || shipper?.company_name || null,
-      exporter_ein: null,
-      usppi_address: shipper?.address || null,
-      consignee_name: consignee?.name || consignee?.company_name || null,
-      consignee_address: consignee?.address || null,
-      country_of_destination: ship.destination_country || null,
+      // USPPI (shipper)
+      exporter_name: shipper?.company_name || null,
+      exporter_ein: shipper?.tax_id || companyEin || null,
+      usppi_address: buildFullAddress(shipper),
+      usppi_contact_name: shipper?.contact_name || null,
+      usppi_phone: shipper?.phone || null,
+      usppi_email: shipper?.email || null,
+      // Consignee
+      consignee_name: consignee?.company_name || null,
+      consignee_address: buildFullAddress(consignee),
+      ultimate_consignee_type: "O",
+      // Destination
+      country_of_destination: consignee?.country || ship.destination_country || null,
+      state_of_origin: shipper?.state || null,
+      // Transport
       port_of_export: portOfExport,
       port_of_unlading: portOfUnlading,
       vessel_name: vesselName,
@@ -136,10 +167,22 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
       export_date: ship.etd || null,
       mode_of_transport: modeOfTransport,
       carrier_name: carrierName,
+      carrier_identification_code: ship.scac_code || null,
       method_of_transportation: methodOfTransportation,
       containerized: !isAir && !!ship.container_type,
+      hazardous_materials: hasDangerousGoods,
+      routed_export_transaction: false,
+      related_parties: false,
+      // References
       shipment_reference_number: ship.shipment_ref || null,
       filing_option: "2",
+      // Forwarding agent / broker
+      broker_name: forwarder?.company_name || null,
+      broker_email: forwarder?.email || null,
+      authorized_agent_name: forwarder?.company_name || null,
+      authorized_agent_address: buildFullAddress(forwarder),
+      authorized_agent_ein: forwarder?.tax_id || null,
+      // Commodity lines
       hts_codes: htsCodes.length > 0 ? htsCodes : null,
     })
     .select("id")
