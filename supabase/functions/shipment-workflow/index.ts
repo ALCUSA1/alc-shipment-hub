@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         if (!ship) throw new Error("Shipment not found");
 
         // Validation
-        if (!["draft", "quote_ready", "awaiting_approval"].includes(ship.lifecycle_stage || "")) {
+        if (!["draft", "quote_ready"].includes(ship.lifecycle_stage || "")) {
           throw new Error(`Cannot submit for pricing from stage: ${ship.lifecycle_stage}`);
         }
         if (!ship.origin_port || !ship.destination_port) {
