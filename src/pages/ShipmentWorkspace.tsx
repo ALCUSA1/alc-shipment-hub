@@ -14,6 +14,7 @@ import { LogisticsServicesPanel } from "@/components/shipment/LogisticsServicesP
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
+import { TruckingRateSelector } from "@/components/shipment/TruckingRateSelector";
 import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
@@ -401,6 +402,17 @@ const ShipmentWorkspace = () => {
                   </div>
                 </CardContent>
               </Card>
+              {/* Trucking Rate Selector — shown after booking confirmed */}
+              {["booked", "in_transit"].includes(shipment.lifecycle_stage || shipment.status) && (
+                <TruckingRateSelector
+                  shipmentId={shipment.id}
+                  originPort={shipment.origin_port || ""}
+                  destinationPort={shipment.destination_port || ""}
+                  pickupLocation={(shipment as any).pickup_location || undefined}
+                  deliveryLocation={(shipment as any).delivery_location || undefined}
+                  containerType={containers?.[0]?.container_type}
+                />
+              )}
             </div>
           </TabsContent>
 
