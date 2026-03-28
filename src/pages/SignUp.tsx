@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import alcLogo from "@/assets/alc-logo.png";
-import { Package, Ship, Truck, Warehouse, CheckCircle2 } from "lucide-react";
+import { Package, Ship, Truck, Warehouse, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
@@ -63,6 +63,7 @@ const ROLE_OPTIONS = [
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,6 +71,13 @@ const SignUp = () => {
   const [companyName, setCompanyName] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const pendingBooking = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem("pendingBooking");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +118,9 @@ const SignUp = () => {
       title: "Account created",
       description: "Please check your email to verify your account. Once verified and approved by our team, you'll be able to log in.",
     });
-    navigate("/login");
+    // Preserve returnTo for login page
+    const returnTo = searchParams.get("returnTo");
+    navigate(returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login");
   };
 
   return (
@@ -136,6 +146,20 @@ const SignUp = () => {
           </Link>
           <h1 className="text-2xl font-bold text-foreground mb-1 tracking-tight">Create your account</h1>
           <p className="text-sm text-muted-foreground mb-6">Select your role and get started with ALC Logistics</p>
+
+          {pendingBooking && (
+            <div className="mb-6 p-3 rounded-lg bg-accent/5 border border-accent/20">
+              <div className="flex items-center gap-2 mb-1">
+                <Ship className="h-4 w-4 text-accent" />
+                <p className="text-sm font-semibold text-foreground">Continuing your booking</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {pendingBooking.originPort} <ArrowRight className="inline h-3 w-3 mx-0.5" /> {pendingBooking.destinationPort}
+                {pendingBooking.carrier && <> · {pendingBooking.carrier}</>}
+                {pendingBooking.totalRate > 0 && <> · <span className="text-accent font-medium">${pendingBooking.totalRate.toLocaleString()}</span></>}
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Step 1: Role Selection */}
@@ -202,7 +226,7 @@ const SignUp = () => {
             Your account will be reviewed by our team before access is granted.
           </p>
           <p className="text-sm text-muted-foreground mt-3 text-center">
-            Already have an account? <Link to="/login" className="text-accent font-medium hover:underline">Log in</Link>
+            Already have an account? <Link to={searchParams.get("returnTo") ? `/login?returnTo=${encodeURIComponent(searchParams.get("returnTo")!)}` : "/login"} className="text-accent font-medium hover:underline">Log in</Link>
           </p>
         </div>
       </div>

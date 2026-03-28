@@ -3,11 +3,12 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getPostLoginRoute } from "@/lib/role-routing";
 import alcLogo from "@/assets/alc-logo.png";
+import { Ship, ArrowRight } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,6 +19,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+
+  const pendingBooking = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem("pendingBooking");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +100,20 @@ const Login = () => {
             <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto" />
           </Link>
 
+          {pendingBooking && (
+            <div className="mb-6 p-3 rounded-lg bg-accent/5 border border-accent/20">
+              <div className="flex items-center gap-2 mb-1">
+                <Ship className="h-4 w-4 text-accent" />
+                <p className="text-sm font-semibold text-foreground">Continuing your booking</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {pendingBooking.originPort} <ArrowRight className="inline h-3 w-3 mx-0.5" /> {pendingBooking.destinationPort}
+                {pendingBooking.carrier && <> · {pendingBooking.carrier}</>}
+                {pendingBooking.totalRate > 0 && <> · <span className="text-accent font-medium">${pendingBooking.totalRate.toLocaleString()}</span></>}
+              </p>
+            </div>
+          )}
+
           {resetMode ? (
             <>
               <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Reset password</h1>
@@ -134,7 +156,7 @@ const Login = () => {
                 </Button>
               </form>
               <p className="text-sm text-muted-foreground mt-6 text-center">
-                Don't have an account? <Link to="/signup" className="text-accent font-medium hover:underline">Sign up</Link>
+                Don't have an account? <Link to={searchParams.get("returnTo") ? `/signup?returnTo=${encodeURIComponent(searchParams.get("returnTo")!)}` : "/signup"} className="text-accent font-medium hover:underline">Sign up</Link>
               </p>
             </>
           )}
