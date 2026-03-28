@@ -850,6 +850,7 @@ const CustomerShipmentWorkspace = () => {
 
         {/* ══ FINANCIALS TAB ══ */}
         <TabsContent value="financials" className="mt-6 space-y-6">
+          <CustomerFundingPanel shipmentId={id!} />
           <CustomerFinancialsTab
             shipmentId={id!}
             shipmentRef={shipment.shipment_ref}
