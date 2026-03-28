@@ -131,6 +131,7 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
       }
       queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
       queryClient.invalidateQueries({ queryKey: ["logistics-trucking-quotes", shipmentId] });
+      setConfirmed(true);
       toast.success("Trucking rates confirmed and added to shipment!");
     } catch (err: any) {
       toast.error(err.message || "Failed to confirm trucking");
