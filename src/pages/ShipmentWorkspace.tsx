@@ -35,6 +35,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PortSelector } from "@/components/shipment/PortSelector";
 import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
+import { AddressAutocomplete } from "@/components/shared/AddressAutocomplete";
 
 /* ── Status helpers ── */
 const statusColor: Record<string, string> = {
@@ -650,7 +651,9 @@ const ShipmentWorkspace = () => {
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground">Address</Label>
-                        <Input value={shipperAddress} onChange={e => setShipperAddress(e.target.value)} placeholder="Full address" className="mt-1" disabled={!isBooking} />
+                        <div className="mt-1">
+                          <AddressAutocomplete value={shipperAddress} onChange={setShipperAddress} placeholder="Full address" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -664,7 +667,9 @@ const ShipmentWorkspace = () => {
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground">Address</Label>
-                        <Input value={consigneeAddress} onChange={e => setConsigneeAddress(e.target.value)} placeholder="Full address" className="mt-1" disabled={!isBooking} />
+                        <div className="mt-1">
+                          <AddressAutocomplete value={consigneeAddress} onChange={setConsigneeAddress} placeholder="Full address" />
+                        </div>
                       </div>
                     </div>
                   </div>
