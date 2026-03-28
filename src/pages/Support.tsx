@@ -150,6 +150,19 @@ export default function Support() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label>Linked Shipment <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Select value={form.shipment_id} onValueChange={(v) => setForm((p) => ({ ...p, shipment_id: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Select a shipment…" /></SelectTrigger>
+                    <SelectContent>
+                      {shipments.map((s: any) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.reference} — {s.origin} → {s.destination}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Subject</Label>
                   <Input placeholder="Brief summary of the issue" value={form.subject} onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))} />
                 </div>
