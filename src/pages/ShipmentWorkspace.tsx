@@ -490,7 +490,13 @@ const ShipmentWorkspace = () => {
 
           {/* DOCUMENTS TAB */}
           <TabsContent value="documents" className="mt-5">
-            <DocumentChecklist shipmentId={id!} userId={user?.id || ""} />
+            <DocumentChecklist
+              shipmentId={id!}
+              userId={user?.id || ""}
+              shipmentMode={shipment.mode}
+              shipmentType={shipment.shipment_type}
+              lifecycleStage={shipment.lifecycle_stage}
+            />
           </TabsContent>
 
           {/* FINANCIALS TAB */}
