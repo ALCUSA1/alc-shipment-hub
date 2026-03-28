@@ -11,6 +11,7 @@ import alcLogo from "@/assets/alc-logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
