@@ -31,13 +31,17 @@ const RateSearch = () => {
     const pending = sessionStorage.getItem("pendingBooking");
     if (!pending) return;
 
-    const resumeBooking = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
+    // Wait for auth session to be fully established before creating draft
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session?.user) return;
+      
+      // Only process once
+      const stillPending = sessionStorage.getItem("pendingBooking");
+      if (!stillPending) return;
+      
       setAutoBooking(true);
       try {
-        const rateSelection: RateSelection = JSON.parse(pending);
+        const rateSelection: RateSelection = JSON.parse(stillPending);
         sessionStorage.removeItem("pendingBooking");
         const draft = await createShipmentDraft(rateSelection);
         toast.success(`Shipment ${draft.shipment_ref} created!`);
@@ -47,9 +51,9 @@ const RateSearch = () => {
         sessionStorage.removeItem("pendingBooking");
         setAutoBooking(false);
       }
-    };
+    });
 
-    resumeBooking();
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSearch = async (params: SearchParams) => {
