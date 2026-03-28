@@ -91,6 +91,14 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{ticket.description}</p>
+          {(ticket as any).shipments && (
+            <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-muted/50 w-fit">
+              <Package className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-foreground">
+                {(ticket as any).shipments.reference} — {(ticket as any).shipments.origin} → {(ticket as any).shipments.destination}
+              </span>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-3">Created {format(new Date(ticket.created_at), "MMM d, yyyy 'at' h:mm a")}</p>
         </CardContent>
       </Card>
