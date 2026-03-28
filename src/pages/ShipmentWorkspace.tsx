@@ -339,29 +339,31 @@ const ShipmentWorkspace = () => {
       await handleSaveDraft();
 
       // Transition lifecycle: draft → pending_pricing
-      const { error } = await supabase.from("shipments").update({
+      const { error: updateError } = await supabase.from("shipments").update({
         status: "pending_pricing",
         lifecycle_stage: "pending_pricing",
       }).eq("id", id);
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       // Create document checklist
       const requiredDocs = ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction"];
       if (needsCustoms) requiredDocs.push("customs_declaration", "aes_filing");
       if (needsInsurance) requiredDocs.push("insurance_certificate");
 
-      await supabase.from("documents").insert(
-        requiredDocs.map(docType => ({ shipment_id: id, user_id: user.id, doc_type: docType, status: "pending" }))
+      const { error: docsError } = await supabase.from("documents").insert(
+        requiredDocs.map(docType => ({ shipment_id: id, user_id: user.id, doc_type: docType, status: "pending", file_url: "" }))
       );
+      if (docsError) console.warn("Doc insert warning:", docsError.message);
 
       // Create services record
-      await supabase.from("shipment_services").insert({
+      const { error: svcError } = await supabase.from("shipment_services").insert({
         shipment_id: id,
         customs_clearance: needsCustoms,
         origin_trucking: needsTrucking,
         warehousing: needsWarehouse,
         insurance: needsInsurance,
-      });
+      } as any);
+      if (svcError) console.warn("Service insert warning:", svcError.message);
 
       queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
       toast.success("Booking submitted for pricing!");
@@ -467,8 +469,8 @@ const ShipmentWorkspace = () => {
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 <Save className="h-3.5 w-3.5 mr-1.5" />{saving ? "Saving..." : "Save Draft"}
               </Button>
-              <Button variant="electric" size="sm" onClick={handleSubmitBooking} disabled={submitting}>
-                <Send className="h-3.5 w-3.5 mr-1.5" />{submitting ? "Submitting..." : "Submit Booking"}
+              <Button variant="electric" size="sm" onClick={handleSubmitBooking} disabled={submitting || saving}>
+                <Send className="h-3.5 w-3.5 mr-1.5" />{submitting ? "Submitting..." : "Continue & Submit"}
               </Button>
             </div>
           )}
@@ -877,8 +879,8 @@ const ShipmentWorkspace = () => {
               <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 {saving ? "Saving..." : "Save Draft"}
               </Button>
-              <Button variant="electric" onClick={handleSubmitBooking} disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit Booking"}
+              <Button variant="electric" onClick={handleSubmitBooking} disabled={submitting || saving}>
+                {submitting ? "Submitting..." : "Continue & Submit"}
               </Button>
             </div>
           </div>
