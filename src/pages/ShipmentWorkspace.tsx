@@ -194,6 +194,12 @@ const ShipmentWorkspace = () => {
     enabled: !!id,
   });
 
+  const { data: payments } = useQuery({
+    queryKey: ["ws-payments", id],
+    queryFn: async () => { const { data } = await supabase.from("payments").select("status").eq("shipment_id", id!).order("created_at", { ascending: false }).limit(1); return data; },
+    enabled: !!id,
+  });
+
   /* ── Lifecycle helpers ── */
   const stageOrder = ["draft", "pending_pricing", "quote_ready", "booked", "in_transit", "delivered", "closed"];
   const currentStageIndex = stageOrder.indexOf(shipment?.lifecycle_stage || shipment?.status || "draft");
@@ -496,6 +502,7 @@ const ShipmentWorkspace = () => {
               shipmentMode={shipment.mode}
               shipmentType={shipment.shipment_type}
               lifecycleStage={shipment.lifecycle_stage}
+              paymentStatus={payments?.[0]?.status}
             />
           </TabsContent>
 
