@@ -116,7 +116,7 @@ function buildBookingLink(origin: string, destination: string, containerSize: st
   if (destination) params.set("destination", destination);
   if (containerSize) params.set("container", containerSize);
   if (mode) params.set("mode", mode);
-  return `/dashboard/shipments/new?${params.toString()}`;
+  return `/book?${params.toString()}`;
 }
 
 export function RateResultsPanel({ rates, origin, destination, containerSize, mode }: RateResultsPanelProps) {
@@ -365,7 +365,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                                 freeTimeDays: null,
                               };
                               sessionStorage.setItem("pendingBooking", JSON.stringify(pendingRate));
-                              navigate("/login?returnTo=/rates");
+                              navigate("/login?returnTo=/book");
                               return;
                             }
                             const surchargesList = parseSurcharges(rate.surcharges);
@@ -390,7 +390,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                             };
                             const draft = await createShipmentDraft(rateSelection);
                             toast.success(`Shipment ${draft.shipment_ref} created!`);
-                            navigate(`/dashboard/shipments/${draft.id}/workspace`);
+                            navigate(`/book?step=details&id=${draft.id}`);
                           } catch (err: any) {
                             toast.error(err.message || "Failed to create shipment");
                             setBookingRateId(null);

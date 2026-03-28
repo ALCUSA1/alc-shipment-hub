@@ -121,7 +121,7 @@ import AdminPricingEngine from "./pages/admin/AdminPricingEngine";
 import AdminProfitIntelligence from "./pages/admin/AdminProfitIntelligence";
 import AdminRateIntelligence from "./pages/admin/AdminRateIntelligence";
 import PricingPreview from "./pages/PricingPreview";
-import BookingFlow from "./pages/BookingFlow";
+import UnifiedBookingFlow from "./pages/UnifiedBookingFlow";
 import ShipmentWorkspace from "./pages/ShipmentWorkspace";
 import AdminLearningInsights from "./pages/admin/AdminLearningInsights";
 import AdminCustomerPricing from "./pages/admin/AdminCustomerPricing";
@@ -152,7 +152,7 @@ const App = () => (
             <Route path="/features" element={<Features />} />
             <Route path="/category" element={<Category />} />
             <Route path="/about" element={<About />} />
-            <Route path="/rates" element={<RateSearch />} />
+            <Route path="/rates" element={<Navigate to="/book" replace />} />
             <Route path="/security" element={<Security />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
@@ -162,15 +162,15 @@ const App = () => (
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             {/* Quick entry routes */}
-            <Route path="/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
+            <Route path="/shipments/new" element={<Navigate to="/book" replace />} />
             <Route path="/pricing-preview" element={<ProtectedRoute><PricingPreview /></ProtectedRoute>} />
-            <Route path="/book" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
+            <Route path="/book" element={<ProtectedRoute><UnifiedBookingFlow /></ProtectedRoute>} />
 
             {/* Operations Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/dashboard/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
             <Route path="/dashboard/shipments" element={<ProtectedRoute><Shipments /></ProtectedRoute>} />
-            <Route path="/dashboard/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
+            <Route path="/dashboard/shipments/new" element={<Navigate to="/book" replace />} />
             <Route path="/dashboard/shipments/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id/workspace" element={<ProtectedRoute><ShipmentWorkspace /></ProtectedRoute>} />
             <Route path="/dashboard/shipments/:id/customer" element={<ProtectedRoute><CustomerShipmentWorkspace /></ProtectedRoute>} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { BackButton } from "@/components/shared/BackButton";
 import { DocumentChecklist } from "@/components/shipment/DocumentChecklist";
 import { CustomerFinancialsTab } from "@/components/shipment/CustomerFinancialsTab";
@@ -20,22 +19,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import {
-  Package, FileText, Clock, Check, Circle, MapPin, ArrowRight,
+  Package, FileText, Clock, Check, MapPin, ArrowRight,
   MessageSquare, Activity, BarChart3, Ship, Plane, Truck, Shield,
-  Anchor, Globe, Container, CheckCircle2, Receipt, AlertTriangle,
-  DollarSign, Save, Send, ChevronRight, User, Building2, Info,
+  Anchor, Globe, Container, CheckCircle2, Receipt, DollarSign,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { PortSelector } from "@/components/shipment/PortSelector";
-import { HsCodeAutocomplete } from "@/components/shared/HsCodeAutocomplete";
-import { AddressAutocomplete } from "@/components/shared/AddressAutocomplete";
 
 /* ── Status helpers ── */
 const statusColor: Record<string, string> = {
@@ -66,16 +54,7 @@ const LIFECYCLE_STAGES = [
   { key: "financially_closed", label: "Closed", icon: Receipt },
 ];
 
-const BOOKING_TABS = [
-  { id: "booking", label: "Booking", icon: Anchor },
-  { id: "cargo", label: "Cargo & Parties", icon: Package },
-  { id: "compliance", label: "Compliance", icon: Shield },
-  { id: "logistics", label: "Logistics Services", icon: Truck },
-  { id: "documents", label: "Documents", icon: FileText },
-  { id: "payment", label: "Payment Summary", icon: DollarSign },
-] as const;
-
-const OPERATIONS_TABS = [
+const TABS = [
   { id: "overview", label: "Overview", icon: Package },
   { id: "tracking", label: "Tracking", icon: Clock },
   { id: "booking", label: "Booking", icon: Anchor },
@@ -86,33 +65,6 @@ const OPERATIONS_TABS = [
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "activity", label: "Activity", icon: Activity },
 ] as const;
-
-/* ── Booking Section Component ── */
-function BookingSection({ title, icon: Icon, children, defaultOpen = false }: {
-  title: string; icon: any; children: React.ReactNode; defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <Card className="overflow-hidden">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-            <Icon className="h-4 w-4 text-accent" />
-          </div>
-          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        </div>
-        <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-            <CardContent className="pt-0 pb-5 px-5">{children}</CardContent>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </Card>
-  );
-}
 
 /* ── Price Header ── */
 function PriceHeader({ shipment, financials }: { shipment: any; financials: any[] }) {
@@ -162,28 +114,14 @@ const ShipmentWorkspace = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
 
-  // Booking form state
-  const [commodity, setCommodity] = useState("");
-  const [weight, setWeight] = useState("");
-  const [volume, setVolume] = useState("");
-  const [numPackages, setNumPackages] = useState("");
-  const [hsCode, setHsCode] = useState("");
-  const [containerQty, setContainerQty] = useState("1");
-  const [dangerousGoods, setDangerousGoods] = useState(false);
-  const [shipperName, setShipperName] = useState("");
-  const [shipperAddress, setShipperAddress] = useState("");
-  const [consigneeName, setConsigneeName] = useState("");
-  const [consigneeAddress, setConsigneeAddress] = useState("");
-  const [notifyParty, setNotifyParty] = useState("");
-  const [needsCustoms, setNeedsCustoms] = useState(false);
-  const [needsTrucking, setNeedsTrucking] = useState(false);
-  const [needsWarehouse, setNeedsWarehouse] = useState(false);
-  const [needsInsurance, setNeedsInsurance] = useState(false);
-  const [specialNotes, setSpecialNotes] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [payingNow, setPayingNow] = useState(false);
-  const [bookingLater, setBookingLater] = useState(false);
+  // If this is a draft shipment, redirect to the unified booking flow
+  const checkAndRedirect = (shipmentData: any) => {
+    const isDraft = shipmentData?.lifecycle_stage === "draft" || shipmentData?.status === "draft";
+    const isPendingPricing = shipmentData?.lifecycle_stage === "pending_pricing";
+    if (isDraft || isPendingPricing) {
+      navigate(`/book?step=details&id=${id}`, { replace: true });
+    }
+  };
 
   /* ── Realtime ── */
   useEffect(() => {
@@ -206,6 +144,7 @@ const ShipmentWorkspace = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name)").eq("id", id!).maybeSingle();
       if (error) throw error;
+      if (data) checkAndRedirect(data);
       return data;
     },
     enabled: !!id,
@@ -253,213 +192,6 @@ const ShipmentWorkspace = () => {
     enabled: !!id,
   });
 
-  const { data: shipmentServices } = useQuery({
-    queryKey: ["ws-services", id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("shipment_services").select("*").eq("shipment_id", id!).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!id,
-  });
-
-  // Pre-populate form from existing data
-  useEffect(() => {
-    if (cargo?.[0]) {
-      setCommodity(cargo[0].commodity || "");
-      setWeight(cargo[0].gross_weight?.toString() || "");
-      setVolume(cargo[0].volume?.toString() || "");
-      setNumPackages(cargo[0].num_packages?.toString() || "");
-      setHsCode(cargo[0].hs_code || "");
-      setDangerousGoods(cargo[0].dangerous_goods || false);
-    }
-    if (containers?.[0]) {
-      setContainerQty(containers[0].quantity?.toString() || "1");
-    }
-    if (parties) {
-      const shipper = parties.find(p => p.role === "shipper");
-      const consignee = parties.find(p => p.role === "consignee");
-      const notify = parties.find(p => p.role === "notify_party");
-      if (shipper) { setShipperName(shipper.company_name || ""); setShipperAddress(shipper.address || ""); }
-      if (consignee) { setConsigneeName(consignee.company_name || ""); setConsigneeAddress(consignee.address || ""); }
-      if (notify) setNotifyParty(notify.company_name || "");
-    }
-  }, [cargo, containers, parties]);
-
-  useEffect(() => {
-    if (!shipmentServices) return;
-
-    setNeedsCustoms(shipmentServices.customs_clearance || false);
-    setNeedsTrucking(shipmentServices.trucking || false);
-    setNeedsWarehouse(shipmentServices.warehousing || false);
-    setNeedsInsurance(shipmentServices.insurance || false);
-  }, [shipmentServices]);
-
-  const isDraft = shipment?.lifecycle_stage === "draft" || shipment?.status === "draft";
-  const isBooking = isDraft || shipment?.lifecycle_stage === "pending_pricing";
-  const TABS = isBooking ? BOOKING_TABS : OPERATIONS_TABS;
-
-  useEffect(() => {
-    if (!TABS.some((tab) => tab.id === activeTab)) {
-      setActiveTab(TABS[0].id);
-    }
-  }, [TABS, activeTab]);
-
-  const persistDraft = async () => {
-    if (!id || !user) throw new Error("Please log in to continue.");
-
-    const existingCargo = cargo?.[0];
-    if (existingCargo) {
-      const { error } = await supabase.from("cargo").update({
-        commodity: commodity || null,
-        hs_code: hsCode || null,
-        gross_weight: weight ? parseFloat(weight) : null,
-        volume: volume ? parseFloat(volume) : null,
-        num_packages: numPackages ? parseInt(numPackages) : null,
-        dangerous_goods: dangerousGoods,
-      }).eq("id", existingCargo.id);
-      if (error) throw error;
-    } else if (commodity || weight || hsCode) {
-      const { error } = await supabase.from("cargo").insert({
-        shipment_id: id,
-        commodity: commodity || null,
-        hs_code: hsCode || null,
-        gross_weight: weight ? parseFloat(weight) : null,
-        volume: volume ? parseFloat(volume) : null,
-        num_packages: numPackages ? parseInt(numPackages) : null,
-        dangerous_goods: dangerousGoods,
-      });
-      if (error) throw error;
-    }
-
-    const upsertParty = async (role: string, companyName: string, address: string) => {
-      if (!companyName) return;
-
-      const existing = parties?.find(p => p.role === role);
-      if (existing) {
-        const { error } = await supabase
-          .from("shipment_parties")
-          .update({ company_name: companyName, address: address || null })
-          .eq("id", existing.id);
-        if (error) throw error;
-        return;
-      }
-
-      const { error } = await supabase.from("shipment_parties").insert({
-        shipment_id: id,
-        role,
-        company_name: companyName,
-        address: address || null,
-        assigned_by_user_id: user.id,
-      });
-      if (error) throw error;
-    };
-
-    await upsertParty("shipper", shipperName, shipperAddress);
-    await upsertParty("consignee", consigneeName, consigneeAddress);
-    if (notifyParty) await upsertParty("notify_party", notifyParty, "");
-
-    if (containers?.[0]) {
-      const { error } = await supabase.from("containers").update({ quantity: parseInt(containerQty) || 1 }).eq("id", containers[0].id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("containers").insert({
-        shipment_id: id,
-        container_type: "40hc",
-        quantity: parseInt(containerQty) || 1,
-      });
-      if (error) throw error;
-    }
-
-    const { error: notesError } = await supabase.from("shipments").update({ notes: specialNotes || null } as any).eq("id", id);
-    if (notesError) throw notesError;
-
-    const { error: servicesError } = await supabase.from("shipment_services").upsert({
-      shipment_id: id,
-      customs_clearance: needsCustoms,
-      trucking: needsTrucking,
-      warehousing: needsWarehouse,
-      insurance: needsInsurance,
-    } as any, { onConflict: "shipment_id" });
-    if (servicesError) throw servicesError;
-
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["ws-cargo", id] }),
-      queryClient.invalidateQueries({ queryKey: ["ws-parties", id] }),
-      queryClient.invalidateQueries({ queryKey: ["ws-containers", id] }),
-      queryClient.invalidateQueries({ queryKey: ["ws-services", id] }),
-      queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] }),
-    ]);
-  };
-
-  /* ── Save Draft ── */
-  const handleSaveDraft = async () => {
-    if (!id || !user) return;
-    setSaving(true);
-    try {
-      await persistDraft();
-      toast.success("Draft saved successfully");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save draft");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  /* ── Tab validation ── */
-  const validateTab = (tabId: string): string | null => {
-    switch (tabId) {
-      case "booking":
-        if (!shipment?.origin_port && !shipment?.destination_port) return "Origin and destination ports are required.";
-        return null;
-      case "cargo":
-        if (!commodity && !weight && !hsCode) return "Please provide cargo details (commodity, weight, or HS code).";
-        if (!shipperName) return "Shipper name is required.";
-        if (!consigneeName) return "Consignee name is required.";
-        return null;
-      case "compliance":
-        return null; // optional
-      case "logistics":
-        return null; // optional
-      case "documents":
-        return null; // informational
-      default:
-        return null;
-    }
-  };
-
-  /* ── Save & Continue ── */
-  const handleContinueBooking = async () => {
-    if (!id || !user) return;
-
-    // Validate current tab before advancing
-    const currentTabId = BOOKING_TABS.some((tab) => tab.id === activeTab) ? activeTab : BOOKING_TABS[0].id;
-    const validationError = validateTab(currentTabId);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await persistDraft();
-
-      const currentIndex = BOOKING_TABS.findIndex((tab) => tab.id === currentTabId);
-      const nextTab = BOOKING_TABS[Math.min(currentIndex + 1, BOOKING_TABS.length - 1)].id;
-
-      setActiveTab(nextTab);
-      toast.success(
-        nextTab === currentTabId
-          ? "All steps complete. Review your payment options."
-          : `Saved. Continue with ${BOOKING_TABS.find((tab) => tab.id === nextTab)?.label}.`
-      );
-    } catch (err: any) {
-      toast.error(err.message || "Failed to continue booking");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   /* ── Lifecycle helpers ── */
   const stageOrder = ["draft", "pending_pricing", "quote_ready", "awaiting_approval", "booked", "in_transit", "delivered", "closed"];
   const currentStageIndex = stageOrder.indexOf(shipment?.lifecycle_stage || shipment?.status || "draft");
@@ -483,11 +215,7 @@ const ShipmentWorkspace = () => {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
+        <div className="space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-24 w-full" /><Skeleton className="h-48 w-full" /></div>
       </DashboardLayout>
     );
   }
@@ -504,14 +232,13 @@ const ShipmentWorkspace = () => {
   }
 
   const sellTotal = financials.filter(f => f.entry_type === "revenue").reduce((s, f) => s + (f.amount || 0), 0);
-  const costTotal = financials.filter(f => f.entry_type === "cost").reduce((s, f) => s + (f.amount || 0), 0);
   const containersSummary = (containers || []).map(c => `${c.quantity || 1}x${c.container_type}`).join(", ") || "—";
   const firstCargo = cargo?.[0];
   const companyName = (shipment as any).companies?.company_name as string | undefined;
 
   return (
     <DashboardLayout>
-      <SEO title={`${shipment.shipment_ref || "Shipment"} — Workspace`} description="Manage your shipment booking, documents, and tracking in one place." />
+      <SEO title={`${shipment.shipment_ref || "Shipment"} — Workspace`} description="Manage your shipment tracking, documents, and operations." />
 
       <div className="max-w-6xl mx-auto space-y-5">
         {/* Back + Ref */}
@@ -528,449 +255,59 @@ const ShipmentWorkspace = () => {
               {companyName && <p className="text-xs text-muted-foreground">{companyName}</p>}
             </div>
           </div>
-          {isBooking && (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
-                <Save className="h-3.5 w-3.5 mr-1.5" />{saving ? "Saving..." : "Save Draft"}
-              </Button>
-              <Button variant="electric" size="sm" onClick={handleContinueBooking} disabled={submitting || saving}>
-                <Send className="h-3.5 w-3.5 mr-1.5" />{submitting ? "Submitting..." : "Save & Continue"}
-              </Button>
-            </div>
-          )}
         </div>
 
-        {/* Price Header — Always visible */}
+        {/* Price Header */}
         <PriceHeader shipment={shipment} financials={financials} />
 
-        {/* Lifecycle Timeline — for non-draft shipments */}
-        {!isDraft && (
-          <div className="overflow-x-auto pb-2">
-            <div className="flex items-center gap-0 min-w-[800px]">
-              {LIFECYCLE_STAGES.map((stage, i) => {
-                const status = getLifecycleStatus(stage.key);
-                const Icon = stage.icon;
-                return (
-                  <div key={stage.key} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center gap-1">
-                      <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs ${
-                        status === "completed" ? "bg-accent text-accent-foreground"
-                        : status === "current" ? "bg-accent/20 text-accent ring-2 ring-accent/40"
-                        : "bg-muted text-muted-foreground"
-                      }`}>
-                        {status === "completed" ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
-                      </div>
-                      <span className={`text-[9px] text-center leading-tight max-w-[60px] ${
-                        status !== "upcoming" ? "text-foreground font-medium" : "text-muted-foreground"
-                      }`}>{stage.label}</span>
+        {/* Lifecycle Timeline */}
+        <div className="overflow-x-auto pb-2">
+          <div className="flex items-center gap-0 min-w-[800px]">
+            {LIFECYCLE_STAGES.map((stage, i) => {
+              const status = getLifecycleStatus(stage.key);
+              const Icon = stage.icon;
+              return (
+                <div key={stage.key} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs ${
+                      status === "completed" ? "bg-accent text-accent-foreground"
+                      : status === "current" ? "bg-accent/20 text-accent ring-2 ring-accent/40"
+                      : "bg-muted text-muted-foreground"
+                    }`}>
+                      {status === "completed" ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                     </div>
-                    {i < LIFECYCLE_STAGES.length - 1 && (
-                      <div className={`flex-1 h-0.5 mx-1 ${status === "completed" ? "bg-accent" : "bg-border"}`} />
-                    )}
+                    <span className={`text-[9px] text-center leading-tight max-w-[60px] ${
+                      status !== "upcoming" ? "text-foreground font-medium" : "text-muted-foreground"
+                    }`}>{stage.label}</span>
                   </div>
-                );
-              })}
-            </div>
+                  {i < LIFECYCLE_STAGES.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-1 ${status === "completed" ? "bg-accent" : "bg-border"}`} />
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
 
         {/* Tabbed Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-1 bg-transparent p-0 border-b border-border rounded-none pb-0">
             {TABS.map(tab => (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent data-[state=active]:bg-transparent rounded-none pb-2 text-xs gap-1.5"
-              >
-                <tab.icon className="h-3.5 w-3.5" />
-                {tab.label}
+              <TabsTrigger key={tab.id} value={tab.id} className="data-[state=active]:border-b-2 data-[state=active]:border-accent data-[state=active]:bg-transparent rounded-none pb-2 text-xs gap-1.5">
+                <tab.icon className="h-3.5 w-3.5" />{tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* ── BOOKING TAB (Summary + confirm for drafts) ── */}
-          <TabsContent value="booking" className="mt-5">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Anchor className="h-4 w-4 text-accent" /> Shipment Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><p className="text-xs text-muted-foreground uppercase">Origin</p><p className="font-medium">{shipment.origin_port || "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Destination</p><p className="font-medium">{shipment.destination_port || "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Carrier</p><p className="font-medium">{shipment.carrier || "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Mode</p><p className="font-medium">{shipment.mode === "air" ? "Air Freight" : "Ocean FCL"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">ETD</p><p className="font-medium">{shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">ETA</p><p className="font-medium">{shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Container</p><p className="font-medium">{containersSummary}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Commodity</p><p className="font-medium">{firstCargo?.commodity || "—"}</p></div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Vessel/Air booking details for post-draft */}
-              {!isDraft && shipment.mode === "ocean" && (
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Vessel Details</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div><p className="text-xs text-muted-foreground uppercase">Vessel</p><p className="font-medium">{shipment.vessel || "—"}</p></div>
-                      <div><p className="text-xs text-muted-foreground uppercase">Voyage</p><p className="font-medium">{shipment.voyage || "—"}</p></div>
-                      <div><p className="text-xs text-muted-foreground uppercase">Booking #</p><p className="font-medium">{(shipment as any).booking_number || "—"}</p></div>
-                      <div><p className="text-xs text-muted-foreground uppercase">BL #</p><p className="font-medium">{(shipment as any).bl_number || "—"}</p></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* ── CARGO & PARTIES TAB (editable for drafts) ── */}
-          <TabsContent value="cargo" className="mt-5">
-            <div className="space-y-4">
-              <BookingSection title="Cargo Details" icon={Package} defaultOpen={true}>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Commodity</Label>
-                      <Input value={commodity} onChange={e => setCommodity(e.target.value)} placeholder="e.g. Electronics" className="mt-1" disabled={!isBooking} />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">HS Code</Label>
-                      <div className="mt-1">
-                        <HsCodeAutocomplete value={hsCode} commodity={commodity} onChange={setHsCode} placeholder="e.g. 8471.30.01.00" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Weight (kg)</Label>
-                      <Input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="18000" className="mt-1" disabled={!isBooking} />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Volume (CBM)</Label>
-                      <Input type="number" value={volume} onChange={e => setVolume(e.target.value)} placeholder="33" className="mt-1" disabled={!isBooking} />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Packages</Label>
-                      <Input type="number" value={numPackages} onChange={e => setNumPackages(e.target.value)} placeholder="50" className="mt-1" disabled={!isBooking} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Container Qty</Label>
-                      <Input type="number" min="1" value={containerQty} onChange={e => setContainerQty(e.target.value)} className="mt-1" disabled={!isBooking} />
-                    </div>
-                    <div className="flex items-center gap-3 pt-5">
-                      <Switch checked={dangerousGoods} onCheckedChange={setDangerousGoods} disabled={!isBooking} />
-                      <Label className="text-xs">Dangerous Goods</Label>
-                    </div>
-                  </div>
-                </div>
-              </BookingSection>
-
-              <BookingSection title="Parties" icon={User} defaultOpen={true}>
-                <div className="space-y-5">
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Shipper / Exporter</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Name</Label>
-                        <Input value={shipperName} onChange={e => setShipperName(e.target.value)} placeholder="Company name" className="mt-1" disabled={!isBooking} />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Address</Label>
-                        <div className="mt-1">
-                          <AddressAutocomplete value={shipperAddress} onChange={setShipperAddress} placeholder="Full address" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Consignee</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Name</Label>
-                        <Input value={consigneeName} onChange={e => setConsigneeName(e.target.value)} placeholder="Company name" className="mt-1" disabled={!isBooking} />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Address</Label>
-                        <div className="mt-1">
-                          <AddressAutocomplete value={consigneeAddress} onChange={setConsigneeAddress} placeholder="Full address" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Notify Party</p>
-                    <Input value={notifyParty} onChange={e => setNotifyParty(e.target.value)} placeholder="Notify party name" disabled={!isBooking} />
-                  </div>
-                </div>
-              </BookingSection>
-            </div>
-          </TabsContent>
-
-          {/* ── COMPLIANCE TAB ── */}
-          <TabsContent value="compliance" className="mt-5">
-            {isBooking ? (
-              <BookingSection title="Export Compliance (AES / EEI)" icon={Shield} defaultOpen={true}>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">AES filing will be generated automatically</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Based on your cargo details and party information, the system will determine if AES/EEI filing is required
-                        and generate the necessary compliance documents when you submit the booking.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={needsCustoms} onCheckedChange={setNeedsCustoms} />
-                    <div>
-                      <Label className="text-sm">Customs Clearance Service</Label>
-                      <p className="text-xs text-muted-foreground">We handle customs documentation and clearance</p>
-                    </div>
-                  </div>
-                </div>
-              </BookingSection>
-            ) : (
-              <CustomsFilingPanel shipmentId={id!} />
-            )}
-          </TabsContent>
-
-          {/* ── LOGISTICS SERVICES TAB ── */}
-          <TabsContent value="logistics" className="mt-5">
-            {isBooking ? (
-              <div className="space-y-4">
-                <BookingSection title="Logistics Services" icon={Truck} defaultOpen={true}>
-                  <div className="space-y-4">
-                    {[
-                      { key: "trucking", label: "Origin Trucking", desc: "Pickup from shipper to port", state: needsTrucking, setter: setNeedsTrucking, icon: Truck },
-                      { key: "warehouse", label: "Warehouse Services", desc: "Storage at origin or destination", state: needsWarehouse, setter: setNeedsWarehouse, icon: Container },
-                      { key: "insurance", label: "Cargo Insurance", desc: "All-risk cargo insurance coverage", state: needsInsurance, setter: setNeedsInsurance, icon: Shield },
-                    ].map(svc => (
-                      <div key={svc.key} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                            <svc.icon className="h-4 w-4 text-accent" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{svc.label}</p>
-                            <p className="text-xs text-muted-foreground">{svc.desc}</p>
-                          </div>
-                        </div>
-                        <Switch checked={svc.state} onCheckedChange={svc.setter} />
-                      </div>
-                    ))}
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Special Instructions</Label>
-                      <Textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} placeholder="Any special requirements..." className="mt-1" rows={3} />
-                    </div>
-                  </div>
-                </BookingSection>
-              </div>
-            ) : (
-              <LogisticsServicesPanel shipmentId={id!} shipmentRef={shipment.shipment_ref || ""} />
-            )}
-          </TabsContent>
-
-          {/* ── DOCUMENTS TAB ── */}
-          <TabsContent value="documents" className="mt-5">
-            {isBooking ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-accent" /> Documents
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
-                    <Info className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">Documents will be generated after booking submission</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Required documents (SI, BL, Invoice, etc.) will be automatically created based on your shipment type
-                        and selected services. You can review and download them in the workspace after submission.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase">Expected documents:</p>
-                    {["Shipping Instruction (SI)", "House Bill of Lading (HBL)", "Commercial Invoice", "Packing List",
-                      ...(needsCustoms ? ["AES Filing / ITN Confirmation"] : []),
-                      ...(needsInsurance ? ["Insurance Certificate"] : []),
-                    ].map(doc => (
-                      <div key={doc} className="flex items-center gap-2 text-sm">
-                        <Circle className="h-3 w-3 text-muted-foreground" />
-                        <span>{doc}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <DocumentChecklist shipmentId={id!} userId={user?.id || ""} />
-            )}
-          </TabsContent>
-
-          {/* ── PAYMENT SUMMARY TAB (booking mode) ── */}
-          <TabsContent value="payment" className="mt-5">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-accent" /> Payment Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Shipment overview */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm p-3 rounded-lg bg-muted/30">
-                    <div><p className="text-xs text-muted-foreground uppercase">Route</p><p className="font-medium">{shipment.origin_port || "—"} → {shipment.destination_port || "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Carrier</p><p className="font-medium">{shipment.carrier || "—"}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">Container</p><p className="font-medium">{containersSummary}</p></div>
-                    <div><p className="text-xs text-muted-foreground uppercase">ETD</p><p className="font-medium">{shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"}</p></div>
-                  </div>
-
-                  {/* Line items */}
-                  <div className="space-y-2">
-                    {financials.filter(f => f.entry_type === "revenue").length > 0 ? (
-                      financials.filter(f => f.entry_type === "revenue").map(f => (
-                        <div key={f.id} className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{f.description}</span>
-                          <span className="font-mono font-medium">${f.amount?.toLocaleString()}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Freight charges</span>
-                        <span className="font-mono font-medium text-muted-foreground">Pricing pending</span>
-                      </div>
-                    )}
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total Amount Due</span>
-                    <span className="text-accent">{sellTotal > 0 ? `$${sellTotal.toLocaleString()}` : "TBD"}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">How would you like to proceed?</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button
-                    variant="electric"
-                    className="w-full h-12 text-base"
-                    disabled={payingNow || sellTotal <= 0}
-                    onClick={async () => {
-                      setPayingNow(true);
-                      try {
-                        await persistDraft();
-                        const { data, error } = await supabase.functions.invoke("create-payment", {
-                          body: {
-                            shipment_id: id,
-                            shipment_ref: shipment.shipment_ref,
-                            amount: sellTotal,
-                            currency: "USD",
-                            carrier: shipment.carrier,
-                          },
-                        });
-                        if (error) throw error;
-                        if (data?.url) {
-                          window.location.href = data.url;
-                        } else {
-                          throw new Error("No checkout URL returned");
-                        }
-                      } catch (err: any) {
-                        toast.error(err.message || "Failed to initiate payment");
-                        setPayingNow(false);
-                      }
-                    }}
-                  >
-                    {payingNow ? "Redirecting to payment..." : `Pay Now — $${sellTotal.toLocaleString()}`}
-                  </Button>
-
-                  <div className="relative">
-                    <Separator />
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">or</span>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={bookingLater}
-                    onClick={async () => {
-                      setBookingLater(true);
-                      try {
-                        await persistDraft();
-                        // Transition through lifecycle: draft → pending_pricing → quote_ready → awaiting_approval → booked
-                        const currentStage = shipment.lifecycle_stage || shipment.status || "draft";
-                        const transitionPath: Record<string, string> = {
-                          draft: "pending_pricing",
-                          pending_pricing: "quote_ready",
-                          quote_ready: "awaiting_approval",
-                          awaiting_approval: "booked",
-                        };
-                        
-                        let stage = currentStage;
-                        // Walk through transitions until we reach 'booked'
-                        while (stage !== "booked" && transitionPath[stage]) {
-                          const nextStage = transitionPath[stage];
-                          const { error } = await supabase.from("shipments").update({
-                            lifecycle_stage: nextStage,
-                            status: nextStage,
-                          }).eq("id", id);
-                          if (error) throw error;
-                          stage = nextStage;
-                        }
-
-                        await queryClient.invalidateQueries({ queryKey: ["shipment", id] });
-                        toast.success("Booking confirmed! An invoice will be sent to your email. You can pay anytime from your dashboard.");
-                        navigate("/dashboard/shipments");
-                      } catch (err: any) {
-                        toast.error(err.message || "Failed to confirm booking");
-                      } finally {
-                        setBookingLater(false);
-                      }
-                    }}
-                  >
-                    {bookingLater ? "Confirming..." : "Book Now, Pay Later"}
-                  </Button>
-
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <div>
-                      <p><strong>Pay Now:</strong> Securely pay via credit card or bank transfer. Documents will be released upon payment confirmation.</p>
-                      <p className="mt-1"><strong>Book Now, Pay Later:</strong> Reserve your booking and pay before document release. An invoice will be sent to your email.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* ── OVERVIEW TAB (post-booking) ── */}
+          {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="mt-5">
             <div className="space-y-4">
-              {/* Document Lifecycle */}
               <DocumentLifecycleBar
                 documents={(documents || []).map(d => ({ doc_type: d.doc_type, status: d.status, created_at: d.created_at, file_url: d.file_url }))}
                 payments={[]}
                 customsFilings={(customsFilings || []).map(f => ({ status: f.status }))}
                 lifecycleStage={shipment?.lifecycle_stage || shipment?.status}
               />
-
-              {/* Summary cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                   { icon: Anchor, label: "Booking", status: currentStageIndex >= 4 ? "Confirmed" : "Pending", color: currentStageIndex >= 4 ? "green" : "yellow" },
@@ -995,8 +332,6 @@ const ShipmentWorkspace = () => {
                   );
                 })}
               </div>
-
-              {/* Shipment details */}
               <Card>
                 <CardContent className="pt-5">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -1014,54 +349,68 @@ const ShipmentWorkspace = () => {
             </div>
           </TabsContent>
 
-          {/* ── TRACKING TAB ── */}
+          {/* BOOKING TAB (read-only summary) */}
+          <TabsContent value="booking" className="mt-5">
+            <Card>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Anchor className="h-4 w-4 text-accent" /> Booking Summary</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div><p className="text-xs text-muted-foreground uppercase">Origin</p><p className="font-medium">{shipment.origin_port || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">Destination</p><p className="font-medium">{shipment.destination_port || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">Carrier</p><p className="font-medium">{shipment.carrier || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">Mode</p><p className="font-medium">{shipment.mode === "air" ? "Air Freight" : "Ocean FCL"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">ETD</p><p className="font-medium">{shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">ETA</p><p className="font-medium">{shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">Container</p><p className="font-medium">{containersSummary}</p></div>
+                  <div><p className="text-xs text-muted-foreground uppercase">Commodity</p><p className="font-medium">{firstCargo?.commodity || "—"}</p></div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* TRACKING TAB */}
           <TabsContent value="tracking" className="mt-5">
             <LiveTrackingPanel shipmentId={id!} mode={(shipment.mode as "ocean" | "air") || "ocean"} />
           </TabsContent>
 
-          {/* ── FINANCIALS TAB (post-booking) ── */}
+          {/* COMPLIANCE TAB */}
+          <TabsContent value="compliance" className="mt-5">
+            <CustomsFilingPanel shipmentId={id!} />
+          </TabsContent>
+
+          {/* LOGISTICS TAB */}
+          <TabsContent value="logistics" className="mt-5">
+            <LogisticsServicesPanel shipmentId={id!} shipmentRef={shipment.shipment_ref || ""} />
+          </TabsContent>
+
+          {/* DOCUMENTS TAB */}
+          <TabsContent value="documents" className="mt-5">
+            <DocumentChecklist shipmentId={id!} userId={user?.id || ""} />
+          </TabsContent>
+
+          {/* FINANCIALS TAB */}
           <TabsContent value="financials" className="mt-5">
             <CustomerFinancialsTab shipmentId={id!} shipmentRef={shipment.shipment_ref || ""} />
           </TabsContent>
 
-          {/* ── MESSAGES TAB ── */}
+          {/* MESSAGES TAB */}
           <TabsContent value="messages" className="mt-5">
             <Card>
               <CardContent className="pt-5">
                 <div className="text-center py-8 text-muted-foreground">
                   <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">Shipment messages will appear here</p>
-                  <Button variant="outline" size="sm" className="mt-3" asChild>
-                    <Link to="/dashboard/messages">Open Messages</Link>
-                  </Button>
+                  <Button variant="outline" size="sm" className="mt-3" asChild><Link to="/dashboard/messages">Open Messages</Link></Button>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ── ACTIVITY TAB ── */}
+          {/* ACTIVITY TAB */}
           <TabsContent value="activity" className="mt-5">
             <AuditTrailPanel shipmentId={id!} />
           </TabsContent>
         </Tabs>
-
-        {/* Bottom action bar for booking mode (hide on payment tab since it has its own actions) */}
-        {isBooking && activeTab !== "payment" && (
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t p-4 -mx-4 flex items-center justify-between">
-            <div className="text-sm">
-              <span className="text-muted-foreground">Total: </span>
-              <span className="text-lg font-bold text-accent">{sellTotal > 0 ? `$${sellTotal.toLocaleString()}` : "TBD"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
-                {saving ? "Saving..." : "Save Draft"}
-              </Button>
-              <Button variant="electric" onClick={handleContinueBooking} disabled={submitting || saving}>
-                {submitting ? "Saving..." : "Save & Continue"}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

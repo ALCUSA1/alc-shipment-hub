@@ -71,7 +71,7 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
 
     // If user is auto-confirmed (dev mode), go to wizard. Otherwise show confirmation.
     if (data.session) {
-      navigate("/shipments/new");
+      navigate("/book");
     } else {
       toast({
         title: "Check your email",
