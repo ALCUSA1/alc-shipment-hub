@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, CheckCircle2, AlertCircle, Upload, Download, Loader2 } from "lucide-react";
+import { FileText, CheckCircle2, AlertCircle, Upload, Download, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ interface DocumentChecklistProps {
   hasCustomsClearance?: boolean;
   hasInsurance?: boolean;
   hasDangerousGoods?: boolean;
+  paymentStatus?: string;
 }
 
 /**
@@ -87,6 +88,7 @@ export function DocumentChecklist({
   hasCustomsClearance,
   hasInsurance,
   hasDangerousGoods,
+  paymentStatus,
 }: DocumentChecklistProps) {
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState<string | null>(null);
@@ -241,25 +243,34 @@ export function DocumentChecklist({
     const isCarrier = source === "carrier";
     const isPlatform = source === "platform";
     const isAvailable = hasFile && doc.file_url;
+    const isSWB = doc.doc_type === "seaway_bill";
+    const isPaymentBlocked = isSWB && paymentStatus !== "completed" && paymentStatus !== "succeeded" && !isAvailable;
     return (
       <div
         key={doc.id}
         className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
           isCompleted ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/30"
+          : isPaymentBlocked ? "bg-red-50/50 dark:bg-red-950/10 border-red-200/50 dark:border-red-900/20"
           : isCarrier && !isAvailable ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-900/20"
           : "hover:bg-muted/50 border-transparent"
         }`}
       >
-        <Checkbox
-          checked={isCompleted}
-          disabled={updating === doc.id}
-          onCheckedChange={() => toggleStatus(doc.id, doc.status)}
-        />
+        {isPaymentBlocked ? (
+          <Lock className="h-4 w-4 text-red-500 shrink-0" />
+        ) : (
+          <Checkbox
+            checked={isCompleted}
+            disabled={updating === doc.id}
+            onCheckedChange={() => toggleStatus(doc.id, doc.status)}
+          />
+        )}
         <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
             {DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type}
           </p>
-          {isAvailable ? (
+          {isPaymentBlocked ? (
+            <p className="text-[10px] text-red-600 dark:text-red-400 font-medium">🔒 Blocked — payment must be received by shipping line before release</p>
+          ) : isAvailable ? (
             <p className="text-[10px] text-accent font-medium">✓ Available for download</p>
           ) : doc.status === "uploaded" ? (
             <p className="text-[10px] text-accent">File uploaded</p>
@@ -277,9 +288,11 @@ export function DocumentChecklist({
             <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${
               isAvailable
                 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : isPaymentBlocked
+                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                 : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
             }`}>
-              {isAvailable ? "Ready" : "Pending"}
+              {isAvailable ? "Ready" : isPaymentBlocked ? "Held" : "Pending"}
             </Badge>
           )}
           {isAvailable && (
