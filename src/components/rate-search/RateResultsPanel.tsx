@@ -14,11 +14,6 @@ import { PriceSummarySidebar } from "./PriceSummarySidebar";
 import { createShipmentDraft, type RateSelection } from "@/lib/create-shipment-draft";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
-import { CargoSummaryBar } from "./CargoSummaryBar";
-import { SailingScheduleSelector } from "./SailingScheduleSelector";
-import { ShippingPreferences, type ShippingFilters } from "./ShippingPreferences";
-import { PriceSummarySidebar } from "./PriceSummarySidebar";
-import type { Json } from "@/integrations/supabase/types";
 
 const PORT_NAMES: Record<string, string> = {
   USLAX: "Los Angeles", USLGB: "Long Beach", USNYC: "New York",
