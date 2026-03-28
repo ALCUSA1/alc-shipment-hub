@@ -14,6 +14,7 @@ import { LogisticsServicesPanel } from "@/components/shipment/LogisticsServicesP
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
+import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -782,6 +783,14 @@ const ShipmentWorkspace = () => {
           {/* ── OVERVIEW TAB (post-booking) ── */}
           <TabsContent value="overview" className="mt-5">
             <div className="space-y-4">
+              {/* Document Lifecycle */}
+              <DocumentLifecycleBar
+                documents={(documents || []).map(d => ({ doc_type: d.doc_type, status: d.status, created_at: d.created_at, file_url: d.file_url }))}
+                payments={[]}
+                customsFilings={(customsFilings || []).map(f => ({ status: f.status }))}
+                lifecycleStage={shipment?.lifecycle_stage || shipment?.status}
+              />
+
               {/* Summary cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[

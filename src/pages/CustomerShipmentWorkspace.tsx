@@ -108,6 +108,8 @@ function StatusCard({ icon: Icon, label, status, color }: { icon: any; label: st
 /* ── Spark Share Dialog ── */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
+import { CustomerFundingPanel } from "@/components/shipment/CustomerFundingPanel";
 
 function SparkShareDialog({ open, onOpenChange, shipment, onNavigateToSpark }: {
   open: boolean; onOpenChange: (o: boolean) => void; shipment: any; onNavigateToSpark: () => void;
@@ -534,6 +536,14 @@ const CustomerShipmentWorkspace = () => {
             </div>
           </div>
 
+          {/* Document Lifecycle Bar */}
+          <DocumentLifecycleBar
+            documents={(documents || []).map(d => ({ doc_type: d.doc_type, status: d.status, created_at: d.created_at, file_url: d.file_url }))}
+            payments={[]}
+            customsFilings={(customsFilings || []).map(f => ({ status: f.status, itn: f.itn }))}
+            lifecycleStage={lifecycleStatus}
+          />
+
           {/* Shipment Summary */}
           <Card>
             <CardHeader><CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-accent" />Shipment Summary</CardTitle></CardHeader>
@@ -840,6 +850,7 @@ const CustomerShipmentWorkspace = () => {
 
         {/* ══ FINANCIALS TAB ══ */}
         <TabsContent value="financials" className="mt-6 space-y-6">
+          <CustomerFundingPanel shipmentId={id!} />
           <CustomerFinancialsTab
             shipmentId={id!}
             shipmentRef={shipment.shipment_ref}
