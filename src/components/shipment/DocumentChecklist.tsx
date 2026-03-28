@@ -101,7 +101,25 @@ export function DocumentChecklist({ shipmentId, userId }: DocumentChecklistProps
     window.open(fileUrl, "_blank");
   };
 
-  if (totalCount === 0) return null;
+  if (totalCount === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-4 w-4 text-accent" />
+            Document Checklist
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 space-y-3">
+            <FileText className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+            <p className="text-sm text-muted-foreground">No documents have been generated or uploaded for this shipment yet.</p>
+            <p className="text-xs text-muted-foreground/70">Documents will appear here automatically as the shipment progresses, or you can upload them manually.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
