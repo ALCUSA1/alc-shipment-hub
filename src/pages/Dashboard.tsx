@@ -33,7 +33,7 @@ const statusColor: Record<string, string> = {
 
 const statusLabel: Record<string, string> = {
   draft: "Draft", pending_pricing: "Pricing", quote_ready: "Quote Ready",
-  awaiting_approval: "Approval", booked: "Booked", in_transit: "In Transit",
+  booked: "Booked", in_transit: "In Transit",
   delivered: "Delivered", closed: "Closed", cancelled: "Cancelled",
 };
 
