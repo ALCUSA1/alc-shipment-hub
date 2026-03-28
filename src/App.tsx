@@ -162,9 +162,9 @@ const App = () => (
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             {/* Quick entry routes */}
-            <Route path="/shipments/new" element={<ProtectedRoute><NewShipmentWizard /></ProtectedRoute>} />
+            <Route path="/shipments/new" element={<Navigate to="/book" replace />} />
             <Route path="/pricing-preview" element={<ProtectedRoute><PricingPreview /></ProtectedRoute>} />
-            <Route path="/book" element={<ProtectedRoute><BookingFlow /></ProtectedRoute>} />
+            <Route path="/book" element={<ProtectedRoute><UnifiedBookingFlow /></ProtectedRoute>} />
 
             {/* Operations Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
