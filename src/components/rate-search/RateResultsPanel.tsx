@@ -6,6 +6,7 @@ import { Ship, Clock, ChevronDown, ChevronUp, ArrowRight, TrendingDown, Zap, Anc
 import { format } from "date-fns";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { RouteMapPreview } from "./RouteMapPreview";
 import { CargoSummaryBar } from "./CargoSummaryBar";
 import { SailingScheduleSelector } from "./SailingScheduleSelector";
@@ -339,6 +340,12 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                           e.stopPropagation();
                           setBookingRateId(rate.id);
                           try {
+                            // Check auth first — redirect if not logged in
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (!user) {
+                              navigate("/login");
+                              return;
+                            }
                             const surchargesList = parseSurcharges(rate.surcharges);
                             const rateSelection: RateSelection = {
                               rateId: rate.id,
