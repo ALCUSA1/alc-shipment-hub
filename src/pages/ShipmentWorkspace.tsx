@@ -413,6 +413,44 @@ const ShipmentWorkspace = () => {
                   containerType={containers?.[0]?.container_type}
                 />
               )}
+
+              {/* Export Clearance / Customs action card — shown when booked and no customs filed */}
+              {["booked", "in_transit"].includes(shipment.lifecycle_stage || shipment.status) && (
+                <Card className={`border ${(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed") ? "border-emerald-500/30 bg-emerald-500/5" : "border-yellow-500/30 bg-yellow-500/5"}`}>
+                  <CardContent className="pt-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed") ? "bg-emerald-500/15" : "bg-yellow-500/15"}`}>
+                          <Shield className={`h-5 w-5 ${(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed") ? "text-emerald-600" : "text-yellow-600"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed")
+                              ? "Export Clearance Filed"
+                              : "Export Clearance Required"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed")
+                              ? "AES/customs filing has been submitted for this shipment."
+                              : "Complete US customs information (AES/EEI) — exporter details, HTS codes, and consignee info required before cargo can ship."}
+                          </p>
+                        </div>
+                      </div>
+                      {!(customsFilings || []).some(f => f.status === "submitted" || f.status === "approved" || f.status === "filed") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/10"
+                          onClick={() => setActiveTab("compliance")}
+                        >
+                          <Shield className="h-3.5 w-3.5 mr-1.5" />
+                          Complete Now
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
