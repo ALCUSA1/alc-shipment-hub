@@ -122,7 +122,7 @@ const Dashboard = () => {
     ? Math.round((counts.delivered / Math.max(counts.delivered + counts.delayed, 1)) * 100)
     : null;
 
-  const totalShipments = counts.active + counts.delivered + counts.pendingPricing + counts.quoteReady + counts.awaitingApproval;
+  const totalShipments = counts.active + counts.delivered + counts.pendingPricing + counts.quoteReady;
 
   const topLanes = useMemo(() => {
     const laneCounts: Record<string, number> = {};
