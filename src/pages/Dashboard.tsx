@@ -147,7 +147,7 @@ const Dashboard = () => {
   // KPI cards config
   const kpis = [
     { label: "Total Shipments", value: totalShipments, icon: Globe, gradient: "from-accent/20 to-accent/5", iconColor: "text-accent", border: "border-accent/10" },
-    { label: "In Transit", value: counts.inTransit, icon: Truck, gradient: "from-blue-500/20 to-blue-500/5", iconColor: "text-blue-500", border: "border-blue-500/10" },
+    { label: "Active", value: counts.active, icon: Truck, gradient: "from-blue-500/20 to-blue-500/5", iconColor: "text-blue-500", border: "border-blue-500/10" },
     { label: "Delivered", value: counts.delivered, icon: CheckCircle2, gradient: "from-emerald-500/20 to-emerald-500/5", iconColor: "text-emerald-500", border: "border-emerald-500/10" },
     { label: "On-Time Rate", value: onTimeRate !== null ? `${onTimeRate}%` : "—", icon: TrendingUp, gradient: "from-violet-500/20 to-violet-500/5", iconColor: "text-violet-500", border: "border-violet-500/10" },
   ];
