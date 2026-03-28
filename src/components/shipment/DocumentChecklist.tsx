@@ -226,8 +226,8 @@ export function DocumentChecklist({
     );
   }
 
-  // Group documents by source (platform / shipper / carrier)
-  const sourceOrder: DocSource[] = ["platform", "shipper", "carrier"];
+  // Group documents by source — carrier first
+  const sourceOrder: DocSource[] = ["carrier", "platform", "shipper"];
   const groupedBySource = sourceOrder.map((source) => ({
     source,
     meta: DOC_SOURCE_META[source],
@@ -240,11 +240,14 @@ export function DocumentChecklist({
     const source = DOC_SOURCE[doc.doc_type] || "shipper";
     const isCarrier = source === "carrier";
     const isPlatform = source === "platform";
+    const isAvailable = hasFile && doc.file_url;
     return (
       <div
         key={doc.id}
-        className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
-          isCompleted ? "bg-green-50 dark:bg-green-950/20" : "hover:bg-muted/50"
+        className={`flex items-center gap-3 p-2.5 rounded-lg transition-colors border ${
+          isCompleted ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/30"
+          : isCarrier && !isAvailable ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-900/20"
+          : "hover:bg-muted/50 border-transparent"
         }`}
       >
         <Checkbox
@@ -256,22 +259,34 @@ export function DocumentChecklist({
           <p className={`text-sm font-medium ${isCompleted ? "line-through text-muted-foreground" : "text-foreground"}`}>
             {DOC_TYPE_LABELS[doc.doc_type] || doc.doc_type}
           </p>
-          {doc.status === "uploaded" ? (
+          {isAvailable ? (
+            <p className="text-[10px] text-accent font-medium">✓ Available for download</p>
+          ) : doc.status === "uploaded" ? (
             <p className="text-[10px] text-accent">File uploaded</p>
           ) : isPlatform ? (
             <p className="text-[10px] text-muted-foreground">Auto-generated from shipment data</p>
           ) : isCarrier ? (
-            <p className="text-[10px] text-muted-foreground">Awaiting from shipping line</p>
+            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">⏳ Pending — awaiting from shipping line</p>
           ) : (
             <p className="text-[10px] text-muted-foreground">Upload required</p>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          {hasFile && doc.file_url && (
+          {/* Status badge for carrier docs */}
+          {isCarrier && (
+            <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${
+              isAvailable
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+            }`}>
+              {isAvailable ? "Ready" : "Pending"}
+            </Badge>
+          )}
+          {isAvailable && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-7 w-7 text-accent hover:text-accent/80"
               onClick={() => handleDownload(doc.file_url!, doc.doc_type)}
               title="Download"
             >
