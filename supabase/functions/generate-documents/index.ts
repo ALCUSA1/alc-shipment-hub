@@ -46,12 +46,13 @@ Deno.serve(async (req) => {
     }
 
     // Fetch all shipment data in parallel
-    const [shipRes, partiesRes, cargoRes, containersRes, profileRes] = await Promise.all([
+    const [shipRes, partiesRes, cargoRes, containersRes, profileRes, filingRes] = await Promise.all([
       supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name, address, city, state, zip, country, phone, email, ein)").eq("id", shipment_id).single(),
       supabase.from("shipment_parties").select("*").eq("shipment_id", shipment_id),
       supabase.from("cargo").select("*").eq("shipment_id", shipment_id),
       supabase.from("containers").select("*").eq("shipment_id", shipment_id),
       supabase.from("profiles").select("*").limit(1),
+      supabase.from("customs_filings").select("*").eq("shipment_id", shipment_id).order("created_at", { ascending: false }).limit(1),
     ]);
 
     if (shipRes.error || !shipRes.data) {
@@ -66,6 +67,7 @@ Deno.serve(async (req) => {
     const cargoItems = cargoRes.data || [];
     const containers = containersRes.data || [];
     const profile = profileRes.data?.[0] || {};
+    const customsFiling = filingRes.data?.[0] || null;
 
     const shipper = parties.find((p: any) => p.role === "shipper");
     const consignee = parties.find((p: any) => p.role === "consignee");
@@ -101,7 +103,7 @@ Deno.serve(async (req) => {
           documents.packing_list = buildPackingList(ship, shipper, consignee, cargoItems, containers, today);
           break;
         case "shipper_letter_of_instruction":
-          documents.shipper_letter_of_instruction = buildSLI(ship, shipper, consignee, notifyParty, cargoItems, containers, forwarder, isAir);
+          documents.shipper_letter_of_instruction = buildSLI(ship, shipper, consignee, notifyParty, cargoItems, containers, forwarder, isAir, customsFiling);
           break;
         case "certificate_of_origin":
           documents.certificate_of_origin = buildCertificateOfOrigin(ship, shipper, consignee, cargoItems, today);
@@ -310,15 +312,96 @@ function buildPackingList(ship: any, shipper: any, consignee: any, cargo: any[],
   };
 }
 
-function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, cargo: any[], containers: any[], forwarder: any, isAir: boolean) {
+function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, cargo: any[], containers: any[], forwarder: any, isAir: boolean, customsFiling: any) {
+  const cf = customsFiling || {};
+  const company = ship.companies || {};
+  const hasDG = cargo.some((c: any) => c.dangerous_goods === true);
+
+  // Build full shipper address
+  const shipperAddress = cf.usppi_address
+    || [shipper?.address, shipper?.city, shipper?.state, shipper?.postal_code, shipper?.country].filter(Boolean).join(", ")
+    || [company.address, company.city, company.state, company.zip, company.country].filter(Boolean).join(", ")
+    || "—";
+
+  // Build full consignee address
+  const consigneeAddress = cf.consignee_address
+    || [consignee?.address, consignee?.city, consignee?.state, consignee?.postal_code, consignee?.country].filter(Boolean).join(", ")
+    || "—";
+
+  // Commodity lines from customs filing or cargo
+  const commodityLines = Array.isArray(cf.hts_codes) && cf.hts_codes.length > 0
+    ? cf.hts_codes.map((item: any, idx: number) => ({
+        line: idx + 1,
+        d_f: item.d_f || "D",
+        schedule_b_number: item.code || "—",
+        description: item.description || "—",
+        quantity: item.quantity || 0,
+        shipping_weight_kg: item.shipping_weight_kg || 0,
+        vin_product_number: item.vin_product_number || "",
+        value_usd: item.value || 0,
+        license_code: item.license_code || "",
+        license_number: item.license_number || "",
+        export_info_code: item.export_info_code || "",
+      }))
+    : cargo.map((c: any, idx: number) => ({
+        line: idx + 1,
+        d_f: c.country_of_origin === "US" || c.country_of_origin === "USA" ? "D" : "F",
+        schedule_b_number: c.hts_code || c.schedule_b || c.hs_code || "—",
+        description: c.commodity || "General Cargo",
+        quantity: c.num_packages || c.pieces || 0,
+        shipping_weight_kg: c.gross_weight || 0,
+        vin_product_number: "",
+        value_usd: c.total_value || 0,
+        license_code: "",
+        license_number: "",
+        export_info_code: "",
+      }));
+
   return {
     title: "SHIPPER'S LETTER OF INSTRUCTION",
-    date: new Date().toISOString().split("T")[0],
-    shipper: partyBlock(shipper),
-    consignee: partyBlock(consignee),
-    notify_party: partyBlock(notifyParty || consignee),
-    forwarding_agent: forwarder.name,
-    shipment_ref: ship.shipment_ref,
+    date: ship.etd || new Date().toISOString().split("T")[0],
+
+    // Shipper / USPPI
+    shipper: {
+      name: cf.exporter_name || shipper?.company_name || company.company_name || "—",
+      ein: cf.exporter_ein || shipper?.tax_id || company.ein || "—",
+      address: shipperAddress,
+      contact_name: cf.usppi_contact_name || shipper?.contact_name || "—",
+      phone: cf.usppi_phone || shipper?.phone || company.phone || "—",
+      email: cf.usppi_email || shipper?.email || company.email || "—",
+    },
+
+    // Carrier / Exporting Carrier
+    exporting_carrier: cf.vessel_name || ship.vessel || ship.airline || "TBD",
+    carrier_identification_code: cf.carrier_identification_code || "—",
+    ship_date: ship.etd || "—",
+
+    // Ultimate Consignee
+    consignee: {
+      name: cf.consignee_name || consignee?.company_name || "—",
+      address: consigneeAddress,
+      contact_name: consignee?.contact_name || "—",
+      phone: consignee?.phone || "—",
+      type: cf.ultimate_consignee_type || "O",
+    },
+
+    // Forwarding Agent / Authorized Agent
+    forwarding_agent: {
+      name: cf.authorized_agent_name || cf.broker_name || forwarder.name || "—",
+      address: cf.authorized_agent_address || "—",
+      ein: cf.authorized_agent_ein || "—",
+      email: cf.broker_email || "—",
+    },
+
+    // Routing & Ports
+    port_of_export: cf.port_of_export || ship.origin_port || "—",
+    port_of_unlading: cf.port_of_unlading || ship.destination_port || "—",
+    country_of_ultimate_destination: cf.country_of_destination || consignee?.country || ship.destination_country || "—",
+    state_of_origin: cf.state_of_origin || shipper?.state || company.state || "—",
+    loading_pier: cf.loading_pier || "—",
+
+    // Transport Details
+    method_of_transportation: cf.method_of_transportation || (isAir ? "40" : "11"),
     mode: isAir ? "Air" : "Ocean",
     ...(isAir ? {
       airport_of_departure: ship.airport_of_departure || ship.origin_port || "—",
@@ -327,21 +410,54 @@ function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, car
       flight: ship.flight_number || "TBD",
       mawb: ship.mawb_number || "TBD",
     } : {
-      port_of_loading: ship.origin_port || "—",
-      port_of_discharge: ship.destination_port || "—",
       vessel: ship.vessel || "TBD",
       voyage: ship.voyage || "TBD",
     }),
-    cargo_summary: cargo.map((c: any) => ({
-      commodity: c.commodity || "General Cargo",
-      hs_code: c.hs_code || "—",
-      packages: c.num_packages || c.pieces || 0,
-      gross_weight_kg: c.gross_weight || 0,
+
+    // Flags
+    containerized: cf.containerized ?? (!isAir && containers.length > 0),
+    hazardous_materials: cf.hazardous_materials ?? hasDG,
+    routed_export_transaction: cf.routed_export_transaction ?? false,
+    related_parties: cf.related_parties ?? false,
+
+    // References
+    shipment_ref: cf.shipment_reference_number || ship.shipment_ref || "—",
+    entry_number: cf.entry_number || "—",
+    in_bond_code: cf.in_bond_code || "—",
+    original_itn: cf.original_itn || "—",
+    itn: cf.itn || "—",
+    aes_citation: cf.aes_citation || cf.eei_exemption_citation || "NO EEI 30.37(a) or as applicable",
+    filing_option: cf.filing_option || "2",
+    xtn: cf.xtn || "—",
+
+    // Country of manufacture (from first cargo item)
+    country_of_manufacture: cargo[0]?.country_of_origin || "—",
+
+    // Commodity lines (Schedule B)
+    commodity_lines: commodityLines,
+
+    // Totals
+    total_packages: cargo.reduce((s: number, c: any) => s + (c.num_packages || c.pieces || 0), 0),
+    total_gross_weight_kg: cargo.reduce((s: number, c: any) => s + (c.gross_weight || 0), 0),
+    total_value_usd: cargo.reduce((s: number, c: any) => s + (c.total_value || 0), 0),
+
+    // Containers
+    containers: containers.map((c: any) => ({
+      number: c.container_number || "TBD",
+      type: c.container_type,
+      seal: c.seal_number || "—",
     })),
+
+    // Special instructions
     special_instructions: cargo[0]?.special_instructions || "None",
-    freight_charges: ship.incoterm || "Prepaid",
-    insurance: "As per agreement",
-    aes_statement: "NO EEI 30.37(a) or as applicable",
+    freight_terms: ship.incoterm || "Prepaid",
+
+    // Certification
+    shipper_certification: cf.shipper_certification_language
+      || "I certify that the statements made and information contained herein are true and correct. I understand that civil and criminal penalties may be imposed for making false or fraudulent statements herein.",
+    forwarder_authorization: cf.forwarder_authorization_language
+      || "The exporter authorizes the forwarder named above to act as forwarding agent for export control and customs purposes.",
+    title_of_representative: cf.title_of_shipper_representative || "Authorized Representative",
   };
 }
 
