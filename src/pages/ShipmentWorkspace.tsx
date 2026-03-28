@@ -913,13 +913,30 @@ const ShipmentWorkspace = () => {
                       setBookingLater(true);
                       try {
                         await persistDraft();
-                        // Transition to pending_pricing so ops team can finalize
-                        await supabase.from("shipments").update({
-                          lifecycle_stage: "pending_pricing",
-                          status: "pending_pricing",
-                        }).eq("id", id);
-                        toast.success("Booking confirmed! You can pay later from your dashboard.");
-                        navigate(`/dashboard/shipments/${id}/workspace`);
+                        // Transition through lifecycle: draft → pending_pricing → quote_ready → awaiting_approval → booked
+                        const currentStage = shipment.lifecycle_stage || shipment.status || "draft";
+                        const transitionPath: Record<string, string> = {
+                          draft: "pending_pricing",
+                          pending_pricing: "quote_ready",
+                          quote_ready: "awaiting_approval",
+                          awaiting_approval: "booked",
+                        };
+                        
+                        let stage = currentStage;
+                        // Walk through transitions until we reach 'booked'
+                        while (stage !== "booked" && transitionPath[stage]) {
+                          const nextStage = transitionPath[stage];
+                          const { error } = await supabase.from("shipments").update({
+                            lifecycle_stage: nextStage,
+                            status: nextStage,
+                          }).eq("id", id);
+                          if (error) throw error;
+                          stage = nextStage;
+                        }
+
+                        await queryClient.invalidateQueries({ queryKey: ["shipment", id] });
+                        toast.success("Booking confirmed! An invoice will be sent to your email. You can pay anytime from your dashboard.");
+                        navigate("/dashboard/shipments");
                       } catch (err: any) {
                         toast.error(err.message || "Failed to confirm booking");
                       } finally {
