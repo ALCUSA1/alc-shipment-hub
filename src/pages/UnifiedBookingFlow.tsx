@@ -194,6 +194,15 @@ const UnifiedBookingFlow = () => {
     enabled: !!shipmentId,
   });
 
+  const { data: customsFiling } = useQuery({
+    queryKey: ["book-customs", shipmentId],
+    queryFn: async () => {
+      const { data } = await supabase.from("customs_filings").select("*").eq("shipment_id", shipmentId!).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      return data;
+    },
+    enabled: !!shipmentId,
+  });
+
   // Pre-populate form from existing data
   useEffect(() => {
     if (cargo?.[0]) {
@@ -220,6 +229,30 @@ const UnifiedBookingFlow = () => {
       setNeedsInsurance(shipmentServices.insurance || false);
     }
   }, [cargo, containers, parties, shipmentServices]);
+
+  // Pre-populate AES form from existing customs filing or party data
+  useEffect(() => {
+    if (customsFiling) {
+      setAesExporterName(customsFiling.exporter_name || "");
+      setAesExporterEin(customsFiling.exporter_ein || "");
+      setAesConsigneeName(customsFiling.consignee_name || "");
+      setAesConsigneeAddress(customsFiling.consignee_address || "");
+      setAesCountryOfDestination(customsFiling.country_of_destination || "");
+      setAesBrokerName(customsFiling.broker_name || "");
+      setAesBrokerEmail(customsFiling.broker_email || "");
+      setAesAesCitation(customsFiling.aes_citation || "");
+      setAesFilingId(customsFiling.id);
+    } else if (parties) {
+      // Auto-fill from party data if no customs filing exists yet
+      const shipper = parties.find((p: any) => p.role === "shipper");
+      const consignee = parties.find((p: any) => p.role === "consignee");
+      if (shipper && !aesExporterName) setAesExporterName(shipper.company_name || "");
+      if (consignee && !aesConsigneeName) {
+        setAesConsigneeName(consignee.company_name || "");
+        setAesConsigneeAddress(consignee.address || "");
+      }
+    }
+  }, [customsFiling, parties]);
 
   // If arriving with an existing shipment ID (resume), jump to details
   useEffect(() => {
