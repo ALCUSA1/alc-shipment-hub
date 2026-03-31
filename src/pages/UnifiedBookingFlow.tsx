@@ -302,7 +302,7 @@ const UnifiedBookingFlow = () => {
   /* ── Search handler ── */
   const handleSearch = useCallback(async (params: SearchParams) => {
     setIsLoading(true);
-      }).catch(() => {});
+    try {
 
       const today = new Date().toISOString().split("T")[0];
       let query = supabase.from("carrier_rates").select("*")
