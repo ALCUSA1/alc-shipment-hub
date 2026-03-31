@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
 
     let resolvedBookingId = bookingId;
 
-    // Resolve by booking number
     if (!resolvedBookingId && bookingNumber) {
       const { data } = await supabase
         .from("bookings")
@@ -34,7 +33,6 @@ Deno.serve(async (req) => {
       resolvedBookingId = data?.id || null;
     }
 
-    // Resolve by shipment_id (get latest booking)
     if (!resolvedBookingId && shipmentId) {
       const { data } = await supabase
         .from("bookings")
@@ -53,7 +51,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch all normalized booking data in parallel
+    // Fetch booking + related normalized data in parallel
     const [
       bookingRes,
       equipmentsRes,
@@ -62,8 +60,6 @@ Deno.serve(async (req) => {
       chargesRes,
       instructionsRes,
       referencesRes,
-      partiesRes,
-      documentsRes,
     ] = await Promise.all([
       supabase
         .from("bookings")
@@ -112,43 +108,34 @@ Deno.serve(async (req) => {
         .from("shipment_references")
         .select("reference_type, reference_value, is_primary")
         .eq("booking_id", resolvedBookingId),
-      // Parties from shipment
-      bookingRes2(),
-      documentsRes2(),
     ]);
 
-    // We need shipment_id to fetch parties and docs
-    // Let's do it differently - sequential for dependent queries
-    const booking = bookingRes.data;
     if (bookingRes.error) throw bookingRes.error;
-
+    const booking = bookingRes.data;
     const sid = booking?.shipment_id;
 
-    const [partiesResult, docsResult] = await Promise.all([
+    // Dependent queries for parties and documents
+    const [partiesRes, documentsRes] = await Promise.all([
       sid
         ? supabase.from("shipment_parties").select("*").eq("shipment_id", sid)
-        : Promise.resolve({ data: [] }),
-      sid
-        ? supabase.from("documents").select("id, doc_type, document_reference, status, created_at").eq("booking_id", resolvedBookingId)
-        : Promise.resolve({ data: [] }),
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("documents").select("id, doc_type, document_reference, status, created_at").eq("booking_id", resolvedBookingId),
     ]);
 
-    const response = {
-      booking,
-      carrier: booking?.alc_carriers || null,
-      shipment: booking?.shipments || null,
-      equipments: equipmentsRes.data || [],
-      cargo: cargoRes.data || [],
-      transport_plan: transportRes.data || [],
-      charges: chargesRes.data || [],
-      instructions: instructionsRes.data || [],
-      references: referencesRes.data || [],
-      parties: partiesResult.data || [],
-      documents: docsResult.data || [],
-    };
-
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({
+        booking,
+        carrier: booking?.alc_carriers || null,
+        shipment: booking?.shipments || null,
+        equipments: equipmentsRes.data || [],
+        cargo: cargoRes.data || [],
+        transport_plan: transportRes.data || [],
+        charges: chargesRes.data || [],
+        instructions: instructionsRes.data || [],
+        references: referencesRes.data || [],
+        parties: partiesRes.data || [],
+        documents: documentsRes.data || [],
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
@@ -159,7 +146,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-// Dummy placeholder functions to fix the parallel promise structure
-function bookingRes2() { return Promise.resolve({ data: [] }); }
-function documentsRes2() { return Promise.resolve({ data: [] }); }
