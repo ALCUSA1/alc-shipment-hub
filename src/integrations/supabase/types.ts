@@ -423,6 +423,128 @@ export type Database = {
         }
         Relationships: []
       }
+      alc_carriers: {
+        Row: {
+          carrier_code: string
+          carrier_name: string
+          created_at: string
+          id: string
+          mode: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          carrier_code: string
+          carrier_name: string
+          created_at?: string
+          id?: string
+          mode?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          carrier_code?: string
+          carrier_name?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      alc_locations: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          facility_code: string | null
+          id: string
+          latitude: number | null
+          location_name: string | null
+          longitude: number | null
+          postal_code: string | null
+          state: string | null
+          unlocode: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          facility_code?: string | null
+          id?: string
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          postal_code?: string | null
+          state?: string | null
+          unlocode?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          facility_code?: string | null
+          id?: string
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          postal_code?: string | null
+          state?: string | null
+          unlocode?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      alc_vessels: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          id: string
+          imo_number: string | null
+          mmsi: string | null
+          operator_name: string | null
+          updated_at: string
+          vessel_name: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          imo_number?: string | null
+          mmsi?: string | null
+          operator_name?: string | null
+          updated_at?: string
+          vessel_name: string
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          imo_number?: string | null
+          mmsi?: string | null
+          operator_name?: string | null
+          updated_at?: string
+          vessel_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alc_vessels_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           approval_type: string
@@ -681,6 +803,106 @@ export type Database = {
           },
         ]
       }
+      carrier_connections: {
+        Row: {
+          auth_type: string
+          base_url: string | null
+          carrier_id: string
+          created_at: string
+          credential_key_name: string | null
+          environment: string
+          id: string
+          integration_type: string
+          last_success_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_type?: string
+          base_url?: string | null
+          carrier_id: string
+          created_at?: string
+          credential_key_name?: string | null
+          environment?: string
+          id?: string
+          integration_type?: string
+          last_success_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_type?: string
+          base_url?: string | null
+          carrier_id?: string
+          created_at?: string
+          credential_key_name?: string | null
+          environment?: string
+          id?: string
+          integration_type?: string
+          last_success_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_connections_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_event_mappings: {
+        Row: {
+          active: boolean
+          carrier_id: string
+          created_at: string
+          external_code: string
+          external_name: string | null
+          id: string
+          internal_code: string
+          internal_name: string
+          message_family: string
+          status_category: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          carrier_id: string
+          created_at?: string
+          external_code: string
+          external_name?: string | null
+          id?: string
+          internal_code: string
+          internal_name: string
+          message_family: string
+          status_category?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          carrier_id?: string
+          created_at?: string
+          external_code?: string
+          external_name?: string | null
+          id?: string
+          internal_code?: string
+          internal_name?: string
+          message_family?: string
+          status_category?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_event_mappings_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_payment_profiles: {
         Row: {
           account_holder: string | null
@@ -800,6 +1022,74 @@ export type Database = {
           valid_until?: string
         }
         Relationships: []
+      }
+      carrier_raw_messages: {
+        Row: {
+          carrier_id: string
+          created_at: string
+          error_message: string | null
+          external_reference: string | null
+          headers_json: Json | null
+          http_status: number | null
+          id: string
+          message_family: string
+          message_type: string
+          payload_format: string
+          processed_at: string | null
+          processing_status: string
+          received_at: string
+          request_payload_json: Json | null
+          response_payload_json: Json | null
+          source_channel: string
+          updated_at: string
+        }
+        Insert: {
+          carrier_id: string
+          created_at?: string
+          error_message?: string | null
+          external_reference?: string | null
+          headers_json?: Json | null
+          http_status?: number | null
+          id?: string
+          message_family: string
+          message_type: string
+          payload_format?: string
+          processed_at?: string | null
+          processing_status?: string
+          received_at?: string
+          request_payload_json?: Json | null
+          response_payload_json?: Json | null
+          source_channel?: string
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string
+          created_at?: string
+          error_message?: string | null
+          external_reference?: string | null
+          headers_json?: Json | null
+          http_status?: number | null
+          id?: string
+          message_family?: string
+          message_type?: string
+          payload_format?: string
+          processed_at?: string | null
+          processing_status?: string
+          received_at?: string
+          request_payload_json?: Json | null
+          response_payload_json?: Json | null
+          source_channel?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_raw_messages_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       companies: {
         Row: {
@@ -1452,13 +1742,62 @@ export type Database = {
           },
         ]
       }
+      container_seals: {
+        Row: {
+          carrier_id: string | null
+          container_id: string
+          created_at: string
+          id: string
+          seal_number: string
+          seal_source: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          container_id: string
+          created_at?: string
+          id?: string
+          seal_number: string
+          seal_source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          container_id?: string
+          created_at?: string
+          id?: string
+          seal_number?: string
+          seal_source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "container_seals_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "container_seals_container_id_fkey"
+            columns: ["container_id"]
+            isOneToOne: false
+            referencedRelation: "containers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       containers: {
         Row: {
+          alc_carrier_id: string | null
           container_number: string | null
           container_size: string | null
           container_type: string
           created_at: string
+          equipment_reference: string | null
+          equipment_size_type: string | null
           id: string
+          iso_equipment_code: string | null
           max_payload: number | null
           oog_dimensions: string | null
           pickup_date: string | null
@@ -1472,11 +1811,15 @@ export type Database = {
           vgm: number | null
         }
         Insert: {
+          alc_carrier_id?: string | null
           container_number?: string | null
           container_size?: string | null
           container_type: string
           created_at?: string
+          equipment_reference?: string | null
+          equipment_size_type?: string | null
           id?: string
+          iso_equipment_code?: string | null
           max_payload?: number | null
           oog_dimensions?: string | null
           pickup_date?: string | null
@@ -1490,11 +1833,15 @@ export type Database = {
           vgm?: number | null
         }
         Update: {
+          alc_carrier_id?: string | null
           container_number?: string | null
           container_size?: string | null
           container_type?: string
           created_at?: string
+          equipment_reference?: string | null
+          equipment_size_type?: string | null
           id?: string
+          iso_equipment_code?: string | null
           max_payload?: number | null
           oog_dimensions?: string | null
           pickup_date?: string | null
@@ -1508,6 +1855,13 @@ export type Database = {
           vgm?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "containers_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "containers_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -2012,36 +2366,55 @@ export type Database = {
       }
       documents: {
         Row: {
+          alc_carrier_id: string | null
           created_at: string
           doc_type: string
+          document_reference: string | null
           file_url: string | null
           id: string
+          metadata_json: Json | null
           shipment_id: string
+          source_message_id: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          alc_carrier_id?: string | null
           created_at?: string
           doc_type: string
+          document_reference?: string | null
           file_url?: string | null
           id?: string
+          metadata_json?: Json | null
           shipment_id: string
+          source_message_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          alc_carrier_id?: string | null
           created_at?: string
           doc_type?: string
+          document_reference?: string | null
           file_url?: string | null
           id?: string
+          metadata_json?: Json | null
           shipment_id?: string
+          source_message_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -2054,6 +2427,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -2832,6 +3212,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      integration_jobs: {
+        Row: {
+          attempt_count: number
+          carrier_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          job_status: string
+          job_type: string
+          last_error: string | null
+          raw_message_id: string
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          carrier_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_status?: string
+          job_type: string
+          last_error?: string | null
+          raw_message_id: string
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          carrier_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_status?: string
+          job_type?: string
+          last_error?: string | null
+          raw_message_id?: string
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_jobs_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_jobs_raw_message_id_fkey"
+            columns: ["raw_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_activities: {
         Row: {
@@ -5153,6 +5590,71 @@ export type Database = {
           },
         ]
       }
+      shipment_references: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          id: string
+          is_primary: boolean
+          reference_type: string
+          reference_value: string
+          shipment_id: string
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          reference_type: string
+          reference_value: string
+          shipment_id: string
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          reference_type?: string
+          reference_value?: string
+          shipment_id?: string
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_references_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_references_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_references_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_references_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipment_services: {
         Row: {
           additional_services_json: Json | null
@@ -5292,9 +5794,12 @@ export type Database = {
           airline: string | null
           airport_of_departure: string | null
           airport_of_destination: string | null
+          alc_carrier_id: string | null
           archived_at: string | null
           assigned_ops_user_id: string | null
           assigned_pricing_user_id: string | null
+          ata: string | null
+          atd: string | null
           available_for_pickup_date: string | null
           booking_confirmed_date: string | null
           booking_ref: string | null
@@ -5315,6 +5820,7 @@ export type Database = {
           containerized: boolean | null
           converted_from_quote_id: string | null
           created_at: string
+          current_substatus: string | null
           customer_id: string | null
           customer_reference: string | null
           customer_type_snapshot: string | null
@@ -5335,6 +5841,7 @@ export type Database = {
           delivery_postal_code: string | null
           delivery_state: string | null
           delivery_validated: boolean | null
+          destination_location_id: string | null
           destination_port: string | null
           destuffing_required: boolean | null
           doc_cutoff: string | null
@@ -5363,6 +5870,7 @@ export type Database = {
           mode: string
           nature_and_quantity: string | null
           notes: string | null
+          origin_location_id: string | null
           origin_port: string | null
           payment_terms: string | null
           pickup_city: string | null
@@ -5378,6 +5886,10 @@ export type Database = {
           pickup_validated: boolean | null
           place_of_delivery: string | null
           place_of_receipt: string | null
+          pod_location_id: string | null
+          pol_location_id: string | null
+          primary_reference_type: string | null
+          primary_reference_value: string | null
           priority_level: string | null
           quote_reference: string | null
           rate_basis_type: string | null
@@ -5386,6 +5898,7 @@ export type Database = {
           requested_ship_date: string | null
           routing_and_destination: string | null
           sci: string | null
+          service_type: string | null
           shipment_ref: string
           shipment_type: string
           si_cutoff: string | null
@@ -5412,9 +5925,12 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          alc_carrier_id?: string | null
           archived_at?: string | null
           assigned_ops_user_id?: string | null
           assigned_pricing_user_id?: string | null
+          ata?: string | null
+          atd?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
@@ -5435,6 +5951,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          current_substatus?: string | null
           customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
@@ -5455,6 +5972,7 @@ export type Database = {
           delivery_postal_code?: string | null
           delivery_state?: string | null
           delivery_validated?: boolean | null
+          destination_location_id?: string | null
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
@@ -5483,6 +6001,7 @@ export type Database = {
           mode?: string
           nature_and_quantity?: string | null
           notes?: string | null
+          origin_location_id?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null
@@ -5498,6 +6017,10 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          pod_location_id?: string | null
+          pol_location_id?: string | null
+          primary_reference_type?: string | null
+          primary_reference_value?: string | null
           priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
@@ -5506,6 +6029,7 @@ export type Database = {
           requested_ship_date?: string | null
           routing_and_destination?: string | null
           sci?: string | null
+          service_type?: string | null
           shipment_ref: string
           shipment_type?: string
           si_cutoff?: string | null
@@ -5532,9 +6056,12 @@ export type Database = {
           airline?: string | null
           airport_of_departure?: string | null
           airport_of_destination?: string | null
+          alc_carrier_id?: string | null
           archived_at?: string | null
           assigned_ops_user_id?: string | null
           assigned_pricing_user_id?: string | null
+          ata?: string | null
+          atd?: string | null
           available_for_pickup_date?: string | null
           booking_confirmed_date?: string | null
           booking_ref?: string | null
@@ -5555,6 +6082,7 @@ export type Database = {
           containerized?: boolean | null
           converted_from_quote_id?: string | null
           created_at?: string
+          current_substatus?: string | null
           customer_id?: string | null
           customer_reference?: string | null
           customer_type_snapshot?: string | null
@@ -5575,6 +6103,7 @@ export type Database = {
           delivery_postal_code?: string | null
           delivery_state?: string | null
           delivery_validated?: boolean | null
+          destination_location_id?: string | null
           destination_port?: string | null
           destuffing_required?: boolean | null
           doc_cutoff?: string | null
@@ -5603,6 +6132,7 @@ export type Database = {
           mode?: string
           nature_and_quantity?: string | null
           notes?: string | null
+          origin_location_id?: string | null
           origin_port?: string | null
           payment_terms?: string | null
           pickup_city?: string | null
@@ -5618,6 +6148,10 @@ export type Database = {
           pickup_validated?: boolean | null
           place_of_delivery?: string | null
           place_of_receipt?: string | null
+          pod_location_id?: string | null
+          pol_location_id?: string | null
+          primary_reference_type?: string | null
+          primary_reference_value?: string | null
           priority_level?: string | null
           quote_reference?: string | null
           rate_basis_type?: string | null
@@ -5626,6 +6160,7 @@ export type Database = {
           requested_ship_date?: string | null
           routing_and_destination?: string | null
           sci?: string | null
+          service_type?: string | null
           shipment_ref?: string
           shipment_type?: string
           si_cutoff?: string | null
@@ -5647,6 +6182,13 @@ export type Database = {
           warehouse_receipt_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipments_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipments_company_id_fkey"
             columns: ["company_id"]
@@ -5694,6 +6236,34 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customer_summary_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_destination_location_id_fkey"
+            columns: ["destination_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_origin_location_id_fkey"
+            columns: ["origin_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_pod_location_id_fkey"
+            columns: ["pod_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_pol_location_id_fkey"
+            columns: ["pol_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -6183,39 +6753,99 @@ export type Database = {
       }
       tracking_events: {
         Row: {
+          alc_carrier_id: string | null
           created_at: string
+          event_classifier_code: string | null
+          event_created_datetime: string | null
           event_date: string
+          event_payload_json: Json | null
+          event_scope: string | null
+          external_event_code: string | null
+          external_event_name: string | null
           id: string
+          internal_event_code: string | null
+          internal_event_name: string | null
           location: string | null
+          location_id: string | null
           milestone: string
           notes: string | null
           raw_event_code: string | null
+          raw_message_id: string | null
           shipment_id: string
           source: string | null
+          transport_call_id: string | null
+          vessel_id: string | null
         }
         Insert: {
+          alc_carrier_id?: string | null
           created_at?: string
+          event_classifier_code?: string | null
+          event_created_datetime?: string | null
           event_date?: string
+          event_payload_json?: Json | null
+          event_scope?: string | null
+          external_event_code?: string | null
+          external_event_name?: string | null
           id?: string
+          internal_event_code?: string | null
+          internal_event_name?: string | null
           location?: string | null
+          location_id?: string | null
           milestone: string
           notes?: string | null
           raw_event_code?: string | null
+          raw_message_id?: string | null
           shipment_id: string
           source?: string | null
+          transport_call_id?: string | null
+          vessel_id?: string | null
         }
         Update: {
+          alc_carrier_id?: string | null
           created_at?: string
+          event_classifier_code?: string | null
+          event_created_datetime?: string | null
           event_date?: string
+          event_payload_json?: Json | null
+          event_scope?: string | null
+          external_event_code?: string | null
+          external_event_name?: string | null
           id?: string
+          internal_event_code?: string | null
+          internal_event_name?: string | null
           location?: string | null
+          location_id?: string | null
           milestone?: string
           notes?: string | null
           raw_event_code?: string | null
+          raw_message_id?: string | null
           shipment_id?: string
           source?: string | null
+          transport_call_id?: string | null
+          vessel_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tracking_events_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_events_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_events_raw_message_id_fkey"
+            columns: ["raw_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tracking_events_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -6228,6 +6858,107 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_events_transport_call_fk"
+            columns: ["transport_call_id"]
+            isOneToOne: false
+            referencedRelation: "transport_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tracking_events_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_calls: {
+        Row: {
+          actual_arrival: string | null
+          actual_departure: string | null
+          carrier_id: string | null
+          created_at: string
+          facility_code: string | null
+          id: string
+          location_id: string | null
+          planned_arrival: string | null
+          planned_departure: string | null
+          shipment_id: string | null
+          transport_call_sequence: number | null
+          updated_at: string
+          vessel_id: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          actual_arrival?: string | null
+          actual_departure?: string | null
+          carrier_id?: string | null
+          created_at?: string
+          facility_code?: string | null
+          id?: string
+          location_id?: string | null
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          shipment_id?: string | null
+          transport_call_sequence?: number | null
+          updated_at?: string
+          vessel_id?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          actual_arrival?: string | null
+          actual_departure?: string | null
+          carrier_id?: string | null
+          created_at?: string
+          facility_code?: string | null
+          id?: string
+          location_id?: string | null
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          shipment_id?: string | null
+          transport_call_sequence?: number | null
+          updated_at?: string
+          vessel_id?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_calls_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_calls_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_calls_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_calls_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_calls_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
             referencedColumns: ["id"]
           },
         ]
