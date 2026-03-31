@@ -442,6 +442,11 @@ const ShipmentDetail = () => {
           <WarehousePanel shipmentId={id!} />
         </TabsContent>
 
+        {/* ── BOOKING TAB ── */}
+        <TabsContent value="booking" className="mt-6 space-y-6">
+          <NormalizedBookingView shipmentId={id!} />
+        </TabsContent>
+
         {/* ── PRICING TAB ── */}
         <TabsContent value="pricing" className="mt-6 space-y-6">
           {/* Rate Selection (pre-booking) */}
