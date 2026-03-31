@@ -21,6 +21,7 @@ import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { NormalizedTrackingView } from "@/components/shipment/NormalizedTrackingView";
 import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
+import { NormalizedTransportDocView } from "@/components/shipment/NormalizedTransportDocView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
@@ -110,6 +111,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 const WORKSPACE_TABS = [
   { id: "overview", label: "Overview", icon: Package },
   { id: "booking", label: "Booking", icon: BookmarkPlus },
+  { id: "transport-doc", label: "Transport Document", icon: Ship },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
@@ -445,6 +447,11 @@ const ShipmentDetail = () => {
         {/* ── BOOKING TAB ── */}
         <TabsContent value="booking" className="mt-6 space-y-6">
           <NormalizedBookingView shipmentId={id!} />
+        </TabsContent>
+
+        {/* ── TRANSPORT DOCUMENT TAB ── */}
+        <TabsContent value="transport-doc" className="mt-6 space-y-6">
+          <NormalizedTransportDocView shipmentId={id!} />
         </TabsContent>
 
         {/* ── PRICING TAB ── */}

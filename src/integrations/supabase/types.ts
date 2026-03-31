@@ -1126,7 +1126,9 @@ export type Database = {
           net_weight: number | null
           package_count: number | null
           package_type_code: string | null
+          shipping_instruction_id: string | null
           source_message_id: string | null
+          transport_document_id: string | null
           updated_at: string
           volume: number | null
         }
@@ -1144,7 +1146,9 @@ export type Database = {
           net_weight?: number | null
           package_count?: number | null
           package_type_code?: string | null
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           updated_at?: string
           volume?: number | null
         }
@@ -1162,7 +1166,9 @@ export type Database = {
           net_weight?: number | null
           package_count?: number | null
           package_type_code?: string | null
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           updated_at?: string
           volume?: number | null
         }
@@ -1182,10 +1188,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cargo_details_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cargo_details_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cargo_details_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -2762,8 +2782,10 @@ export type Database = {
           id: string
           metadata_json: Json | null
           shipment_id: string
+          shipping_instruction_id: string | null
           source_message_id: string | null
           status: string
+          transport_document_id: string | null
           updated_at: string
           user_id: string
         }
@@ -2777,8 +2799,10 @@ export type Database = {
           id?: string
           metadata_json?: Json | null
           shipment_id: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
           status?: string
+          transport_document_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2792,8 +2816,10 @@ export type Database = {
           id?: string
           metadata_json?: Json | null
           shipment_id?: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
           status?: string
+          transport_document_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2827,10 +2853,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "documents_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -5707,9 +5747,11 @@ export type Database = {
           role: string
           role_type: string | null
           shipment_id: string
+          shipping_instruction_id: string | null
           source_message_id: string | null
           state: string | null
           tax_id: string | null
+          transport_document_id: string | null
         }
         Insert: {
           address?: string | null
@@ -5729,9 +5771,11 @@ export type Database = {
           role: string
           role_type?: string | null
           shipment_id: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
           state?: string | null
           tax_id?: string | null
+          transport_document_id?: string | null
         }
         Update: {
           address?: string | null
@@ -5751,9 +5795,11 @@ export type Database = {
           role?: string
           role_type?: string | null
           shipment_id?: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
           state?: string | null
           tax_id?: string | null
+          transport_document_id?: string | null
         }
         Relationships: [
           {
@@ -5806,10 +5852,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shipment_parties_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shipment_parties_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -6027,7 +6087,9 @@ export type Database = {
           reference_type: string
           reference_value: string
           shipment_id: string
+          shipping_instruction_id: string | null
           source_message_id: string | null
+          transport_document_id: string | null
           updated_at: string
         }
         Insert: {
@@ -6039,7 +6101,9 @@ export type Database = {
           reference_type: string
           reference_value: string
           shipment_id: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -6051,7 +6115,9 @@ export type Database = {
           reference_type?: string
           reference_value?: string
           shipment_id?: string
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -6084,10 +6150,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shipment_references_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shipment_references_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_references_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -6339,12 +6419,14 @@ export type Database = {
           service_type: string | null
           shipment_ref: string
           shipment_type: string
+          shipping_instruction_id: string | null
           si_cutoff: string | null
           space_confirmed: boolean | null
           status: string
           storage_notes: string | null
           total_freight: number | null
           total_shipment_value: number | null
+          transport_document_id: string | null
           transshipment_port_1: string | null
           transshipment_port_2: string | null
           updated_at: string
@@ -6471,12 +6553,14 @@ export type Database = {
           service_type?: string | null
           shipment_ref: string
           shipment_type?: string
+          shipping_instruction_id?: string | null
           si_cutoff?: string | null
           space_confirmed?: boolean | null
           status?: string
           storage_notes?: string | null
           total_freight?: number | null
           total_shipment_value?: number | null
+          transport_document_id?: string | null
           transshipment_port_1?: string | null
           transshipment_port_2?: string | null
           updated_at?: string
@@ -6603,12 +6687,14 @@ export type Database = {
           service_type?: string | null
           shipment_ref?: string
           shipment_type?: string
+          shipping_instruction_id?: string | null
           si_cutoff?: string | null
           space_confirmed?: boolean | null
           status?: string
           storage_notes?: string | null
           total_freight?: number | null
           total_shipment_value?: number | null
+          transport_document_id?: string | null
           transshipment_port_1?: string | null
           transshipment_port_2?: string | null
           updated_at?: string
@@ -6711,6 +6797,101 @@ export type Database = {
             columns: ["pol_location_id"]
             isOneToOne: false
             referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipping_instructions: {
+        Row: {
+          alc_carrier_id: string | null
+          amendment_number: number | null
+          booking_id: string | null
+          created_at: string
+          id: string
+          issue_date: string | null
+          shipment_id: string | null
+          shipping_instruction_reference: string | null
+          shipping_instruction_status: string | null
+          source_message_id: string | null
+          transport_document_type_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          amendment_number?: number | null
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string | null
+          shipment_id?: string | null
+          shipping_instruction_reference?: string | null
+          shipping_instruction_status?: string | null
+          source_message_id?: string | null
+          transport_document_type_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          amendment_number?: number | null
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          issue_date?: string | null
+          shipment_id?: string | null
+          shipping_instruction_reference?: string | null
+          shipping_instruction_status?: string | null
+          source_message_id?: string | null
+          transport_document_type_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipping_instructions_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_instructions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_instructions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_instructions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipping_instructions_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -7410,6 +7591,430 @@ export type Database = {
           },
         ]
       }
+      transport_document_charges: {
+        Row: {
+          alc_carrier_id: string | null
+          amount: number | null
+          calculation_basis: string | null
+          charge_code: string | null
+          charge_description: string | null
+          created_at: string
+          currency_code: string | null
+          id: string
+          payment_term_code: string | null
+          source_message_id: string | null
+          transport_document_id: string
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          amount?: number | null
+          calculation_basis?: string | null
+          charge_code?: string | null
+          charge_description?: string | null
+          created_at?: string
+          currency_code?: string | null
+          id?: string
+          payment_term_code?: string | null
+          source_message_id?: string | null
+          transport_document_id: string
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          amount?: number | null
+          calculation_basis?: string | null
+          charge_code?: string | null
+          charge_description?: string | null
+          created_at?: string
+          currency_code?: string | null
+          id?: string
+          payment_term_code?: string | null
+          source_message_id?: string | null
+          transport_document_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_document_charges_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_charges_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_charges_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_document_consignment_items: {
+        Row: {
+          alc_carrier_id: string | null
+          cargo_item_number: number | null
+          consignment_item_number: number | null
+          created_at: string
+          description: string | null
+          gross_weight: number | null
+          harmonized_system_code: string | null
+          id: string
+          national_commodity_code: string | null
+          net_weight: number | null
+          package_quantity: number | null
+          package_type_code: string | null
+          source_message_id: string | null
+          transport_document_id: string
+          updated_at: string
+          volume: number | null
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          cargo_item_number?: number | null
+          consignment_item_number?: number | null
+          created_at?: string
+          description?: string | null
+          gross_weight?: number | null
+          harmonized_system_code?: string | null
+          id?: string
+          national_commodity_code?: string | null
+          net_weight?: number | null
+          package_quantity?: number | null
+          package_type_code?: string | null
+          source_message_id?: string | null
+          transport_document_id: string
+          updated_at?: string
+          volume?: number | null
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          cargo_item_number?: number | null
+          consignment_item_number?: number | null
+          created_at?: string
+          description?: string | null
+          gross_weight?: number | null
+          harmonized_system_code?: string | null
+          id?: string
+          national_commodity_code?: string | null
+          net_weight?: number | null
+          package_quantity?: number | null
+          package_type_code?: string | null
+          source_message_id?: string | null
+          transport_document_id?: string
+          updated_at?: string
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_document_consignment_items_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_consignment_items_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_consignment_items_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_document_equipments: {
+        Row: {
+          alc_carrier_id: string | null
+          booking_id: string | null
+          container_number: string | null
+          created_at: string
+          dangerous_goods_flag: boolean | null
+          equipment_reference: string | null
+          equipment_type_code: string | null
+          humidity_setting: string | null
+          id: string
+          iso_equipment_code: string | null
+          overdimension_flag: boolean | null
+          seal_number: string | null
+          source_message_id: string | null
+          temperature_setting: string | null
+          transport_document_id: string
+          updated_at: string
+          ventilation_setting: string | null
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          container_number?: string | null
+          created_at?: string
+          dangerous_goods_flag?: boolean | null
+          equipment_reference?: string | null
+          equipment_type_code?: string | null
+          humidity_setting?: string | null
+          id?: string
+          iso_equipment_code?: string | null
+          overdimension_flag?: boolean | null
+          seal_number?: string | null
+          source_message_id?: string | null
+          temperature_setting?: string | null
+          transport_document_id: string
+          updated_at?: string
+          ventilation_setting?: string | null
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          container_number?: string | null
+          created_at?: string
+          dangerous_goods_flag?: boolean | null
+          equipment_reference?: string | null
+          equipment_type_code?: string | null
+          humidity_setting?: string | null
+          id?: string
+          iso_equipment_code?: string | null
+          overdimension_flag?: boolean | null
+          seal_number?: string | null
+          source_message_id?: string | null
+          temperature_setting?: string | null
+          transport_document_id?: string
+          updated_at?: string
+          ventilation_setting?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_document_equipments_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_equipments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_equipments_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_equipments_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_document_instructions: {
+        Row: {
+          alc_carrier_id: string | null
+          created_at: string
+          id: string
+          instruction_text: string | null
+          instruction_type: string | null
+          source_message_id: string | null
+          transport_document_id: string
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          instruction_text?: string | null
+          instruction_type?: string | null
+          source_message_id?: string | null
+          transport_document_id: string
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          instruction_text?: string | null
+          instruction_type?: string | null
+          source_message_id?: string | null
+          transport_document_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_document_instructions_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_instructions_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_document_instructions_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_documents: {
+        Row: {
+          alc_carrier_id: string | null
+          bill_of_lading_number: string | null
+          booking_id: string | null
+          created_at: string
+          declared_value: number | null
+          declared_value_currency: string | null
+          destination_charge_payment_term_code: string | null
+          freight_payment_term_code: string | null
+          id: string
+          is_electronic: boolean | null
+          is_surrendered: boolean | null
+          issue_date: string | null
+          issue_location_id: string | null
+          number_of_copies: number | null
+          number_of_originals: number | null
+          origin_charge_payment_term_code: string | null
+          received_for_shipment_date: string | null
+          shipment_id: string | null
+          shipped_on_board_date: string | null
+          shipping_instruction_id: string | null
+          source_message_id: string | null
+          transport_document_reference: string | null
+          transport_document_status: string | null
+          transport_document_type_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          bill_of_lading_number?: string | null
+          booking_id?: string | null
+          created_at?: string
+          declared_value?: number | null
+          declared_value_currency?: string | null
+          destination_charge_payment_term_code?: string | null
+          freight_payment_term_code?: string | null
+          id?: string
+          is_electronic?: boolean | null
+          is_surrendered?: boolean | null
+          issue_date?: string | null
+          issue_location_id?: string | null
+          number_of_copies?: number | null
+          number_of_originals?: number | null
+          origin_charge_payment_term_code?: string | null
+          received_for_shipment_date?: string | null
+          shipment_id?: string | null
+          shipped_on_board_date?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          transport_document_reference?: string | null
+          transport_document_status?: string | null
+          transport_document_type_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          bill_of_lading_number?: string | null
+          booking_id?: string | null
+          created_at?: string
+          declared_value?: number | null
+          declared_value_currency?: string | null
+          destination_charge_payment_term_code?: string | null
+          freight_payment_term_code?: string | null
+          id?: string
+          is_electronic?: boolean | null
+          is_surrendered?: boolean | null
+          issue_date?: string | null
+          issue_location_id?: string | null
+          number_of_copies?: number | null
+          number_of_originals?: number | null
+          origin_charge_payment_term_code?: string | null
+          received_for_shipment_date?: string | null
+          shipment_id?: string | null
+          shipped_on_board_date?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          transport_document_reference?: string | null
+          transport_document_status?: string | null
+          transport_document_type_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_documents_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_issue_location_id_fkey"
+            columns: ["issue_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_documents_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transport_plans: {
         Row: {
           alc_carrier_id: string | null
@@ -7425,7 +8030,9 @@ export type Database = {
           sequence_number: number | null
           service_name: string | null
           shipment_id: string | null
+          shipping_instruction_id: string | null
           source_message_id: string | null
+          transport_document_id: string | null
           transport_mode: string | null
           updated_at: string
           vessel_id: string | null
@@ -7446,7 +8053,9 @@ export type Database = {
           sequence_number?: number | null
           service_name?: string | null
           shipment_id?: string | null
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           transport_mode?: string | null
           updated_at?: string
           vessel_id?: string | null
@@ -7467,7 +8076,9 @@ export type Database = {
           sequence_number?: number | null
           service_name?: string | null
           shipment_id?: string | null
+          shipping_instruction_id?: string | null
           source_message_id?: string | null
+          transport_document_id?: string | null
           transport_mode?: string | null
           updated_at?: string
           vessel_id?: string | null
@@ -7532,10 +8143,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transport_plans_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transport_plans_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_plans_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
             referencedColumns: ["id"]
           },
           {
