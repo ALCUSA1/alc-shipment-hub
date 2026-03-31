@@ -3,9 +3,6 @@ project_id = "sikosqmgmwvdmxzigjpl"
 [functions.carrier-booking]
 verify_jwt = false
 
-[functions.carrier-webhook]
-verify_jwt = false
-
 [functions.create-payment]
 verify_jwt = false
 
@@ -52,12 +49,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.translate-edi]
-verify_jwt = false
-
-[functions.carrier-sync]
-verify_jwt = false
-
-[functions.sync-carrier-rates]
 verify_jwt = false
 
 [functions.settle-carriers]

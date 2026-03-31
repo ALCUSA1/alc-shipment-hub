@@ -77,11 +77,6 @@ const BookingFlow = () => {
     setSearchParams(params);
 
     try {
-      // Trigger background sync
-      supabase.functions.invoke("sync-carrier-rates", {
-        body: { origin: params.origin, destination: params.destination },
-      }).catch(() => {});
-
       const today = new Date().toISOString().split("T")[0];
       let query = supabase
         .from("carrier_rates")

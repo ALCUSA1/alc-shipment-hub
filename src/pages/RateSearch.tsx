@@ -61,16 +61,6 @@ const RateSearch = () => {
     setSearchParams(params);
 
     try {
-      // Trigger live rate sync from carrier APIs in background
-      supabase.functions.invoke("sync-carrier-rates", {
-        body: { origin: params.origin, destination: params.destination },
-      }).then((res) => {
-        if (res.data?.rates_upserted > 0) {
-          // Re-fetch if new rates were synced
-          fetchRates(params);
-        }
-      }).catch((err) => console.log("Rate sync skipped:", err));
-
       await fetchRates(params);
     } catch (err) {
       console.error("Rate search error:", err);
