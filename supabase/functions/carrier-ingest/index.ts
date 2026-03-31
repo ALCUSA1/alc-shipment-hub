@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
     if (rawErr) throw rawErr;
 
-    // ── Step 3: Create integration job for transformation ──
+    // ── Step 3: Create integration job ──
     const { data: job, error: jobErr } = await supabase
       .from("integration_jobs")
       .insert({
@@ -104,7 +104,6 @@ Deno.serve(async (req) => {
       })
       .eq("id", job.id);
 
-    // Mark raw message as processed
     await supabase
       .from("carrier_raw_messages")
       .update({
@@ -134,8 +133,7 @@ Deno.serve(async (req) => {
 });
 
 // ============================================================
-// TRANSFORMATION LAYER
-// Converts raw carrier payloads into normalized ALC records
+// TYPES
 // ============================================================
 interface TransformInput {
   carrierId: string;
@@ -153,6 +151,153 @@ interface TransformResult {
   error?: string;
 }
 
+// ============================================================
+// HELPERS
+// ============================================================
+
+/** Resolve or create a location by UNLOCODE */
+async function resolveLocation(locCode: string, locName?: string): Promise<string | null> {
+  if (!locCode) return null;
+  const { data: loc } = await supabase
+    .from("alc_locations")
+    .select("id")
+    .eq("unlocode", locCode)
+    .maybeSingle();
+  if (loc) return loc.id;
+  const { data: newLoc } = await supabase
+    .from("alc_locations")
+    .insert({ unlocode: locCode, location_name: locName || locCode })
+    .select("id")
+    .single();
+  return newLoc?.id || null;
+}
+
+/** Find shipment ID by any reference value */
+async function findShipmentByRef(refValue: string): Promise<string | null> {
+  if (!refValue) return null;
+  // Check shipment_references first
+  const { data: ref } = await supabase
+    .from("shipment_references")
+    .select("shipment_id")
+    .eq("reference_value", refValue)
+    .maybeSingle();
+  if (ref) return ref.shipment_id;
+  // Fallback to booking_ref on shipments
+  const { data: ship } = await supabase
+    .from("shipments")
+    .select("id")
+    .eq("booking_ref", refValue)
+    .maybeSingle();
+  return ship?.id || null;
+}
+
+/** Resolve or create a container */
+async function resolveContainer(
+  shipmentId: string,
+  containerNumber: string,
+  carrierId: string,
+  extras?: { iso_equipment_code?: string; equipment_size_type?: string; equipment_reference?: string }
+): Promise<string | null> {
+  if (!containerNumber || !shipmentId) return null;
+  const { data: ctn } = await supabase
+    .from("containers")
+    .select("id")
+    .eq("shipment_id", shipmentId)
+    .eq("container_number", containerNumber)
+    .maybeSingle();
+  if (ctn) return ctn.id;
+  const { data: newCtn } = await supabase
+    .from("containers")
+    .insert({
+      shipment_id: shipmentId,
+      container_number: containerNumber,
+      alc_carrier_id: carrierId,
+      container_type: extras?.equipment_size_type || "unknown",
+      iso_equipment_code: extras?.iso_equipment_code || null,
+      equipment_size_type: extras?.equipment_size_type || null,
+      equipment_reference: extras?.equipment_reference || null,
+      quantity: 1,
+      status: "active",
+    })
+    .select("id")
+    .single();
+  return newCtn?.id || null;
+}
+
+/** Resolve or create vessel */
+async function resolveVessel(
+  carrierId: string,
+  vesselName: string,
+  imoNumber?: string,
+  mmsi?: string,
+  operatorName?: string
+): Promise<string | null> {
+  if (!vesselName) return null;
+  if (imoNumber) {
+    const { data: existing } = await supabase
+      .from("alc_vessels")
+      .select("id")
+      .eq("imo_number", imoNumber)
+      .maybeSingle();
+    if (existing) return existing.id;
+  }
+  const { data: newV } = await supabase
+    .from("alc_vessels")
+    .insert({
+      carrier_id: carrierId,
+      vessel_name: vesselName,
+      imo_number: imoNumber || null,
+      mmsi: mmsi || null,
+      operator_name: operatorName || null,
+    })
+    .select("id")
+    .single();
+  return newV?.id || null;
+}
+
+/** Upsert a shipment reference */
+async function upsertReference(
+  shipmentId: string,
+  carrierId: string,
+  refType: string,
+  refValue: string,
+  isPrimary: boolean,
+  rawMessageId: string
+): Promise<void> {
+  if (!refValue) return;
+  const { data: existing } = await supabase
+    .from("shipment_references")
+    .select("id")
+    .eq("shipment_id", shipmentId)
+    .eq("reference_type", refType)
+    .eq("reference_value", refValue)
+    .maybeSingle();
+  if (!existing) {
+    await supabase.from("shipment_references").insert({
+      shipment_id: shipmentId,
+      carrier_id: carrierId,
+      reference_type: refType,
+      reference_value: refValue,
+      is_primary: isPrimary,
+      source_message_id: rawMessageId,
+    });
+  }
+}
+
+/** Load event mappings for a carrier */
+async function loadEventMappings(carrierId: string, family: string): Promise<Map<string, any>> {
+  const { data: mappings } = await supabase
+    .from("carrier_event_mappings")
+    .select("*")
+    .eq("carrier_id", carrierId)
+    .eq("message_family", family)
+    .eq("active", true);
+  return new Map((mappings || []).map((m: any) => [m.external_code, m]));
+}
+
+// ============================================================
+// TRANSFORMATION DISPATCHER
+// ============================================================
 async function transformPayload(input: TransformInput): Promise<TransformResult> {
   try {
     const { messageFamily, messageType } = input;
@@ -169,6 +314,9 @@ async function transformPayload(input: TransformInput): Promise<TransformResult>
     if (messageFamily === "schedule" && messageType === "vessel") {
       return await transformVesselSchedule(input);
     }
+    if (messageFamily === "equipment" && messageType === "update") {
+      return await transformEquipmentUpdate(input);
+    }
 
     // Unknown message type – store raw but skip transformation
     return { success: true, recordsCreated: 0 };
@@ -177,93 +325,126 @@ async function transformPayload(input: TransformInput): Promise<TransformResult>
   }
 }
 
-// ── Tracking Event Transformer ──
+// ============================================================
+// TRACKING EVENT TRANSFORMER
+// ============================================================
 async function transformTrackingEvent(input: TransformInput): Promise<TransformResult> {
-  const { carrierId, rawMessageId, payload } = input;
+  const { carrierId, carrierCode, rawMessageId, payload } = input;
   if (!payload) return { success: true, recordsCreated: 0 };
 
   const events = Array.isArray(payload.events) ? payload.events : [payload];
   let created = 0;
 
-  // Resolve event mapping
-  const { data: mappings } = await supabase
-    .from("carrier_event_mappings")
-    .select("*")
-    .eq("carrier_id", carrierId)
-    .eq("message_family", "tracking")
-    .eq("active", true);
-
-  const mappingLookup = new Map(
-    (mappings || []).map((m: any) => [m.external_code, m])
-  );
+  const mappingLookup = await loadEventMappings(carrierId, "tracking");
 
   for (const evt of events) {
-    const mapping = mappingLookup.get(evt.event_code || evt.eventCode);
+    const eventCode = evt.event_code || evt.eventCode;
+    const mapping = mappingLookup.get(eventCode);
 
-    // Resolve or create location
-    let locationId: string | null = null;
+    // Resolve location
     const locCode = evt.unlocode || evt.location_code || evt.facilityCode;
-    if (locCode) {
-      const { data: loc } = await supabase
-        .from("alc_locations")
-        .select("id")
-        .eq("unlocode", locCode)
-        .maybeSingle();
+    const locationId = await resolveLocation(locCode, evt.location_name || evt.portName);
 
-      if (loc) {
-        locationId = loc.id;
-      } else {
-        const { data: newLoc } = await supabase
-          .from("alc_locations")
-          .insert({ unlocode: locCode, location_name: evt.location_name || locCode })
+    // Find shipment by any available reference
+    const refValue = evt.booking_number || evt.bill_of_lading || evt.container_number
+      || evt.shipmentReference || evt.bookingReference;
+    const shipmentId = await findShipmentByRef(refValue);
+
+    if (!shipmentId) {
+      console.warn(`No shipment found for reference: ${refValue}, storing event without shipment link`);
+    }
+
+    // Resolve container
+    const containerNum = evt.container_number || evt.equipmentReference;
+    let containerId: string | null = null;
+    if (containerNum && shipmentId) {
+      containerId = await resolveContainer(shipmentId, containerNum, carrierId, {
+        iso_equipment_code: evt.iso_equipment_code || evt.isoEquipmentCode,
+        equipment_size_type: evt.equipment_size_type || evt.equipmentSizeType,
+      });
+    }
+
+    // Resolve vessel
+    let vesselId: string | null = null;
+    const vesselName = evt.vessel_name || evt.vesselName;
+    if (vesselName) {
+      vesselId = await resolveVessel(
+        carrierId, vesselName,
+        evt.imo_number || evt.imoNumber,
+        evt.mmsi,
+        evt.operator || evt.operatorName
+      );
+    }
+
+    // Resolve transport call if voyage info present
+    let transportCallId: string | null = null;
+    const voyageNumber = evt.voyage_number || evt.voyageNumber;
+    if (vesselId && voyageNumber && locationId) {
+      const { data: tc } = await supabase
+        .from("transport_calls")
+        .select("id")
+        .eq("vessel_id", vesselId)
+        .eq("voyage_number", voyageNumber)
+        .eq("location_id", locationId)
+        .maybeSingle();
+      transportCallId = tc?.id || null;
+    }
+
+    // Store seal info if present
+    if (containerId && evt.seal_number) {
+      const seals = Array.isArray(evt.seal_number) ? evt.seal_number : [evt.seal_number];
+      for (const sn of seals) {
+        const { data: existingSeal } = await supabase
+          .from("container_seals")
           .select("id")
-          .single();
-        locationId = newLoc?.id || null;
+          .eq("container_id", containerId)
+          .eq("seal_number", sn)
+          .maybeSingle();
+        if (!existingSeal) {
+          await supabase.from("container_seals").insert({
+            container_id: containerId,
+            carrier_id: carrierId,
+            seal_number: sn,
+            seal_source: evt.seal_source || "carrier",
+          });
+          created++;
+        }
       }
     }
 
-    // Find shipment by reference
-    const refValue = evt.booking_number || evt.bill_of_lading || evt.container_number || evt.shipmentReference;
-    let shipmentId: string | null = null;
-    if (refValue) {
-      const { data: ref } = await supabase
-        .from("shipment_references")
-        .select("shipment_id")
-        .eq("reference_value", refValue)
-        .maybeSingle();
-      shipmentId = ref?.shipment_id || null;
+    // Upsert shipment references from event data
+    if (shipmentId) {
+      if (evt.booking_number || evt.bookingReference) {
+        await upsertReference(shipmentId, carrierId, "booking_number", evt.booking_number || evt.bookingReference, true, rawMessageId);
+      }
+      if (evt.bill_of_lading || evt.billOfLading) {
+        await upsertReference(shipmentId, carrierId, "bill_of_lading", evt.bill_of_lading || evt.billOfLading, false, rawMessageId);
+      }
+      if (containerNum) {
+        await upsertReference(shipmentId, carrierId, "container_number", containerNum, false, rawMessageId);
+      }
     }
 
-    // Find container
-    let containerId: string | null = null;
-    const containerNum = evt.container_number || evt.equipmentReference;
-    if (containerNum && shipmentId) {
-      const { data: ctn } = await supabase
-        .from("containers")
-        .select("id")
-        .eq("shipment_id", shipmentId)
-        .eq("container_number", containerNum)
-        .maybeSingle();
-      containerId = ctn?.id || null;
-    }
-
+    // Insert tracking event
     await supabase.from("tracking_events").insert({
       shipment_id: shipmentId,
       container_id: containerId,
       alc_carrier_id: carrierId,
       raw_message_id: rawMessageId,
       event_scope: evt.event_scope || (containerNum ? "equipment" : "shipment"),
-      external_event_code: evt.event_code || evt.eventCode || null,
+      external_event_code: eventCode || null,
       external_event_name: evt.event_name || evt.eventName || null,
       internal_event_code: mapping?.internal_code || null,
       internal_event_name: mapping?.internal_name || null,
-      event_classifier_code: evt.event_classifier || null,
-      event_created_datetime: evt.event_created_datetime || null,
+      event_classifier_code: evt.event_classifier || evt.eventClassifierCode || null,
+      event_created_datetime: evt.event_created_datetime || evt.eventCreatedDateTime || null,
       event_date: evt.event_datetime || evt.eventDateTime || new Date().toISOString(),
       milestone: mapping?.internal_name || evt.event_name || evt.eventName || "Unknown",
-      location: evt.location_name || locCode || null,
+      location: evt.location_name || evt.portName || locCode || null,
       location_id: locationId,
-      source: `carrier:${input.carrierCode}`,
+      transport_call_id: transportCallId,
+      vessel_id: vesselId,
+      source: `carrier:${carrierCode}`,
       event_payload_json: evt,
     });
     created++;
@@ -272,24 +453,34 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
   return { success: true, recordsCreated: created };
 }
 
-// ── Booking Confirmation Transformer ──
+// ============================================================
+// BOOKING CONFIRMATION TRANSFORMER
+// ============================================================
 async function transformBookingConfirmation(input: TransformInput): Promise<TransformResult> {
-  const { carrierId, rawMessageId, payload } = input;
+  const { carrierId, carrierCode, rawMessageId, payload } = input;
   if (!payload) return { success: true, recordsCreated: 0 };
 
   let created = 0;
   const bookingNum = payload.booking_number || payload.bookingReference;
   if (!bookingNum) return { success: true, recordsCreated: 0 };
 
-  // Check if shipment with this reference exists
-  const { data: existingRef } = await supabase
-    .from("shipment_references")
-    .select("shipment_id")
-    .eq("reference_value", bookingNum)
-    .eq("reference_type", "booking_number")
-    .maybeSingle();
+  const shipmentId = await findShipmentByRef(bookingNum);
 
-  if (existingRef) {
+  if (shipmentId) {
+    // Store references
+    await upsertReference(shipmentId, carrierId, "booking_number", bookingNum, true, rawMessageId);
+    created++;
+
+    if (payload.bill_of_lading || payload.billOfLading) {
+      await upsertReference(shipmentId, carrierId, "bill_of_lading", payload.bill_of_lading || payload.billOfLading, false, rawMessageId);
+      created++;
+    }
+
+    if (payload.carrier_reference || payload.carrierReference) {
+      await upsertReference(shipmentId, carrierId, "carrier_reference", payload.carrier_reference || payload.carrierReference, false, rawMessageId);
+      created++;
+    }
+
     // Update shipment with carrier info
     await supabase
       .from("shipments")
@@ -298,147 +489,161 @@ async function transformBookingConfirmation(input: TransformInput): Promise<Tran
         primary_reference_type: "booking_number",
         primary_reference_value: bookingNum,
       })
-      .eq("id", existingRef.shipment_id);
-    return { success: true, recordsCreated: 0 };
-  }
+      .eq("id", shipmentId);
 
-  // Store references if shipment exists by booking_ref
-  const { data: shipment } = await supabase
-    .from("shipments")
-    .select("id")
-    .eq("booking_ref", bookingNum)
-    .maybeSingle();
+    // Create containers from equipment list
+    const equipment = payload.equipment || payload.containers || [];
+    for (const eq of equipment) {
+      const ctnNum = eq.container_number || eq.equipmentReference;
+      if (ctnNum) {
+        const ctnId = await resolveContainer(shipmentId, ctnNum, carrierId, {
+          iso_equipment_code: eq.iso_equipment_code || eq.isoEquipmentCode,
+          equipment_size_type: eq.equipment_size_type || eq.sizeType,
+          equipment_reference: eq.equipment_reference,
+        });
+        created++;
 
-  if (shipment) {
-    const refs = [
-      { reference_type: "booking_number", reference_value: bookingNum, is_primary: true },
-    ];
-    if (payload.bill_of_lading) {
-      refs.push({ reference_type: "bill_of_lading", reference_value: payload.bill_of_lading, is_primary: false });
+        // Process seals
+        const seals = eq.seals || eq.seal_numbers || [];
+        for (const s of seals) {
+          const sealNum = typeof s === "string" ? s : s.seal_number || s.sealNumber;
+          if (sealNum && ctnId) {
+            await supabase.from("container_seals").insert({
+              container_id: ctnId,
+              carrier_id: carrierId,
+              seal_number: sealNum,
+              seal_source: (typeof s === "object" ? s.seal_source || s.sealSource : null) || "carrier",
+            });
+            created++;
+          }
+        }
+      }
     }
-    for (const ref of refs) {
-      await supabase.from("shipment_references").insert({
-        shipment_id: shipment.id,
-        carrier_id: carrierId,
-        ...ref,
-        source_message_id: rawMessageId,
-      });
-      created++;
+
+    // Resolve vessel if provided
+    const vesselName = payload.vessel_name || payload.vesselName;
+    if (vesselName) {
+      const vesselId = await resolveVessel(
+        carrierId, vesselName,
+        payload.imo_number || payload.imoNumber,
+        payload.mmsi,
+        payload.operator || payload.operatorName
+      );
+      if (vesselId) {
+        await supabase.from("shipments").update({ vessel: vesselName }).eq("id", shipmentId);
+      }
     }
 
-    await supabase
-      .from("shipments")
-      .update({
-        alc_carrier_id: carrierId,
-        primary_reference_type: "booking_number",
-        primary_reference_value: bookingNum,
-      })
-      .eq("id", shipment.id);
+    // Create booking confirmed tracking event
+    const mappingLookup = await loadEventMappings(carrierId, "tracking");
+    const bkcfMapping = mappingLookup.get("BKCF");
+    await supabase.from("tracking_events").insert({
+      shipment_id: shipmentId,
+      alc_carrier_id: carrierId,
+      raw_message_id: rawMessageId,
+      event_scope: "shipment",
+      external_event_code: "BKCF",
+      external_event_name: "Booking Confirmed",
+      internal_event_code: bkcfMapping?.internal_code || "booking_confirmed",
+      internal_event_name: bkcfMapping?.internal_name || "Booking Confirmed",
+      event_date: payload.confirmed_at || payload.confirmedAt || new Date().toISOString(),
+      milestone: bkcfMapping?.internal_name || "Booking Confirmed",
+      source: `carrier:${carrierCode}`,
+      event_payload_json: payload,
+    });
+    created++;
   }
 
   return { success: true, recordsCreated: created };
 }
 
-// ── Document Release Transformer ──
+// ============================================================
+// DOCUMENT RELEASE TRANSFORMER
+// ============================================================
 async function transformDocumentRelease(input: TransformInput): Promise<TransformResult> {
-  const { carrierId, rawMessageId, payload } = input;
+  const { carrierId, carrierCode, rawMessageId, payload } = input;
   if (!payload) return { success: true, recordsCreated: 0 };
 
-  const refValue = payload.booking_number || payload.bill_of_lading;
+  let created = 0;
+  const refValue = payload.booking_number || payload.bill_of_lading || payload.bookingReference;
   if (!refValue) return { success: true, recordsCreated: 0 };
 
-  const { data: ref } = await supabase
-    .from("shipment_references")
-    .select("shipment_id")
-    .eq("reference_value", refValue)
-    .maybeSingle();
-
-  if (!ref) return { success: true, recordsCreated: 0 };
+  const shipmentId = await findShipmentByRef(refValue);
+  if (!shipmentId) return { success: true, recordsCreated: 0 };
 
   const { data: ship } = await supabase
     .from("shipments")
     .select("user_id")
-    .eq("id", ref.shipment_id)
+    .eq("id", shipmentId)
     .single();
 
+  // Insert document record
   await supabase.from("documents").insert({
-    shipment_id: ref.shipment_id,
+    shipment_id: shipmentId,
     user_id: ship?.user_id,
     alc_carrier_id: carrierId,
-    doc_type: payload.document_type || "carrier_document",
-    document_reference: payload.document_reference || null,
+    doc_type: payload.document_type || payload.documentType || "carrier_document",
+    document_reference: payload.document_reference || payload.documentReference || null,
     source_message_id: rawMessageId,
     metadata_json: payload.metadata || null,
     status: "available",
-    file_url: payload.download_url || "",
+    file_url: payload.download_url || payload.downloadUrl || "",
   });
+  created++;
 
-  return { success: true, recordsCreated: 1 };
+  // Create a document-type tracking event via mapping
+  const docCode = payload.event_code || payload.eventCode;
+  if (docCode) {
+    const mappingLookup = await loadEventMappings(carrierId, "document");
+    const mapping = mappingLookup.get(docCode);
+    await supabase.from("tracking_events").insert({
+      shipment_id: shipmentId,
+      alc_carrier_id: carrierId,
+      raw_message_id: rawMessageId,
+      event_scope: "shipment",
+      external_event_code: docCode,
+      external_event_name: payload.event_name || payload.eventName || null,
+      internal_event_code: mapping?.internal_code || null,
+      internal_event_name: mapping?.internal_name || null,
+      event_date: payload.released_at || payload.releasedAt || new Date().toISOString(),
+      milestone: mapping?.internal_name || "Document Released",
+      source: `carrier:${carrierCode}`,
+      event_payload_json: payload,
+    });
+    created++;
+  }
+
+  return { success: true, recordsCreated: created };
 }
 
-// ── Vessel Schedule Transformer ──
+// ============================================================
+// VESSEL SCHEDULE TRANSFORMER
+// ============================================================
 async function transformVesselSchedule(input: TransformInput): Promise<TransformResult> {
   const { carrierId, payload } = input;
   if (!payload) return { success: true, recordsCreated: 0 };
 
   let created = 0;
-
-  // Upsert vessel
   const vesselName = payload.vessel_name || payload.vesselName;
-  const imoNumber = payload.imo_number || payload.imoNumber;
   if (!vesselName) return { success: true, recordsCreated: 0 };
 
-  let vesselId: string;
-  if (imoNumber) {
-    const { data: existing } = await supabase
-      .from("alc_vessels")
-      .select("id")
-      .eq("imo_number", imoNumber)
-      .maybeSingle();
+  const vesselId = await resolveVessel(
+    carrierId, vesselName,
+    payload.imo_number || payload.imoNumber,
+    payload.mmsi,
+    payload.operator || payload.operatorName
+  );
+  if (!vesselId) return { success: false, recordsCreated: 0, error: "Failed to create vessel" };
+  created++;
 
-    if (existing) {
-      vesselId = existing.id;
-    } else {
-      const { data: newV } = await supabase
-        .from("alc_vessels")
-        .insert({ carrier_id: carrierId, vessel_name: vesselName, imo_number: imoNumber, mmsi: payload.mmsi || null, operator_name: payload.operator || null })
-        .select("id")
-        .single();
-      vesselId = newV!.id;
-      created++;
-    }
-  } else {
-    const { data: newV } = await supabase
-      .from("alc_vessels")
-      .insert({ carrier_id: carrierId, vessel_name: vesselName, operator_name: payload.operator || null })
-      .select("id")
-      .single();
-    vesselId = newV!.id;
-    created++;
-  }
-
-  // Create transport calls if port calls provided
+  // Create transport calls from port calls
   const portCalls = payload.port_calls || payload.portCalls || [];
   for (let i = 0; i < portCalls.length; i++) {
     const pc = portCalls[i];
-    let locationId: string | null = null;
-    if (pc.unlocode) {
-      const { data: loc } = await supabase
-        .from("alc_locations")
-        .select("id")
-        .eq("unlocode", pc.unlocode)
-        .maybeSingle();
-      if (loc) {
-        locationId = loc.id;
-      } else {
-        const { data: newLoc } = await supabase
-          .from("alc_locations")
-          .insert({ unlocode: pc.unlocode, location_name: pc.port_name || pc.unlocode })
-          .select("id")
-          .single();
-        locationId = newLoc?.id || null;
-      }
-    }
+    const locationId = await resolveLocation(
+      pc.unlocode || pc.portCode,
+      pc.port_name || pc.portName
+    );
 
     await supabase.from("transport_calls").insert({
       carrier_id: carrierId,
@@ -453,6 +658,70 @@ async function transformVesselSchedule(input: TransformInput): Promise<Transform
       actual_departure: pc.actual_departure || pc.atd || null,
     });
     created++;
+  }
+
+  return { success: true, recordsCreated: created };
+}
+
+// ============================================================
+// EQUIPMENT UPDATE TRANSFORMER
+// ============================================================
+async function transformEquipmentUpdate(input: TransformInput): Promise<TransformResult> {
+  const { carrierId, rawMessageId, payload } = input;
+  if (!payload) return { success: true, recordsCreated: 0 };
+
+  let created = 0;
+  const containers = Array.isArray(payload.containers) ? payload.containers : [payload];
+
+  for (const ctn of containers) {
+    const refValue = ctn.booking_number || ctn.bookingReference || ctn.shipmentReference;
+    const shipmentId = await findShipmentByRef(refValue);
+    if (!shipmentId) continue;
+
+    const containerNum = ctn.container_number || ctn.equipmentReference;
+    if (!containerNum) continue;
+
+    const containerId = await resolveContainer(shipmentId, containerNum, carrierId, {
+      iso_equipment_code: ctn.iso_equipment_code || ctn.isoEquipmentCode,
+      equipment_size_type: ctn.equipment_size_type || ctn.sizeType,
+      equipment_reference: ctn.equipment_reference,
+    });
+
+    if (containerId) {
+      // Update container status/details
+      const updates: Record<string, any> = {};
+      if (ctn.status) updates.status = ctn.status;
+      if (ctn.tare_weight || ctn.tareWeight) updates.tare_weight = ctn.tare_weight || ctn.tareWeight;
+      if (ctn.vgm) updates.vgm = ctn.vgm;
+      if (ctn.seal_number) updates.seal_number = ctn.seal_number;
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("containers").update(updates).eq("id", containerId);
+      }
+
+      // Process seals
+      const seals = ctn.seals || ctn.seal_numbers || [];
+      for (const s of seals) {
+        const sealNum = typeof s === "string" ? s : s.seal_number || s.sealNumber;
+        if (sealNum) {
+          const { data: existingSeal } = await supabase
+            .from("container_seals")
+            .select("id")
+            .eq("container_id", containerId)
+            .eq("seal_number", sealNum)
+            .maybeSingle();
+          if (!existingSeal) {
+            await supabase.from("container_seals").insert({
+              container_id: containerId,
+              carrier_id: carrierId,
+              seal_number: sealNum,
+              seal_source: (typeof s === "object" ? s.seal_source || s.sealSource : null) || "carrier",
+            });
+            created++;
+          }
+        }
+      }
+      created++;
+    }
   }
 
   return { success: true, recordsCreated: created };
