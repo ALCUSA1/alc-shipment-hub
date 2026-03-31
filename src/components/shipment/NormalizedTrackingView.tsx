@@ -37,16 +37,12 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
   const { data, isLoading, error } = useQuery({
     queryKey: ["normalized-tracking", shipmentId],
     queryFn: async () => {
-      const { data: resp, error: err } = await supabase.functions.invoke("shipment-tracking", {
-        body: null,
-        method: "GET",
-      });
-      // Edge function uses query params; call via fetch instead
-      const url = `${(import.meta as any).env.VITE_SUPABASE_URL}/functions/v1/shipment-tracking?shipment_id=${shipmentId}`;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shipment-tracking?shipment_id=${shipmentId}`;
+      const session = (await supabase.auth.getSession()).data.session;
       const res = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          apikey: (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
       });
       if (!res.ok) throw new Error(await res.text());
