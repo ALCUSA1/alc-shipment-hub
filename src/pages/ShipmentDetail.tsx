@@ -20,6 +20,7 @@ import { CarrierRateSelector } from "@/components/shipment/CarrierRateSelector";
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { NormalizedTrackingView } from "@/components/shipment/NormalizedTrackingView";
+import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
