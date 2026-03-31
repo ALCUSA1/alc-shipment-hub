@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.shipment-workflow]
 verify_jwt = false
+
+[functions.carrier-ingest]
+verify_jwt = false
