@@ -1,5 +1,10 @@
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+};
+
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -25,7 +30,6 @@ Deno.serve(async (req) => {
 
     let resolvedShipmentId = shipmentId;
 
-    // If reference provided, resolve to shipment_id
     if (!resolvedShipmentId && reference) {
       const { data: ref } = await supabase
         .from("shipment_references")
@@ -51,7 +55,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch all normalized data in parallel
     const [
       shipmentRes,
       referencesRes,
