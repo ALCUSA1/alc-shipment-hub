@@ -109,6 +109,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 const WORKSPACE_TABS = [
   { id: "overview", label: "Overview", icon: Package },
+  { id: "booking", label: "Booking", icon: BookmarkPlus },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
