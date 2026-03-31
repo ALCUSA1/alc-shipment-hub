@@ -59,3 +59,9 @@ verify_jwt = false
 
 [functions.carrier-ingest]
 verify_jwt = false
+
+[functions.td-ingest]
+verify_jwt = false
+
+[functions.td-detail]
+verify_jwt = false
