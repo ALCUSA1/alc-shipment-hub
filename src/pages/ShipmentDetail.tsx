@@ -22,6 +22,7 @@ import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { NormalizedTrackingView } from "@/components/shipment/NormalizedTrackingView";
 import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
 import { NormalizedTransportDocView } from "@/components/shipment/NormalizedTransportDocView";
+import { NormalizedIssuanceView } from "@/components/shipment/NormalizedIssuanceView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
@@ -112,6 +113,7 @@ const WORKSPACE_TABS = [
   { id: "overview", label: "Overview", icon: Package },
   { id: "booking", label: "Booking", icon: BookmarkPlus },
   { id: "transport-doc", label: "Transport Document", icon: Ship },
+  { id: "issuance", label: "eBL Issuance", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
@@ -452,6 +454,11 @@ const ShipmentDetail = () => {
         {/* ── TRANSPORT DOCUMENT TAB ── */}
         <TabsContent value="transport-doc" className="mt-6 space-y-6">
           <NormalizedTransportDocView shipmentId={id!} />
+        </TabsContent>
+
+        {/* ── eBL ISSUANCE TAB ── */}
+        <TabsContent value="issuance" className="mt-6 space-y-6">
+          <NormalizedIssuanceView shipmentId={id!} />
         </TabsContent>
 
         {/* ── PRICING TAB ── */}

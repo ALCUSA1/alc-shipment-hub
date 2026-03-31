@@ -2780,6 +2780,7 @@ export type Database = {
           document_reference: string | null
           file_url: string | null
           id: string
+          issuance_id: string | null
           metadata_json: Json | null
           shipment_id: string
           shipping_instruction_id: string | null
@@ -2797,6 +2798,7 @@ export type Database = {
           document_reference?: string | null
           file_url?: string | null
           id?: string
+          issuance_id?: string | null
           metadata_json?: Json | null
           shipment_id: string
           shipping_instruction_id?: string | null
@@ -2814,6 +2816,7 @@ export type Database = {
           document_reference?: string | null
           file_url?: string | null
           id?: string
+          issuance_id?: string | null
           metadata_json?: Json | null
           shipment_id?: string
           shipping_instruction_id?: string | null
@@ -2836,6 +2839,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_issuance_id_fkey"
+            columns: ["issuance_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
             referencedColumns: ["id"]
           },
           {
@@ -3703,6 +3713,166 @@ export type Database = {
             columns: ["raw_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issuance_records: {
+        Row: {
+          alc_carrier_id: string | null
+          booking_id: string | null
+          created_at: string
+          ebill_identifier: string | null
+          ebill_platform: string | null
+          id: string
+          issuance_completed_at: string | null
+          issuance_reference: string | null
+          issuance_requested_at: string | null
+          issuance_response_code: string | null
+          issuance_response_message: string | null
+          issuance_status: string | null
+          issuer_name: string | null
+          receiver_name: string | null
+          shipment_id: string | null
+          shipping_instruction_id: string | null
+          source_message_id: string | null
+          transport_document_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          ebill_identifier?: string | null
+          ebill_platform?: string | null
+          id?: string
+          issuance_completed_at?: string | null
+          issuance_reference?: string | null
+          issuance_requested_at?: string | null
+          issuance_response_code?: string | null
+          issuance_response_message?: string | null
+          issuance_status?: string | null
+          issuer_name?: string | null
+          receiver_name?: string | null
+          shipment_id?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          transport_document_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          created_at?: string
+          ebill_identifier?: string | null
+          ebill_platform?: string | null
+          id?: string
+          issuance_completed_at?: string | null
+          issuance_reference?: string | null
+          issuance_requested_at?: string | null
+          issuance_response_code?: string | null
+          issuance_response_message?: string | null
+          issuance_status?: string | null
+          issuer_name?: string | null
+          receiver_name?: string | null
+          shipment_id?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          transport_document_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issuance_records_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_records_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issuance_response_codes: {
+        Row: {
+          active: boolean | null
+          alc_carrier_id: string | null
+          created_at: string
+          id: string
+          response_code: string
+          response_description: string | null
+          response_name: string | null
+          status_category: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          response_code: string
+          response_description?: string | null
+          response_name?: string | null
+          status_category?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          response_code?: string
+          response_description?: string | null
+          response_name?: string | null
+          status_category?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issuance_response_codes_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
             referencedColumns: ["id"]
           },
         ]
@@ -5741,6 +5911,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          issuance_id: string | null
           partner_id: string | null
           phone: string | null
           postal_code: string | null
@@ -5765,6 +5936,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          issuance_id?: string | null
           partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
@@ -5789,6 +5961,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          issuance_id?: string | null
           partner_id?: string | null
           phone?: string | null
           postal_code?: string | null
@@ -5814,6 +5987,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_parties_issuance_id_fkey"
+            columns: ["issuance_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
             referencedColumns: ["id"]
           },
           {
@@ -6084,6 +6264,7 @@ export type Database = {
           created_at: string
           id: string
           is_primary: boolean
+          issuance_id: string | null
           reference_type: string
           reference_value: string
           shipment_id: string
@@ -6098,6 +6279,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_primary?: boolean
+          issuance_id?: string | null
           reference_type: string
           reference_value: string
           shipment_id: string
@@ -6112,6 +6294,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_primary?: boolean
+          issuance_id?: string | null
           reference_type?: string
           reference_value?: string
           shipment_id?: string
@@ -6133,6 +6316,13 @@ export type Database = {
             columns: ["carrier_id"]
             isOneToOne: false
             referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_references_issuance_id_fkey"
+            columns: ["issuance_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
             referencedColumns: ["id"]
           },
           {
@@ -6383,6 +6573,7 @@ export type Database = {
           invoice_date: string | null
           invoice_number: string | null
           is_first_shipment: boolean | null
+          issuance_id: string | null
           lifecycle_stage: string | null
           mawb_number: string | null
           mode: string
@@ -6517,6 +6708,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string | null
           is_first_shipment?: boolean | null
+          issuance_id?: string | null
           lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
@@ -6651,6 +6843,7 @@ export type Database = {
           invoice_date?: string | null
           invoice_number?: string | null
           is_first_shipment?: boolean | null
+          issuance_id?: string | null
           lifecycle_stage?: string | null
           mawb_number?: string | null
           mode?: string
@@ -6776,6 +6969,13 @@ export type Database = {
             columns: ["destination_location_id"]
             isOneToOne: false
             referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_issuance_id_fkey"
+            columns: ["issuance_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
             referencedColumns: ["id"]
           },
           {

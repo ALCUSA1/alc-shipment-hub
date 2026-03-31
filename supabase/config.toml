@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.td-detail]
 verify_jwt = false
+
+[functions.issuance-ingest]
+verify_jwt = false
+
+[functions.issuance-detail]
+verify_jwt = false
