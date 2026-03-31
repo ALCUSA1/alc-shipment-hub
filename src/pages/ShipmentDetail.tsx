@@ -449,6 +449,11 @@ const ShipmentDetail = () => {
           <NormalizedBookingView shipmentId={id!} />
         </TabsContent>
 
+        {/* ── TRANSPORT DOCUMENT TAB ── */}
+        <TabsContent value="transport-doc" className="mt-6 space-y-6">
+          <NormalizedTransportDocView shipmentId={id!} />
+        </TabsContent>
+
         {/* ── PRICING TAB ── */}
         <TabsContent value="pricing" className="mt-6 space-y-6">
           {/* Rate Selection (pre-booking) */}
