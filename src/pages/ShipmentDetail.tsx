@@ -21,6 +21,7 @@ import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { NormalizedTrackingView } from "@/components/shipment/NormalizedTrackingView";
 import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
+import { NormalizedTransportDocView } from "@/components/shipment/NormalizedTransportDocView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
