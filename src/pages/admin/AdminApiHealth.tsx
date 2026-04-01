@@ -412,7 +412,7 @@ const AdminApiHealth = () => {
                       </td>
                       <td className="px-4 py-3 text-[hsl(220,10%,50%)]">{format(new Date(j.created_at), "MMM d, HH:mm:ss")}</td>
                       <td className="px-4 py-3 text-[hsl(220,10%,50%)]">{j.completed_at ? format(new Date(j.completed_at), "HH:mm:ss") : "—"}</td>
-                      <td className="px-4 py-3 text-red-400 truncate max-w-[200px]">{j.error_message || "—"}</td>
+                      <td className="px-4 py-3 text-red-400 truncate max-w-[200px]">{j.last_error || "—"}</td>
                     </tr>
                   ))}
                 </tbody>
