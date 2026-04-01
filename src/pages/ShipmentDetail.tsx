@@ -23,6 +23,7 @@ import { NormalizedTrackingView } from "@/components/shipment/NormalizedTracking
 import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
 import { NormalizedTransportDocView } from "@/components/shipment/NormalizedTransportDocView";
 import { NormalizedIssuanceView } from "@/components/shipment/NormalizedIssuanceView";
+import { SurrenderView } from "@/components/shipment/SurrenderView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
