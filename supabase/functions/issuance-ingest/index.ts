@@ -118,23 +118,57 @@ Deno.serve(async (req) => {
    ═══════════════════════════════════════════════ */
 
 async function transformIssuance(carrierId: string, rawId: string, p: Record<string, any>) {
-  // ── Extract canonical issuance fields ──
-  const issuanceRef = pick(p, "issuanceReference", "issuanceId");
-  const issuanceStatus = pick(p, "issuanceStatus", "status") || "completed";
-  const responseCode = pick(p, "issuanceResponseCode", "responseCode");
-  const responseMessage = pick(p, "issuanceResponseMessage", "responseMessage", "reason");
-  const ebillId = pick(p, "eBillIdentifier", "ebillIdentifier", "eBLIdentifier", "documentHash");
-  const ebillPlatform = pick(p, "eBillPlatform", "ebillPlatform", "eBLPlatform", "platform", "solutionProviderName");
-  const issuanceRequestedAt = pick(p, "issuanceRequestedAt", "requestedAt", "requestDateTime");
-  const issuanceCompletedAt = pick(p, "issuanceCompletedAt", "completedAt", "responseDateTime");
-  const issuerName = pick(p, "issuerName", "issuer", "carrierName");
-  const receiverName = pick(p, "receiverName", "receiver", "shipperName");
+  // ── Unwrap nested DCSA structures ──
+  // DCSA eBL payloads may wrap data under issuanceResponse / identifiedEBL
+  const issuanceResponse = pick(p, "issuanceResponse") || p;
+  const identifiedEBL = pick(issuanceResponse, "identifiedEBL", "identifiedEbl") || pick(p, "identifiedEBL", "identifiedEbl") || {};
+  const responseCodeObj = pick(issuanceResponse, "issuanceResponseCode") || {};
 
-  // Linked document references
-  const tdRef = pick(p, "transportDocumentReference", "tdReference");
-  const blNumber = pick(p, "billOfLadingNumber", "blNumber");
-  const carrierBookingRef = pick(p, "carrierBookingReference", "carrierBookingNumber", "bookingNumber");
-  const siRef = pick(p, "shippingInstructionReference");
+  // ── Extract canonical issuance fields ──
+  const issuanceRef = pick(issuanceResponse, "issuanceReference", "issuanceId")
+    || pick(p, "issuanceReference", "issuanceId");
+
+  // Derive status: DCSA uses issuanceResponseCode as the status indicator
+  const rawResponseCode = typeof responseCodeObj === "string"
+    ? responseCodeObj
+    : pick(responseCodeObj, "issuanceResponseCode", "code", "value") || pick(issuanceResponse, "issuanceResponseCode", "responseCode") || pick(p, "issuanceResponseCode", "responseCode");
+
+  const issuanceStatus = deriveIssuanceStatus(rawResponseCode, pick(issuanceResponse, "issuanceStatus", "status") || pick(p, "issuanceStatus", "status"));
+
+  const responseMessage = pick(issuanceResponse, "issuanceResponseMessage", "responseMessage", "reason")
+    || pick(p, "issuanceResponseMessage", "responseMessage", "reason");
+
+  // eBL identification
+  const ebillId = pick(identifiedEBL, "eBillIdentifier", "ebillIdentifier", "eBLIdentifier", "documentHash")
+    || pick(issuanceResponse, "eBillIdentifier", "ebillIdentifier")
+    || pick(p, "eBillIdentifier", "ebillIdentifier", "documentHash");
+
+  const ebillPlatform = pick(identifiedEBL, "eBillPlatform", "ebillPlatform", "eBLPlatform", "solutionProviderName", "platformName")
+    || pick(issuanceResponse, "eBillPlatform", "solutionProviderName")
+    || pick(p, "eBillPlatform", "ebillPlatform", "platform", "solutionProviderName");
+
+  // Timestamps
+  const issuanceRequestedAt = pick(issuanceResponse, "issuanceRequestedAt", "requestedAt", "requestDateTime")
+    || pick(p, "issuanceRequestedAt", "requestedAt", "requestDateTime");
+  const issuanceCompletedAt = pick(issuanceResponse, "issuanceCompletedAt", "completedAt", "responseDateTime", "issuanceDateTime")
+    || pick(p, "issuanceCompletedAt", "completedAt", "responseDateTime");
+
+  // Parties
+  const issuerName = pick(issuanceResponse, "issuerName", "issuer", "carrierName")
+    || pick(p, "issuerName", "issuer", "carrierName");
+  const receiverName = pick(issuanceResponse, "receiverName", "receiver", "shipperName")
+    || pick(p, "receiverName", "receiver", "shipperName");
+
+  // Linked document references — check both root and nested objects
+  const tdRef = pick(issuanceResponse, "transportDocumentReference", "tdReference")
+    || pick(p, "transportDocumentReference", "tdReference");
+  const blNumber = pick(issuanceResponse, "billOfLadingNumber", "blNumber")
+    || pick(identifiedEBL, "billOfLadingNumber")
+    || pick(p, "billOfLadingNumber", "blNumber");
+  const carrierBookingRef = pick(issuanceResponse, "carrierBookingReference", "carrierBookingNumber", "bookingNumber")
+    || pick(p, "carrierBookingReference", "carrierBookingNumber", "bookingNumber");
+  const siRef = pick(issuanceResponse, "shippingInstructionReference")
+    || pick(p, "shippingInstructionReference");
 
   // ── Resolve linked records ──
 
@@ -182,6 +216,11 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
       .eq("reference_value", blNumber).eq("reference_type", "bill_of_lading").maybeSingle();
     shipmentId = data?.shipment_id ?? null;
   }
+  if (!shipmentId && issuanceRef) {
+    const { data } = await supabase.from("shipment_references").select("shipment_id")
+      .eq("reference_value", issuanceRef).eq("reference_type", "issuance_reference").maybeSingle();
+    shipmentId = data?.shipment_id ?? null;
+  }
 
   // If no shipment found, create one
   if (!shipmentId) {
@@ -208,27 +247,66 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     }
   }
 
-  // ── Normalize response code ──
-  if (responseCode) {
+  // ── Normalize response code (upsert) ──
+  if (rawResponseCode) {
+    const responseName = (typeof responseCodeObj === "object"
+      ? pick(responseCodeObj, "name", "issuanceResponseCodeName", "responseCodeName")
+      : null) || pick(p, "issuanceResponseCodeName", "responseCodeName") || rawResponseCode;
+
+    const responseDesc = (typeof responseCodeObj === "object"
+      ? pick(responseCodeObj, "description", "issuanceResponseCodeDescription")
+      : null) || pick(p, "issuanceResponseCodeDescription", "responseCodeDescription") || responseMessage;
+
+    const category = mapResponseCodeToCategory(rawResponseCode, issuanceStatus);
+
     const { data: existing } = await supabase.from("issuance_response_codes")
-      .select("id").eq("response_code", responseCode)
+      .select("id").eq("response_code", rawResponseCode)
       .eq("alc_carrier_id", carrierId).maybeSingle();
-    if (!existing) {
+
+    if (existing) {
+      // Update description/category if more detail is now available
+      await supabase.from("issuance_response_codes").update({
+        response_name: responseName,
+        response_description: responseDesc,
+        status_category: category,
+      }).eq("id", existing.id);
+    } else {
       await supabase.from("issuance_response_codes").insert({
         alc_carrier_id: carrierId,
-        response_code: responseCode,
-        response_name: pick(p, "issuanceResponseCodeName", "responseCodeName") || responseCode,
-        response_description: pick(p, "issuanceResponseCodeDescription", "responseCodeDescription") || responseMessage,
-        status_category: mapResponseCodeToCategory(responseCode, issuanceStatus),
+        response_code: rawResponseCode,
+        response_name: responseName,
+        response_description: responseDesc,
+        status_category: category,
         active: true,
       });
+    }
+
+    // Also ingest the issuanceResponseCodeList if present (DCSA pattern)
+    const codeList = pick(p, "issuanceResponseCodeList", "responseCodeList") || pick(issuanceResponse, "issuanceResponseCodeList");
+    if (Array.isArray(codeList)) {
+      for (const entry of codeList) {
+        const code = pick(entry, "code", "issuanceResponseCode", "value");
+        if (!code) continue;
+        const { data: ex } = await supabase.from("issuance_response_codes")
+          .select("id").eq("response_code", code).eq("alc_carrier_id", carrierId).maybeSingle();
+        if (!ex) {
+          await supabase.from("issuance_response_codes").insert({
+            alc_carrier_id: carrierId,
+            response_code: code,
+            response_name: pick(entry, "name", "responseName") || code,
+            response_description: pick(entry, "description", "responseDescription"),
+            status_category: mapResponseCodeToCategory(code, ""),
+            active: true,
+          });
+        }
+      }
     }
   }
 
   // ── Create or update issuance_records ──
   let issuanceId: string | null = null;
 
-  // Find existing by reference or eBill ID
+  // Find existing by reference, eBill ID, or TD link
   if (issuanceRef) {
     const { data } = await supabase.from("issuance_records").select("id")
       .eq("issuance_reference", issuanceRef).eq("alc_carrier_id", carrierId).maybeSingle();
@@ -237,6 +315,11 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
   if (!issuanceId && ebillId) {
     const { data } = await supabase.from("issuance_records").select("id")
       .eq("ebill_identifier", ebillId).eq("alc_carrier_id", carrierId).maybeSingle();
+    issuanceId = data?.id ?? null;
+  }
+  if (!issuanceId && tdId) {
+    const { data } = await supabase.from("issuance_records").select("id")
+      .eq("transport_document_id", tdId).eq("alc_carrier_id", carrierId).maybeSingle();
     issuanceId = data?.id ?? null;
   }
 
@@ -249,7 +332,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     source_message_id: rawId,
     issuance_reference: issuanceRef,
     issuance_status: issuanceStatus,
-    issuance_response_code: responseCode,
+    issuance_response_code: rawResponseCode,
     issuance_response_message: responseMessage,
     ebill_identifier: ebillId,
     ebill_platform: ebillPlatform,
@@ -281,6 +364,21 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     if (carrierBookingRef) refs.push({ reference_type: "booking_number", reference_value: carrierBookingRef, is_primary: false });
     if (siRef) refs.push({ reference_type: "shipping_instruction", reference_value: siRef, is_primary: false });
 
+    // Extract additional references from payload
+    const extraRefs = pick(p, "references", "documentReferences") || pick(issuanceResponse, "references") || [];
+    if (Array.isArray(extraRefs)) {
+      for (const r of extraRefs) {
+        const val = pick(r, "value", "referenceValue");
+        if (val) {
+          refs.push({
+            reference_type: pick(r, "type", "referenceType") || "carrier_reference",
+            reference_value: val,
+            is_primary: false,
+          });
+        }
+      }
+    }
+
     if (refs.length) {
       await supabase.from("shipment_references").delete().eq("issuance_id", issuanceId);
       await supabase.from("shipment_references").insert(
@@ -303,6 +401,14 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     const { data: existingDoc } = await supabase.from("documents").select("id")
       .eq("issuance_id", issuanceId).eq("document_type", "electronic_bill_of_lading").maybeSingle();
 
+    const docMeta = {
+      ebill_platform: ebillPlatform,
+      response_code: rawResponseCode,
+      issuer: issuerName,
+      receiver: receiverName,
+      issuance_status: issuanceStatus,
+    };
+
     if (!existingDoc) {
       await supabase.from("documents").insert({
         shipment_id: shipmentId,
@@ -314,23 +420,13 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
         source_message_id: rawId,
         document_type: "electronic_bill_of_lading",
         document_reference: ebillId || issuanceRef || blNumber,
-        metadata_json: {
-          ebill_platform: ebillPlatform,
-          response_code: responseCode,
-          issuer: issuerName,
-          receiver: receiverName,
-        },
+        metadata_json: docMeta,
       });
     } else {
       await supabase.from("documents").update({
         source_message_id: rawId,
         document_reference: ebillId || issuanceRef || blNumber,
-        metadata_json: {
-          ebill_platform: ebillPlatform,
-          response_code: responseCode,
-          issuer: issuerName,
-          receiver: receiverName,
-        },
+        metadata_json: docMeta,
       }).eq("id", existingDoc.id);
     }
   }
@@ -344,15 +440,36 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
   };
 }
 
+/** Derive a canonical issuance status from response code and raw status */
+function deriveIssuanceStatus(responseCode: string | null, rawStatus: string | null): string {
+  if (rawStatus) {
+    const s = rawStatus.toLowerCase();
+    if (["completed", "issued", "accepted", "success"].includes(s)) return "completed";
+    if (["rejected", "failed", "declined", "refused"].includes(s)) return "rejected";
+    if (["pending", "processing", "in_progress", "submitted"].includes(s)) return "pending";
+    if (["exception", "error"].includes(s)) return "exception";
+    return s;
+  }
+  if (responseCode) {
+    const cat = mapResponseCodeToCategory(responseCode, "");
+    if (cat === "issued") return "completed";
+    if (cat === "rejected") return "rejected";
+    if (cat === "void") return "void";
+  }
+  return "pending";
+}
+
 /** Map response code patterns to a status category */
 function mapResponseCodeToCategory(code: string, status: string): string {
   const upper = (code || "").toUpperCase();
-  if (upper.includes("ISSU") || upper.includes("ACCEPTED") || upper === "COMPLETED") return "issued";
-  if (upper.includes("PEND") || upper.includes("PROCESSING")) return "pending";
-  if (upper.includes("REJECT") || upper.includes("FAIL") || upper.includes("ERROR")) return "rejected";
-  if (upper.includes("SURR") || upper.includes("VOID")) return "void";
+  if (upper.includes("ISSU") || upper.includes("ACCEPTED") || upper === "COMPLETED" || upper === "ISSU") return "issued";
+  if (upper.includes("PEND") || upper.includes("PROCESSING") || upper.includes("AWAIT")) return "pending";
+  if (upper.includes("REJECT") || upper.includes("FAIL") || upper.includes("ERROR") || upper.includes("DECLINE")) return "rejected";
+  if (upper.includes("SURR") || upper.includes("VOID") || upper.includes("CANCEL")) return "void";
+  if (upper.includes("EXCEPT")) return "exception";
   // Fallback to status
   if (status === "completed" || status === "issued") return "issued";
   if (status === "rejected" || status === "failed") return "rejected";
+  if (status === "exception") return "exception";
   return "pending";
 }
