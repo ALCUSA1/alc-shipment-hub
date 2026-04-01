@@ -44,7 +44,7 @@ import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   Package, FileText, Users, Clock, Check, Circle, Loader2, Radio,
   Trash2, Ship, Copy, BookmarkPlus, MapPin, ArrowRight, DollarSign,
-  MessageSquare, Activity, BarChart3, AlertTriangle,
+  MessageSquare, Activity, BarChart3, AlertTriangle, HandCoins,
 } from "lucide-react";
 import { translateEdiMessage } from "@/lib/edi-translations";
 import { supabase } from "@/integrations/supabase/client";
