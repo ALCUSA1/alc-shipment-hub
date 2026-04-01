@@ -1212,6 +1212,8 @@ export type Database = {
       }
       carrier_connections: {
         Row: {
+          access_token_encrypted: string | null
+          api_key_header_name: string | null
           auth_type: string
           base_url: string | null
           carrier_id: string
@@ -1221,10 +1223,17 @@ export type Database = {
           id: string
           integration_type: string
           last_success_at: string | null
+          oauth_client_id: string | null
+          oauth_client_secret_key_name: string | null
+          oauth_token_url: string | null
           status: string
+          token_expires_at: string | null
+          token_scope: string | null
           updated_at: string
         }
         Insert: {
+          access_token_encrypted?: string | null
+          api_key_header_name?: string | null
           auth_type?: string
           base_url?: string | null
           carrier_id: string
@@ -1234,10 +1243,17 @@ export type Database = {
           id?: string
           integration_type?: string
           last_success_at?: string | null
+          oauth_client_id?: string | null
+          oauth_client_secret_key_name?: string | null
+          oauth_token_url?: string | null
           status?: string
+          token_expires_at?: string | null
+          token_scope?: string | null
           updated_at?: string
         }
         Update: {
+          access_token_encrypted?: string | null
+          api_key_header_name?: string | null
           auth_type?: string
           base_url?: string | null
           carrier_id?: string
@@ -1247,7 +1263,12 @@ export type Database = {
           id?: string
           integration_type?: string
           last_success_at?: string | null
+          oauth_client_id?: string | null
+          oauth_client_secret_key_name?: string | null
+          oauth_token_url?: string | null
           status?: string
+          token_expires_at?: string | null
+          token_scope?: string | null
           updated_at?: string
         }
         Relationships: [
