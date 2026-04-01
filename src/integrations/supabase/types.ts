@@ -2205,10 +2205,14 @@ export type Database = {
           arrival_date_from: string | null
           arrival_date_to: string | null
           carrier_id: string | null
+          carrier_voyage_number: string | null
           created_at: string
+          delivery_type_at_destination: string | null
           departure_date_from: string | null
           departure_date_to: string | null
           id: string
+          max_transhipment: number | null
+          next_page_cursor: string | null
           place_of_arrival_location_id: string | null
           place_of_delivery_location_id: string | null
           place_of_departure_location_id: string | null
@@ -2216,20 +2220,27 @@ export type Database = {
           port_of_discharge_location_id: string | null
           port_of_loading_location_id: string | null
           query_type: string
+          receipt_type_at_origin: string | null
           service_code: string | null
           source_message_id: string | null
+          un_location_code: string | null
           updated_at: string
           vessel_id: string | null
+          vessel_imo_number: string | null
           voyage_number: string | null
         }
         Insert: {
           arrival_date_from?: string | null
           arrival_date_to?: string | null
           carrier_id?: string | null
+          carrier_voyage_number?: string | null
           created_at?: string
+          delivery_type_at_destination?: string | null
           departure_date_from?: string | null
           departure_date_to?: string | null
           id?: string
+          max_transhipment?: number | null
+          next_page_cursor?: string | null
           place_of_arrival_location_id?: string | null
           place_of_delivery_location_id?: string | null
           place_of_departure_location_id?: string | null
@@ -2237,20 +2248,27 @@ export type Database = {
           port_of_discharge_location_id?: string | null
           port_of_loading_location_id?: string | null
           query_type?: string
+          receipt_type_at_origin?: string | null
           service_code?: string | null
           source_message_id?: string | null
+          un_location_code?: string | null
           updated_at?: string
           vessel_id?: string | null
+          vessel_imo_number?: string | null
           voyage_number?: string | null
         }
         Update: {
           arrival_date_from?: string | null
           arrival_date_to?: string | null
           carrier_id?: string | null
+          carrier_voyage_number?: string | null
           created_at?: string
+          delivery_type_at_destination?: string | null
           departure_date_from?: string | null
           departure_date_to?: string | null
           id?: string
+          max_transhipment?: number | null
+          next_page_cursor?: string | null
           place_of_arrival_location_id?: string | null
           place_of_delivery_location_id?: string | null
           place_of_departure_location_id?: string | null
@@ -2258,10 +2276,13 @@ export type Database = {
           port_of_discharge_location_id?: string | null
           port_of_loading_location_id?: string | null
           query_type?: string
+          receipt_type_at_origin?: string | null
           service_code?: string | null
           source_message_id?: string | null
+          un_location_code?: string | null
           updated_at?: string
           vessel_id?: string | null
+          vessel_imo_number?: string | null
           voyage_number?: string | null
         }
         Relationships: [
@@ -2338,6 +2359,7 @@ export type Database = {
           is_direct_service: boolean | null
           query_id: string | null
           schedule_reference: string | null
+          schedule_source_type: string | null
           schedule_type: string
           service_code: string | null
           service_name: string | null
@@ -2353,6 +2375,7 @@ export type Database = {
           is_direct_service?: boolean | null
           query_id?: string | null
           schedule_reference?: string | null
+          schedule_source_type?: string | null
           schedule_type?: string
           service_code?: string | null
           service_name?: string | null
@@ -2368,6 +2391,7 @@ export type Database = {
           is_direct_service?: boolean | null
           query_id?: string | null
           schedule_reference?: string | null
+          schedule_source_type?: string | null
           schedule_type?: string
           service_code?: string | null
           service_name?: string | null
