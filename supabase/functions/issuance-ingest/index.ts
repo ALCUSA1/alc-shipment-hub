@@ -119,7 +119,6 @@ Deno.serve(async (req) => {
 
 async function transformIssuance(carrierId: string, rawId: string, p: Record<string, any>) {
   // ── Unwrap nested DCSA structures ──
-  // DCSA eBL payloads may wrap data under issuanceResponse / identifiedEBL
   const issuanceResponse = pick(p, "issuanceResponse") || p;
   const identifiedEBL = pick(issuanceResponse, "identifiedEBL", "identifiedEbl") || pick(p, "identifiedEBL", "identifiedEbl") || {};
   const responseCodeObj = pick(issuanceResponse, "issuanceResponseCode") || {};
@@ -128,12 +127,15 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
   const issuanceRef = pick(issuanceResponse, "issuanceReference", "issuanceId")
     || pick(p, "issuanceReference", "issuanceId");
 
-  // Derive status: DCSA uses issuanceResponseCode as the status indicator
   const rawResponseCode = typeof responseCodeObj === "string"
     ? responseCodeObj
     : pick(responseCodeObj, "issuanceResponseCode", "code", "value") || pick(issuanceResponse, "issuanceResponseCode", "responseCode") || pick(p, "issuanceResponseCode", "responseCode");
 
-  const issuanceStatus = deriveIssuanceStatus(rawResponseCode, pick(issuanceResponse, "issuanceStatus", "status") || pick(p, "issuanceStatus", "status"));
+  const rawStatus = pick(issuanceResponse, "issuanceStatus", "status") || pick(p, "issuanceStatus", "status");
+
+  // Use mapping table first, then fallback to heuristic
+  const issuanceStatusInternal = await resolveInternalStatus(carrierId, rawResponseCode, rawStatus);
+  const issuanceStatus = deriveIssuanceStatus(rawResponseCode, rawStatus);
 
   const responseMessage = pick(issuanceResponse, "issuanceResponseMessage", "responseMessage", "reason")
     || pick(p, "issuanceResponseMessage", "responseMessage", "reason");
@@ -152,6 +154,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     || pick(p, "issuanceRequestedAt", "requestedAt", "requestDateTime");
   const issuanceCompletedAt = pick(issuanceResponse, "issuanceCompletedAt", "completedAt", "responseDateTime", "issuanceDateTime")
     || pick(p, "issuanceCompletedAt", "completedAt", "responseDateTime");
+  const responseReceivedAt = new Date().toISOString();
 
   // Parties
   const issuerName = pick(issuanceResponse, "issuerName", "issuer", "carrierName")
@@ -159,7 +162,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
   const receiverName = pick(issuanceResponse, "receiverName", "receiver", "shipperName")
     || pick(p, "receiverName", "receiver", "shipperName");
 
-  // Linked document references — check both root and nested objects
+  // Linked document references
   const tdRef = pick(issuanceResponse, "transportDocumentReference", "tdReference")
     || pick(p, "transportDocumentReference", "tdReference");
   const blNumber = pick(issuanceResponse, "billOfLadingNumber", "blNumber")
@@ -171,8 +174,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     || pick(p, "shippingInstructionReference");
 
   // ── Resolve linked records ──
-
-  // Find transport document
   let tdId: string | null = null;
   if (tdRef) {
     const { data } = await supabase.from("transport_documents").select("id, shipment_id, booking_id, shipping_instruction_id")
@@ -185,7 +186,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     if (data) tdId = data.id;
   }
 
-  // Find booking
   let bookingId: string | null = null;
   if (carrierBookingRef) {
     const { data } = await supabase.from("bookings").select("id, shipment_id")
@@ -193,7 +193,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     bookingId = data?.id ?? null;
   }
 
-  // Find shipping instruction
   let siId: string | null = null;
   if (siRef) {
     const { data } = await supabase.from("shipping_instructions").select("id")
@@ -201,7 +200,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     siId = data?.id ?? null;
   }
 
-  // Resolve shipment via linked records
+  // Resolve shipment
   let shipmentId: string | null = null;
   if (tdId) {
     const { data } = await supabase.from("transport_documents").select("shipment_id").eq("id", tdId).maybeSingle();
@@ -222,7 +221,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     shipmentId = data?.shipment_id ?? null;
   }
 
-  // If no shipment found, create one
   if (!shipmentId) {
     const { data: newShip } = await supabase.from("shipments").insert({
       alc_carrier_id: carrierId,
@@ -237,7 +235,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     shipmentId = newShip?.id ?? null;
   }
 
-  // Populate missing linked IDs from TD if available
+  // Populate missing IDs from TD
   if (tdId && (!bookingId || !siId)) {
     const { data: td } = await supabase.from("transport_documents")
       .select("booking_id, shipping_instruction_id").eq("id", tdId).maybeSingle();
@@ -247,7 +245,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     }
   }
 
-  // ── Normalize response code (upsert) ──
+  // ── Normalize response code (upsert into issuance_response_codes) ──
   if (rawResponseCode) {
     const responseName = (typeof responseCodeObj === "object"
       ? pick(responseCodeObj, "name", "issuanceResponseCodeName", "responseCodeName")
@@ -264,7 +262,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
       .eq("alc_carrier_id", carrierId).maybeSingle();
 
     if (existing) {
-      // Update description/category if more detail is now available
       await supabase.from("issuance_response_codes").update({
         response_name: responseName,
         response_description: responseDesc,
@@ -281,7 +278,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
       });
     }
 
-    // Also ingest the issuanceResponseCodeList if present (DCSA pattern)
+    // Ingest code list if present
     const codeList = pick(p, "issuanceResponseCodeList", "responseCodeList") || pick(issuanceResponse, "issuanceResponseCodeList");
     if (Array.isArray(codeList)) {
       for (const entry of codeList) {
@@ -303,11 +300,18 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     }
   }
 
-  // ── Create or update issuance_records ──
+  // ── Create or update issuance_records (idempotent) ──
   let issuanceId: string | null = null;
 
-  // Find existing by reference, eBill ID, or TD link
-  if (issuanceRef) {
+  // Find existing — match by carrier + td_ref + response_code for idempotency
+  if (tdRef && rawResponseCode) {
+    const { data } = await supabase.from("issuance_records").select("id")
+      .eq("transport_document_reference", tdRef)
+      .eq("issuance_response_code", rawResponseCode)
+      .eq("alc_carrier_id", carrierId).maybeSingle();
+    issuanceId = data?.id ?? null;
+  }
+  if (!issuanceId && issuanceRef) {
     const { data } = await supabase.from("issuance_records").select("id")
       .eq("issuance_reference", issuanceRef).eq("alc_carrier_id", carrierId).maybeSingle();
     issuanceId = data?.id ?? null;
@@ -332,8 +336,11 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     source_message_id: rawId,
     issuance_reference: issuanceRef,
     issuance_status: issuanceStatus,
+    issuance_status_internal: issuanceStatusInternal,
     issuance_response_code: rawResponseCode,
     issuance_response_message: responseMessage,
+    transport_document_reference: tdRef || blNumber,
+    response_received_at: responseReceivedAt,
     ebill_identifier: ebillId,
     ebill_platform: ebillPlatform,
     issuance_requested_at: issuanceRequestedAt,
@@ -354,6 +361,39 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     await supabase.from("shipments").update({ issuance_id: issuanceId }).eq("id", shipmentId);
   }
 
+  // ── Store issuance errors if present ──
+  if (issuanceId) {
+    const errors = pick(issuanceResponse, "errors", "validationErrors", "errorList")
+      || pick(p, "errors", "validationErrors", "errorList") || [];
+
+    if (Array.isArray(errors) && errors.length) {
+      // Delete previous errors for idempotency
+      await supabase.from("issuance_errors").delete().eq("issuance_record_id", issuanceId);
+
+      const errorRows = errors.map((e: any) => ({
+        issuance_record_id: issuanceId,
+        alc_carrier_id: carrierId,
+        source_message_id: rawId,
+        error_code: pick(e, "errorCode", "code") || null,
+        property_name: pick(e, "propertyName", "field", "property") || null,
+        property_value: pick(e, "propertyValue", "value") || null,
+        json_path: pick(e, "jsonPath", "path") || null,
+        error_code_text: pick(e, "errorCodeText", "errorType") || null,
+        error_message: pick(e, "errorMessage", "message", "reason") || (typeof e === "string" ? e : JSON.stringify(e)),
+      }));
+
+      await supabase.from("issuance_errors").insert(errorRows);
+    }
+  }
+
+  // ── Sync Transport Document status on issuance success ──
+  if (tdId && issuanceStatusInternal === "issued") {
+    await supabase.from("transport_documents")
+      .update({ transport_document_status: "issued" })
+      .eq("id", tdId)
+      .in("transport_document_status", ["draft", "approval_pending", "approved", "pending"]);
+  }
+
   // ── References ──
   if (issuanceId) {
     const refs: any[] = [];
@@ -364,7 +404,6 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     if (carrierBookingRef) refs.push({ reference_type: "booking_number", reference_value: carrierBookingRef, is_primary: false });
     if (siRef) refs.push({ reference_type: "shipping_instruction", reference_value: siRef, is_primary: false });
 
-    // Extract additional references from payload
     const extraRefs = pick(p, "references", "documentReferences") || pick(issuanceResponse, "references") || [];
     if (Array.isArray(extraRefs)) {
       for (const r of extraRefs) {
@@ -407,6 +446,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
       issuer: issuerName,
       receiver: receiverName,
       issuance_status: issuanceStatus,
+      issuance_status_internal: issuanceStatusInternal,
     };
 
     if (!existingDoc) {
@@ -437,24 +477,50 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
     transport_document_id: tdId,
     booking_id: bookingId,
     shipping_instruction_id: siId,
+    issuance_status_internal: issuanceStatusInternal,
   };
+}
+
+/** Resolve internal status from issuance_response_code_mappings table */
+async function resolveInternalStatus(carrierId: string, responseCode: string | null, rawStatus: string | null): Promise<string> {
+  if (responseCode) {
+    // Try carrier-specific mapping first, then global (null carrier_id)
+    const { data: carrierMapping } = await supabase.from("issuance_response_code_mappings")
+      .select("internal_status")
+      .eq("external_response_code", responseCode.toUpperCase())
+      .eq("alc_carrier_id", carrierId)
+      .eq("active", true)
+      .maybeSingle();
+    if (carrierMapping) return carrierMapping.internal_status;
+
+    const { data: globalMapping } = await supabase.from("issuance_response_code_mappings")
+      .select("internal_status")
+      .eq("external_response_code", responseCode.toUpperCase())
+      .is("alc_carrier_id", null)
+      .eq("active", true)
+      .maybeSingle();
+    if (globalMapping) return globalMapping.internal_status;
+  }
+
+  // Fallback to heuristic
+  return deriveIssuanceStatus(responseCode, rawStatus);
 }
 
 /** Derive a canonical issuance status from response code and raw status */
 function deriveIssuanceStatus(responseCode: string | null, rawStatus: string | null): string {
   if (rawStatus) {
     const s = rawStatus.toLowerCase();
-    if (["completed", "issued", "accepted", "success"].includes(s)) return "completed";
+    if (["completed", "issued", "accepted", "success"].includes(s)) return "issued";
     if (["rejected", "failed", "declined", "refused"].includes(s)) return "rejected";
     if (["pending", "processing", "in_progress", "submitted"].includes(s)) return "pending";
-    if (["exception", "error"].includes(s)) return "exception";
+    if (["exception", "error"].includes(s)) return "failed";
     return s;
   }
   if (responseCode) {
     const cat = mapResponseCodeToCategory(responseCode, "");
-    if (cat === "issued") return "completed";
+    if (cat === "issued") return "issued";
     if (cat === "rejected") return "rejected";
-    if (cat === "void") return "void";
+    if (cat === "void") return "failed";
   }
   return "pending";
 }
@@ -462,12 +528,11 @@ function deriveIssuanceStatus(responseCode: string | null, rawStatus: string | n
 /** Map response code patterns to a status category */
 function mapResponseCodeToCategory(code: string, status: string): string {
   const upper = (code || "").toUpperCase();
-  if (upper.includes("ISSU") || upper.includes("ACCEPTED") || upper === "COMPLETED" || upper === "ISSU") return "issued";
+  if (upper.includes("ISSU") || upper.includes("ACCEPTED") || upper === "COMPLETED") return "issued";
   if (upper.includes("PEND") || upper.includes("PROCESSING") || upper.includes("AWAIT")) return "pending";
   if (upper.includes("REJECT") || upper.includes("FAIL") || upper.includes("ERROR") || upper.includes("DECLINE")) return "rejected";
   if (upper.includes("SURR") || upper.includes("VOID") || upper.includes("CANCEL")) return "void";
   if (upper.includes("EXCEPT")) return "exception";
-  // Fallback to status
   if (status === "completed" || status === "issued") return "issued";
   if (status === "rejected" || status === "failed") return "rejected";
   if (status === "exception") return "exception";
