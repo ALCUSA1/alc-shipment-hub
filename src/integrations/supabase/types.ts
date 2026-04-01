@@ -1498,6 +1498,206 @@ export type Database = {
           },
         ]
       }
+      commercial_schedule_queries: {
+        Row: {
+          arrival_date_from: string | null
+          arrival_date_to: string | null
+          carrier_id: string | null
+          created_at: string
+          departure_date_from: string | null
+          departure_date_to: string | null
+          id: string
+          place_of_arrival_location_id: string | null
+          place_of_delivery_location_id: string | null
+          place_of_departure_location_id: string | null
+          place_of_receipt_location_id: string | null
+          port_of_discharge_location_id: string | null
+          port_of_loading_location_id: string | null
+          query_type: string
+          service_code: string | null
+          source_message_id: string | null
+          updated_at: string
+          vessel_id: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          arrival_date_from?: string | null
+          arrival_date_to?: string | null
+          carrier_id?: string | null
+          created_at?: string
+          departure_date_from?: string | null
+          departure_date_to?: string | null
+          id?: string
+          place_of_arrival_location_id?: string | null
+          place_of_delivery_location_id?: string | null
+          place_of_departure_location_id?: string | null
+          place_of_receipt_location_id?: string | null
+          port_of_discharge_location_id?: string | null
+          port_of_loading_location_id?: string | null
+          query_type?: string
+          service_code?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          arrival_date_from?: string | null
+          arrival_date_to?: string | null
+          carrier_id?: string | null
+          created_at?: string
+          departure_date_from?: string | null
+          departure_date_to?: string | null
+          id?: string
+          place_of_arrival_location_id?: string | null
+          place_of_delivery_location_id?: string | null
+          place_of_departure_location_id?: string | null
+          place_of_receipt_location_id?: string | null
+          port_of_discharge_location_id?: string | null
+          port_of_loading_location_id?: string | null
+          query_type?: string
+          service_code?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_schedule_queries_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_place_of_arrival_location_id_fkey"
+            columns: ["place_of_arrival_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_place_of_delivery_location_id_fkey"
+            columns: ["place_of_delivery_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_place_of_departure_location_id_fkey"
+            columns: ["place_of_departure_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_place_of_receipt_location_id_fkey"
+            columns: ["place_of_receipt_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_port_of_discharge_location_id_fkey"
+            columns: ["port_of_discharge_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_port_of_loading_location_id_fkey"
+            columns: ["port_of_loading_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedule_queries_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_schedules: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          id: string
+          is_direct_service: boolean | null
+          query_id: string | null
+          schedule_reference: string | null
+          schedule_type: string
+          service_code: string | null
+          service_name: string | null
+          source_message_id: string | null
+          total_leg_count: number | null
+          transit_time_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          is_direct_service?: boolean | null
+          query_id?: string | null
+          schedule_reference?: string | null
+          schedule_type?: string
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          total_leg_count?: number | null
+          transit_time_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          is_direct_service?: boolean | null
+          query_id?: string | null
+          schedule_reference?: string | null
+          schedule_type?: string
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          total_leg_count?: number | null
+          transit_time_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_schedules_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedules_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedule_queries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_schedules_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           address: string | null
@@ -4535,6 +4735,102 @@ export type Database = {
         }
         Relationships: []
       }
+      port_schedules: {
+        Row: {
+          arrival_datetime: string | null
+          call_sequence: number | null
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          cutoff_datetime: string | null
+          departure_datetime: string | null
+          facility_code: string | null
+          id: string
+          location_id: string | null
+          service_code: string | null
+          service_name: string | null
+          source_message_id: string | null
+          updated_at: string
+          vessel_id: string | null
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          arrival_datetime?: string | null
+          call_sequence?: number | null
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          cutoff_datetime?: string | null
+          departure_datetime?: string | null
+          facility_code?: string | null
+          id?: string
+          location_id?: string | null
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          arrival_datetime?: string | null
+          call_sequence?: number | null
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          cutoff_datetime?: string | null
+          departure_datetime?: string | null
+          facility_code?: string | null
+          id?: string
+          location_id?: string | null
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "port_schedules_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "port_schedules_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "port_schedules_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "port_schedules_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "port_schedules_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ports: {
         Row: {
           code: string
@@ -5512,6 +5808,310 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      schedule_cutoffs: {
+        Row: {
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          cutoff_datetime: string
+          cutoff_type: string
+          id: string
+          location_id: string | null
+          schedule_leg_id: string | null
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          cutoff_datetime: string
+          cutoff_type: string
+          id?: string
+          location_id?: string | null
+          schedule_leg_id?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          cutoff_datetime?: string
+          cutoff_type?: string
+          id?: string
+          location_id?: string | null
+          schedule_leg_id?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_cutoffs_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_cutoffs_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_cutoffs_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_cutoffs_schedule_leg_id_fkey"
+            columns: ["schedule_leg_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_legs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_cutoffs_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_legs: {
+        Row: {
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          discharge_location_id: string | null
+          id: string
+          leg_transit_time_days: number | null
+          load_location_id: string | null
+          planned_arrival: string | null
+          planned_departure: string | null
+          sequence_number: number
+          service_code: string | null
+          service_name: string | null
+          source_message_id: string | null
+          transport_mode: string | null
+          updated_at: string
+          vessel_id: string | null
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          discharge_location_id?: string | null
+          id?: string
+          leg_transit_time_days?: number | null
+          load_location_id?: string | null
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          sequence_number?: number
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          transport_mode?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          discharge_location_id?: string | null
+          id?: string
+          leg_transit_time_days?: number | null
+          load_location_id?: string | null
+          planned_arrival?: string | null
+          planned_departure?: string | null
+          sequence_number?: number
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          transport_mode?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_legs_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_legs_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_legs_discharge_location_id_fkey"
+            columns: ["discharge_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_legs_load_location_id_fkey"
+            columns: ["load_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_legs_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_legs_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_places: {
+        Row: {
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          id: string
+          location_id: string | null
+          place_role: string
+          sequence_number: number | null
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          place_role: string
+          sequence_number?: number | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          place_role?: string
+          sequence_number?: number | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_places_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_places_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_places_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_places_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_references: {
+        Row: {
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          reference_type: string
+          reference_value: string
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          reference_type: string
+          reference_value: string
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          reference_type?: string
+          reference_value?: string
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_references_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_references_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_references_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shipment_amendments: {
         Row: {
@@ -8606,6 +9206,103 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vessel_schedules: {
+        Row: {
+          carrier_id: string | null
+          commercial_schedule_id: string
+          created_at: string
+          final_arrival_datetime: string | null
+          first_departure_datetime: string | null
+          first_port_location_id: string | null
+          id: string
+          last_port_location_id: string | null
+          service_code: string | null
+          service_name: string | null
+          source_message_id: string | null
+          updated_at: string
+          vessel_id: string | null
+          vessel_name: string | null
+          voyage_number: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          commercial_schedule_id: string
+          created_at?: string
+          final_arrival_datetime?: string | null
+          first_departure_datetime?: string | null
+          first_port_location_id?: string | null
+          id?: string
+          last_port_location_id?: string | null
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          commercial_schedule_id?: string
+          created_at?: string
+          final_arrival_datetime?: string | null
+          first_departure_datetime?: string | null
+          first_port_location_id?: string | null
+          id?: string
+          last_port_location_id?: string | null
+          service_code?: string | null
+          service_name?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+          vessel_id?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessel_schedules_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_schedules_commercial_schedule_id_fkey"
+            columns: ["commercial_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_schedules_first_port_location_id_fkey"
+            columns: ["first_port_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_schedules_last_port_location_id_fkey"
+            columns: ["last_port_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_schedules_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessel_schedules_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "alc_vessels"
             referencedColumns: ["id"]
           },
         ]
