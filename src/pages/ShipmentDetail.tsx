@@ -115,6 +115,7 @@ const WORKSPACE_TABS = [
   { id: "booking", label: "Booking", icon: BookmarkPlus },
   { id: "transport-doc", label: "Transport Document", icon: Ship },
   { id: "issuance", label: "eBL Issuance", icon: FileText },
+  { id: "surrender", label: "eBL Surrender", icon: HandCoins },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
