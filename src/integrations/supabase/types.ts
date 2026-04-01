@@ -1286,9 +1286,12 @@ export type Database = {
           active: boolean
           carrier_id: string
           created_at: string
+          event_classifier_code: string | null
+          event_scope: string | null
           external_code: string
           external_name: string | null
           id: string
+          internal_classifier: string | null
           internal_code: string
           internal_name: string
           message_family: string
@@ -1299,9 +1302,12 @@ export type Database = {
           active?: boolean
           carrier_id: string
           created_at?: string
+          event_classifier_code?: string | null
+          event_scope?: string | null
           external_code: string
           external_name?: string | null
           id?: string
+          internal_classifier?: string | null
           internal_code: string
           internal_name: string
           message_family: string
@@ -1312,9 +1318,12 @@ export type Database = {
           active?: boolean
           carrier_id?: string
           created_at?: string
+          event_classifier_code?: string | null
+          event_scope?: string | null
           external_code?: string
           external_name?: string | null
           id?: string
+          internal_classifier?: string | null
           internal_code?: string
           internal_name?: string
           message_family?: string

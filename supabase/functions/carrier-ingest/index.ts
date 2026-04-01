@@ -284,7 +284,7 @@ async function upsertReference(
   }
 }
 
-/** Load event mappings for a carrier */
+/** Load event mappings for a carrier, keyed by external_code+classifier */
 async function loadEventMappings(carrierId: string, family: string): Promise<Map<string, any>> {
   const { data: mappings } = await supabase
     .from("carrier_event_mappings")
@@ -292,7 +292,26 @@ async function loadEventMappings(carrierId: string, family: string): Promise<Map
     .eq("carrier_id", carrierId)
     .eq("message_family", family)
     .eq("active", true);
-  return new Map((mappings || []).map((m: any) => [m.external_code, m]));
+  const map = new Map<string, any>();
+  for (const m of mappings || []) {
+    // Key by code+classifier for precise lookup
+    const compositeKey = `${m.external_code}|${m.event_classifier_code || ''}`;
+    map.set(compositeKey, m);
+    // Also set code-only fallback (first match wins)
+    if (!map.has(m.external_code)) {
+      map.set(m.external_code, m);
+    }
+  }
+  return map;
+}
+
+/** Lookup mapping by code + classifier, falling back to code-only */
+function lookupMapping(mappings: Map<string, any>, eventCode: string, classifierCode?: string): any {
+  if (classifierCode) {
+    const precise = mappings.get(`${eventCode}|${classifierCode}`);
+    if (precise) return precise;
+  }
+  return mappings.get(eventCode) || null;
 }
 
 // ============================================================
@@ -339,7 +358,8 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
 
   for (const evt of events) {
     const eventCode = evt.event_code || evt.eventCode;
-    const mapping = mappingLookup.get(eventCode);
+    const classifierCode = evt.event_classifier || evt.eventClassifierCode || null;
+    const mapping = lookupMapping(mappingLookup, eventCode, classifierCode);
 
     // Resolve location
     const locCode = evt.unlocode || evt.location_code || evt.facilityCode;
@@ -425,18 +445,21 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
       }
     }
 
-    // Insert tracking event
+    // Derive scope from mapping or payload
+    const derivedScope = mapping?.event_scope || evt.event_scope || (containerNum ? "equipment" : "shipment");
+
+    // Insert tracking event — raw external codes preserved, internal codes from mapping
     await supabase.from("tracking_events").insert({
       shipment_id: shipmentId,
       container_id: containerId,
       alc_carrier_id: carrierId,
       raw_message_id: rawMessageId,
-      event_scope: evt.event_scope || (containerNum ? "equipment" : "shipment"),
+      event_scope: derivedScope,
       external_event_code: eventCode || null,
       external_event_name: evt.event_name || evt.eventName || null,
       internal_event_code: mapping?.internal_code || null,
       internal_event_name: mapping?.internal_name || null,
-      event_classifier_code: evt.event_classifier || evt.eventClassifierCode || null,
+      event_classifier_code: classifierCode,
       event_created_datetime: evt.event_created_datetime || evt.eventCreatedDateTime || null,
       event_date: evt.event_datetime || evt.eventDateTime || new Date().toISOString(),
       milestone: mapping?.internal_name || evt.event_name || evt.eventName || "Unknown",
