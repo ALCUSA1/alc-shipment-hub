@@ -199,6 +199,7 @@ const App = () => (
             <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="/dashboard/ideas" element={<ProtectedRoute><Ideas /></ProtectedRoute>} />
             <Route path="/dashboard/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+            <Route path="/dashboard/schedules" element={<ProtectedRoute><CommercialSchedules /></ProtectedRoute>} />
 
             {/* Admin Console — separate platform monitoring portal */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
