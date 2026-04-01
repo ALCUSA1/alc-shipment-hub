@@ -66,7 +66,7 @@ const AdminApiHealth = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("integration_jobs")
-        .select("id, carrier_id, job_type, job_status, error_message, created_at, completed_at")
+        .select("id, carrier_id, job_type, job_status, last_error, created_at, completed_at")
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
