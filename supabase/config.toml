@@ -71,3 +71,9 @@ verify_jwt = false
 
 [functions.issuance-detail]
 verify_jwt = false
+
+[functions.schedule-ingest]
+verify_jwt = false
+
+[functions.schedule-detail]
+verify_jwt = false
