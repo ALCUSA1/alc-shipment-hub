@@ -133,6 +133,7 @@ import Support from "./pages/Support";
 import Ideas from "./pages/Ideas";
 import Alerts from "./pages/Alerts";
 import CommercialSchedules from "./pages/CommercialSchedules";
+import DcsaBookings from "./pages/DcsaBookings";
 
 const queryClient = new QueryClient();
 
