@@ -551,7 +551,7 @@ async function handleCancel(body: any) {
   await supabase.from("bookings").update({
     booking_status_internal: "cancellation_requested",
     updated_datetime: new Date().toISOString(),
-  }).eq("id", bookingId);
+  }).eq("id", booking.id);
 
   return json({ success: true, booking_id: booking_id, booking_status_internal: "cancellation_requested" });
 }
