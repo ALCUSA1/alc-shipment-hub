@@ -23,6 +23,7 @@ import { NormalizedTrackingView } from "@/components/shipment/NormalizedTracking
 import { NormalizedBookingView } from "@/components/shipment/NormalizedBookingView";
 import { NormalizedTransportDocView } from "@/components/shipment/NormalizedTransportDocView";
 import { NormalizedIssuanceView } from "@/components/shipment/NormalizedIssuanceView";
+import { SurrenderView } from "@/components/shipment/SurrenderView";
 import { DemurrageTracker } from "@/components/shipment/DemurrageTracker";
 import { CutoffTracker } from "@/components/shipment/CutoffTracker";
 import { VoyageDatesEditor } from "@/components/shipment/VoyageDatesEditor";
@@ -43,7 +44,7 @@ import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   Package, FileText, Users, Clock, Check, Circle, Loader2, Radio,
   Trash2, Ship, Copy, BookmarkPlus, MapPin, ArrowRight, DollarSign,
-  MessageSquare, Activity, BarChart3, AlertTriangle,
+  MessageSquare, Activity, BarChart3, AlertTriangle, HandCoins,
 } from "lucide-react";
 import { translateEdiMessage } from "@/lib/edi-translations";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,6 +115,7 @@ const WORKSPACE_TABS = [
   { id: "booking", label: "Booking", icon: BookmarkPlus },
   { id: "transport-doc", label: "Transport Document", icon: Ship },
   { id: "issuance", label: "eBL Issuance", icon: FileText },
+  { id: "surrender", label: "eBL Surrender", icon: HandCoins },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "tracking", label: "Tracking & Milestones", icon: Clock },
@@ -459,6 +461,11 @@ const ShipmentDetail = () => {
         {/* ── eBL ISSUANCE TAB ── */}
         <TabsContent value="issuance" className="mt-6 space-y-6">
           <NormalizedIssuanceView shipmentId={id!} />
+        </TabsContent>
+
+        {/* ── eBL SURRENDER TAB ── */}
+        <TabsContent value="surrender" className="mt-6 space-y-6">
+          <SurrenderView shipmentId={id!} />
         </TabsContent>
 
         {/* ── PRICING TAB ── */}
