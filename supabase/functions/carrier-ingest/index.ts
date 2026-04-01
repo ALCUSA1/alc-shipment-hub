@@ -358,7 +358,8 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
 
   for (const evt of events) {
     const eventCode = evt.event_code || evt.eventCode;
-    const mapping = mappingLookup.get(eventCode);
+    const classifierCode = evt.event_classifier || evt.eventClassifierCode || null;
+    const mapping = lookupMapping(mappingLookup, eventCode, classifierCode);
 
     // Resolve location
     const locCode = evt.unlocode || evt.location_code || evt.facilityCode;
@@ -444,18 +445,21 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
       }
     }
 
-    // Insert tracking event
+    // Derive scope from mapping or payload
+    const derivedScope = mapping?.event_scope || evt.event_scope || (containerNum ? "equipment" : "shipment");
+
+    // Insert tracking event — raw external codes preserved, internal codes from mapping
     await supabase.from("tracking_events").insert({
       shipment_id: shipmentId,
       container_id: containerId,
       alc_carrier_id: carrierId,
       raw_message_id: rawMessageId,
-      event_scope: evt.event_scope || (containerNum ? "equipment" : "shipment"),
+      event_scope: derivedScope,
       external_event_code: eventCode || null,
       external_event_name: evt.event_name || evt.eventName || null,
       internal_event_code: mapping?.internal_code || null,
       internal_event_name: mapping?.internal_name || null,
-      event_classifier_code: evt.event_classifier || evt.eventClassifierCode || null,
+      event_classifier_code: classifierCode,
       event_created_datetime: evt.event_created_datetime || evt.eventCreatedDateTime || null,
       event_date: evt.event_datetime || evt.eventDateTime || new Date().toISOString(),
       milestone: mapping?.internal_name || evt.event_name || evt.eventName || "Unknown",
