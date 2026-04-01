@@ -463,6 +463,11 @@ const ShipmentDetail = () => {
           <NormalizedIssuanceView shipmentId={id!} />
         </TabsContent>
 
+        {/* ── eBL SURRENDER TAB ── */}
+        <TabsContent value="surrender" className="mt-6 space-y-6">
+          <SurrenderView shipmentId={id!} />
+        </TabsContent>
+
         {/* ── PRICING TAB ── */}
         <TabsContent value="pricing" className="mt-6 space-y-6">
           {/* Rate Selection (pre-booking) */}
