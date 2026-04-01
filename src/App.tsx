@@ -198,6 +198,7 @@ const App = () => (
             <Route path="/dashboard/spark/:companyId" element={<ProtectedRoute><Spark /></ProtectedRoute>} />
             <Route path="/dashboard/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="/dashboard/ideas" element={<ProtectedRoute><Ideas /></ProtectedRoute>} />
+            <Route path="/dashboard/dcsa-bookings" element={<ProtectedRoute><DcsaBookings /></ProtectedRoute>} />
             <Route path="/dashboard/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/dashboard/schedules" element={<ProtectedRoute><CommercialSchedules /></ProtectedRoute>} />
 
