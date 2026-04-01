@@ -4619,6 +4619,73 @@ export type Database = {
           },
         ]
       }
+      issuance_errors: {
+        Row: {
+          alc_carrier_id: string | null
+          created_at: string
+          error_code: string | null
+          error_code_text: string | null
+          error_message: string | null
+          id: string
+          issuance_record_id: string
+          json_path: string | null
+          property_name: string | null
+          property_value: string | null
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_code_text?: string | null
+          error_message?: string | null
+          id?: string
+          issuance_record_id: string
+          json_path?: string | null
+          property_name?: string | null
+          property_value?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_code_text?: string | null
+          error_message?: string | null
+          id?: string
+          issuance_record_id?: string
+          json_path?: string | null
+          property_name?: string | null
+          property_value?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issuance_errors_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_errors_issuance_record_id_fkey"
+            columns: ["issuance_record_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issuance_errors_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issuance_records: {
         Row: {
           alc_carrier_id: string | null
@@ -4633,12 +4700,15 @@ export type Database = {
           issuance_response_code: string | null
           issuance_response_message: string | null
           issuance_status: string | null
+          issuance_status_internal: string | null
           issuer_name: string | null
           receiver_name: string | null
+          response_received_at: string | null
           shipment_id: string | null
           shipping_instruction_id: string | null
           source_message_id: string | null
           transport_document_id: string | null
+          transport_document_reference: string | null
           updated_at: string
         }
         Insert: {
@@ -4654,12 +4724,15 @@ export type Database = {
           issuance_response_code?: string | null
           issuance_response_message?: string | null
           issuance_status?: string | null
+          issuance_status_internal?: string | null
           issuer_name?: string | null
           receiver_name?: string | null
+          response_received_at?: string | null
           shipment_id?: string | null
           shipping_instruction_id?: string | null
           source_message_id?: string | null
           transport_document_id?: string | null
+          transport_document_reference?: string | null
           updated_at?: string
         }
         Update: {
@@ -4675,12 +4748,15 @@ export type Database = {
           issuance_response_code?: string | null
           issuance_response_message?: string | null
           issuance_status?: string | null
+          issuance_status_internal?: string | null
           issuer_name?: string | null
           receiver_name?: string | null
+          response_received_at?: string | null
           shipment_id?: string | null
           shipping_instruction_id?: string | null
           source_message_id?: string | null
           transport_document_id?: string | null
+          transport_document_reference?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4731,6 +4807,50 @@ export type Database = {
             columns: ["transport_document_id"]
             isOneToOne: false
             referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issuance_response_code_mappings: {
+        Row: {
+          active: boolean
+          alc_carrier_id: string | null
+          created_at: string
+          description: string | null
+          external_response_code: string
+          external_response_name: string | null
+          id: string
+          internal_status: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          alc_carrier_id?: string | null
+          created_at?: string
+          description?: string | null
+          external_response_code: string
+          external_response_name?: string | null
+          id?: string
+          internal_status: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          alc_carrier_id?: string | null
+          created_at?: string
+          description?: string | null
+          external_response_code?: string
+          external_response_name?: string | null
+          id?: string
+          internal_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issuance_response_code_mappings_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
             referencedColumns: ["id"]
           },
         ]

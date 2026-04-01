@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
-import { FileCheck, Ship, Hash, Clock, User, Layers, FileText, Shield } from "lucide-react";
+import { FileCheck, Ship, Hash, Clock, User, Layers, FileText, Shield, AlertTriangle, Activity } from "lucide-react";
 
 interface Props {
   shipmentId: string;
@@ -17,12 +16,6 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: result } = await supabase.functions.invoke("issuance-detail", {
-          body: null,
-          headers: { "Content-Type": "application/json" },
-          method: "GET",
-        });
-        // The edge function uses query params, so we construct the URL manually
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const resp = await fetch(
           `https://${projectId}.supabase.co/functions/v1/issuance-detail?shipment_id=${shipmentId}`,
@@ -69,18 +62,22 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
   const carrier = data.carrier;
   const td = data.transport_document;
   const codeDef = data.response_code_definition;
+  const statusMapping = data.status_mapping;
   const booking = data.booking;
   const si = data.shipping_instruction;
   const references = data.references || [];
   const documents = data.documents || [];
+  const errors = data.errors || [];
 
   const statusColor = (s: string) => {
     const lower = (s || "").toLowerCase();
-    if (lower === "completed" || lower === "issued") return "bg-emerald-500/10 text-emerald-700 border-emerald-200";
-    if (lower === "pending" || lower === "processing") return "bg-amber-500/10 text-amber-700 border-amber-200";
-    if (lower === "rejected" || lower === "failed") return "bg-red-500/10 text-red-700 border-red-200";
+    if (["completed", "issued"].includes(lower)) return "bg-emerald-500/10 text-emerald-700 border-emerald-200";
+    if (["pending", "processing"].includes(lower)) return "bg-amber-500/10 text-amber-700 border-amber-200";
+    if (["rejected", "failed"].includes(lower)) return "bg-destructive/10 text-destructive border-destructive/20";
     return "bg-muted text-muted-foreground";
   };
+
+  const displayStatus = iss.issuance_status_internal || iss.issuance_status || "unknown";
 
   return (
     <div className="space-y-6">
@@ -97,13 +94,23 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
                 <CardDescription>Electronic Bill of Lading issuance confirmation</CardDescription>
               </div>
             </div>
-            <Badge className={statusColor(iss.issuance_status)} variant="outline">
-              {(iss.issuance_status || "Unknown").toUpperCase()}
-            </Badge>
+            <div className="flex gap-2">
+              <Badge className={statusColor(displayStatus)} variant="outline">
+                {displayStatus.toUpperCase().replace(/_/g, " ")}
+              </Badge>
+              {iss.issuance_status_internal && iss.issuance_status_internal !== iss.issuance_status && (
+                <Badge variant="secondary" className="text-xs">
+                  Raw: {(iss.issuance_status || "").toUpperCase()}
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {iss.transport_document_reference && (
+              <InfoItem icon={FileText} label="TD Reference" value={iss.transport_document_reference} />
+            )}
             {iss.issuance_reference && (
               <InfoItem icon={Hash} label="Issuance Reference" value={iss.issuance_reference} />
             )}
@@ -122,12 +129,23 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
             {iss.receiver_name && (
               <InfoItem icon={User} label="Receiver" value={iss.receiver_name} />
             )}
+            {iss.response_received_at && (
+              <InfoItem icon={Clock} label="Response Received" value={new Date(iss.response_received_at).toLocaleString()} />
+            )}
             {iss.issuance_completed_at && (
               <InfoItem icon={Clock} label="Issued At" value={new Date(iss.issuance_completed_at).toLocaleString()} />
             )}
             {iss.issuance_requested_at && (
               <InfoItem icon={Clock} label="Requested At" value={new Date(iss.issuance_requested_at).toLocaleString()} />
             )}
+          </div>
+
+          {/* Raw sync indicator */}
+          <Separator />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Activity className="h-3.5 w-3.5" />
+            <span>Source: raw message {iss.source_message_id?.slice(0, 8)}…</span>
+            {iss.updated_at && <span>· Last updated {new Date(iss.updated_at).toLocaleString()}</span>}
           </div>
         </CardContent>
       </Card>
@@ -144,18 +162,61 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
                 {iss.issuance_response_code}
               </Badge>
               <div className="space-y-1">
-                {codeDef?.response_name && (
-                  <p className="font-medium text-sm">{codeDef.response_name}</p>
+                {(codeDef?.response_name || statusMapping?.external_response_name) && (
+                  <p className="font-medium text-sm">{codeDef?.response_name || statusMapping?.external_response_name}</p>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  {iss.issuance_response_message || codeDef?.response_description || "No description available"}
+                  {iss.issuance_response_message || codeDef?.response_description || statusMapping?.description || "No description available"}
                 </p>
-                {codeDef?.status_category && (
+                {statusMapping?.internal_status && (
+                  <Badge variant="secondary" className="text-xs mt-1">
+                    Normalized: {statusMapping.internal_status}
+                  </Badge>
+                )}
+                {!statusMapping && codeDef?.status_category && (
                   <Badge variant="secondary" className="text-xs mt-1">
                     {codeDef.status_category}
                   </Badge>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Issuance Errors ── */}
+      {errors.length > 0 && (
+        <Card className="border-destructive/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              Issuance Errors ({errors.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {errors.map((err: any, i: number) => (
+                <div key={err.id || i} className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 space-y-1">
+                  <div className="flex items-center gap-2">
+                    {err.error_code && (
+                      <Badge variant="outline" className="text-xs font-mono text-destructive border-destructive/30">
+                        {err.error_code}
+                      </Badge>
+                    )}
+                    {err.error_code_text && (
+                      <span className="text-xs font-medium text-destructive">{err.error_code_text}</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-foreground">{err.error_message}</p>
+                  {err.property_name && (
+                    <p className="text-xs text-muted-foreground">
+                      Field: <span className="font-mono">{err.property_name}</span>
+                      {err.property_value && <> = <span className="font-mono">{err.property_value}</span></>}
+                      {err.json_path && <> ({err.json_path})</>}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

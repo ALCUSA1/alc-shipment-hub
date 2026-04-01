@@ -50,12 +50,16 @@ Deno.serve(async (req) => {
       { data: responseCodeDef },
       { data: references },
       { data: documents },
+      { data: errors },
+      { data: statusMapping },
     ] = await Promise.all([
       record.alc_carrier_id ? supabase.from("alc_carriers").select("*").eq("id", record.alc_carrier_id).maybeSingle() : { data: null },
       record.transport_document_id ? supabase.from("transport_documents").select("transport_document_reference, bill_of_lading_number, transport_document_status, transport_document_type_code, issue_date, is_electronic").eq("id", record.transport_document_id).maybeSingle() : { data: null },
       record.issuance_response_code && record.alc_carrier_id ? supabase.from("issuance_response_codes").select("*").eq("response_code", record.issuance_response_code).eq("alc_carrier_id", record.alc_carrier_id).maybeSingle() : { data: null },
       supabase.from("shipment_references").select("*").eq("issuance_id", record.id),
       supabase.from("documents").select("*").eq("issuance_id", record.id),
+      supabase.from("issuance_errors").select("*").eq("issuance_record_id", record.id).order("created_at"),
+      record.issuance_response_code ? supabase.from("issuance_response_code_mappings").select("*").eq("external_response_code", record.issuance_response_code.toUpperCase()).eq("active", true).order("alc_carrier_id", { ascending: false, nullsFirst: false }).limit(1).maybeSingle() : { data: null },
     ]);
 
     // Fetch linked booking and SI references
@@ -75,10 +79,12 @@ Deno.serve(async (req) => {
       carrier,
       transport_document: transportDoc,
       response_code_definition: responseCodeDef,
+      status_mapping: statusMapping,
       booking,
       shipping_instruction: shippingInstruction,
       references: references || [],
       documents: documents || [],
+      errors: errors || [],
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
