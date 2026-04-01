@@ -727,66 +727,75 @@ export type Database = {
       booking_commodities: {
         Row: {
           alc_carrier_id: string | null
+          booking_equipment_id: string | null
           booking_id: string
-          commodity_subreference: string | null
+          cargo_gross_volume_unit: string | null
+          cargo_gross_volume_value: number | null
+          cargo_gross_weight_unit: string | null
+          cargo_gross_weight_value: number | null
+          cargo_net_volume_unit: string | null
+          cargo_net_volume_value: number | null
+          cargo_net_weight_unit: string | null
+          cargo_net_weight_value: number | null
+          commodity_sub_reference: string | null
           commodity_type: string | null
           created_at: string
-          description_of_goods: string | null
-          export_license_expiry_date: string | null
-          export_license_required: boolean | null
           hs_code: string | null
           id: string
           number_of_packages: number | null
           package_code: string | null
-          package_name_on_bl: string | null
+          package_description: string | null
+          shipment_id: string | null
           source_message_id: string | null
           updated_at: string
-          volume: number | null
-          volume_unit: string | null
-          weight: number | null
-          weight_unit: string | null
         }
         Insert: {
           alc_carrier_id?: string | null
+          booking_equipment_id?: string | null
           booking_id: string
-          commodity_subreference?: string | null
+          cargo_gross_volume_unit?: string | null
+          cargo_gross_volume_value?: number | null
+          cargo_gross_weight_unit?: string | null
+          cargo_gross_weight_value?: number | null
+          cargo_net_volume_unit?: string | null
+          cargo_net_volume_value?: number | null
+          cargo_net_weight_unit?: string | null
+          cargo_net_weight_value?: number | null
+          commodity_sub_reference?: string | null
           commodity_type?: string | null
           created_at?: string
-          description_of_goods?: string | null
-          export_license_expiry_date?: string | null
-          export_license_required?: boolean | null
           hs_code?: string | null
           id?: string
           number_of_packages?: number | null
           package_code?: string | null
-          package_name_on_bl?: string | null
+          package_description?: string | null
+          shipment_id?: string | null
           source_message_id?: string | null
           updated_at?: string
-          volume?: number | null
-          volume_unit?: string | null
-          weight?: number | null
-          weight_unit?: string | null
         }
         Update: {
           alc_carrier_id?: string | null
+          booking_equipment_id?: string | null
           booking_id?: string
-          commodity_subreference?: string | null
+          cargo_gross_volume_unit?: string | null
+          cargo_gross_volume_value?: number | null
+          cargo_gross_weight_unit?: string | null
+          cargo_gross_weight_value?: number | null
+          cargo_net_volume_unit?: string | null
+          cargo_net_volume_value?: number | null
+          cargo_net_weight_unit?: string | null
+          cargo_net_weight_value?: number | null
+          commodity_sub_reference?: string | null
           commodity_type?: string | null
           created_at?: string
-          description_of_goods?: string | null
-          export_license_expiry_date?: string | null
-          export_license_required?: boolean | null
           hs_code?: string | null
           id?: string
           number_of_packages?: number | null
           package_code?: string | null
-          package_name_on_bl?: string | null
+          package_description?: string | null
+          shipment_id?: string | null
           source_message_id?: string | null
           updated_at?: string
-          volume?: number | null
-          volume_unit?: string | null
-          weight?: number | null
-          weight_unit?: string | null
         }
         Relationships: [
           {
@@ -797,10 +806,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "booking_commodities_booking_equipment_id_fkey"
+            columns: ["booking_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_equipments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "booking_commodities_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_commodities_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_commodities_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
           {
@@ -812,24 +842,112 @@ export type Database = {
           },
         ]
       }
+      booking_customs_references: {
+        Row: {
+          alc_carrier_id: string | null
+          booking_id: string
+          country_code: string | null
+          created_at: string
+          customs_reference_type: string
+          id: string
+          reference_value: string
+          shipment_id: string | null
+          source_message_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          booking_id: string
+          country_code?: string | null
+          created_at?: string
+          customs_reference_type: string
+          id?: string
+          reference_value: string
+          shipment_id?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          booking_id?: string
+          country_code?: string | null
+          created_at?: string
+          customs_reference_type?: string
+          id?: string
+          reference_value?: string
+          shipment_id?: string | null
+          source_message_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_customs_references_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_customs_references_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_customs_references_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_customs_references_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_customs_references_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_equipments: {
         Row: {
           alc_carrier_id: string | null
           booking_id: string
+          cargo_gross_weight_unit: string | null
+          cargo_gross_weight_value: number | null
+          container_positioning_datetime: string | null
+          container_positioning_location_id: string | null
           created_at: string
           dangerous_goods_flag: boolean | null
+          empty_pickup_datetime: string | null
+          empty_pickup_location_id: string | null
           equipment_description: string | null
+          equipment_reference_type: string | null
+          equipment_reference_value: string | null
           equipment_type_code: string | null
           gross_weight: number | null
           humidity_setting: string | null
           id: string
+          is_non_operating_reefer: boolean | null
           is_shipper_owned: boolean | null
           iso_equipment_code: string | null
           overdimension_flag: boolean | null
           quantity: number | null
           reefer_flag: boolean | null
+          shipment_id: string | null
           source_message_id: string | null
+          tare_weight_unit: string | null
+          tare_weight_value: number | null
           temperature_setting: string | null
+          units: number | null
           updated_at: string
           ventilation_setting: string | null
           volume: number | null
@@ -837,20 +955,33 @@ export type Database = {
         Insert: {
           alc_carrier_id?: string | null
           booking_id: string
+          cargo_gross_weight_unit?: string | null
+          cargo_gross_weight_value?: number | null
+          container_positioning_datetime?: string | null
+          container_positioning_location_id?: string | null
           created_at?: string
           dangerous_goods_flag?: boolean | null
+          empty_pickup_datetime?: string | null
+          empty_pickup_location_id?: string | null
           equipment_description?: string | null
+          equipment_reference_type?: string | null
+          equipment_reference_value?: string | null
           equipment_type_code?: string | null
           gross_weight?: number | null
           humidity_setting?: string | null
           id?: string
+          is_non_operating_reefer?: boolean | null
           is_shipper_owned?: boolean | null
           iso_equipment_code?: string | null
           overdimension_flag?: boolean | null
           quantity?: number | null
           reefer_flag?: boolean | null
+          shipment_id?: string | null
           source_message_id?: string | null
+          tare_weight_unit?: string | null
+          tare_weight_value?: number | null
           temperature_setting?: string | null
+          units?: number | null
           updated_at?: string
           ventilation_setting?: string | null
           volume?: number | null
@@ -858,20 +989,33 @@ export type Database = {
         Update: {
           alc_carrier_id?: string | null
           booking_id?: string
+          cargo_gross_weight_unit?: string | null
+          cargo_gross_weight_value?: number | null
+          container_positioning_datetime?: string | null
+          container_positioning_location_id?: string | null
           created_at?: string
           dangerous_goods_flag?: boolean | null
+          empty_pickup_datetime?: string | null
+          empty_pickup_location_id?: string | null
           equipment_description?: string | null
+          equipment_reference_type?: string | null
+          equipment_reference_value?: string | null
           equipment_type_code?: string | null
           gross_weight?: number | null
           humidity_setting?: string | null
           id?: string
+          is_non_operating_reefer?: boolean | null
           is_shipper_owned?: boolean | null
           iso_equipment_code?: string | null
           overdimension_flag?: boolean | null
           quantity?: number | null
           reefer_flag?: boolean | null
+          shipment_id?: string | null
           source_message_id?: string | null
+          tare_weight_unit?: string | null
+          tare_weight_value?: number | null
           temperature_setting?: string | null
+          units?: number | null
           updated_at?: string
           ventilation_setting?: string | null
           volume?: number | null
@@ -889,6 +1033,34 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_equipments_container_positioning_location_id_fkey"
+            columns: ["container_positioning_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_equipments_empty_pickup_location_id_fkey"
+            columns: ["empty_pickup_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_equipments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_equipments_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
           {
@@ -1013,45 +1185,39 @@ export type Database = {
       }
       booking_locations: {
         Row: {
-          address_name: string | null
           alc_carrier_id: string | null
           booking_id: string
           created_at: string
-          facility_code: string | null
-          facility_code_list_provider: string | null
           id: string
           location_id: string | null
-          location_type: string
+          location_name_snapshot: string | null
+          location_type_code: string
+          shipment_id: string | null
           source_message_id: string | null
-          un_location_code: string | null
           updated_at: string
         }
         Insert: {
-          address_name?: string | null
           alc_carrier_id?: string | null
           booking_id: string
           created_at?: string
-          facility_code?: string | null
-          facility_code_list_provider?: string | null
           id?: string
           location_id?: string | null
-          location_type: string
+          location_name_snapshot?: string | null
+          location_type_code: string
+          shipment_id?: string | null
           source_message_id?: string | null
-          un_location_code?: string | null
           updated_at?: string
         }
         Update: {
-          address_name?: string | null
           alc_carrier_id?: string | null
           booking_id?: string
           created_at?: string
-          facility_code?: string | null
-          facility_code_list_provider?: string | null
           id?: string
           location_id?: string | null
-          location_type?: string
+          location_name_snapshot?: string | null
+          location_type_code?: string
+          shipment_id?: string | null
           source_message_id?: string | null
-          un_location_code?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1077,7 +1243,97 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "booking_locations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_locations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "booking_locations_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_notifications: {
+        Row: {
+          alc_carrier_id: string | null
+          amended_booking_status: string | null
+          booking_id: string | null
+          booking_status: string | null
+          carrier_booking_reference: string | null
+          carrier_booking_request_reference: string | null
+          created_at: string
+          id: string
+          notification_id: string | null
+          notification_source: string | null
+          notification_time: string | null
+          notification_type: string | null
+          source_message_id: string | null
+          subscription_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          amended_booking_status?: string | null
+          booking_id?: string | null
+          booking_status?: string | null
+          carrier_booking_reference?: string | null
+          carrier_booking_request_reference?: string | null
+          created_at?: string
+          id?: string
+          notification_id?: string | null
+          notification_source?: string | null
+          notification_time?: string | null
+          notification_type?: string | null
+          source_message_id?: string | null
+          subscription_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          amended_booking_status?: string | null
+          booking_id?: string | null
+          booking_status?: string | null
+          carrier_booking_reference?: string | null
+          carrier_booking_request_reference?: string | null
+          created_at?: string
+          id?: string
+          notification_id?: string | null
+          notification_source?: string | null
+          notification_time?: string | null
+          notification_type?: string | null
+          source_message_id?: string | null
+          subscription_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_notifications_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_notifications_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
             referencedRelation: "carrier_raw_messages"
@@ -1087,69 +1343,84 @@ export type Database = {
       }
       booking_parties: {
         Row: {
-          address_line_1: string | null
-          address_line_2: string | null
+          address_line1: string | null
+          address_line2: string | null
           alc_carrier_id: string | null
           booking_id: string
           city: string | null
+          code_list_provider: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
           country_code: string | null
           created_at: string
           id: string
-          identifying_codes: Json | null
-          is_to_be_notified: boolean | null
-          party_function: string
+          party_code: string | null
           party_name: string
+          party_reference: string | null
+          party_role: string
           postal_code: string | null
+          purchase_order_reference: string | null
+          shipment_id: string | null
           source_message_id: string | null
           state_region: string | null
-          tax_id: string | null
+          tax_reference_type: string | null
+          tax_reference_value: string | null
+          unlocation_code: string | null
           updated_at: string
         }
         Insert: {
-          address_line_1?: string | null
-          address_line_2?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           alc_carrier_id?: string | null
           booking_id: string
           city?: string | null
+          code_list_provider?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           country_code?: string | null
           created_at?: string
           id?: string
-          identifying_codes?: Json | null
-          is_to_be_notified?: boolean | null
-          party_function: string
+          party_code?: string | null
           party_name: string
+          party_reference?: string | null
+          party_role: string
           postal_code?: string | null
+          purchase_order_reference?: string | null
+          shipment_id?: string | null
           source_message_id?: string | null
           state_region?: string | null
-          tax_id?: string | null
+          tax_reference_type?: string | null
+          tax_reference_value?: string | null
+          unlocation_code?: string | null
           updated_at?: string
         }
         Update: {
-          address_line_1?: string | null
-          address_line_2?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           alc_carrier_id?: string | null
           booking_id?: string
           city?: string | null
+          code_list_provider?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           country_code?: string | null
           created_at?: string
           id?: string
-          identifying_codes?: Json | null
-          is_to_be_notified?: boolean | null
-          party_function?: string
+          party_code?: string | null
           party_name?: string
+          party_reference?: string | null
+          party_role?: string
           postal_code?: string | null
+          purchase_order_reference?: string | null
+          shipment_id?: string | null
           source_message_id?: string | null
           state_region?: string | null
-          tax_id?: string | null
+          tax_reference_type?: string | null
+          tax_reference_value?: string | null
+          unlocation_code?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1168,6 +1439,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "booking_parties_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_parties_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "booking_parties_source_message_id_fkey"
             columns: ["source_message_id"]
             isOneToOne: false
@@ -1181,27 +1466,44 @@ export type Database = {
           alc_carrier_id: string | null
           amended_booking_status: string | null
           amendment_number: number | null
+          booking_channel_reference: string | null
           booking_confirmation_status: string | null
           booking_date: string | null
           booking_request_created_datetime: string | null
           booking_request_status: string | null
           booking_request_updated_datetime: string | null
           booking_status: string | null
+          booking_status_internal: string | null
+          cargo_movement_type_at_destination: string | null
+          cargo_movement_type_at_origin: string | null
           carrier_booking_number: string | null
           carrier_booking_request_reference: string | null
+          carrier_export_voyage_number: string | null
+          carrier_service_code: string | null
+          carrier_service_name: string | null
           communication_channel_code: string | null
+          contract_quotation_reference: string | null
           created_at: string
           dcsa_version: string | null
+          declared_value: number | null
+          declared_value_currency: string | null
           delivery_type_at_destination: string | null
+          expected_arrival_at_place_of_delivery_end_date: string | null
+          expected_arrival_at_place_of_delivery_start_date: string | null
           expected_arrival_date: string | null
           expected_departure_date: string | null
+          export_declaration_reference: string | null
+          freight_payment_term_code: string | null
           id: string
+          inco_terms: string | null
           invoice_payable_at: string | null
+          invoice_payable_at_location_id: string | null
           is_equipment_substitution_allowed: boolean | null
           is_export_declaration_required: boolean | null
           is_import_license_required: boolean | null
           is_partial_load_allowed: boolean | null
           payment_term_code: string | null
+          place_of_bl_issue_location_id: string | null
           pre_carriage_mode: string | null
           quotation_reference: string | null
           receipt_type_at_origin: string | null
@@ -1213,36 +1515,57 @@ export type Database = {
           source_message_id: string | null
           submission_datetime: string | null
           terms_and_conditions: string | null
+          transport_document_reference: string | null
           transport_document_type_code: string | null
+          universal_export_voyage_reference: string | null
+          universal_service_reference: string | null
           updated_at: string
           updated_datetime: string | null
           vessel_imo_number: string | null
+          vessel_name: string | null
         }
         Insert: {
           alc_carrier_id?: string | null
           amended_booking_status?: string | null
           amendment_number?: number | null
+          booking_channel_reference?: string | null
           booking_confirmation_status?: string | null
           booking_date?: string | null
           booking_request_created_datetime?: string | null
           booking_request_status?: string | null
           booking_request_updated_datetime?: string | null
           booking_status?: string | null
+          booking_status_internal?: string | null
+          cargo_movement_type_at_destination?: string | null
+          cargo_movement_type_at_origin?: string | null
           carrier_booking_number?: string | null
           carrier_booking_request_reference?: string | null
+          carrier_export_voyage_number?: string | null
+          carrier_service_code?: string | null
+          carrier_service_name?: string | null
           communication_channel_code?: string | null
+          contract_quotation_reference?: string | null
           created_at?: string
           dcsa_version?: string | null
+          declared_value?: number | null
+          declared_value_currency?: string | null
           delivery_type_at_destination?: string | null
+          expected_arrival_at_place_of_delivery_end_date?: string | null
+          expected_arrival_at_place_of_delivery_start_date?: string | null
           expected_arrival_date?: string | null
           expected_departure_date?: string | null
+          export_declaration_reference?: string | null
+          freight_payment_term_code?: string | null
           id?: string
+          inco_terms?: string | null
           invoice_payable_at?: string | null
+          invoice_payable_at_location_id?: string | null
           is_equipment_substitution_allowed?: boolean | null
           is_export_declaration_required?: boolean | null
           is_import_license_required?: boolean | null
           is_partial_load_allowed?: boolean | null
           payment_term_code?: string | null
+          place_of_bl_issue_location_id?: string | null
           pre_carriage_mode?: string | null
           quotation_reference?: string | null
           receipt_type_at_origin?: string | null
@@ -1254,36 +1577,57 @@ export type Database = {
           source_message_id?: string | null
           submission_datetime?: string | null
           terms_and_conditions?: string | null
+          transport_document_reference?: string | null
           transport_document_type_code?: string | null
+          universal_export_voyage_reference?: string | null
+          universal_service_reference?: string | null
           updated_at?: string
           updated_datetime?: string | null
           vessel_imo_number?: string | null
+          vessel_name?: string | null
         }
         Update: {
           alc_carrier_id?: string | null
           amended_booking_status?: string | null
           amendment_number?: number | null
+          booking_channel_reference?: string | null
           booking_confirmation_status?: string | null
           booking_date?: string | null
           booking_request_created_datetime?: string | null
           booking_request_status?: string | null
           booking_request_updated_datetime?: string | null
           booking_status?: string | null
+          booking_status_internal?: string | null
+          cargo_movement_type_at_destination?: string | null
+          cargo_movement_type_at_origin?: string | null
           carrier_booking_number?: string | null
           carrier_booking_request_reference?: string | null
+          carrier_export_voyage_number?: string | null
+          carrier_service_code?: string | null
+          carrier_service_name?: string | null
           communication_channel_code?: string | null
+          contract_quotation_reference?: string | null
           created_at?: string
           dcsa_version?: string | null
+          declared_value?: number | null
+          declared_value_currency?: string | null
           delivery_type_at_destination?: string | null
+          expected_arrival_at_place_of_delivery_end_date?: string | null
+          expected_arrival_at_place_of_delivery_start_date?: string | null
           expected_arrival_date?: string | null
           expected_departure_date?: string | null
+          export_declaration_reference?: string | null
+          freight_payment_term_code?: string | null
           id?: string
+          inco_terms?: string | null
           invoice_payable_at?: string | null
+          invoice_payable_at_location_id?: string | null
           is_equipment_substitution_allowed?: boolean | null
           is_export_declaration_required?: boolean | null
           is_import_license_required?: boolean | null
           is_partial_load_allowed?: boolean | null
           payment_term_code?: string | null
+          place_of_bl_issue_location_id?: string | null
           pre_carriage_mode?: string | null
           quotation_reference?: string | null
           receipt_type_at_origin?: string | null
@@ -1295,10 +1639,14 @@ export type Database = {
           source_message_id?: string | null
           submission_datetime?: string | null
           terms_and_conditions?: string | null
+          transport_document_reference?: string | null
           transport_document_type_code?: string | null
+          universal_export_voyage_reference?: string | null
+          universal_service_reference?: string | null
           updated_at?: string
           updated_datetime?: string | null
           vessel_imo_number?: string | null
+          vessel_name?: string | null
         }
         Relationships: [
           {
@@ -1306,6 +1654,20 @@ export type Database = {
             columns: ["alc_carrier_id"]
             isOneToOne: false
             referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_invoice_payable_at_location_id_fkey"
+            columns: ["invoice_payable_at_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_place_of_bl_issue_location_id_fkey"
+            columns: ["place_of_bl_issue_location_id"]
+            isOneToOne: false
+            referencedRelation: "alc_locations"
             referencedColumns: ["id"]
           },
           {
