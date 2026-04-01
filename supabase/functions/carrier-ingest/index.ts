@@ -284,7 +284,7 @@ async function upsertReference(
   }
 }
 
-/** Load event mappings for a carrier */
+/** Load event mappings for a carrier, keyed by external_code+classifier */
 async function loadEventMappings(carrierId: string, family: string): Promise<Map<string, any>> {
   const { data: mappings } = await supabase
     .from("carrier_event_mappings")
@@ -292,7 +292,26 @@ async function loadEventMappings(carrierId: string, family: string): Promise<Map
     .eq("carrier_id", carrierId)
     .eq("message_family", family)
     .eq("active", true);
-  return new Map((mappings || []).map((m: any) => [m.external_code, m]));
+  const map = new Map<string, any>();
+  for (const m of mappings || []) {
+    // Key by code+classifier for precise lookup
+    const compositeKey = `${m.external_code}|${m.event_classifier_code || ''}`;
+    map.set(compositeKey, m);
+    // Also set code-only fallback (first match wins)
+    if (!map.has(m.external_code)) {
+      map.set(m.external_code, m);
+    }
+  }
+  return map;
+}
+
+/** Lookup mapping by code + classifier, falling back to code-only */
+function lookupMapping(mappings: Map<string, any>, eventCode: string, classifierCode?: string): any {
+  if (classifierCode) {
+    const precise = mappings.get(`${eventCode}|${classifierCode}`);
+    if (precise) return precise;
+  }
+  return mappings.get(eventCode) || null;
 }
 
 // ============================================================
