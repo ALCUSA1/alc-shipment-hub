@@ -44,7 +44,7 @@ function apiKeyHeaders(conn: any): Record<string, string> {
   };
 }
 
-// ─── OAuth: request or refresh token ───
+// ─── OAuth: request or refresh token (supports client_credentials and password grant) ───
 async function getOAuthToken(conn: any): Promise<string> {
   // Check if cached token is still valid (with 60s buffer)
   if (conn.access_token_encrypted && conn.token_expires_at) {
@@ -58,19 +58,31 @@ async function getOAuthToken(conn: any): Promise<string> {
   const tokenUrl = conn.oauth_token_url;
   if (!tokenUrl) throw new Error("OAuth token URL not configured");
 
-  const clientId = conn.oauth_client_id;
-  const clientSecretKeyName = conn.oauth_client_secret_key_name;
-  const clientSecret = clientSecretKeyName ? Deno.env.get(clientSecretKeyName) : null;
+  const clientId = conn.oauth_client_id || Deno.env.get("EVERGREEN_CLIENT_ID");
+  const clientSecretKeyName = conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET";
+  const clientSecret = Deno.env.get(clientSecretKeyName);
 
   if (!clientId || !clientSecret) {
     throw new Error("OAuth client_id or client_secret not configured");
   }
 
+  // Determine grant type — use password grant if username/password are available
+  const username = Deno.env.get("EVERGREEN_USERNAME");
+  const password = Deno.env.get("EVERGREEN_PASSWORD");
+
   const body = new URLSearchParams({
-    grant_type: "client_credentials",
     client_id: clientId,
     client_secret: clientSecret,
   });
+
+  if (username && password) {
+    body.set("grant_type", "password");
+    body.set("username", username);
+    body.set("password", password);
+  } else {
+    body.set("grant_type", "client_credentials");
+  }
+
   if (conn.token_scope) body.set("scope", conn.token_scope);
 
   const resp = await fetch(tokenUrl, {
@@ -99,6 +111,15 @@ async function getOAuthToken(conn: any): Promise<string> {
     })
     .eq("id", conn.id);
 
+  // Also update the base_url from env if not already set
+  const baseUrl = Deno.env.get("EVERGREEN_BASE_URL");
+  if (baseUrl && !conn.base_url) {
+    await supabase
+      .from("carrier_connections")
+      .update({ base_url: baseUrl })
+      .eq("id", conn.id);
+  }
+
   return accessToken;
 }
 
@@ -124,7 +145,8 @@ export async function getEvergreenAuthHeaders(env = "production"): Promise<{
   const carrierId = await resolveCarrier(EVERGREEN_CARRIER_CODE);
   const conn = await getConnection(carrierId, env);
   const headers = await getAuthHeaders(conn);
-  return { headers, baseUrl: conn.base_url || "", carrierId };
+  const baseUrl = conn.base_url || Deno.env.get("EVERGREEN_BASE_URL") || "";
+  return { headers, baseUrl, carrierId };
 }
 
 // ─── HTTP endpoint for manual token refresh / status check ───
@@ -166,6 +188,7 @@ Deno.serve(async (req) => {
         token_valid: conn.auth_type === "oauth" ? tokenValid : null,
         token_expires_at: conn.auth_type === "oauth" ? conn.token_expires_at : null,
         last_success_at: conn.last_success_at,
+        base_url_configured: !!(conn.base_url || Deno.env.get("EVERGREEN_BASE_URL")),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
