@@ -8864,6 +8864,410 @@ export type Database = {
           },
         ]
       }
+      surrender_code_mappings: {
+        Row: {
+          active: boolean
+          alc_carrier_id: string | null
+          code_type: string
+          created_at: string
+          description: string | null
+          external_code: string
+          external_name: string | null
+          id: string
+          internal_status: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          alc_carrier_id?: string | null
+          code_type: string
+          created_at?: string
+          description?: string | null
+          external_code: string
+          external_name?: string | null
+          id?: string
+          internal_status: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          alc_carrier_id?: string | null
+          code_type?: string
+          created_at?: string
+          description?: string | null
+          external_code?: string
+          external_name?: string | null
+          id?: string
+          internal_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surrender_code_mappings_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surrender_endorsement_chain: {
+        Row: {
+          action_code: string | null
+          action_datetime: string | null
+          actor_code_list_name: string | null
+          actor_code_list_provider: string | null
+          actor_ebl_platform: string | null
+          actor_party_code: string | null
+          actor_party_name: string | null
+          actor_tax_reference_country: string | null
+          actor_tax_reference_type: string | null
+          actor_tax_reference_value: string | null
+          alc_carrier_id: string | null
+          created_at: string
+          id: string
+          recipient_code_list_name: string | null
+          recipient_code_list_provider: string | null
+          recipient_ebl_platform: string | null
+          recipient_party_code: string | null
+          recipient_party_name: string | null
+          recipient_tax_reference_country: string | null
+          recipient_tax_reference_type: string | null
+          recipient_tax_reference_value: string | null
+          sequence_number: number
+          source_message_id: string | null
+          surrender_request_id: string
+          updated_at: string
+        }
+        Insert: {
+          action_code?: string | null
+          action_datetime?: string | null
+          actor_code_list_name?: string | null
+          actor_code_list_provider?: string | null
+          actor_ebl_platform?: string | null
+          actor_party_code?: string | null
+          actor_party_name?: string | null
+          actor_tax_reference_country?: string | null
+          actor_tax_reference_type?: string | null
+          actor_tax_reference_value?: string | null
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          recipient_code_list_name?: string | null
+          recipient_code_list_provider?: string | null
+          recipient_ebl_platform?: string | null
+          recipient_party_code?: string | null
+          recipient_party_name?: string | null
+          recipient_tax_reference_country?: string | null
+          recipient_tax_reference_type?: string | null
+          recipient_tax_reference_value?: string | null
+          sequence_number?: number
+          source_message_id?: string | null
+          surrender_request_id: string
+          updated_at?: string
+        }
+        Update: {
+          action_code?: string | null
+          action_datetime?: string | null
+          actor_code_list_name?: string | null
+          actor_code_list_provider?: string | null
+          actor_ebl_platform?: string | null
+          actor_party_code?: string | null
+          actor_party_name?: string | null
+          actor_tax_reference_country?: string | null
+          actor_tax_reference_type?: string | null
+          actor_tax_reference_value?: string | null
+          alc_carrier_id?: string | null
+          created_at?: string
+          id?: string
+          recipient_code_list_name?: string | null
+          recipient_code_list_provider?: string | null
+          recipient_ebl_platform?: string | null
+          recipient_party_code?: string | null
+          recipient_party_name?: string | null
+          recipient_tax_reference_country?: string | null
+          recipient_tax_reference_type?: string | null
+          recipient_tax_reference_value?: string | null
+          sequence_number?: number
+          source_message_id?: string | null
+          surrender_request_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surrender_endorsement_chain_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_endorsement_chain_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_endorsement_chain_surrender_request_id_fkey"
+            columns: ["surrender_request_id"]
+            isOneToOne: false
+            referencedRelation: "surrender_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surrender_errors: {
+        Row: {
+          alc_carrier_id: string | null
+          created_at: string
+          error_code: string | null
+          error_code_text: string | null
+          error_message: string | null
+          id: string
+          json_path: string | null
+          property_name: string | null
+          property_value: string | null
+          source_message_id: string | null
+          surrender_request_id: string
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_code_text?: string | null
+          error_message?: string | null
+          id?: string
+          json_path?: string | null
+          property_name?: string | null
+          property_value?: string | null
+          source_message_id?: string | null
+          surrender_request_id: string
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_code_text?: string | null
+          error_message?: string | null
+          id?: string
+          json_path?: string | null
+          property_name?: string | null
+          property_value?: string | null
+          source_message_id?: string | null
+          surrender_request_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surrender_errors_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_errors_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_errors_surrender_request_id_fkey"
+            columns: ["surrender_request_id"]
+            isOneToOne: false
+            referencedRelation: "surrender_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surrender_requests: {
+        Row: {
+          alc_carrier_id: string | null
+          booking_id: string | null
+          callback_received_at: string | null
+          comments: string | null
+          created_at: string
+          id: string
+          issuance_id: string | null
+          reason_code: string | null
+          request_submitted_at: string | null
+          shipment_id: string | null
+          shipping_instruction_id: string | null
+          source_message_id: string | null
+          surrender_request_code: string | null
+          surrender_request_reference: string | null
+          surrender_status_internal: string | null
+          transport_document_id: string | null
+          transport_document_reference: string | null
+          transport_document_sub_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          callback_received_at?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          issuance_id?: string | null
+          reason_code?: string | null
+          request_submitted_at?: string | null
+          shipment_id?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          surrender_request_code?: string | null
+          surrender_request_reference?: string | null
+          surrender_status_internal?: string | null
+          transport_document_id?: string | null
+          transport_document_reference?: string | null
+          transport_document_sub_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          booking_id?: string | null
+          callback_received_at?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          issuance_id?: string | null
+          reason_code?: string | null
+          request_submitted_at?: string | null
+          shipment_id?: string | null
+          shipping_instruction_id?: string | null
+          source_message_id?: string | null
+          surrender_request_code?: string | null
+          surrender_request_reference?: string | null
+          surrender_status_internal?: string | null
+          transport_document_id?: string | null
+          transport_document_reference?: string | null
+          transport_document_sub_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surrender_requests_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_issuance_id_fkey"
+            columns: ["issuance_id"]
+            isOneToOne: false
+            referencedRelation: "issuance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_shipping_instruction_id_fkey"
+            columns: ["shipping_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_instructions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_requests_transport_document_id_fkey"
+            columns: ["transport_document_id"]
+            isOneToOne: false
+            referencedRelation: "transport_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surrender_responses: {
+        Row: {
+          alc_carrier_id: string | null
+          callback_received_at: string | null
+          created_at: string
+          id: string
+          response_status_internal: string | null
+          source_message_id: string | null
+          surrender_request_id: string
+          surrender_response_code: string | null
+          surrender_response_message: string | null
+          updated_at: string
+        }
+        Insert: {
+          alc_carrier_id?: string | null
+          callback_received_at?: string | null
+          created_at?: string
+          id?: string
+          response_status_internal?: string | null
+          source_message_id?: string | null
+          surrender_request_id: string
+          surrender_response_code?: string | null
+          surrender_response_message?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alc_carrier_id?: string | null
+          callback_received_at?: string | null
+          created_at?: string
+          id?: string
+          response_status_internal?: string | null
+          source_message_id?: string | null
+          surrender_request_id?: string
+          surrender_response_code?: string | null
+          surrender_response_message?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surrender_responses_alc_carrier_id_fkey"
+            columns: ["alc_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "alc_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_responses_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_raw_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surrender_responses_surrender_request_id_fkey"
+            columns: ["surrender_request_id"]
+            isOneToOne: false
+            referencedRelation: "surrender_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to_role: string | null
