@@ -1,89 +1,81 @@
 
 
-## Plan: Full AES Filing Submission Form with Editable Fields
+# Self-Hosting Frontend on Hostinger with Lovable Cloud Backend
 
-### What the PDF Shows vs What We Have
+## What This Means
 
-The real AES filing (from uploaded PDF) has these sections that the current system is missing or not capturing:
+Your setup will be:
+- **Frontend** (the website users see): hosted on Hostinger at `www.alllogisticscargo.com`
+- **Backend** (database, edge functions, auth, API): stays on Lovable Cloud — you continue editing and fixing code here in Lovable, then push updates to Hostinger
 
-**Missing from DB schema** (need migration):
-- `filing_option` (e.g., "2 - PREDEPARTURE")
-- `xtn` (External Transaction Number)
-- `usppi_address` (full USPPI address)
-- `state_of_origin` (e.g., "GA - GEORGIA")
-- `method_of_transportation` (coded, e.g., "11 - VESSEL, CONTAINERIZED")
-- `containerized` (boolean, vessel only)
-- `carrier_id_code` (e.g., "HLCU")
-- `shipment_reference_no`
-- `entry_number`
-- `hazardous_materials` (boolean)
-- `in_bond_code` (e.g., "70")
-- `routed_export_transaction` (boolean)
-- `consignee_type` (e.g., "O - OTHER/UNKNOWN")
-- `authorized_agent_name`
-- `authorized_agent_address`
-- `original_itn`
+## How It Works
 
-**Missing from HTS line items** (stored in `hts_codes` JSONB):
-- `d_f` (Domestic/Foreign indicator)
-- `shipping_weight_kg`
-- `vin_product_number`
-- `export_info_code` (e.g., "OS")
-- `license_number` (e.g., "NLR")
-- `license_code` (e.g., "C33")
+```text
+┌─────────────────────┐         ┌──────────────────────┐
+│  www.alllogistics    │  API    │   Lovable Cloud      │
+│  cargo.com           │ ◄─────► │   (Backend)          │
+│  (Hostinger)         │         │   - Database         │
+│  Static frontend     │         │   - Edge Functions   │
+│  built from Lovable  │         │   - Auth             │
+└─────────────────────┘         │   - Storage          │
+                                └──────────────────────┘
+```
 
-### Changes
+## Step-by-Step Setup
 
-#### 1. Database Migration — Add missing AES columns
-Add ~15 new nullable columns to `customs_filings` table to match the official EEI form structure. No existing data is affected.
+### 1. Connect GitHub to Lovable
+- Go to **Project Settings → Connectors → GitHub** and sync your project to a GitHub repository
+- Every change you make in Lovable will be pushed to GitHub automatically
 
-#### 2. Rebuild CustomsFilingPanel as an Editable Form
-**File: `src/components/shipment/CustomsFilingPanel.tsx`**
+### 2. Build the Frontend Locally (or via CI)
+- Clone your GitHub repo
+- Run:
+  ```
+  npm install
+  npm run build
+  ```
+- This produces a `dist/` folder containing static HTML/CSS/JS files
+- You need to set these environment variables before building:
+  - `VITE_SUPABASE_URL` = `https://sikosqmgmwvdmxzigjpl.supabase.co`
+  - `VITE_SUPABASE_PUBLISHABLE_KEY` = your anon key (already in `.env`)
+  - `VITE_SUPABASE_PROJECT_ID` = `sikosqmgmwvdmxzigjpl`
 
-When filing status is `draft`, render a full editable form organized into sections matching the official AES layout:
+### 3. Upload to Hostinger
+- Upload the contents of the `dist/` folder to your Hostinger web root (usually `public_html/`)
+- You can do this via Hostinger File Manager or FTP
 
-- **Section 1: USPPI** — Name, EIN, Address (pre-filled from shipment parties)
-- **Section 2: Exportation Details** — Date of exportation, filing option
-- **Section 3: Transportation Reference No.**
-- **Section 4: Ultimate Consignee** — Name, address, consignee type
-- **Section 5: Authorized Agent** — Name, address
-- **Section 6: State of Origin / FTZ**
-- **Section 7: Country of Ultimate Destination**
-- **Section 8: Method of Transportation** (dropdown with AES codes)
-- **Section 9: Carrier / Conveyance Name**
-- **Section 10: Port of Export** (with AES code)
-- **Section 11: Port of Unlading**
-- **Section 12: Containerized** (Yes/No for vessel)
-- **Section 13: Carrier ID Code**
-- **Section 14: Shipment Reference No.**
-- **Section 15: Entry Number**
-- **Section 16: Hazardous Materials** (Yes/No)
-- **Section 17: In Bond Code**
-- **Section 18: Original ITN**
-- **Section 19: Routed Export Transaction** (Yes/No)
-- **Section 20: Commodity Line Items** — Editable table with HTS, D/F, quantity, weight, VIN, value, export info code, license number, license code
+### 4. Configure SPA Routing on Hostinger
+Since this is a single-page app with client-side routing, you need an `.htaccess` file in the web root so page refreshes and deep links work:
 
-Each field is an Input/Select with a "Save" button that updates the `customs_filings` record. The "File AES Electronically" button is only enabled when all required fields are filled (validation).
+```
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+```
 
-When status is `submitted`/`accepted`, show the current read-only view.
+I will create this file in the `public/` folder so it is included automatically in every build.
 
-#### 3. Create AES Filing Form Component
-**New file: `src/components/shipment/AesFilingForm.tsx`**
+### 5. No Backend Changes Needed
+- The backend URL stays the same (`sikosqmgmwvdmxzigjpl.supabase.co`)
+- Edge functions, database, auth, and webhooks all remain unchanged
+- The Evergreen webhook URL stays the same
 
-Dedicated form component using react-hook-form with sections matching the numbered AES layout. Includes:
-- Auto-save on blur for individual fields
-- Validation before submission (USPPI EIN format, required fields)
-- Add/remove commodity line items
-- Pre-filled from existing filing data
+## Workflow Going Forward
 
-#### 4. Update Edge Function for New Fields
-**File: `supabase/functions/submit-aes-filing/index.ts`**
+1. Fix or add features in Lovable (code auto-syncs to GitHub)
+2. Pull from GitHub, run `npm run build`
+3. Upload the new `dist/` folder to Hostinger
+4. Backend changes (edge functions, database) deploy instantly from Lovable — no Hostinger update needed
 
-Update the `auto_create` action to also populate new fields from shipment data (carrier SCAC code, containerized flag, etc.). Update the `submit` action to validate all required fields before accepting submission.
+## What I Will Implement
 
-### Technical Details
-- Migration adds columns as nullable to avoid breaking existing data
-- The HTS line items remain in the `hts_codes` JSONB column but with expanded object structure
-- Form validation ensures all 20 sections have required data before the "File AES" button activates
-- The `auto_create_customs_filing` trigger function will also be updated to populate new fields
+1. **Create `public/.htaccess`** — SPA fallback routing for Apache (Hostinger uses Apache)
+2. **Create `public/_redirects`** — fallback for Netlify-style hosts (optional safety net)
+
+This is a minimal change — the app code stays identical; only deployment routing config is added.
 
