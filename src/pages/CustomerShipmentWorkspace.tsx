@@ -406,7 +406,7 @@ const CustomerShipmentWorkspace = () => {
                   shipment_type: shipment.shipment_type,
                   incoterms: shipment.incoterms,
                 };
-                const { error } = await supabase.from("shipment_templates").insert(templateData);
+                const { error } = await supabase.from("shipment_templates").insert([templateData as any]);
                 if (error) {
                   toast({ title: "Failed to save template", description: error.message, variant: "destructive" });
                 } else {

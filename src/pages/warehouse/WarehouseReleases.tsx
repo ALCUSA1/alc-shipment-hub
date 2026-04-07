@@ -36,7 +36,7 @@ const WarehouseReleases = () => {
         updates.actual_date = new Date().toISOString().split("T")[0];
         updates.storage_end_date = new Date().toISOString().split("T")[0];
       }
-      const { error } = await supabase.from("warehouse_orders").update(updates).eq("id", id);
+      const { error } = await supabase.from("warehouse_orders").update(updates as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
