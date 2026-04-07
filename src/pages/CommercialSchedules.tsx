@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Ship, Anchor, MapPin, Clock, ArrowRight, Search, Route, ChevronRight, Loader2, AlertCircle, Building2 } from "lucide-react";
+import { Ship, Anchor, MapPin, Clock, ArrowRight, Search, Route, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
