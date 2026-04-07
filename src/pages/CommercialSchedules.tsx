@@ -40,6 +40,7 @@ type ScheduleResult = {
 };
 
 const CommercialSchedules = () => {
+  const [activeView, setActiveView] = useState<"carrier" | "terminal">("carrier");
   const [queryType, setQueryType] = useState("point_to_point");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -196,8 +197,22 @@ const CommercialSchedules = () => {
     <DashboardLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Commercial Schedules</h1>
-        <p className="text-sm text-muted-foreground">Search carrier sailing schedules via DCSA API</p>
+        <p className="text-sm text-muted-foreground">Search carrier sailing schedules and US port terminal vessel calls</p>
       </div>
+
+      {/* Top-level view switcher */}
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "carrier" | "terminal")} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="carrier" className="gap-1.5"><Ship className="h-3.5 w-3.5" /> Carrier Schedules</TabsTrigger>
+          <TabsTrigger value="terminal" className="gap-1.5"><Building2 className="h-3.5 w-3.5" /> Terminal Schedules</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {activeView === "terminal" ? (
+        <TerminalScheduleTab />
+      ) : (
+      <>
+
 
       {/* Search form */}
       <Card className="mb-6">
