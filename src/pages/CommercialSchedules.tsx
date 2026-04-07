@@ -518,6 +518,8 @@ const CommercialSchedules = () => {
           </Card>
         );
       })}
+      </>
+      )}
     </DashboardLayout>
   );
 };
