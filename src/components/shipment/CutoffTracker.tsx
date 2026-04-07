@@ -117,7 +117,7 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
       }
       const { error } = await supabase
         .from("shipments")
-        .update(update)
+        .update(update as any)
         .eq("id", shipmentId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });

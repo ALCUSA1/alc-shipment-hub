@@ -118,7 +118,7 @@ const AdminShipmentDetail = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Record<string, any>) => {
-      const { error } = await supabase.from("shipments").update(updates).eq("id", id!);
+      const { error } = await supabase.from("shipments").update(updates as any).eq("id", id!);
       if (error) throw error;
     },
     onSuccess: () => {
