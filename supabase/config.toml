@@ -86,3 +86,15 @@ verify_jwt = false
 
 [functions.evergreen-webhook]
 verify_jwt = false
+
+[functions.terminal-schedule-apm]
+verify_jwt = false
+
+[functions.terminal-schedule-houston]
+verify_jwt = false
+
+[functions.terminal-schedule-scrape]
+verify_jwt = false
+
+[functions.terminal-schedule-query]
+verify_jwt = false
