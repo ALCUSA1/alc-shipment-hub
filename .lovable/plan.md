@@ -1,81 +1,61 @@
 
 
-# Self-Hosting Frontend on Hostinger with Lovable Cloud Backend
+# US Port Terminal Schedule API Integration
 
-## What This Means
+## The Reality of Terminal-Level APIs
 
-Your setup will be:
-- **Frontend** (the website users see): hosted on Hostinger at `www.alllogisticscargo.com`
-- **Backend** (database, edge functions, auth, API): stays on Lovable Cloud — you continue editing and fixing code here in Lovable, then push updates to Hostinger
+Unlike carrier APIs (Evergreen), US port terminals do **not** have a single unified API. Each terminal operator runs its own system. Here is what is available for your target ports:
 
-## How It Works
+### Available Data Sources
 
-```text
-┌─────────────────────┐         ┌──────────────────────┐
-│  www.alllogistics    │  API    │   Lovable Cloud      │
-│  cargo.com           │ ◄─────► │   (Backend)          │
-│  (Hostinger)         │         │   - Database         │
-│  Static frontend     │         │   - Edge Functions   │
-│  built from Lovable  │         │   - Auth             │
-└─────────────────────┘         │   - Storage          │
-                                └──────────────────────┘
-```
+| Port Complex | Terminal Operator | API Access | How to Get It |
+|---|---|---|---|
+| **LA** | APM Terminals (Pier 400) | REST API with vessel schedule, container events, import availability | Sign up at `developer.apmterminals.com` — free tier available |
+| **Long Beach** | LBCT | APIs available for drayage/vessel data | Contact LBCT directly |
+| **Long Beach** | SSA Terminals (Pier A/C/E/J) | Web portal, no public API | Scrape or manual |
+| **NY/NJ** | APM Terminals (Port Elizabeth) | Same API store as LA | Same `developer.apmterminals.com` account |
+| **NY/NJ** | Maher Terminals | Web portal only | Scrape or manual |
+| **Houston** | Port Houston (Barbours Cut / Bayport) | Lynx API — vessel schedule, booking, container status | Request access at `porthouston.com/toolbox/container-terminals/data-integration/` |
+| **Savannah** | GPA Garden City Terminal | WebAccess portal — vessel schedule is public HTML | Scrape `gaports.com` or contact GPA for API access |
 
-## Step-by-Step Setup
+### Recommended Approach: Two-Layer Strategy
 
-### 1. Connect GitHub to Lovable
-- Go to **Project Settings → Connectors → GitHub** and sync your project to a GitHub repository
-- Every change you make in Lovable will be pushed to GitHub automatically
+**Layer 1 — APM Terminals API (immediate, covers LA + NY/NJ)**
+- Free developer account at `developer.apmterminals.com`
+- Provides: Terminal Vessel Schedule, Import Availability, Container Event History
+- Covers APM-operated terminals in LA (Pier 400) and NY/NJ (Port Elizabeth)
 
-### 2. Build the Frontend Locally (or via CI)
-- Clone your GitHub repo
-- Run:
-  ```
-  npm install
-  npm run build
-  ```
-- This produces a `dist/` folder containing static HTML/CSS/JS files
-- You need to set these environment variables before building:
-  - `VITE_SUPABASE_URL` = `https://sikosqmgmwvdmxzigjpl.supabase.co`
-  - `VITE_SUPABASE_PUBLISHABLE_KEY` = your anon key (already in `.env`)
-  - `VITE_SUPABASE_PROJECT_ID` = `sikosqmgmwvdmxzigjpl`
+**Layer 2 — Port Houston Lynx API (apply for access)**
+- Request API credentials from Port Houston
+- Provides: vessel schedule, container tracking, booking inquiry
+- Requires approval (typically 1-2 weeks)
 
-### 3. Upload to Hostinger
-- Upload the contents of the `dist/` folder to your Hostinger web root (usually `public_html/`)
-- You can do this via Hostinger File Manager or FTP
+**Layer 3 — Savannah GPA (scrape or request)**
+- Public vessel schedule HTML at `gaports.com`
+- Can be scraped on a schedule using Firecrawl or a simple edge function
+- Contact GPA for formal API access
 
-### 4. Configure SPA Routing on Hostinger
-Since this is a single-page app with client-side routing, you need an `.htaccess` file in the web root so page refreshes and deep links work:
+## What I Would Build
 
-```
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
-</IfModule>
-```
+### Database (new table)
+- `terminal_schedules` — stores normalized terminal vessel call data (terminal code, vessel name/IMO, berth, ETA, ATA, ETD, ATD, begin receive date, cutoff date, carrier, service)
+- Links to existing `ports` table via UN/LOCODE
 
-I will create this file in the `public/` folder so it is included automatically in every build.
+### Edge Functions
+1. `terminal-schedule-apm` — polls APM Terminals API for LA and NY/NJ vessel schedules, normalizes into `terminal_schedules`
+2. `terminal-schedule-houston` — polls Port Houston Lynx API for Barbours Cut and Bayport schedules
+3. `terminal-schedule-scrape` — uses Firecrawl to scrape Savannah GPA vessel schedule page, parses into `terminal_schedules`
 
-### 5. No Backend Changes Needed
-- The backend URL stays the same (`sikosqmgmwvdmxzigjpl.supabase.co`)
-- Edge functions, database, auth, and webhooks all remain unchanged
-- The Evergreen webhook URL stays the same
+### UI
+- Add "Terminal Schedule" tab to existing Commercial Schedules page
+- Show vessel calls by terminal with berth assignments, receive windows, and cutoff dates
+- Filter by port, terminal, date range
 
-## Workflow Going Forward
+## Immediate Next Steps for You
 
-1. Fix or add features in Lovable (code auto-syncs to GitHub)
-2. Pull from GitHub, run `npm run build`
-3. Upload the new `dist/` folder to Hostinger
-4. Backend changes (edge functions, database) deploy instantly from Lovable — no Hostinger update needed
+1. **APM Terminals**: Go to `https://developer.apmterminals.com` → Sign up → Get API key → Share the key with me
+2. **Port Houston**: Go to `https://porthouston.com/toolbox/container-terminals/data-integration/` → Request API Access → They will provide credentials
+3. **Savannah GPA**: I can start scraping the public vessel schedule immediately, or you can contact GPA for formal API access
 
-## What I Will Implement
-
-1. **Create `public/.htaccess`** — SPA fallback routing for Apache (Hostinger uses Apache)
-2. **Create `public/_redirects`** — fallback for Netlify-style hosts (optional safety net)
-
-This is a minimal change — the app code stays identical; only deployment routing config is added.
+Once you have at least the APM Terminals API key, I will build the full integration pipeline.
 
