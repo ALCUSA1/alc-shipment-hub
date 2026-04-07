@@ -6,18 +6,26 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// APM Terminals with their UN Location Codes
+// Full list from API spec - US terminals plus international
 const APM_TERMINALS = [
-  { code: "APMT-LA", name: "APM Terminals Pier 400", port_unlocode: "USLAX", port_name: "Los Angeles" },
-  { code: "APMT-NYNJ", name: "APM Terminals Port Elizabeth", port_unlocode: "USNYC", port_name: "New York / New Jersey" },
+  { code: "USLAX", name: "APM Terminals Pacific (Pier 400)", port_name: "Los Angeles" },
+  { code: "USNWK", name: "APM Terminals Port Elizabeth", port_name: "New York / New Jersey" },
+  { code: "USMOB", name: "APM Terminals Mobile", port_name: "Mobile" },
+  { code: "USMIA", name: "APM Terminals Miami", port_name: "Miami" },
 ];
+
+const BASE_URL = Deno.env.get("APM_TERMINALS_BASE_URL") || "https://api.apmterminals.com";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("APM_TERMINALS_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "APM_TERMINALS_API_KEY not configured" }), {
+    const consumerKey = Deno.env.get("APM_TERMINALS_CONSUMER_KEY");
+    const apiToken = Deno.env.get("APM_TERMINALS_API_TOKEN");
+
+    if (!consumerKey) {
+      return new Response(JSON.stringify({ error: "APM_TERMINALS_CONSUMER_KEY not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -33,16 +41,18 @@ Deno.serve(async (req) => {
 
     for (const terminal of terminals) {
       try {
-        // APM Terminals vessel schedule API endpoint
-        const facilityCode = terminal.code === "APMT-LA" ? "USLAXPIER400" : "USNYCELIZBTH";
-        const apiUrl = `https://api.apmterminals.com/v1/facilities/${facilityCode}/vessel-visits?limit=50`;
+        // APM Terminals vessel schedule API - real endpoint per OpenAPI spec
+        const apiUrl = `${BASE_URL}/all-vessel-schedules?terminal=${terminal.code}`;
 
-        const resp = await fetch(apiUrl, {
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Accept": "application/json",
-          },
-        });
+        const headers: Record<string, string> = {
+          "Consumer-Key": consumerKey,
+          "Accept": "application/json",
+        };
+        if (apiToken) {
+          headers["Authorization"] = `Bearer ${apiToken}`;
+        }
+
+        const resp = await fetch(apiUrl, { headers });
 
         if (!resp.ok) {
           console.error(`APM API error for ${terminal.code}: ${resp.status} ${await resp.text()}`);
@@ -50,30 +60,32 @@ Deno.serve(async (req) => {
         }
 
         const data = await resp.json();
-        const visits = data.vesselVisits || data.data || data.items || [];
+        const visits = data.vesselSchedule || [];
 
         for (const visit of visits) {
-          const externalId = visit.id || visit.vesselVisitId || `${terminal.code}-${visit.vesselName}-${visit.eta || visit.inboundVoyage}`;
+          // Build a stable external ID from vessel + voyage
+          const externalId = `${terminal.code}-${visit.vesselLloydsCode || visit.vesselName}-${visit.inboundVoyageNumber}`;
 
           const record = {
             terminal_code: terminal.code,
             terminal_name: terminal.name,
-            port_unlocode: terminal.port_unlocode,
+            port_unlocode: terminal.code,
             port_name: terminal.port_name,
-            vessel_name: visit.vesselName || visit.vessel?.name || null,
-            vessel_imo: visit.imoNumber || visit.vessel?.imoNumber || null,
-            voyage_number: visit.inboundVoyage || visit.outboundVoyage || null,
-            service_code: visit.serviceCode || visit.service?.code || null,
-            carrier_code: visit.carrierCode || visit.shippingLine || null,
-            berth: visit.berthName || visit.berth || null,
-            eta: visit.eta || visit.estimatedTimeOfArrival || null,
-            ata: visit.ata || visit.actualTimeOfArrival || null,
-            etd: visit.etd || visit.estimatedTimeOfDeparture || null,
-            atd: visit.atd || visit.actualTimeOfDeparture || null,
-            begin_receive_date: visit.beginReceiveDate || visit.earliestReceivingDate || null,
-            cargo_cutoff_date: visit.cargoCutoffDate || visit.cargoCutOff || null,
-            hazmat_cutoff_date: visit.hazmatCutoffDate || visit.hazCargoCutOff || null,
-            reefer_cutoff_date: visit.reeferCutoffDate || visit.reeferCutOff || null,
+            vessel_name: visit.vesselName || null,
+            vessel_imo: visit.vesselLloydsCode || null,
+            voyage_number: visit.inboundVoyageNumber || visit.outboundVoyageNumber || null,
+            service_code: null,
+            carrier_code: visit.vesselOperator || null,
+            berth: visit.berthName || null,
+            // Use estimated over scheduled, fall back gracefully
+            eta: visit.estimatedArrivalDateTimeLocal || visit.scheduledArrivalDateTimeLocal || null,
+            ata: visit.actualArrivalDateTimeLocal || null,
+            etd: visit.estimatedDepartureDateTimeLocal || visit.scheduledDepartureDateTimeLocal || null,
+            atd: visit.actualDepartureDateTimeLocal || null,
+            begin_receive_date: visit.startReceiveDateTimeLocal || null,
+            cargo_cutoff_date: visit.cargoCutoffDateTimeLocal || null,
+            hazmat_cutoff_date: visit.hazardousCutoffDateTimeLocal || null,
+            reefer_cutoff_date: visit.reeferCutoffDateTimeLocal || null,
             data_source: "apm_terminals",
             external_id: externalId,
             raw_data: visit,
