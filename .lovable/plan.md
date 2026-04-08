@@ -1,61 +1,75 @@
 
+# Streamlined Shipment Booking & Management Experience
 
-# US Port Terminal Schedule API Integration
+## Problem
+The current system requires users to manually navigate between disconnected pages (rates, schedules, AES, documents, trucking, warehouse). Too many clicks, too much manual data entry, and no proactive intelligence.
 
-## The Reality of Terminal-Level APIs
+## Solution: Smart Step-by-Step Flow + Intelligent Workspace
 
-Unlike carrier APIs (Evergreen), US port terminals do **not** have a single unified API. Each terminal operator runs its own system. Here is what is available for your target ports:
+### Part 1: Redesigned Booking Flow (`/book`)
 
-### Available Data Sources
+**Step 1 — Route & Cargo** (existing, enhanced)
+- Origin/destination port selection with schedule availability indicator
+- Container type, commodity, weight — auto-suggests based on user's booking history
+- AI banner: "⚠️ Red Sea disruptions affecting Asia-USEC routes — expect +5 day transit"
 
-| Port Complex | Terminal Operator | API Access | How to Get It |
-|---|---|---|---|
-| **LA** | APM Terminals (Pier 400) | REST API with vessel schedule, container events, import availability | Sign up at `developer.apmterminals.com` — free tier available |
-| **Long Beach** | LBCT | APIs available for drayage/vessel data | Contact LBCT directly |
-| **Long Beach** | SSA Terminals (Pier A/C/E/J) | Web portal, no public API | Scrape or manual |
-| **NY/NJ** | APM Terminals (Port Elizabeth) | Same API store as LA | Same `developer.apmterminals.com` account |
-| **NY/NJ** | Maher Terminals | Web portal only | Scrape or manual |
-| **Houston** | Port Houston (Barbours Cut / Bayport) | Lynx API — vessel schedule, booking, container status | Request access at `porthouston.com/toolbox/container-terminals/data-integration/` |
-| **Savannah** | GPA Garden City Terminal | WebAccess portal — vessel schedule is public HTML | Scrape `gaports.com` or contact GPA for API access |
+**Step 2 — Rate & Sailing Selection** (existing, enhanced)
+- Sailing Intelligence Board with rates, transit times, availability scores
+- NEW: Inline carrier news alerts (route cancellations, surcharge changes)
+- NEW: Terminal schedule preview — shows terminal cutoff dates alongside sailing options
+- NEW: Detention risk indicator per carrier (free days, historical detention data)
 
-### Recommended Approach: Two-Layer Strategy
+**Step 3 — Logistics Setup** (NEW — replaces manual trucking/warehouse pages)
+- **Smart Trucking Suggestions**: System recommends top 2-3 trucking companies based on:
+  - Proximity to origin/destination
+  - Available rates from `trucking_quotes`
+  - Historical performance
+- **Warehouse Selection**: If cargo needs warehousing, suggest nearest facilities with availability
+- Auto-generates pickup/delivery instructions from shipment data
+- All documentation pre-filled for trucking company (cargo details, hazmat flags, special handling)
 
-**Layer 1 — APM Terminals API (immediate, covers LA + NY/NJ)**
-- Free developer account at `developer.apmterminals.com`
-- Provides: Terminal Vessel Schedule, Import Availability, Container Event History
-- Covers APM-operated terminals in LA (Pier 400) and NY/NJ (Port Elizabeth)
+**Step 4 — Compliance & Documents** (enhanced)
+- AES filing auto-populated from shipment parties, cargo, and routing data (already built)
+- Smart compliance checklist: shows exactly what's needed based on commodity + destination
+- AI assistant highlights missing items: "You need an EEI filing for this commodity to this destination"
+- Document requirements auto-seeded based on shipment type
 
-**Layer 2 — Port Houston Lynx API (apply for access)**
-- Request API credentials from Port Houston
-- Provides: vessel schedule, container tracking, booking inquiry
-- Requires approval (typically 1-2 weeks)
+**Step 5 — Review & Payment** (enhanced)
+- Complete cost breakdown: ocean freight + surcharges + trucking + warehouse + estimated detention
+- AI summary: "This shipment has a 92% on-time probability. Detention risk: Low (14 free days)"
+- Payment processing
+- Confirmation with timeline showing all key dates (cutoffs, ETD, ETA, terminal schedule)
 
-**Layer 3 — Savannah GPA (scrape or request)**
-- Public vessel schedule HTML at `gaports.com`
-- Can be scraped on a schedule using Firecrawl or a simple edge function
-- Contact GPA for formal API access
+### Part 2: Enhanced Post-Booking Workspace
 
-## What I Would Build
+**Proactive AI Intelligence Panel** (top of workspace)
+- Real-time alerts: route disruptions, price changes, detention warnings
+- Shipping line news relevant to this specific route/carrier
+- Terminal schedule updates for origin and destination ports
+- Suggested next actions: "Document cutoff in 3 days — upload Commercial Invoice"
 
-### Database (new table)
-- `terminal_schedules` — stores normalized terminal vessel call data (terminal code, vessel name/IMO, berth, ETA, ATA, ETD, ATD, begin receive date, cutoff date, carrier, service)
-- Links to existing `ports` table via UN/LOCODE
+**Smart Logistics Coordination Tab**
+- Unified view of trucking + warehouse status
+- Trucking company sees pre-filled documentation (cargo manifest, pickup instructions, hazmat info)
+- Warehouse receives expected arrival details automatically
+- Status progression visible to all parties
 
-### Edge Functions
-1. `terminal-schedule-apm` — polls APM Terminals API for LA and NY/NJ vessel schedules, normalizes into `terminal_schedules`
-2. `terminal-schedule-houston` — polls Port Houston Lynx API for Barbours Cut and Bayport schedules
-3. `terminal-schedule-scrape` — uses Firecrawl to scrape Savannah GPA vessel schedule page, parses into `terminal_schedules`
+**Enhanced Timeline**
+- Merges milestones, terminal schedules, and carrier events into one unified timeline
+- Shows port terminal operating hours and cutoff times inline
+- Detention clock starts automatically when applicable
 
-### UI
-- Add "Terminal Schedule" tab to existing Commercial Schedules page
-- Show vessel calls by terminal with berth assignments, receive windows, and cutoff dates
-- Filter by port, terminal, date range
+### Technical Implementation
 
-## Immediate Next Steps for You
+1. **Create `SmartBookingFlow` component** — new unified booking experience replacing fragmented pages
+2. **Create `LogisticsSetupStep` component** — trucking + warehouse smart selection
+3. **Create `ShipmentIntelligencePanel` component** — AI-powered alerts and suggestions for workspace
+4. **Enhance `shipment-assistant` edge function** — add context about routes, detention, terminal schedules, carrier news
+5. **Create `booking-intelligence` edge function** — AI-powered suggestions during booking (route risks, compliance requirements, logistics recommendations)
+6. **Update workspace layout** — add intelligence panel at top, unified logistics tab
 
-1. **APM Terminals**: Go to `https://developer.apmterminals.com` → Sign up → Get API key → Share the key with me
-2. **Port Houston**: Go to `https://porthouston.com/toolbox/container-terminals/data-integration/` → Request API Access → They will provide credentials
-3. **Savannah GPA**: I can start scraping the public vessel schedule immediately, or you can contact GPA for formal API access
-
-Once you have at least the APM Terminals API key, I will build the full integration pipeline.
-
+### What Won't Change
+- Database schema (no new tables needed)
+- Existing edge functions for draft creation, AES, documents
+- Core shipment lifecycle logic
+- Role-based access and routing
