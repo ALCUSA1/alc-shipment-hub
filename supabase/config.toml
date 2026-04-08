@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.terminal-schedule-query]
 verify_jwt = false
+
+[functions.assign-signup-role]
+verify_jwt = false

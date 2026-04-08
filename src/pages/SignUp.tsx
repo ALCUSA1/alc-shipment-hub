@@ -105,18 +105,15 @@ const SignUp = () => {
     }
 
     if (data.user) {
-      await supabase.from("signup_requests").insert({
-        user_id: data.user.id,
-        requested_role: selectedRole,
-        company_name: companyName || null,
-        company_type: roleOption?.companyType || null,
-      } as any);
+      await supabase.functions.invoke("assign-signup-role", {
+        body: { user_id: data.user.id, role: selectedRole },
+      });
     }
 
     setLoading(false);
     toast({
       title: "Account created",
-      description: "Please check your email to verify your account. Once verified and approved by our team, you'll be able to log in.",
+      description: "Please check your email to verify your account, then log in.",
     });
     // Preserve returnTo for login page
     const returnTo = searchParams.get("returnTo");
@@ -223,7 +220,7 @@ const SignUp = () => {
             </Button>
           </form>
           <p className="text-xs text-muted-foreground mt-4 text-center leading-relaxed">
-            Your account will be reviewed by our team before access is granted.
+            Verify your email and you're ready to go.
           </p>
           <p className="text-sm text-muted-foreground mt-3 text-center">
             Already have an account? <Link to={searchParams.get("returnTo") ? `/login?returnTo=${encodeURIComponent(searchParams.get("returnTo")!)}` : "/login"} className="text-accent font-medium hover:underline">Log in</Link>
