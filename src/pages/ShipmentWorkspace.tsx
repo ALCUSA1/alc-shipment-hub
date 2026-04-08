@@ -323,6 +323,15 @@ const ShipmentWorkspace = () => {
         {/* Price Header */}
         <PriceHeader shipment={shipment} financials={financials} />
 
+        {/* AI Intelligence Panel */}
+        <ShipmentIntelligencePanel
+          shipment={shipment}
+          documents={documents}
+          customsFilings={customsFilings}
+        />
+
+        {/* Lifecycle Timeline */}
+
         {/* Lifecycle Timeline */}
         <div className="overflow-x-auto pb-2">
           <div className="flex items-center gap-0 min-w-[800px]">
