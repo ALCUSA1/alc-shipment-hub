@@ -170,7 +170,10 @@ const QuoteApproval = () => {
               <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-green-800">Quote Approved</p>
               <p className="text-xs text-green-600 mt-1">
-                Approved on {quote.approved_at ? format(new Date(quote.approved_at), "MMM d, yyyy 'at' h:mm a") : "—"}
+                {quote.approved_at ? `Approved on ${format(new Date(quote.approved_at), "MMM d, yyyy 'at' h:mm a")}` : ""}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Your freight forwarder will now proceed with booking. You'll receive updates as the shipment progresses.
               </p>
             </div>
           )}
