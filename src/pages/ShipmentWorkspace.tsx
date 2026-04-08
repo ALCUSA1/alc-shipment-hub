@@ -16,6 +16,7 @@ import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { TruckingRateSelector } from "@/components/shipment/TruckingRateSelector";
 import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
+import { ShipmentIntelligencePanel } from "@/components/shipment/ShipmentIntelligencePanel";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
