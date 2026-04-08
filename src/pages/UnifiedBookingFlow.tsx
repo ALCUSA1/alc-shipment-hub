@@ -72,8 +72,8 @@ export interface SailingOption {
   availability?: string;
 }
 
-type FlowStep = "search" | "rates" | "details" | "cargo" | "compliance" | "documents" | "payment" | "confirmed";
-const STEPS: FlowStep[] = ["search", "rates", "details", "cargo", "compliance", "documents", "payment", "confirmed"];
+type FlowStep = "search" | "rates" | "details" | "cargo" | "logistics" | "compliance" | "documents" | "payment" | "confirmed";
+const STEPS: FlowStep[] = ["search", "rates", "details", "cargo", "logistics", "compliance", "documents", "payment", "confirmed"];
 
 /* ── Collapsible Section ── */
 function BookingSection({ title, icon: Icon, children, defaultOpen = false }: {
