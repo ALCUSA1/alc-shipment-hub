@@ -351,18 +351,11 @@ const Quotes = () => {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
-                            {/* Book & Pay Later for pending/accepted quotes */}
-                            {(q.status === "pending" || q.status === "accepted") && !isExpired && (
-                              <Button size="sm" variant="outline" onClick={() => handleBookQuote(q)}
-                                disabled={bookingId === q.id}>
-                                {bookingId === q.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ship className="h-3.5 w-3.5 mr-1" />}
-                                Book
-                              </Button>
-                            )}
-                            {q.status === "accepted" && (
+                            {/* Book Now — only for accepted quotes */}
+                            {q.status === "accepted" && !isExpired && (
                               <Button size="sm" variant="electric" onClick={() => { setConvertDialogQuote(q); setCutoffs({ cy: "", si: "", vgm: "", doc: "" }); }}>
-                                <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
-                                Convert
+                                <Ship className="h-3.5 w-3.5 mr-1" />
+                                Book Now
                               </Button>
                             )}
                             {/* Payment actions for booked quotes */}
