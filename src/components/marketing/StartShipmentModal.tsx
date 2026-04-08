@@ -56,14 +56,11 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
       return;
     }
 
-    // Create signup request for approval flow
+    // Assign role immediately
     if (data.user) {
-      await supabase.from("signup_requests").insert({
-        user_id: data.user.id,
-        requested_role: "viewer",
-        company_name: company || null,
-        company_type: "shipper",
-      } as any);
+      await supabase.functions.invoke("assign-signup-role", {
+        body: { user_id: data.user.id, role: "viewer" },
+      });
     }
 
     setLoading(false);

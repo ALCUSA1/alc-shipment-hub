@@ -70,7 +70,7 @@ import Pipeline from "./pages/Pipeline";
 import Earnings from "./pages/Earnings";
 import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
-import PendingApproval from "./pages/PendingApproval";
+// PendingApproval page kept but unlinked from routing
 import Onboarding from "./pages/Onboarding";
 import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
@@ -160,7 +160,7 @@ const App = () => (
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/quote/approve" element={<QuoteApproval />} />
-            <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
+            {/* /pending-approval removed — direct role assignment on signup */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             {/* Quick entry routes */}
