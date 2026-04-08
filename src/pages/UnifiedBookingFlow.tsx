@@ -849,7 +849,7 @@ const UnifiedBookingFlow = () => {
       </div>
 
       {/* Sticky bottom price bar for middle steps */}
-      {["details", "cargo", "compliance"].includes(step) && (
+      {["details", "cargo", "logistics", "compliance"].includes(step) && (
         <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border p-3 z-20">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="text-sm">
