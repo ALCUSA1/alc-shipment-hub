@@ -249,7 +249,7 @@ const Quotes = () => {
 
       {/* Status Filter */}
       <div className="flex items-center gap-2 mb-4">
-        {["all", "pending", "accepted", "booked", "converted", "declined", "draft"].map((s) => (
+        {["all", "pending", "accepted", "booked", "declined", "draft"].map((s) => (
           <Button
             key={s}
             variant={statusFilter === s ? "default" : "outline"}
