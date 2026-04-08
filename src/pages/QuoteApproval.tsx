@@ -62,6 +62,27 @@ const QuoteApproval = () => {
     if (err) {
       setError("Failed to update quote. Please try again.");
     } else {
+      // Notify the forwarder when customer approves
+      if (action === "accepted") {
+        try {
+          const { data: quoteData } = await supabase
+            .from("quotes")
+            .select("user_id, origin_port, destination_port")
+            .eq("id", quote.id)
+            .single();
+
+          if (quoteData?.user_id) {
+            await supabase.from("notifications").insert({
+              user_id: quoteData.user_id,
+              title: "Quote Approved by Customer",
+              message: `Your customer approved the quote for ${quoteData.origin_port || ""} → ${quoteData.destination_port || ""}. Book now to secure vessel space.`,
+              type: "quote_approved",
+            });
+          }
+        } catch {
+          // Non-critical — don't block the approval
+        }
+      }
       setQuote({ ...quote, status: action, approved_at: action === "accepted" ? new Date().toISOString() : null });
     }
     setActing(false);
@@ -149,7 +170,10 @@ const QuoteApproval = () => {
               <Check className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-green-800">Quote Approved</p>
               <p className="text-xs text-green-600 mt-1">
-                Approved on {quote.approved_at ? format(new Date(quote.approved_at), "MMM d, yyyy 'at' h:mm a") : "—"}
+                {quote.approved_at ? `Approved on ${format(new Date(quote.approved_at), "MMM d, yyyy 'at' h:mm a")}` : ""}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Your freight forwarder will now proceed with booking. You'll receive updates as the shipment progresses.
               </p>
             </div>
           )}

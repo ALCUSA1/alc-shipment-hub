@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
+import { CreditCard, Loader2, DollarSign, Plus, Copy, ExternalLink, Check, Ship } from "lucide-react";
 import { QuoteShareActions } from "@/components/quotes/QuoteShareActions";
 import { BackButton } from "@/components/shared/BackButton";
 import { Badge } from "@/components/ui/badge";
@@ -92,95 +92,7 @@ const Quotes = () => {
     return quotes.filter((q) => q.status === statusFilter);
   }, [quotes, statusFilter]);
 
-  const [bookingId, setBookingId] = useState<string | null>(null);
-
-  const handleBookQuote = async (quote: QuoteRow) => {
-    if (!user) return;
-    setBookingId(quote.id);
-
-    try {
-      // 1. Create shipment
-      const { data: shipment, error: shipErr } = await supabase
-        .from("shipments")
-        .insert({
-          user_id: user.id,
-          shipment_ref: "PENDING",
-          shipment_type: "export",
-          origin_port: quote.origin_port,
-          destination_port: quote.destination_port,
-          company_id: quote.company_id,
-          converted_from_quote_id: quote.id,
-          status: "booked",
-        })
-        .select("id")
-        .single();
-
-      if (shipErr) throw shipErr;
-
-      // 2. Update quote
-      await supabase.from("quotes").update({
-        status: "booked",
-        shipment_id: shipment.id,
-        payment_status: "unpaid",
-      } as any).eq("id", quote.id);
-
-      // 3. Container
-      if (quote.container_type) {
-        await supabase.from("containers").insert({
-          shipment_id: shipment.id,
-          container_type: quote.container_type,
-          quantity: 1,
-        });
-      }
-
-      // 4. Financials
-      if (quote.customer_price) {
-        await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          description: `Freight revenue — ${quote.carrier}`,
-          entry_type: "revenue",
-          category: "freight",
-          amount: quote.customer_price,
-          vendor: quote.customer_name || null,
-        });
-      }
-      if (quote.carrier_cost) {
-        await supabase.from("shipment_financials").insert({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          description: `Carrier cost — ${quote.carrier}`,
-          entry_type: "cost",
-          category: "freight",
-          amount: quote.carrier_cost,
-          vendor: quote.carrier || null,
-        });
-      }
-
-      // 5. Document checklist
-      const requiredDocs = [
-        "bill_of_lading", "commercial_invoice", "packing_list",
-        "shipper_letter_of_instruction", "dock_receipt",
-        "certificate_of_origin", "insurance_certificate", "aes_filing",
-      ];
-      await supabase.from("documents").insert(
-        requiredDocs.map((docType) => ({
-          shipment_id: shipment.id,
-          user_id: user.id,
-          doc_type: docType,
-          status: "pending",
-        }))
-      );
-
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      toast({ title: "Booking Created", description: "Shipment booked. Payment pending — documents release upon payment." });
-      navigate(`/dashboard/shipments/${shipment.id}`);
-    } catch (err: any) {
-      toast({ title: "Booking failed", description: err.message, variant: "destructive" });
-    } finally {
-      setBookingId(null);
-    }
-  };
+  // Removed: handleBookQuote is now merged into handleConvert
 
   const handleMarkPaid = async (quoteId: string) => {
     try {
@@ -226,7 +138,7 @@ const Quotes = () => {
     setConvertingId(quote.id);
 
     try {
-      // 1. Create shipment from quote data
+      // 1. Create shipment with booked status and lifecycle
       const { data: shipment, error: shipErr } = await supabase
         .from("shipments")
         .insert({
@@ -237,6 +149,10 @@ const Quotes = () => {
           destination_port: quote.destination_port,
           company_id: quote.company_id,
           converted_from_quote_id: quote.id,
+          carrier: quote.carrier,
+          container_type: quote.container_type,
+          status: "booked",
+          lifecycle_stage: "booked",
           cy_cutoff: cutoffs.cy || null,
           si_cutoff: cutoffs.si || null,
           vgm_cutoff: cutoffs.vgm || null,
@@ -247,7 +163,7 @@ const Quotes = () => {
 
       if (shipErr) throw shipErr;
 
-      // 2. Create container from quote data
+      // 2. Create container
       if (quote.container_type) {
         await supabase.from("containers").insert({
           shipment_id: shipment.id,
@@ -256,7 +172,7 @@ const Quotes = () => {
         });
       }
 
-      // 3. Create initial financial entry (revenue from customer price)
+      // 3. Financial entries
       if (quote.customer_price) {
         await supabase.from("shipment_financials").insert({
           shipment_id: shipment.id,
@@ -268,8 +184,6 @@ const Quotes = () => {
           vendor: quote.customer_name || null,
         });
       }
-
-      // 4. Create cost entry (carrier cost)
       if (quote.carrier_cost) {
         await supabase.from("shipment_financials").insert({
           shipment_id: shipment.id,
@@ -282,16 +196,11 @@ const Quotes = () => {
         });
       }
 
-      // 5. Auto-generate document checklist based on shipment type
+      // 4. Document checklist
       const requiredDocs = [
-        "bill_of_lading",
-        "commercial_invoice",
-        "packing_list",
-        "shipper_letter_of_instruction",
-        "dock_receipt",
-        "certificate_of_origin",
-        "insurance_certificate",
-        "aes_filing",
+        "bill_of_lading", "commercial_invoice", "packing_list",
+        "shipper_letter_of_instruction", "dock_receipt",
+        "certificate_of_origin", "insurance_certificate", "aes_filing",
       ];
       await supabase.from("documents").insert(
         requiredDocs.map((docType) => ({
@@ -302,18 +211,19 @@ const Quotes = () => {
         }))
       );
 
-      // 6. Update quote status to converted and link shipment
+      // 5. Update quote status to booked
       await supabase.from("quotes").update({
-        status: "converted",
+        status: "booked",
         shipment_id: shipment.id,
-      }).eq("id", quote.id);
+        payment_status: "unpaid",
+      } as any).eq("id", quote.id);
 
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      toast({ title: "Shipment Created", description: "Quote has been converted to a shipment with pre-filled details." });
+      toast({ title: "Booking Created", description: "Shipment booked from approved quote. You can now manage it in the workspace." });
       setConvertDialogQuote(null);
       navigate(`/dashboard/shipments/${shipment.id}`);
     } catch (err: any) {
-      toast({ title: "Conversion failed", description: err.message, variant: "destructive" });
+      toast({ title: "Booking failed", description: err.message, variant: "destructive" });
     } finally {
       setConvertingId(null);
     }
@@ -339,7 +249,7 @@ const Quotes = () => {
 
       {/* Status Filter */}
       <div className="flex items-center gap-2 mb-4">
-        {["all", "pending", "accepted", "booked", "converted", "declined", "draft"].map((s) => (
+        {["all", "pending", "accepted", "booked", "declined", "draft"].map((s) => (
           <Button
             key={s}
             variant={statusFilter === s ? "default" : "outline"}
@@ -441,18 +351,11 @@ const Quotes = () => {
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
-                            {/* Book & Pay Later for pending/accepted quotes */}
-                            {(q.status === "pending" || q.status === "accepted") && !isExpired && (
-                              <Button size="sm" variant="outline" onClick={() => handleBookQuote(q)}
-                                disabled={bookingId === q.id}>
-                                {bookingId === q.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Ship className="h-3.5 w-3.5 mr-1" />}
-                                Book
-                              </Button>
-                            )}
-                            {q.status === "accepted" && (
+                            {/* Book Now — only for accepted quotes */}
+                            {q.status === "accepted" && !isExpired && (
                               <Button size="sm" variant="electric" onClick={() => { setConvertDialogQuote(q); setCutoffs({ cy: "", si: "", vgm: "", doc: "" }); }}>
-                                <ArrowRightLeft className="h-3.5 w-3.5 mr-1" />
-                                Convert
+                                <Ship className="h-3.5 w-3.5 mr-1" />
+                                Book Now
                               </Button>
                             )}
                             {/* Payment actions for booked quotes */}
@@ -503,12 +406,12 @@ const Quotes = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ArrowRightLeft className="h-4 w-4 text-accent" />
-              Convert Quote to Shipment
+              <Ship className="h-4 w-4 text-accent" />
+              Confirm Booking
             </DialogTitle>
             <DialogDescription>
-              This will create a new shipment with route, container, and financial data pre-filled from the approved quote.
-              Set carrier cutoff dates to enable deadline tracking.
+              Create a shipment from this approved quote. Route, carrier, pricing, and container details will be pre-filled.
+              Optionally set carrier cutoff dates for deadline tracking.
             </DialogDescription>
           </DialogHeader>
           {convertDialogQuote && (
@@ -558,7 +461,8 @@ const Quotes = () => {
             <Button variant="outline" onClick={() => setConvertDialogQuote(null)}>Cancel</Button>
             <Button variant="electric" onClick={handleConvert} disabled={!!convertingId}>
               {convertingId && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              Create Shipment
+              <Ship className="h-4 w-4 mr-1" />
+              Book Now
             </Button>
           </DialogFooter>
         </DialogContent>
