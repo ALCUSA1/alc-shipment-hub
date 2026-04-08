@@ -665,6 +665,27 @@ const UnifiedBookingFlow = () => {
           </div>
         );
 
+      case "logistics":
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+            <LogisticsSetupStep
+              shipmentId={shipmentId!}
+              originPort={shipment?.origin_port || ""}
+              destinationPort={shipment?.destination_port || ""}
+              shipment={shipment}
+              needsTrucking={needsTrucking}
+              setNeedsTrucking={setNeedsTrucking}
+              needsWarehouse={needsWarehouse}
+              setNeedsWarehouse={setNeedsWarehouse}
+              onBack={() => setStep("cargo")}
+              onContinue={() => handleSaveAndContinue("compliance")}
+              onSaveDraft={handleSaveDraft}
+              saving={saving}
+            />
+            <BookingSummaryPanel shipment={shipment} financials={financials} cargo={cargo} parties={parties} documents={documents} services={shipmentServices} />
+          </div>
+        );
+
       case "compliance":
         return (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
