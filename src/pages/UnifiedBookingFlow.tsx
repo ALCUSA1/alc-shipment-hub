@@ -549,12 +549,24 @@ const UnifiedBookingFlow = () => {
 
       case "rates":
         return (
-          <SailingBoardStep
-            options={sailingOptions}
-            searchParams={searchParams!}
-            onSelect={handleSelectSailing}
-            onBack={() => setStep("search")}
-          />
+          <div className="space-y-4">
+            {/* AI Intelligence Banner for this route */}
+            {searchParams && (
+              <BookingIntelligenceBanner
+                origin={searchParams.origin}
+                destination={searchParams.destination}
+                mode={searchParams.mode}
+                commodity={searchParams.commodity}
+                containerType={searchParams.containerSize}
+              />
+            )}
+            <SailingBoardStep
+              options={sailingOptions}
+              searchParams={searchParams!}
+              onSelect={handleSelectSailing}
+              onBack={() => setStep("search")}
+            />
+          </div>
         );
 
       case "details":
