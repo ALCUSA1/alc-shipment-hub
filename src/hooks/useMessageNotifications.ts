@@ -20,8 +20,15 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
   useEffect(() => {
     if (!userId) return;
 
+    const channelName = `global-new-messages-${userId}`;
+    // Remove any existing channel with this name to prevent duplicate subscription errors
+    const existing = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
+    if (existing) {
+      supabase.removeChannel(existing);
+    }
+
     const channel = supabase
-      .channel("global-new-messages")
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
