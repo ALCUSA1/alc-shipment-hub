@@ -302,6 +302,7 @@ const UnifiedBookingFlow = () => {
   /* ── Search handler ── */
   const handleSearch = useCallback(async (params: SearchParams) => {
     setIsLoading(true);
+    setSearchParams(params);
     try {
 
       const today = new Date().toISOString().split("T")[0];
