@@ -38,10 +38,16 @@ const CustomerPortal = () => {
   const { data: shipments = [], isLoading: loadingShipments } = useQuery({
     queryKey: ["portal-shipments", user?.id],
     queryFn: async () => {
+      // Get all shipment IDs visible to this user (own + forwarder-created via customer links)
+      const { data: visibleIds, error: idsError } = await supabase
+        .rpc("get_customer_visible_shipment_ids");
+      if (idsError) throw idsError;
+      if (!visibleIds || visibleIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from("shipments")
         .select("id, shipment_ref, status, mode, origin_port, destination_port, etd, eta, created_at, vessel, airline")
-        .eq("user_id", user!.id)
+        .in("id", visibleIds)
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
