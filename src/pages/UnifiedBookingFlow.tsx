@@ -657,7 +657,7 @@ const UnifiedBookingFlow = () => {
                 <Button variant="outline" onClick={() => setStep("details")}><ArrowLeft className="h-4 w-4 mr-1.5" /> Back</Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleSaveDraft} disabled={saving}><Save className="h-4 w-4 mr-1.5" />{saving ? "Saving..." : "Save Draft"}</Button>
-                  <Button variant="electric" onClick={() => handleSaveAndContinue("compliance")}><Send className="h-4 w-4 mr-1.5" />Save & Continue</Button>
+                  <Button variant="electric" onClick={() => handleSaveAndContinue("logistics")}><Send className="h-4 w-4 mr-1.5" />Save & Continue</Button>
                 </div>
               </div>
             </div>
