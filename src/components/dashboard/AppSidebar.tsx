@@ -30,7 +30,7 @@ import { Separator } from "@/components/ui/separator";
 const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, navKey: "dashboard" },
   { title: "Shipments", url: "/dashboard/shipments", icon: Package, navKey: "shipments" },
-  { title: "Requests", url: "/dashboard/quotes", icon: Inbox, navKey: "quotes" },
+  { title: "Quotes", url: "/dashboard/quotes", icon: Inbox, navKey: "quotes" },
   { title: "Customers", url: "/dashboard/crm", icon: ContactRound, navKey: "crm" },
   { title: "Partners", url: "/dashboard/partners", icon: Users, navKey: "partners" },
   { title: "Financials", url: "/dashboard/accounting", icon: DollarSign, navKey: "accounting" },
