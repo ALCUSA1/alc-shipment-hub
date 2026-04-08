@@ -16,6 +16,7 @@ import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
 import { TruckingRateSelector } from "@/components/shipment/TruckingRateSelector";
 import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
+import { ShipmentIntelligencePanel } from "@/components/shipment/ShipmentIntelligencePanel";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -321,6 +322,15 @@ const ShipmentWorkspace = () => {
 
         {/* Price Header */}
         <PriceHeader shipment={shipment} financials={financials} />
+
+        {/* AI Intelligence Panel */}
+        <ShipmentIntelligencePanel
+          shipment={shipment}
+          documents={documents}
+          customsFilings={customsFilings}
+        />
+
+        {/* Lifecycle Timeline */}
 
         {/* Lifecycle Timeline */}
         <div className="overflow-x-auto pb-2">

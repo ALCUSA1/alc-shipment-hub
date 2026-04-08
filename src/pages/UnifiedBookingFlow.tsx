@@ -16,6 +16,8 @@ import { BookingPaymentStep } from "@/components/booking/BookingPaymentStep";
 import { BookingConfirmationStep } from "@/components/booking/BookingConfirmationStep";
 
 import { BookingSearchStep } from "@/components/booking-flow/BookingSearchStep";
+import { BookingIntelligenceBanner } from "@/components/booking-flow/BookingIntelligenceBanner";
+import { LogisticsSetupStep } from "@/components/booking-flow/LogisticsSetupStep";
 import { SailingBoardStep } from "@/components/booking-flow/SailingBoardStep";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,8 +72,8 @@ export interface SailingOption {
   availability?: string;
 }
 
-type FlowStep = "search" | "rates" | "details" | "cargo" | "compliance" | "documents" | "payment" | "confirmed";
-const STEPS: FlowStep[] = ["search", "rates", "details", "cargo", "compliance", "documents", "payment", "confirmed"];
+type FlowStep = "search" | "rates" | "details" | "cargo" | "logistics" | "compliance" | "documents" | "payment" | "confirmed";
+const STEPS: FlowStep[] = ["search", "rates", "details", "cargo", "logistics", "compliance", "documents", "payment", "confirmed"];
 
 /* ── Collapsible Section ── */
 function BookingSection({ title, icon: Icon, children, defaultOpen = false }: {
@@ -547,12 +549,24 @@ const UnifiedBookingFlow = () => {
 
       case "rates":
         return (
-          <SailingBoardStep
-            options={sailingOptions}
-            searchParams={searchParams!}
-            onSelect={handleSelectSailing}
-            onBack={() => setStep("search")}
-          />
+          <div className="space-y-4">
+            {/* AI Intelligence Banner for this route */}
+            {searchParams && (
+              <BookingIntelligenceBanner
+                origin={searchParams.origin}
+                destination={searchParams.destination}
+                mode={searchParams.mode}
+                commodity={searchParams.commodity}
+                containerType={searchParams.containerSize}
+              />
+            )}
+            <SailingBoardStep
+              options={sailingOptions}
+              searchParams={searchParams!}
+              onSelect={handleSelectSailing}
+              onBack={() => setStep("search")}
+            />
+          </div>
         );
 
       case "details":
@@ -643,10 +657,31 @@ const UnifiedBookingFlow = () => {
                 <Button variant="outline" onClick={() => setStep("details")}><ArrowLeft className="h-4 w-4 mr-1.5" /> Back</Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleSaveDraft} disabled={saving}><Save className="h-4 w-4 mr-1.5" />{saving ? "Saving..." : "Save Draft"}</Button>
-                  <Button variant="electric" onClick={() => handleSaveAndContinue("compliance")}><Send className="h-4 w-4 mr-1.5" />Save & Continue</Button>
+                  <Button variant="electric" onClick={() => handleSaveAndContinue("logistics")}><Send className="h-4 w-4 mr-1.5" />Save & Continue</Button>
                 </div>
               </div>
             </div>
+            <BookingSummaryPanel shipment={shipment} financials={financials} cargo={cargo} parties={parties} documents={documents} services={shipmentServices} />
+          </div>
+        );
+
+      case "logistics":
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+            <LogisticsSetupStep
+              shipmentId={shipmentId!}
+              originPort={shipment?.origin_port || ""}
+              destinationPort={shipment?.destination_port || ""}
+              shipment={shipment}
+              needsTrucking={needsTrucking}
+              setNeedsTrucking={setNeedsTrucking}
+              needsWarehouse={needsWarehouse}
+              setNeedsWarehouse={setNeedsWarehouse}
+              onBack={() => setStep("cargo")}
+              onContinue={() => handleSaveAndContinue("compliance")}
+              onSaveDraft={handleSaveDraft}
+              saving={saving}
+            />
             <BookingSummaryPanel shipment={shipment} financials={financials} cargo={cargo} parties={parties} documents={documents} services={shipmentServices} />
           </div>
         );
@@ -746,7 +781,7 @@ const UnifiedBookingFlow = () => {
               </BookingSection>
 
               <div className="flex items-center justify-between pt-2">
-                <Button variant="outline" onClick={() => setStep("cargo")}><ArrowLeft className="h-4 w-4 mr-1.5" /> Back</Button>
+                <Button variant="outline" onClick={() => setStep("logistics")}><ArrowLeft className="h-4 w-4 mr-1.5" /> Back</Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleSaveDraft} disabled={saving}><Save className="h-4 w-4 mr-1.5" />{saving ? "Saving..." : "Save Draft"}</Button>
                   <Button variant="electric" onClick={() => handleSaveAndContinue("documents")}><Send className="h-4 w-4 mr-1.5" />Save & Continue</Button>
@@ -814,7 +849,7 @@ const UnifiedBookingFlow = () => {
       </div>
 
       {/* Sticky bottom price bar for middle steps */}
-      {["details", "cargo", "compliance"].includes(step) && (
+      {["details", "cargo", "logistics", "compliance"].includes(step) && (
         <div className="sticky bottom-0 bg-background/95 backdrop-blur border-t border-border p-3 z-20">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="text-sm">
