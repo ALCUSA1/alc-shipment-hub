@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { CreditCard, Loader2, DollarSign, Plus, ArrowRightLeft, Copy, ExternalLink, Check, Ship } from "lucide-react";
+import { CreditCard, Loader2, DollarSign, Plus, Copy, ExternalLink, Check, Ship } from "lucide-react";
 import { QuoteShareActions } from "@/components/quotes/QuoteShareActions";
 import { BackButton } from "@/components/shared/BackButton";
 import { Badge } from "@/components/ui/badge";
