@@ -62,6 +62,27 @@ const QuoteApproval = () => {
     if (err) {
       setError("Failed to update quote. Please try again.");
     } else {
+      // Notify the forwarder when customer approves
+      if (action === "accepted") {
+        try {
+          const { data: quoteData } = await supabase
+            .from("quotes")
+            .select("user_id, origin_port, destination_port")
+            .eq("id", quote.id)
+            .single();
+
+          if (quoteData?.user_id) {
+            await supabase.from("notifications").insert({
+              user_id: quoteData.user_id,
+              title: "Quote Approved by Customer",
+              message: `Your customer approved the quote for ${quoteData.origin_port || ""} → ${quoteData.destination_port || ""}. Book now to secure vessel space.`,
+              type: "quote_approved",
+            });
+          }
+        } catch {
+          // Non-critical — don't block the approval
+        }
+      }
       setQuote({ ...quote, status: action, approved_at: action === "accepted" ? new Date().toISOString() : null });
     }
     setActing(false);

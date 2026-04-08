@@ -406,12 +406,12 @@ const Quotes = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ArrowRightLeft className="h-4 w-4 text-accent" />
-              Convert Quote to Shipment
+              <Ship className="h-4 w-4 text-accent" />
+              Confirm Booking
             </DialogTitle>
             <DialogDescription>
-              This will create a new shipment with route, container, and financial data pre-filled from the approved quote.
-              Set carrier cutoff dates to enable deadline tracking.
+              Create a shipment from this approved quote. Route, carrier, pricing, and container details will be pre-filled.
+              Optionally set carrier cutoff dates for deadline tracking.
             </DialogDescription>
           </DialogHeader>
           {convertDialogQuote && (
@@ -461,7 +461,8 @@ const Quotes = () => {
             <Button variant="outline" onClick={() => setConvertDialogQuote(null)}>Cancel</Button>
             <Button variant="electric" onClick={handleConvert} disabled={!!convertingId}>
               {convertingId && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              Create Shipment
+              <Ship className="h-4 w-4 mr-1" />
+              Book Now
             </Button>
           </DialogFooter>
         </DialogContent>
