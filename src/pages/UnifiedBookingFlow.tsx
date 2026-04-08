@@ -16,6 +16,8 @@ import { BookingPaymentStep } from "@/components/booking/BookingPaymentStep";
 import { BookingConfirmationStep } from "@/components/booking/BookingConfirmationStep";
 
 import { BookingSearchStep } from "@/components/booking-flow/BookingSearchStep";
+import { BookingIntelligenceBanner } from "@/components/booking-flow/BookingIntelligenceBanner";
+import { LogisticsSetupStep } from "@/components/booking-flow/LogisticsSetupStep";
 import { SailingBoardStep } from "@/components/booking-flow/SailingBoardStep";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
