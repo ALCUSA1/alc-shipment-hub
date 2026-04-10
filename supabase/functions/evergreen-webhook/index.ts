@@ -8,13 +8,30 @@ const supabase = createClient(
 
 const EVERGREEN_CARRIER_CODE = "EGLV";
 
+// ─── Bearer token validation ───
+function validateBearerToken(req: Request): boolean {
+  const secret = Deno.env.get("EVERGREEN_WEBHOOK_SECRET");
+  if (!secret) {
+    console.error("[evergreen-webhook] EVERGREEN_WEBHOOK_SECRET not configured");
+    return false;
+  }
+  const authHeader = req.headers.get("Authorization") || "";
+  if (!authHeader.startsWith("Bearer ")) return false;
+  const token = authHeader.slice(7);
+  // Constant-time comparison
+  if (token.length !== secret.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < token.length; i++) {
+    mismatch |= token.charCodeAt(i) ^ secret.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
 // ─── Idempotency: generate stable key from payload ───
 function deriveIdempotencyKey(payload: any): string | null {
-  // Use explicit idempotency fields if present
   const explicit = payload.idempotency_key || payload.idempotencyKey || payload.messageId || payload.message_id;
   if (explicit) return String(explicit);
 
-  // Derive from booking + event combo
   const ref = payload.bookingReference || payload.booking_number
     || payload.transportDocumentReference || payload.bill_of_lading
     || payload.equipmentReference || payload.container_number;
@@ -26,7 +43,6 @@ function deriveIdempotencyKey(payload: any): string | null {
 
 // ─── Detect message family from payload ───
 function detectMessageFamily(payload: any): { family: string; type: string } {
-  // Explicit hints
   if (payload.messageType || payload.message_type) {
     const mt = (payload.messageType || payload.message_type).toLowerCase();
     if (mt.includes("track") || mt.includes("event")) return { family: "tracking", type: "event" };
@@ -37,7 +53,6 @@ function detectMessageFamily(payload: any): { family: string; type: string } {
     return { family: mt, type: "webhook" };
   }
 
-  // Heuristic detection
   if (payload.events || payload.eventType || payload.eventClassifierCode) return { family: "tracking", type: "event" };
   if (payload.bookingStatus || payload.carrierBookingReference) return { family: "booking", type: "confirmation" };
   if (payload.issuanceResponseCode) return { family: "issuance", type: "response" };
@@ -59,13 +74,21 @@ Deno.serve(async (req) => {
     );
   }
 
+  // ── Validate Bearer token ──
+  if (!validateBearerToken(req)) {
+    console.warn("[evergreen-webhook] Unauthorized request rejected");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const rawBody = await req.text();
     let payload: any;
     try {
       payload = JSON.parse(rawBody);
     } catch {
-      // Possibly EDI — store as-is
       payload = { raw_edi: rawBody };
     }
 
