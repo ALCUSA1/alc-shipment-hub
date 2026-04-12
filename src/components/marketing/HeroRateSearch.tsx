@@ -16,9 +16,10 @@ export function HeroRateSearch() {
   const [searchDone, setSearchDone] = useState(false);
 
   const { data: ports = [] } = useQuery({
-    queryKey: ["ports-hero"],
+    queryKey: ["ports-hero", mode],
     queryFn: async () => {
-      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      const portType = mode === "air" ? "air" : "sea";
+      const { data } = await supabase.from("ports").select("code, name, country").eq("type", portType).order("name");
       return data || [];
     },
   });
