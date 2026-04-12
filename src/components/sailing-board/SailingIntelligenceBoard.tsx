@@ -90,6 +90,9 @@ export function SailingIntelligenceBoard({ options, searchParams, onSelect, onBa
 
       {/* Cards */}
       <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">Select a sailing to continue booking</h3>
+        </div>
         {sorted.map((sailing, idx) => (
           <motion.div
             key={sailing.id}
