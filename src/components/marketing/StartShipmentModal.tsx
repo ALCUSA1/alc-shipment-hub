@@ -46,7 +46,7 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
       password,
       options: {
         data: { full_name: name, company_name: company },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: "https://www.alllogisticscargo.com",
       },
     });
 
