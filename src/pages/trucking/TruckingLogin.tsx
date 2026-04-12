@@ -103,7 +103,7 @@ const TruckingLogin = () => {
                     }
                     setError("");
                     const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: "https://www.alllogisticscargo.com/reset-password",
+                      redirectTo: "https://red-chough-476001.hostingersite.com/reset-password",
                     });
                     if (resetErr) {
                       setError(resetErr.message);

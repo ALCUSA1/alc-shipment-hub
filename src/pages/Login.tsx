@@ -57,7 +57,7 @@ const Login = () => {
     }
     setResetLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://www.alllogisticscargo.com/reset-password",
+      redirectTo: "https://red-chough-476001.hostingersite.com/reset-password",
     });
     setResetLoading(false);
     if (error) {

@@ -46,7 +46,7 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
       password,
       options: {
         data: { full_name: name, company_name: company },
-        emailRedirectTo: "https://www.alllogisticscargo.com",
+        emailRedirectTo: "https://red-chough-476001.hostingersite.com",
       },
     });
 
