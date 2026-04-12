@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function HeroRateSearch() {
   const [mode, setMode] = useState<"ocean" | "air">("ocean");
+  const handleModeChange = (newMode: "ocean" | "air") => {
+    setMode(newMode);
+    setOrigin("");
+    setDestination("");
+    setResults(null);
+    setSearchDone(false);
+  };
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [results, setResults] = useState<any[] | null>(null);
