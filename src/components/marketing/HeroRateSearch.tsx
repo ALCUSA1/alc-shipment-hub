@@ -67,11 +67,11 @@ export function HeroRateSearch() {
         className="bg-background rounded-2xl border shadow-lg p-5 md:p-6 max-w-4xl mx-auto"
       >
         <div className="flex gap-1 mb-5 p-1 bg-secondary rounded-lg w-fit mx-auto">
-          <button type="button" onClick={() => setMode("ocean")}
+          <button type="button" onClick={() => handleModeChange("ocean")}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition-all ${mode === "ocean" ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             <Ship className="h-4 w-4" /> FCL Ocean
           </button>
-          <button type="button" onClick={() => setMode("air")}
+          <button type="button" onClick={() => handleModeChange("air")}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition-all ${mode === "air" ? "bg-accent text-accent-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             <Plane className="h-4 w-4" /> Air Freight
           </button>
