@@ -29,12 +29,38 @@ export function SailingIntelligenceBoard({ options, searchParams, onSelect, onBa
         <Button variant="ghost" onClick={onBack} className="gap-1">
           <ArrowLeft className="h-4 w-4" /> Modify Search
         </Button>
-        <div className="text-center py-20">
+        <div className="text-center py-16">
           <Ship className="h-14 w-14 text-muted-foreground/20 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">No sailings found</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            No carrier options available for {portName(searchParams.origin)} → {portName(searchParams.destination)}. Try adjusting your search.
+          <h2 className="text-xl font-semibold text-foreground mb-2">No instant rates available</h2>
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
+            No pre-loaded carrier rates for {portName(searchParams.origin)} → {portName(searchParams.destination)} at this time. You can request a custom quote or try a different route.
           </p>
+          <div className="flex items-center justify-center gap-3">
+            <Button variant="outline" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" /> Try Different Route
+            </Button>
+            <Button variant="electric" onClick={() => {
+              onSelect({
+                id: "custom-quote",
+                carrier: "TBD",
+                origin_port: searchParams.origin,
+                destination_port: searchParams.destination,
+                container_type: "40hc",
+                base_rate: 0,
+                currency: "USD",
+                transit_days: null,
+                valid_from: new Date().toISOString().split("T")[0],
+                valid_until: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+                surcharges: [],
+                notes: "Custom quote request",
+                service_level: null,
+                free_time_days: null,
+                total_rate: 0,
+              });
+            }}>
+              Request Custom Quote
+            </Button>
+          </div>
         </div>
       </div>
     );
