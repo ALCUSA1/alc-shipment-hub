@@ -94,7 +94,7 @@ const SignUp = () => {
       password,
       options: {
         data: { full_name: name, requested_role: selectedRole },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: "https://www.alllogisticscargo.com",
       },
     });
 
