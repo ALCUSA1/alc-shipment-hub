@@ -94,7 +94,7 @@ const SignUp = () => {
       password,
       options: {
         data: { full_name: name, requested_role: selectedRole },
-        emailRedirectTo: "https://www.alllogisticscargo.com",
+        emailRedirectTo: "https://red-chough-476001.hostingersite.com",
       },
     });
 
