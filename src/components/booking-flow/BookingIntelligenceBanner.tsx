@@ -142,6 +142,12 @@ export function BookingIntelligenceBanner({ origin, destination, mode, carrier, 
         {/* Route insight - always visible */}
         <p className="text-xs text-muted-foreground leading-relaxed">{intelligence.routeInsight}</p>
 
+        {/* Scroll prompt */}
+        <p className="text-xs font-medium text-accent flex items-center gap-1">
+          <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
+          Scroll down to view and select from available sailing options
+        </p>
+
         {/* Critical alerts - always visible */}
         {criticalAlerts.map((alert, i) => {
           const Icon = alertIcon[alert.category] || AlertTriangle;
