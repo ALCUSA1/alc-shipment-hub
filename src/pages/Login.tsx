@@ -24,26 +24,35 @@ const Login = () => {
     try {
       const raw = sessionStorage.getItem("pendingBooking");
       return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }, []);
+
+  const getResetRedirectUrl = () => `${window.location.origin}/reset-password`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
     if (error) {
       setLoading(false);
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      const description = error.message === "Invalid login credentials"
+        ? "Your email or password is incorrect, or your email address has not been verified yet."
+        : error.message;
+      toast({ title: "Login failed", description, variant: "destructive" });
       return;
     }
-    // Check for returnTo param (e.g. from Book Now redirect)
+
     const returnTo = searchParams.get("returnTo");
     if (returnTo) {
       setLoading(false);
       navigate(returnTo);
       return;
     }
-    // Role-based routing
+
     const route = await getPostLoginRoute(data.user.id);
     setLoading(false);
     navigate(route);
@@ -55,13 +64,15 @@ const Login = () => {
       toast({ title: "Enter your email", description: "Please enter your email address first.", variant: "destructive" });
       return;
     }
+
     setResetLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "https://red-chough-476001.hostingersite.com/reset-password",
+      redirectTo: getResetRedirectUrl(),
     });
     setResetLoading(false);
+
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Reset failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Email sent", description: "Check your inbox for the password reset link." });
       setResetMode(false);

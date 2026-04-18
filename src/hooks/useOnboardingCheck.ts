@@ -7,14 +7,13 @@ import { useAuth } from "@/contexts/AuthContext";
  * Also checks localStorage flags for skip/complete.
  */
 export function useOnboardingCheck() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const { data: needsOnboarding, isLoading } = useQuery({
     queryKey: ["onboarding-check", user?.id],
     queryFn: async () => {
       if (!user) return false;
 
-      // If user already completed or skipped, don't redirect
       if (
         localStorage.getItem(`onboarding_complete_${user.id}`) === "true" ||
         localStorage.getItem(`onboarding_skipped_${user.id}`) === "true"
@@ -22,19 +21,23 @@ export function useOnboardingCheck() {
         return false;
       }
 
-      // Check if user has a company
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("companies")
         .select("id")
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle();
 
-      return !data; // needs onboarding if no company
+      if (error) {
+        return false;
+      }
+
+      return !data;
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
     staleTime: 60_000,
+    retry: false,
   });
 
-  return { needsOnboarding: needsOnboarding ?? false, isLoading };
+  return { needsOnboarding: needsOnboarding ?? false, isLoading: !!user && !authLoading ? isLoading : false };
 }

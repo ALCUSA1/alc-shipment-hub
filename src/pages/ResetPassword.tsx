@@ -17,18 +17,29 @@ const ResetPassword = () => {
   const [isInvite, setIsInvite] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery") || hash.includes("type=invite")) {
-      setReady(true);
-      if (hash.includes("type=invite")) setIsInvite(true);
-    } else {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === "PASSWORD_RECOVERY") {
-          setReady(true);
-        }
-      });
-      return () => subscription.unsubscribe();
-    }
+    const initializeRecovery = async () => {
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery") || hash.includes("type=invite")) {
+        setReady(true);
+        if (hash.includes("type=invite")) setIsInvite(true);
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setReady(true);
+      }
+    };
+
+    initializeRecovery();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        setReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,8 +50,8 @@ const ResetPassword = () => {
       setError("Passwords don't match");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -53,7 +64,6 @@ const ResetPassword = () => {
       return;
     }
 
-    // Role-based redirect after password set
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { getPostLoginRoute } = await import("@/lib/role-routing");
@@ -61,6 +71,7 @@ const ResetPassword = () => {
       navigate(route);
       return;
     }
+
     navigate("/login");
   };
 
