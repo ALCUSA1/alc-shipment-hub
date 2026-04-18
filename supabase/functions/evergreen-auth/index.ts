@@ -166,6 +166,7 @@ Deno.serve(async (req) => {
       );
     }
 
+
     // Status check
     const tokenValid = conn.access_token_encrypted && conn.token_expires_at
       ? new Date(conn.token_expires_at).getTime() > Date.now()
