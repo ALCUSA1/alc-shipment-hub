@@ -151,8 +151,10 @@ const Shipments = () => {
         const q = search.toLowerCase();
         const companyName = ((s.companies as any)?.company_name || "").toLowerCase();
         const ref = (s.shipment_ref || "").toLowerCase();
+        const bookingRef = (s.booking_ref || "").toLowerCase();
+        const customerRef = (s.customer_reference || "").toLowerCase();
         const route = `${s.origin_port || ""} ${s.destination_port || ""}`.toLowerCase();
-        if (!ref.includes(q) && !companyName.includes(q) && !route.includes(q)) return false;
+        if (!ref.includes(q) && !companyName.includes(q) && !route.includes(q) && !bookingRef.includes(q) && !customerRef.includes(q)) return false;
       }
       return true;
     });
@@ -341,7 +343,14 @@ const Shipments = () => {
                             }}
                           />
                         </td>
-                        <td className="p-4 font-mono font-medium text-accent">{s.shipment_ref}</td>
+                        <td className="p-4">
+                          <div className="font-mono font-medium text-accent">{s.shipment_ref}</div>
+                          {s.booking_ref && (
+                            <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                              Booking: {s.booking_ref}
+                            </div>
+                          )}
+                        </td>
                         <td className="p-4 text-foreground">{companyName || <span className="text-muted-foreground">—</span>}</td>
                         <td className="p-4 text-muted-foreground">{s.origin_port || "—"} → {s.destination_port || "—"}</td>
                         <td className="p-4 text-muted-foreground capitalize">{s.shipment_type}</td>
