@@ -76,43 +76,51 @@ const SignUp = () => {
     try {
       const raw = sessionStorage.getItem("pendingBooking");
       return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }, []);
+
+  const getAuthRedirectUrl = () => `${window.location.origin}/login`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!selectedRole) {
       toast({ title: "Select account type", description: "Please select what type of account you need.", variant: "destructive" });
       return;
     }
+
     setLoading(true);
 
-    const roleOption = ROLE_OPTIONS.find((r) => r.value === selectedRole);
-
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name, requested_role: selectedRole },
-        emailRedirectTo: "https://red-chough-476001.hostingersite.com",
+        data: {
+          full_name: name,
+          requested_role: selectedRole,
+          company_name: companyName.trim() || null,
+        },
+        emailRedirectTo: getAuthRedirectUrl(),
       },
     });
 
     if (error) {
       setLoading(false);
-      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      const description = error.message.includes("weak") || error.message.includes("pwned")
+        ? "Choose a stronger password that hasn't been exposed in a data breach."
+        : error.message;
+      toast({ title: "Sign up failed", description, variant: "destructive" });
       return;
     }
-
-    // Role is auto-assigned by the handle_new_user DB trigger using
-    // requested_role from the user metadata passed above.
 
     setLoading(false);
     toast({
       title: "Account created",
-      description: "Please check your email to verify your account, then log in.",
+      description: "We sent a verification email to your inbox. After you verify, sign in to continue.",
     });
-    // Preserve returnTo for login page
+
     const returnTo = searchParams.get("returnTo");
     navigate(returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login");
   };
