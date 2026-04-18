@@ -155,6 +155,8 @@ const App = () => (
             <Route path="/category" element={<Category />} />
             <Route path="/about" element={<About />} />
             <Route path="/rates" element={<RateSearch />} />
+            <Route path="/rate-search" element={<Navigate to="/rates" replace />} />
+            <Route path="/rates-search" element={<Navigate to="/rates" replace />} />
             <Route path="/security" element={<Security />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
