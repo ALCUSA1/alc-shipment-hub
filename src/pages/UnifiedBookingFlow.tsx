@@ -372,7 +372,7 @@ const UnifiedBookingFlow = () => {
         );
         const surcharges = evergreenRate && Array.isArray(evergreenRate.surcharges) ? evergreenRate.surcharges : [];
         const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
-        const baseRate = evergreenRate?.base_rate ?? 0;
+        const baseRate = Number(evergreenRate?.base_rate ?? 0);
         const totalRate = baseRate + surchargeTotal;
         const currency = evergreenRate?.currency || "USD";
 
