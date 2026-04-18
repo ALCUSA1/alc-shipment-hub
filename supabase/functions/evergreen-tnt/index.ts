@@ -67,7 +67,12 @@ async function getEvergreenAuth(env = "production") {
     headers[headerName] = apiKey;
   }
 
-  return { headers, baseUrl: conn.base_url || Deno.env.get("EVERGREEN_BASE_URL") || "", carrierId: carrier.id };
+  // Normalize base URL to scheme://host (strip any accidental path/query)
+  const rawBase = conn.base_url || Deno.env.get("EVERGREEN_BASE_URL") || "";
+  let baseUrl = rawBase;
+  try { const u = new URL(rawBase); baseUrl = `${u.protocol}//${u.host}`; } catch { baseUrl = rawBase.replace(/\/+$/, ""); }
+
+  return { headers, baseUrl, carrierId: carrier.id };
 }
 
 Deno.serve(async (req) => {
