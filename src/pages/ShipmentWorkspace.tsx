@@ -255,13 +255,21 @@ const ShipmentWorkspace = () => {
           <div className="flex items-center gap-3">
             <BackButton />
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold text-foreground">{shipment.shipment_ref}</h1>
                 <Badge className={`text-xs ${statusColor[shipment.lifecycle_stage || shipment.status] || "bg-secondary"}`}>
                   {fmt(shipment.lifecycle_stage || shipment.status)}
                 </Badge>
               </div>
-              {companyName && <p className="text-xs text-muted-foreground">{companyName}</p>}
+              <div className="flex items-center gap-3 mt-1 flex-wrap text-xs text-muted-foreground">
+                {companyName && <span>{companyName}</span>}
+                {shipment.booking_ref && (
+                  <span className="font-mono">Booking: <span className="text-foreground">{shipment.booking_ref}</span></span>
+                )}
+                {shipment.customer_reference && (
+                  <span className="font-mono">Customer Ref: <span className="text-foreground">{shipment.customer_reference}</span></span>
+                )}
+              </div>
             </div>
           </div>
           {/* Action buttons based on lifecycle */}
