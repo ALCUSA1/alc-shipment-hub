@@ -371,9 +371,9 @@ const UnifiedBookingFlow = () => {
           (r.carrier_code || "").toUpperCase() === "EGLV"
         );
         const surcharges = evergreenRate && Array.isArray(evergreenRate.surcharges) ? evergreenRate.surcharges : [];
-        const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
-        const baseRate = Number(evergreenRate?.base_rate ?? 0);
-        const totalRate = baseRate + surchargeTotal;
+        const surchargeTotal: number = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
+        const baseRate: number = Number(evergreenRate?.base_rate ?? 0);
+        const totalRate: number = baseRate + surchargeTotal;
         const currency = evergreenRate?.currency || "USD";
 
         // Fetch a small batch of schedule details (cap to 5 to keep search snappy)
