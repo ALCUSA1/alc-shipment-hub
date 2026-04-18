@@ -330,6 +330,12 @@ async function transformPayload(input: TransformInput): Promise<TransformResult>
     if (messageFamily === "document" && messageType === "release") {
       return await transformDocumentRelease(input);
     }
+    if (messageFamily === "transport_document") {
+      return await transformTransportDocument(input);
+    }
+    if (messageFamily === "issuance") {
+      return await transformIssuance(input);
+    }
     if (messageFamily === "schedule" && messageType === "vessel") {
       return await transformVesselSchedule(input);
     }
