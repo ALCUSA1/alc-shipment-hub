@@ -306,20 +306,39 @@ const UnifiedBookingFlow = () => {
     setIsLoading(true);
     setSearchParams(params);
     try {
-
       const today = new Date().toISOString().split("T")[0];
-      let query = supabase.from("carrier_rates").select("*")
+
+      // 1. Stored carrier rates (all carriers, including Evergreen contract rates)
+      let ratesQuery = supabase.from("carrier_rates").select("*")
         .eq("origin_port", params.origin)
         .eq("destination_port", params.destination)
         .eq("mode", params.mode)
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
+      if (params.mode === "ocean") ratesQuery = ratesQuery.eq("container_type", params.containerSize);
 
-      if (params.mode === "ocean") query = query.eq("container_type", params.containerSize);
-      const { data, error } = await query;
-      if (error) throw error;
+      // 2. Live Evergreen sailings via DCSA Commercial Schedules (ocean only)
+      const evergreenPromise = params.mode === "ocean"
+        ? supabase.functions.invoke("schedule-search", {
+            body: {
+              query_type: "point_to_point",
+              portOfLoading: params.origin,
+              portOfDischarge: params.destination,
+              departureDate: today,
+            },
+          }).catch((err) => {
+            console.warn("Evergreen schedule-search failed (non-fatal):", err);
+            return { data: null, error: err };
+          })
+        : Promise.resolve({ data: null, error: null });
 
-      const options: SailingOption[] = (data || []).map((r: any, idx: number) => {
+      const [{ data: ratesData, error: ratesErr }, { data: schedData }] =
+        await Promise.all([ratesQuery, evergreenPromise]);
+
+      if (ratesErr) throw ratesErr;
+
+      // Build stored-rate options first
+      const storedOptions: SailingOption[] = (ratesData || []).map((r: any, idx: number) => {
         const surcharges = Array.isArray(r.surcharges) ? r.surcharges : [];
         const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
         const etd = new Date(r.valid_from);
@@ -341,8 +360,75 @@ const UnifiedBookingFlow = () => {
         };
       });
 
-      setSailingOptions(options);
+      // 3. Merge live Evergreen sailings, priced from stored Evergreen contract rate on same lane
+      const liveOptions: SailingOption[] = [];
+      const scheduleIds: string[] = Array.isArray(schedData?.schedule_ids) ? schedData.schedule_ids : [];
+
+      if (scheduleIds.length > 0) {
+        // Find stored Evergreen contract rate for this lane to price the live sailings
+        const evergreenRate = (ratesData || []).find((r: any) =>
+          (r.carrier || "").toLowerCase().includes("evergreen") ||
+          (r.carrier_code || "").toUpperCase() === "EGLV"
+        );
+        const surcharges = evergreenRate && Array.isArray(evergreenRate.surcharges) ? evergreenRate.surcharges : [];
+        const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
+        const baseRate = evergreenRate?.base_rate ?? 0;
+        const totalRate = baseRate + surchargeTotal;
+        const currency = evergreenRate?.currency || "USD";
+
+        // Fetch a small batch of schedule details (cap to 5 to keep search snappy)
+        const detailFetches = scheduleIds.slice(0, 5).map((id) =>
+          supabase.functions.invoke("schedule-detail", { body: { schedule_id: id } })
+            .catch(() => ({ data: null }))
+        );
+        const details = await Promise.all(detailFetches);
+
+        details.forEach((res, i) => {
+          const sched = (res as any)?.data;
+          if (!sched?.schedule) return;
+          const firstLeg = sched.legs?.[0];
+          const lastLeg = sched.legs?.[sched.legs.length - 1];
+          const etd = firstLeg?.planned_departure || null;
+          const eta = lastLeg?.planned_arrival || null;
+          const transitDays = etd && eta
+            ? Math.max(1, Math.round((new Date(eta).getTime() - new Date(etd).getTime()) / (1000 * 60 * 60 * 24)))
+            : evergreenRate?.transit_days || null;
+          const vesselName = sched.vessel_schedule?.[0]?.vessel_name || firstLeg?.alc_vessels?.vessel_name || null;
+
+          liveOptions.push({
+            id: `live-eglv-${scheduleIds[i]}`,
+            carrier: "Evergreen",
+            origin_port: params.origin,
+            destination_port: params.destination,
+            container_type: params.containerSize,
+            base_rate: baseRate,
+            currency,
+            transit_days: transitDays,
+            valid_from: today,
+            valid_until: evergreenRate?.valid_until || today,
+            surcharges,
+            notes: vesselName ? `Vessel: ${vesselName}` : "Live Evergreen sailing",
+            service_level: sched.schedule?.service_name || sched.schedule?.service_code || "Live sailing",
+            free_time_days: evergreenRate?.free_time_days || null,
+            total_rate: totalRate,
+            ai_label: "Live Sailing",
+            ai_reason: evergreenRate ? "Live Evergreen schedule priced from your contract rate" : "Live Evergreen schedule — quote on request",
+            etd: etd || undefined,
+            eta: eta || undefined,
+            availability: "Live",
+          });
+        });
+      }
+
+      // Merge: live sailings first, then stored rates (deduping any stored Evergreen rate that's now live-priced)
+      const merged = [...liveOptions, ...storedOptions].sort((a, b) => a.total_rate - b.total_rate);
+
+      setSailingOptions(merged);
       setStep("rates");
+
+      if (params.mode === "ocean" && liveOptions.length === 0 && scheduleIds.length === 0) {
+        toast.info("No live Evergreen sailings on this lane — showing stored rates only.");
+      }
     } catch (err) {
       console.error("Search error:", err);
       toast.error("Failed to search rates.");
@@ -351,6 +437,7 @@ const UnifiedBookingFlow = () => {
       setIsLoading(false);
     }
   }, []);
+
 
   /* ── Select sailing → create draft ── */
   const handleSelectSailing = useCallback(async (sailing: SailingOption) => {
