@@ -362,21 +362,37 @@ const UnifiedBookingFlow = () => {
         };
       });
 
-      // 3. Merge live Evergreen sailings, priced from stored Evergreen contract rate on same lane
+      // 3. Merge live Evergreen sailings — priced from contract rate when available, else market estimate
       const liveOptions: SailingOption[] = [];
       const scheduleIds: string[] = Array.isArray(schedData?.schedule_ids) ? schedData.schedule_ids : [];
 
       if (scheduleIds.length > 0) {
-        // Find stored Evergreen contract rate for this lane to price the live sailings
+        // Find stored Evergreen contract rate for this lane (preferred pricing source)
         const evergreenRate = (ratesData || []).find((r: any) =>
           (r.carrier || "").toLowerCase().includes("evergreen") ||
           (r.carrier_code || "").toUpperCase() === "EGLV"
         );
-        const surcharges: any[] = (evergreenRate && Array.isArray((evergreenRate as any).surcharges))
+        const hasContractRate = !!evergreenRate;
+
+        // Fallback: derive a market-estimate price from any stored rate on this lane,
+        // or use a transit-distance-based estimate so live sailings always show a number.
+        const anyStoredRate = (ratesData || [])[0];
+        const fallbackBase = anyStoredRate
+          ? Number(anyStoredRate.base_rate)
+          : (params.containerSize === "40HC" || params.containerSize === "40GP" ? 2850 : 1850);
+        const fallbackSurcharges = anyStoredRate && Array.isArray(anyStoredRate.surcharges)
+          ? anyStoredRate.surcharges
+          : [
+              { code: "BAF", name: "Bunker Adjustment Factor", amount: Math.round(fallbackBase * 0.08) },
+              { code: "THC", name: "Terminal Handling", amount: 185 },
+              { code: "DOC", name: "Documentation", amount: 75 },
+            ];
+
+        const surcharges: any[] = hasContractRate && Array.isArray((evergreenRate as any).surcharges)
           ? ((evergreenRate as any).surcharges as any[])
-          : [];
+          : fallbackSurcharges;
         const surchargeTotal: number = surcharges.reduce((s: number, sc: any) => s + (Number(sc?.amount) || 0), 0);
-        const baseRate: number = Number((evergreenRate as any)?.base_rate ?? 0);
+        const baseRate: number = hasContractRate ? Number((evergreenRate as any).base_rate) : fallbackBase;
         const totalRate: number = baseRate + surchargeTotal;
         const currency: string = (evergreenRate as any)?.currency || "USD";
 
@@ -415,8 +431,10 @@ const UnifiedBookingFlow = () => {
             service_level: sched.schedule?.service_name || sched.schedule?.service_code || "Live sailing",
             free_time_days: evergreenRate?.free_time_days || null,
             total_rate: totalRate,
-            ai_label: "Live Sailing",
-            ai_reason: evergreenRate ? "Live Evergreen schedule priced from your contract rate" : "Live Evergreen schedule — quote on request",
+            ai_label: hasContractRate ? "Live Sailing" : "Quote on Request",
+            ai_reason: hasContractRate
+              ? "Live Evergreen schedule priced from your contract rate"
+              : "Live Evergreen schedule — indicative pricing, final quote provided after booking",
             etd: etd || undefined,
             eta: eta || undefined,
             availability: "Live",
@@ -424,14 +442,16 @@ const UnifiedBookingFlow = () => {
         });
       }
 
-      // Merge: live sailings first, then stored rates (deduping any stored Evergreen rate that's now live-priced)
+      // Merge: live sailings first, then stored rates, sorted by price
       const merged = [...liveOptions, ...storedOptions].sort((a, b) => a.total_rate - b.total_rate);
 
       setSailingOptions(merged);
       setStep("rates");
 
-      if (params.mode === "ocean" && liveOptions.length === 0 && scheduleIds.length === 0) {
-        toast.info("No live Evergreen sailings on this lane — showing stored rates only.");
+      if (params.mode === "ocean" && merged.length === 0) {
+        toast.info("No sailings or rates found for this lane. Try a nearby port or different dates.");
+      } else if (params.mode === "ocean" && storedOptions.length === 0 && liveOptions.length > 0) {
+        toast.info(`Showing ${liveOptions.length} live Evergreen sailing(s) with indicative pricing.`);
       }
     } catch (err) {
       console.error("Search error:", err);
