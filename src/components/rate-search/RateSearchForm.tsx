@@ -43,12 +43,19 @@ export function RateSearchForm({ onSearch, isLoading, defaultOrigin, defaultDest
   const [containerType, setContainerType] = useState("dry");
 
   const { data: ports = [] } = useQuery({
-    queryKey: ["ports-rate-search"],
+    queryKey: ["ports-rate-search", mode],
     queryFn: async () => {
-      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      const portType = mode === "air" ? "air" : "sea";
+      const { data } = await supabase.from("ports").select("code, name, country").eq("type", portType).order("name");
       return data || [];
     },
   });
+
+  const handleModeChange = (newMode: "ocean" | "air") => {
+    setMode(newMode);
+    setOrigin("");
+    setDestination("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +69,7 @@ export function RateSearchForm({ onSearch, isLoading, defaultOrigin, defaultDest
       <div className="flex gap-1 mb-6 p-1 bg-secondary rounded-lg w-fit">
         <button
           type="button"
-          onClick={() => setMode("ocean")}
+          onClick={() => handleModeChange("ocean")}
           className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition-all ${
             mode === "ocean"
               ? "bg-accent text-accent-foreground shadow-sm"
@@ -74,7 +81,7 @@ export function RateSearchForm({ onSearch, isLoading, defaultOrigin, defaultDest
         </button>
         <button
           type="button"
-          onClick={() => setMode("air")}
+          onClick={() => handleModeChange("air")}
           className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md transition-all ${
             mode === "air"
               ? "bg-accent text-accent-foreground shadow-sm"
