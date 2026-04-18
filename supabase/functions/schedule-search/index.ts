@@ -25,11 +25,7 @@ async function getConnection(carrierId: string) {
 }
 
 async function getOAuthToken(conn: any): Promise<string> {
-  if (conn.access_token_encrypted && conn.token_expires_at) {
-    if (Date.now() < new Date(conn.token_expires_at).getTime() - 10_000) {
-      return conn.access_token_encrypted;
-    }
-  }
+  // Commercial Schedules requires scope=DCSA_CS, tokens last 60s — always request fresh
   const tokenUrl = conn.oauth_token_url;
   const username =
     Deno.env.get("EVERGREEN_USERNAME") ||
@@ -41,8 +37,8 @@ async function getOAuthToken(conn: any): Promise<string> {
   if (!tokenUrl || !username || !password) throw new Error("Evergreen OAuth config missing");
 
   const u = new URL(tokenUrl);
-  if (!u.searchParams.has("grant_type")) u.searchParams.set("grant_type", "client_credentials");
-  if (conn.token_scope && !u.searchParams.has("scope")) u.searchParams.set("scope", conn.token_scope);
+  u.searchParams.set("grant_type", "client_credentials");
+  u.searchParams.set("scope", "DCSA_CS");
 
   const resp = await fetch(u.toString(), {
     method: "POST",
@@ -51,16 +47,12 @@ async function getOAuthToken(conn: any): Promise<string> {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   });
-  if (!resp.ok) throw new Error(`OAuth failed (${resp.status}): ${await resp.text()}`);
-
+  if (!resp.ok) throw new Error(`OAuth (DCSA_CS) failed (${resp.status}): ${await resp.text()}`);
   const td = await resp.json();
-  const token = td.access_token;
   await supabase.from("carrier_connections").update({
-    access_token_encrypted: token,
-    token_expires_at: new Date(Date.now() + (td.expires_in || 60) * 1000).toISOString(),
     last_success_at: new Date().toISOString(),
   }).eq("id", conn.id);
-  return token;
+  return td.access_token;
 }
 
 async function getAuthHeaders(conn: any) {

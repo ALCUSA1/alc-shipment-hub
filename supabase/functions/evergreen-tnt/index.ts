@@ -29,42 +29,35 @@ async function getEvergreenAuth(env = "production") {
   let headers: Record<string, string> = { "Content-Type": "application/json" };
 
   if (conn.auth_type === "oauth") {
-    // Check token freshness
-    let token = conn.access_token_encrypted;
-    const expiresAt = conn.token_expires_at ? new Date(conn.token_expires_at).getTime() : 0;
+    // TNT API requires scope=TNT — request a fresh short-lived token (60s) each call
+    const tokenUrl = conn.oauth_token_url;
+    const username =
+      Deno.env.get("EVERGREEN_USERNAME") ||
+      conn.oauth_client_id ||
+      Deno.env.get("EVERGREEN_CLIENT_ID");
+    const password =
+      Deno.env.get("EVERGREEN_PASSWORD") ||
+      Deno.env.get(conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET");
+    if (!tokenUrl || !username || !password) throw new Error("Evergreen OAuth config missing");
 
-    // Evergreen tokens expire in 60s, so refresh aggressively (10s buffer)
-    if (!token || Date.now() >= expiresAt - 10_000) {
-      const tokenUrl = conn.oauth_token_url;
-      const username =
-        Deno.env.get("EVERGREEN_USERNAME") ||
-        conn.oauth_client_id ||
-        Deno.env.get("EVERGREEN_CLIENT_ID");
-      const password =
-        Deno.env.get("EVERGREEN_PASSWORD") ||
-        Deno.env.get(conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET");
-      if (!tokenUrl || !username || !password) throw new Error("Evergreen OAuth config missing");
-      const u = new URL(tokenUrl);
-      if (!u.searchParams.has("grant_type")) u.searchParams.set("grant_type", "client_credentials");
-      if (conn.token_scope && !u.searchParams.has("scope")) u.searchParams.set("scope", conn.token_scope);
-      const tResp = await fetch(u.toString(), {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${btoa(`${username}:${password}`)}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      });
-      if (!tResp.ok) throw new Error(`OAuth refresh failed (${tResp.status}): ${await tResp.text()}`);
-      const td = await tResp.json();
-      token = td.access_token;
-      await supabase.from("carrier_connections").update({
-        access_token_encrypted: token,
-        token_expires_at: new Date(Date.now() + (td.expires_in || 60) * 1000).toISOString(),
-        last_success_at: new Date().toISOString(),
-      }).eq("id", conn.id);
-    }
-    headers["Authorization"] = `Bearer ${token}`;
+    const u = new URL(tokenUrl);
+    u.searchParams.set("grant_type", "client_credentials");
+    u.searchParams.set("scope", "TNT");
+
+    const tResp = await fetch(u.toString(), {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    if (!tResp.ok) throw new Error(`OAuth (TNT) failed (${tResp.status}): ${await tResp.text()}`);
+    const td = await tResp.json();
+    headers["Authorization"] = `Bearer ${td.access_token}`;
     headers["API-Version"] = "2.2";
+    await supabase.from("carrier_connections").update({
+      last_success_at: new Date().toISOString(),
+    }).eq("id", conn.id);
   } else {
     // API Key
     const keyName = conn.credential_key_name;
