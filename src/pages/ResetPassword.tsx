@@ -1,11 +1,12 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import alcLogo from "@/assets/alc-logo.png";
+
+const INVALID_LINK_MESSAGE = "This password reset link is invalid or has expired. Please request a new one.";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -13,33 +14,90 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [canReset, setCanReset] = useState(false);
   const [error, setError] = useState("");
   const [isInvite, setIsInvite] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const finalizeState = (next: { ready?: boolean; canReset?: boolean; error?: string; isInvite?: boolean }) => {
+      if (!isMounted) return;
+      if (typeof next.ready === "boolean") setReady(next.ready);
+      if (typeof next.canReset === "boolean") setCanReset(next.canReset);
+      if (typeof next.error === "string") setError(next.error);
+      if (typeof next.isInvite === "boolean") setIsInvite(next.isInvite);
+    };
+
+    const clearRecoveryParams = () => {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    };
+
     const initializeRecovery = async () => {
-      const hash = window.location.hash;
-      if (hash.includes("type=recovery") || hash.includes("type=invite")) {
-        setReady(true);
-        if (hash.includes("type=invite")) setIsInvite(true);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const queryParams = new URLSearchParams(window.location.search);
+      const recoveryType = hashParams.get("type") ?? queryParams.get("type");
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      const code = queryParams.get("code");
+      const inviteFlow = recoveryType === "invite";
+
+      finalizeState({ isInvite: inviteFlow, error: "" });
+
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          finalizeState({ ready: true, canReset: false, error: INVALID_LINK_MESSAGE });
+          return;
+        }
+
+        clearRecoveryParams();
+        finalizeState({ ready: true, canReset: true, error: "" });
         return;
       }
 
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setReady(true);
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (exchangeError) {
+          finalizeState({ ready: true, canReset: false, error: INVALID_LINK_MESSAGE });
+          return;
+        }
+
+        clearRecoveryParams();
+        finalizeState({ ready: true, canReset: true, error: "" });
+        return;
       }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        finalizeState({ ready: true, canReset: true, error: "" });
+        return;
+      }
+
+      finalizeState({
+        ready: true,
+        canReset: false,
+        error: recoveryType ? INVALID_LINK_MESSAGE : "Please open the password reset link from your email.",
+      });
     };
 
     initializeRecovery();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        setReady(true);
+        finalizeState({ ready: true, canReset: Boolean(session), error: "" });
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,6 +108,7 @@ const ResetPassword = () => {
       setError("Passwords don't match");
       return;
     }
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters");
       return;
@@ -106,19 +165,25 @@ const ResetPassword = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="password">New password</Label>
-            <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
-          </div>
-          <div>
-            <Label htmlFor="confirm">Confirm password</Label>
-            <PasswordInput id="confirm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={6} />
-          </div>
-          <Button variant="electric" className="w-full" type="submit" disabled={loading}>
-            {loading ? "Updating..." : isInvite ? "Activate Account" : "Update Password"}
+        {!canReset ? (
+          <Button variant="outline" className="w-full" onClick={() => navigate("/login")}>
+            Back to login
           </Button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="password">New password</Label>
+              <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={8} />
+            </div>
+            <div>
+              <Label htmlFor="confirm">Confirm password</Label>
+              <PasswordInput id="confirm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="mt-1" required minLength={8} />
+            </div>
+            <Button variant="electric" className="w-full" type="submit" disabled={loading}>
+              {loading ? "Updating..." : isInvite ? "Activate Account" : "Update Password"}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );
