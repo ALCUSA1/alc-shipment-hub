@@ -7,6 +7,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { validateBusinessEmail } from "@/lib/email-validation";
 import { ArrowRight, Loader2, Ship, Shield, Clock, Zap } from "lucide-react";
 
 interface StartShipmentModalProps {
@@ -39,6 +40,13 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    const emailCheck = await validateBusinessEmail(email);
+    if (!emailCheck.valid) {
+      setErrors((prev) => ({ ...prev, email: emailCheck.reason || "Invalid email" }));
+      return;
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -52,7 +60,10 @@ export function StartShipmentModal({ open, onOpenChange }: StartShipmentModalPro
 
     if (error) {
       setLoading(false);
-      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      const description = error.message.includes("business email") || error.message.includes("Free email providers")
+        ? "Please use your business email address. Free email providers (e.g. gmail.com) are not accepted."
+        : error.message;
+      toast({ title: "Sign up failed", description, variant: "destructive" });
       return;
     }
 
