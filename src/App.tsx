@@ -78,6 +78,7 @@ import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 import Security from "./pages/Security";
 import Templates from "./pages/Templates";
+import Unsubscribe from "./pages/Unsubscribe";
 import Spark from "./pages/Spark";
 import Opportunities from "./pages/Opportunities";
 import ForwarderDashboard from "./pages/forwarder/ForwarderDashboard";
@@ -161,6 +162,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/quote/approve" element={<QuoteApproval />} />
             {/* /pending-approval removed — direct role assignment on signup */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
