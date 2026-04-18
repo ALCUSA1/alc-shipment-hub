@@ -104,11 +104,8 @@ const SignUp = () => {
       return;
     }
 
-    if (data.user) {
-      await supabase.functions.invoke("assign-signup-role", {
-        body: { user_id: data.user.id, role: selectedRole },
-      });
-    }
+    // Role is auto-assigned by the handle_new_user DB trigger using
+    // requested_role from the user metadata passed above.
 
     setLoading(false);
     toast({
