@@ -330,6 +330,12 @@ async function transformPayload(input: TransformInput): Promise<TransformResult>
     if (messageFamily === "document" && messageType === "release") {
       return await transformDocumentRelease(input);
     }
+    if (messageFamily === "transport_document") {
+      return await transformTransportDocument(input);
+    }
+    if (messageFamily === "issuance") {
+      return await transformIssuance(input);
+    }
     if (messageFamily === "schedule" && messageType === "vessel") {
       return await transformVesselSchedule(input);
     }
@@ -746,6 +752,139 @@ async function transformEquipmentUpdate(input: TransformInput): Promise<Transfor
       created++;
     }
   }
+
+  return { success: true, recordsCreated: created };
+}
+
+// ============================================================
+// TRANSPORT DOCUMENT TRANSFORMER (DCSA TD v3.0 webhook)
+// ============================================================
+async function transformTransportDocument(input: TransformInput): Promise<TransformResult> {
+  const { carrierId, carrierCode, rawMessageId, payload } = input;
+  if (!payload) return { success: true, recordsCreated: 0 };
+  let created = 0;
+
+  const tdRef = payload.transportDocumentReference || payload.transport_document_reference;
+  const bookingRef = payload.carrierBookingReference || payload.booking_number;
+  const refForLookup = tdRef || bookingRef;
+  if (!refForLookup) return { success: true, recordsCreated: 0 };
+
+  const shipmentId = await findShipmentByRef(refForLookup);
+  if (!shipmentId) {
+    console.warn(`[transformTransportDocument] No shipment for ref ${refForLookup}`);
+    return { success: true, recordsCreated: 0 };
+  }
+
+  const tdData: Record<string, any> = {
+    shipment_id: shipmentId,
+    alc_carrier_id: carrierId,
+    source_message_id: rawMessageId,
+    transport_document_reference: tdRef || null,
+    carrier_booking_reference: bookingRef || null,
+    transport_document_status: payload.transportDocumentStatus || payload.status || null,
+    transport_document_type_code: payload.transportDocumentTypeCode || null,
+    issue_date: payload.issueDate || null,
+    shipped_onboard_date: payload.shippedOnBoardDate || null,
+    received_for_shipment_date: payload.receivedForShipmentDate || null,
+    is_electronic: payload.isElectronic ?? null,
+    raw_payload: payload,
+  };
+
+  const { data: existing } = await supabase
+    .from("transport_documents")
+    .select("id")
+    .eq("shipment_id", shipmentId)
+    .eq("transport_document_reference", tdRef || refForLookup)
+    .maybeSingle();
+
+  if (existing) {
+    const { error: updErr } = await supabase.from("transport_documents").update(tdData).eq("id", existing.id);
+    if (updErr) console.warn("[transformTransportDocument] update failed:", updErr.message);
+  } else {
+    const { error: insErr } = await supabase.from("transport_documents").insert(tdData);
+    if (insErr) console.warn("[transformTransportDocument] insert failed:", insErr.message);
+  }
+  created++;
+
+  if (tdRef) {
+    await upsertReference(shipmentId, carrierId, "bill_of_lading", tdRef, false, rawMessageId);
+    await supabase.from("shipments").update({ bill_of_lading: tdRef }).eq("id", shipmentId);
+  }
+  if (bookingRef) {
+    await upsertReference(shipmentId, carrierId, "booking_number", bookingRef, true, rawMessageId);
+  }
+
+  await supabase.from("tracking_events").insert({
+    shipment_id: shipmentId,
+    alc_carrier_id: carrierId,
+    raw_message_id: rawMessageId,
+    event_scope: "shipment",
+    external_event_code: "TDUP",
+    external_event_name: "Transport Document Updated",
+    internal_event_code: "transport_document_updated",
+    internal_event_name: "Transport Document Updated",
+    event_date: payload.eventCreatedDateTime || new Date().toISOString(),
+    milestone: `BL ${payload.transportDocumentStatus || "updated"}`,
+    source: `carrier:${carrierCode}`,
+    event_payload_json: payload,
+  });
+  created++;
+
+  return { success: true, recordsCreated: created };
+}
+
+// ============================================================
+// ISSUANCE TRANSFORMER (DCSA eBL Issuance v3.0 webhook)
+// ============================================================
+async function transformIssuance(input: TransformInput): Promise<TransformResult> {
+  const { carrierId, carrierCode, rawMessageId, payload } = input;
+  if (!payload) return { success: true, recordsCreated: 0 };
+  let created = 0;
+
+  const tdRef = payload.transportDocumentReference || payload.transport_document_reference;
+  const bookingRef = payload.carrierBookingReference || payload.booking_number;
+  const refForLookup = tdRef || bookingRef;
+  if (!refForLookup) return { success: true, recordsCreated: 0 };
+
+  const shipmentId = await findShipmentByRef(refForLookup);
+  if (!shipmentId) return { success: true, recordsCreated: 0 };
+
+  const responseCode = payload.issuanceResponseCode || payload.responseCode || null;
+  const status = responseCode === "ISSU" ? "issued" : responseCode === "REJE" ? "rejected" : (payload.status || "pending");
+
+  const { error: issuanceErr } = await supabase.from("ebl_issuances").insert({
+    shipment_id: shipmentId,
+    alc_carrier_id: carrierId,
+    source_message_id: rawMessageId,
+    transport_document_reference: tdRef || null,
+    carrier_booking_reference: bookingRef || null,
+    issuance_response_code: responseCode,
+    issuance_status: status,
+    issuance_datetime: payload.issuanceDateTime || payload.eventCreatedDateTime || new Date().toISOString(),
+    response_reasons: payload.reasons || null,
+    raw_payload: payload,
+  });
+  if (issuanceErr) {
+    console.warn("[transformIssuance] insert ebl_issuances skipped:", issuanceErr.message);
+  } else {
+    created++;
+  }
+
+  await supabase.from("tracking_events").insert({
+    shipment_id: shipmentId,
+    alc_carrier_id: carrierId,
+    raw_message_id: rawMessageId,
+    event_scope: "shipment",
+    external_event_code: responseCode || "ISSU",
+    external_event_name: "eBL Issuance Update",
+    internal_event_code: "ebl_issuance_update",
+    internal_event_name: `eBL ${status}`,
+    event_date: payload.issuanceDateTime || new Date().toISOString(),
+    milestone: `eBL ${status}`,
+    source: `carrier:${carrierCode}`,
+    event_payload_json: payload,
+  });
+  created++;
 
   return { success: true, recordsCreated: created };
 }

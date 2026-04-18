@@ -70,21 +70,61 @@ export function LiveTrackingPanel({
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("track-shipment", {
-        body: { shipment_id: shipmentId },
-      });
+      // Look up shipment carrier + identifiers to decide routing
+      const { data: ship } = await supabase
+        .from("shipments")
+        .select("alc_carrier_id, booking_ref, bill_of_lading, mawb_number, alc_carriers:alc_carrier_id(carrier_code)")
+        .eq("id", shipmentId)
+        .maybeSingle();
 
-      if (error) throw error;
+      const carrierCode = (ship as any)?.alc_carriers?.carrier_code;
+      const bl = (ship as any)?.bill_of_lading || null;
+      const bk = (ship as any)?.booking_ref || bookingRef || null;
+      const mawb = (ship as any)?.mawb_number || mawbNumber || null;
+
+      // First container number (if any) for ocean
+      const { data: ctn } = await supabase
+        .from("containers")
+        .select("container_number")
+        .eq("shipment_id", shipmentId)
+        .limit(1)
+        .maybeSingle();
+
+      let newEvents = 0;
+
+      if (carrierCode === "EGLV" && (bl || bk || ctn?.container_number)) {
+        // Direct Evergreen TNT call
+        const { data, error } = await supabase.functions.invoke("evergreen-tnt", {
+          body: {
+            bill_of_lading_number: bl || undefined,
+            booking_number: bk || undefined,
+            container_number: ctn?.container_number || undefined,
+          },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        newEvents = data?.events_count ?? 0;
+      } else {
+        // Fallback: legacy multi-carrier router
+        const { data, error } = await supabase.functions.invoke("track-shipment", {
+          body: { shipment_id: shipmentId },
+        });
+        if (error) throw error;
+        newEvents = data?.new_events ?? 0;
+      }
 
       setLastSynced(new Date());
 
-      if (data.new_events > 0) {
-        toast({ title: "Tracking Updated", description: `${data.new_events} new event(s) found.` });
+      if (newEvents > 0) {
+        toast({ title: "Tracking Updated", description: `${newEvents} new event(s) found.` });
+      } else {
+        toast({ title: "Sync Complete", description: "Tracking refreshed from carrier." });
+      }
+      // Always refresh — webhook ingestion may add events asynchronously
+      setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
         queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
-      } else {
-        toast({ title: "Up to Date", description: "No new tracking events found." });
-      }
+      }, 1500);
     } catch (err: any) {
       toast({ title: "Sync Failed", description: err.message, variant: "destructive" });
     } finally {
