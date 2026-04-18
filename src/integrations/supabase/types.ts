@@ -11027,6 +11027,20 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      resolve_shipment_reference: {
+        Args: { _query: string }
+        Returns: {
+          carrier_code: string
+          destination_port: string
+          match_type: string
+          origin_port: string
+          reference_type: string
+          reference_value: string
+          shipment_id: string
+          shipment_ref: string
+          status: string
+        }[]
+      }
       scenario_company_id: { Args: { _scenario_id: string }; Returns: string }
       shipment_company_id: { Args: { _shipment_id: string }; Returns: string }
     }
