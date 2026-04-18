@@ -322,6 +322,8 @@ const UnifiedBookingFlow = () => {
         ? supabase.functions.invoke("schedule-search", {
             body: {
               query_type: "point_to_point",
+              placeOfReceipt: params.origin,
+              placeOfDelivery: params.destination,
               portOfLoading: params.origin,
               portOfDischarge: params.destination,
               departureDate: today,
