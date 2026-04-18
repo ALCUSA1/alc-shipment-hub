@@ -1,106 +1,75 @@
 project_id = "sikosqmgmwvdmxzigjpl"
 
-[functions.carrier-booking]
-verify_jwt = false
-
-[functions.create-payment]
-verify_jwt = false
-
-[functions.verify-payment]
-verify_jwt = false
-
-[functions.admin-manage-user]
-verify_jwt = false
-
-[functions.e2open-sync]
-verify_jwt = false
-
-[functions.places-autocomplete]
-verify_jwt = false
-
-[functions.submit-aes-filing]
-verify_jwt = false
-
-[functions.aes-webhook]
-verify_jwt = false
-
-[functions.sync-cutoffs]
-verify_jwt = false
-
-[functions.generate-air-waybill]
-verify_jwt = false
-
-[functions.fetch-air-rates]
-verify_jwt = false
-
-[functions.generate-documents]
-verify_jwt = false
-
-[functions.send-notification-email]
-verify_jwt = false
-
-[functions.track-shipment]
-verify_jwt = false
-
-[functions.shipment-assistant]
-verify_jwt = false
-
-[functions.shipment-summary]
-verify_jwt = false
-
-[functions.translate-edi]
-verify_jwt = false
-
-[functions.settle-carriers]
-verify_jwt = false
-
-[functions.shipment-workflow]
-verify_jwt = false
-
-[functions.carrier-ingest]
-verify_jwt = false
-
-[functions.td-ingest]
-verify_jwt = false
-
-[functions.td-detail]
-verify_jwt = false
-
-[functions.issuance-ingest]
-verify_jwt = false
-
-[functions.issuance-detail]
-verify_jwt = false
-
-[functions.schedule-ingest]
-verify_jwt = false
-
-[functions.schedule-detail]
-verify_jwt = false
-
-[functions.evergreen-auth]
-verify_jwt = false
-
-[functions.evergreen-tnt]
-verify_jwt = false
-
-[functions.evergreen-webhook]
-verify_jwt = false
-
-[functions.terminal-schedule-apm]
-verify_jwt = false
-
-[functions.terminal-schedule-houston]
-verify_jwt = false
-
-[functions.terminal-schedule-scrape]
-verify_jwt = false
-
-[functions.terminal-schedule-query]
-verify_jwt = false
-
-[functions.assign-signup-role]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.admin-manage-user]
+    verify_jwt = false
+  [functions.aes-webhook]
+    verify_jwt = false
+  [functions.assign-signup-role]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.carrier-booking]
+    verify_jwt = false
+  [functions.carrier-ingest]
+    verify_jwt = false
+  [functions.create-payment]
+    verify_jwt = false
+  [functions.e2open-sync]
+    verify_jwt = false
+  [functions.evergreen-auth]
+    verify_jwt = false
+  [functions.evergreen-tnt]
+    verify_jwt = false
+  [functions.evergreen-webhook]
+    verify_jwt = false
+  [functions.fetch-air-rates]
+    verify_jwt = false
+  [functions.generate-air-waybill]
+    verify_jwt = false
+  [functions.generate-documents]
+    verify_jwt = false
+  [functions.issuance-detail]
+    verify_jwt = false
+  [functions.issuance-ingest]
+    verify_jwt = false
+  [functions.places-autocomplete]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.schedule-detail]
+    verify_jwt = false
+  [functions.schedule-ingest]
+    verify_jwt = false
+  [functions.send-notification-email]
+    verify_jwt = false
+  [functions.settle-carriers]
+    verify_jwt = false
+  [functions.shipment-assistant]
+    verify_jwt = false
+  [functions.shipment-summary]
+    verify_jwt = false
+  [functions.shipment-workflow]
+    verify_jwt = false
+  [functions.submit-aes-filing]
+    verify_jwt = false
+  [functions.sync-cutoffs]
+    verify_jwt = false
+  [functions.td-detail]
+    verify_jwt = false
+  [functions.td-ingest]
+    verify_jwt = false
+  [functions.terminal-schedule-apm]
+    verify_jwt = false
+  [functions.terminal-schedule-houston]
+    verify_jwt = false
+  [functions.terminal-schedule-query]
+    verify_jwt = false
+  [functions.terminal-schedule-scrape]
+    verify_jwt = false
+  [functions.track-shipment]
+    verify_jwt = false
+  [functions.translate-edi]
+    verify_jwt = false
+  [functions.verify-payment]
+    verify_jwt = false
