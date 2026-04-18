@@ -10,9 +10,10 @@ import { useSailingReminderChecker } from "@/hooks/useSailingReminderChecker";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UniversalSearch } from "@/components/shared/UniversalSearch";
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -69,15 +70,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            {/* Center: Global Search */}
+            {/* Center: Global Universal Search (resolves any carrier/ALC reference) */}
             <div className="flex-1 max-w-md hidden md:block">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Search shipments, customers, partners…"
-                  className="pl-9 h-9 bg-secondary/60 border-transparent focus:border-border text-sm"
-                />
-              </div>
+              <UniversalSearch />
             </div>
 
             {/* Right: New Shipment CTA + Notifications + Chat + Avatar */}
