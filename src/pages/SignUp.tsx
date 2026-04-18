@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { validateBusinessEmail } from "@/lib/email-validation";
 import alcLogo from "@/assets/alc-logo.png";
 import { Package, Ship, Truck, Warehouse, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,12 @@ const SignUp = () => {
       return;
     }
 
+    const emailCheck = await validateBusinessEmail(email);
+    if (!emailCheck.valid) {
+      toast({ title: "Business email required", description: emailCheck.reason, variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
@@ -108,9 +115,12 @@ const SignUp = () => {
 
     if (error) {
       setLoading(false);
-      const description = error.message.includes("weak") || error.message.includes("pwned")
-        ? "Choose a stronger password that hasn't been exposed in a data breach."
-        : error.message;
+      let description = error.message;
+      if (error.message.includes("business email") || error.message.includes("Free email providers")) {
+        description = "Please use your business email address. Free email providers (e.g. gmail.com) are not accepted.";
+      } else if (error.message.includes("weak") || error.message.includes("pwned")) {
+        description = "Choose a stronger password that hasn't been exposed in a data breach.";
+      }
       toast({ title: "Sign up failed", description, variant: "destructive" });
       return;
     }

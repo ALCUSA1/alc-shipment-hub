@@ -657,6 +657,24 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_email_domains: {
+        Row: {
+          added_at: string
+          domain: string
+          note: string | null
+        }
+        Insert: {
+          added_at?: string
+          domain: string
+          note?: string | null
+        }
+        Update: {
+          added_at?: string
+          domain?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       booking_charges: {
         Row: {
           alc_carrier_id: string | null
@@ -11142,6 +11160,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_blocked_email_domain: { Args: { _email: string }; Returns: boolean }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
