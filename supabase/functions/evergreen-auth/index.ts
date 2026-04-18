@@ -128,6 +128,18 @@ async function getAuthHeaders(conn: any): Promise<Record<string, string>> {
   return apiKeyHeaders(conn);
 }
 
+// ─── Normalize a stored base URL to just origin (scheme + host[:port]) ───
+// Tolerates values that mistakenly include a path or query string.
+export function normalizeEvergreenBaseUrl(raw: string | null | undefined): string {
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return String(raw).replace(/\/+$/, "");
+  }
+}
+
 // ─── Public: get ready-to-use auth headers for Evergreen ───
 export async function getEvergreenAuthHeaders(env = "production"): Promise<{
   headers: Record<string, string>;
@@ -137,7 +149,7 @@ export async function getEvergreenAuthHeaders(env = "production"): Promise<{
   const carrierId = await resolveCarrier(EVERGREEN_CARRIER_CODE);
   const conn = await getConnection(carrierId, env);
   const headers = await getAuthHeaders(conn);
-  const baseUrl = conn.base_url || Deno.env.get("EVERGREEN_BASE_URL") || "";
+  const baseUrl = normalizeEvergreenBaseUrl(conn.base_url || Deno.env.get("EVERGREEN_BASE_URL"));
   return { headers, baseUrl, carrierId };
 }
 
