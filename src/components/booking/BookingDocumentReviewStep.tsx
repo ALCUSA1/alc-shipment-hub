@@ -66,9 +66,50 @@ export function BookingDocumentReviewStep({
                   </div>
                 </TabsContent>
                 <TabsContent value="hbl">
-                  <div className="rounded-lg border bg-muted/30 p-6 min-h-[200px]">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">House Bill of Lading Draft</p>
-                    <p className="text-sm text-muted-foreground">HBL will be finalized after booking confirmation and carrier acknowledgment.</p>
+                  <div className="rounded-lg border bg-muted/30 p-6 min-h-[200px] space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase">House Bill of Lading — Draft</p>
+                      <Badge variant="secondary" className="text-[9px]">DRAFT • Not Negotiable</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Shipper</p>
+                        <p className="font-medium">{shipper?.company_name || "—"}</p>
+                        {shipper?.address_line1 && <p className="text-xs text-muted-foreground">{shipper.address_line1}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Consignee</p>
+                        <p className="font-medium">{consignee?.company_name || "—"}</p>
+                        {consignee?.address_line1 && <p className="text-xs text-muted-foreground">{consignee.address_line1}</p>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Port of Loading</p>
+                        <p className="font-medium">{shipment?.origin_port || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Port of Discharge</p>
+                        <p className="font-medium">{shipment?.destination_port || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Vessel / Voyage</p>
+                        <p className="font-medium">{shipment?.vessel_name || "TBA"} {shipment?.voyage_number ? `/ ${shipment.voyage_number}` : ""}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Carrier</p>
+                        <p className="font-medium">{shipment?.carrier || "—"}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Description of Goods</p>
+                        <p className="font-medium">{cargo?.[0]?.commodity || "—"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {cargo?.[0]?.gross_weight ? `${cargo[0].gross_weight} kg` : "Weight TBD"}
+                          {cargo?.[0]?.package_count ? ` • ${cargo[0].package_count} pkgs` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="border-t pt-3 text-[11px] text-muted-foreground italic">
+                      Final HBL will be issued by the carrier after cargo is loaded onboard. This draft reflects the data submitted in your booking.
+                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="invoice">

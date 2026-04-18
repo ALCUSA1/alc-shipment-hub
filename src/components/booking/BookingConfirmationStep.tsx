@@ -1,6 +1,7 @@
-import { CheckCircle, ArrowRight, Ship, FileText, MapPin, Download, MessageSquare } from "lucide-react";
+import { CheckCircle, ArrowRight, Ship, FileText, MapPin, Download, MessageSquare, Clock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -47,6 +48,26 @@ export function BookingConfirmationStep({ shipment, financials }: BookingConfirm
           </div>
         </CardContent>
       </Card>
+
+      {/* HBL Issuance Timeline Banner */}
+      <Alert className="w-full mb-6 text-left border-accent/30 bg-accent/5">
+        <Clock className="h-4 w-4 text-accent" />
+        <AlertTitle className="text-sm font-semibold">House Bill of Lading (HBL) Timeline</AlertTitle>
+        <AlertDescription className="text-xs text-muted-foreground space-y-1 mt-1">
+          <div className="flex items-start gap-2">
+            <span className="font-mono text-accent">1.</span>
+            <span><span className="font-medium text-foreground">Now:</span> Draft HBL available in your workspace using the data you provided.</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="font-mono text-accent">2.</span>
+            <span><span className="font-medium text-foreground">Within 24–48h:</span> Carrier confirms booking and Shipping Instruction (SI) is submitted.</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="font-mono text-accent">3.</span>
+            <span><span className="font-medium text-foreground">After cargo loaded:</span> Final HBL issued and emailed to you for review/approval.</span>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full mb-8">
