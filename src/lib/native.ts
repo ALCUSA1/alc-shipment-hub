@@ -73,11 +73,10 @@ export async function scanBarcode(): Promise<string | null> {
     const value = window.prompt("Enter container/barcode number");
     return value?.trim() || null;
   }
-  const { BarcodeScanner } = await import("@capacitor/barcode-scanner");
-  const result = await BarcodeScanner.scanBarcode({
-    hint: 17, // ALL formats
-  } as any);
-  return result.ScanResult || null;
+  const mod: any = await import("@capacitor/barcode-scanner");
+  const Scanner = mod.CapacitorBarcodeScanner ?? mod.BarcodeScanner ?? mod.default;
+  const result = await Scanner.scanBarcode({ hint: 17 });
+  return result?.ScanResult || null;
 }
 
 /** Push notifications — register and return device token */
