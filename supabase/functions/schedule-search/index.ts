@@ -25,42 +25,34 @@ async function getConnection(carrierId: string) {
 }
 
 async function getOAuthToken(conn: any): Promise<string> {
-  if (conn.access_token_encrypted && conn.token_expires_at) {
-    if (Date.now() < new Date(conn.token_expires_at).getTime() - 60_000) {
-      return conn.access_token_encrypted;
-    }
-  }
+  // Commercial Schedules requires scope=DCSA_CS, tokens last 60s — always request fresh
   const tokenUrl = conn.oauth_token_url;
-  const clientId = conn.oauth_client_id || Deno.env.get("EVERGREEN_CLIENT_ID");
-  const clientSecret = Deno.env.get(conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET");
-  const username = Deno.env.get("EVERGREEN_USERNAME");
-  const password = Deno.env.get("EVERGREEN_PASSWORD");
+  const username =
+    Deno.env.get("EVERGREEN_USERNAME") ||
+    conn.oauth_client_id ||
+    Deno.env.get("EVERGREEN_CLIENT_ID");
+  const password =
+    Deno.env.get("EVERGREEN_PASSWORD") ||
+    Deno.env.get(conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET");
+  if (!tokenUrl || !username || !password) throw new Error("Evergreen OAuth config missing");
 
-  const body = new URLSearchParams({ client_id: clientId!, client_secret: clientSecret! });
-  if (username && password) {
-    body.set("grant_type", "password");
-    body.set("username", username);
-    body.set("password", password);
-  } else {
-    body.set("grant_type", "client_credentials");
-  }
-  if (conn.token_scope) body.set("scope", conn.token_scope);
+  const u = new URL(tokenUrl);
+  u.searchParams.set("grant_type", "client_credentials");
+  u.searchParams.set("scope", "DCSA_CS");
 
-  const resp = await fetch(tokenUrl, {
+  const resp = await fetch(u.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    headers: {
+      Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   });
-  if (!resp.ok) throw new Error(`OAuth failed (${resp.status}): ${await resp.text()}`);
-
+  if (!resp.ok) throw new Error(`OAuth (DCSA_CS) failed (${resp.status}): ${await resp.text()}`);
   const td = await resp.json();
-  const token = td.access_token;
   await supabase.from("carrier_connections").update({
-    access_token_encrypted: token,
-    token_expires_at: new Date(Date.now() + (td.expires_in || 3600) * 1000).toISOString(),
     last_success_at: new Date().toISOString(),
   }).eq("id", conn.id);
-  return token;
+  return td.access_token;
 }
 
 async function getAuthHeaders(conn: any) {
@@ -136,7 +128,8 @@ async function handlePointToPoint(carrierId: string, baseUrl: string, headers: R
   if (params.cursor) qs.set("cursor", params.cursor);
   qs.set("limit", String(params.limit || 20));
 
-  const url = `${baseUrl}/commerce/client/schedule/point-to-point-routes?${qs}`;
+  const cleanBase = (baseUrl || "").replace(/\/$/, "");
+  const url = `${cleanBase}/server/sol/route/commercial/v1/point-to-point-routes?${qs}`;
   const resp = await fetch(url, { headers });
   if (!resp.ok) throw new Error(`Point-to-Point API error (${resp.status}): ${await resp.text()}`);
 
@@ -278,7 +271,8 @@ async function handlePortSchedule(carrierId: string, baseUrl: string, headers: R
   if (params.cursor) qs.set("cursor", params.cursor);
   qs.set("limit", String(params.limit || 50));
 
-  const url = `${baseUrl}/commerce/client/schedule/port-schedules?${qs}`;
+  const cleanBase = (baseUrl || "").replace(/\/$/, "");
+  const url = `${cleanBase}/server/sol/mvs1api/commSch/v1/port?${qs}`;
   const resp = await fetch(url, { headers });
   if (!resp.ok) throw new Error(`Port Schedule API error (${resp.status}): ${await resp.text()}`);
 
@@ -362,7 +356,8 @@ async function handleVesselSchedule(carrierId: string, baseUrl: string, headers:
   if (params.cursor) qs.set("cursor", params.cursor);
   qs.set("limit", String(params.limit || 50));
 
-  const url = `${baseUrl}/commerce/client/schedule/vessel-schedules?${qs}`;
+  const cleanBase = (baseUrl || "").replace(/\/$/, "");
+  const url = `${cleanBase}/server/sol/mvs1api/commSch/v1/vessel?${qs}`;
   const resp = await fetch(url, { headers });
   if (!resp.ok) throw new Error(`Vessel Schedule API error (${resp.status}): ${await resp.text()}`);
 

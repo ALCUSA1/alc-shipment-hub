@@ -54,41 +54,33 @@ async function getOAuthToken(conn: any): Promise<string> {
     }
   }
 
-  // Request new token
+  // Request new token — Evergreen uses HTTP Basic auth with grant_type & scope as URL params
   const tokenUrl = conn.oauth_token_url;
   if (!tokenUrl) throw new Error("OAuth token URL not configured");
 
-  const clientId = conn.oauth_client_id || Deno.env.get("EVERGREEN_CLIENT_ID");
-  const clientSecretKeyName = conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET";
-  const clientSecret = Deno.env.get(clientSecretKeyName);
+  // Evergreen uses ID:password (not client_id:client_secret) for HTTP Basic auth
+  const username =
+    Deno.env.get("EVERGREEN_USERNAME") ||
+    conn.oauth_client_id ||
+    Deno.env.get("EVERGREEN_CLIENT_ID");
+  const password =
+    Deno.env.get("EVERGREEN_PASSWORD") ||
+    Deno.env.get(conn.oauth_client_secret_key_name || "EVERGREEN_CLIENT_SECRET");
 
-  if (!clientId || !clientSecret) {
-    throw new Error("OAuth client_id or client_secret not configured");
+  if (!username || !password) {
+    throw new Error("Evergreen credentials (EVERGREEN_USERNAME / EVERGREEN_PASSWORD) not configured");
   }
 
-  // Determine grant type — use password grant if username/password are available
-  const username = Deno.env.get("EVERGREEN_USERNAME");
-  const password = Deno.env.get("EVERGREEN_PASSWORD");
+  const url = new URL(tokenUrl);
+  if (!url.searchParams.has("grant_type")) url.searchParams.set("grant_type", "client_credentials");
+  if (conn.token_scope && !url.searchParams.has("scope")) url.searchParams.set("scope", conn.token_scope);
 
-  const body = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
-  });
-
-  if (username && password) {
-    body.set("grant_type", "password");
-    body.set("username", username);
-    body.set("password", password);
-  } else {
-    body.set("grant_type", "client_credentials");
-  }
-
-  if (conn.token_scope) body.set("scope", conn.token_scope);
-
-  const resp = await fetch(tokenUrl, {
+  const resp = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    headers: {
+      Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   });
 
   if (!resp.ok) {
