@@ -43,12 +43,19 @@ export function RateSearchForm({ onSearch, isLoading, defaultOrigin, defaultDest
   const [containerType, setContainerType] = useState("dry");
 
   const { data: ports = [] } = useQuery({
-    queryKey: ["ports-rate-search"],
+    queryKey: ["ports-rate-search", mode],
     queryFn: async () => {
-      const { data } = await supabase.from("ports").select("code, name, country").order("name");
+      const portType = mode === "air" ? "air" : "sea";
+      const { data } = await supabase.from("ports").select("code, name, country").eq("type", portType).order("name");
       return data || [];
     },
   });
+
+  const handleModeChange = (newMode: "ocean" | "air") => {
+    setMode(newMode);
+    setOrigin("");
+    setDestination("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
