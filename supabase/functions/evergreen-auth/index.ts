@@ -165,7 +165,22 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
+    if (action === "diagnose") {
+      const u = Deno.env.get("EVERGREEN_USERNAME") || "";
+      const p = Deno.env.get("EVERGREEN_PASSWORD") || "";
+      return new Response(
+        JSON.stringify({
+          username_length: u.length,
+          username_first2: u.slice(0, 2),
+          username_last2: u.slice(-2),
+          password_length: p.length,
+          password_first2: p.slice(0, 2),
+          password_last2: p.slice(-2),
+          base_url_env: Deno.env.get("EVERGREEN_BASE_URL"),
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Status check
     const tokenValid = conn.access_token_encrypted && conn.token_expires_at
