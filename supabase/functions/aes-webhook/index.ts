@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     // ─── Terminal49 Webhook Handler ─────────────────────────────────────
     if (body.data?.type === "webhook" || body.data?.type === "event" || body.included) {
-      return await handleTerminal49Webhook(supabase, body);
+      return await handleTerminal49Webhook(supabase, body, req);
     }
 
     // ─── ZeusLogics AES Webhook Handler ─────────────────────────────────
@@ -156,9 +156,27 @@ Deno.serve(async (req) => {
 
 // ─── Terminal49 Webhook Handler ─────────────────────────────────────────────
 
-async function handleTerminal49Webhook(supabase: any, body: any) {
+async function handleTerminal49Webhook(supabase: any, body: any, req?: Request) {
   try {
     const webhookSecret = Deno.env.get("TERMINAL49_WEBHOOK_SECRET");
+    if (webhookSecret) {
+      const signature =
+        req?.headers.get("x-terminal49-signature") ||
+        req?.headers.get("x-terminal49-hmac-sha256") ||
+        req?.headers.get("x-webhook-signature");
+      if (!signature || signature !== webhookSecret) {
+        return new Response(
+          JSON.stringify({ error: "Invalid webhook signature" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      console.warn("TERMINAL49_WEBHOOK_SECRET not configured — rejecting webhook");
+      return new Response(
+        JSON.stringify({ error: "Webhook secret not configured" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     // Terminal49 sends events via JSON:API format
     const eventData = body.data?.attributes || body.data || {};
     const eventType = eventData.event || body.data?.type || "";
