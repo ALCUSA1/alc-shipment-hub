@@ -180,38 +180,62 @@ function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: 
         <>
           <Separator />
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            {doc.line_items ? "Line Items" : "Cargo Description"}
+            {doc.line_items ? "Commodity Line Items" : "Cargo Description"}
           </h4>
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium text-muted-foreground">#</th>
-                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Description</th>
-                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Qty</th>
-                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Weight (kg)</th>
-                  {doc.line_items && <th className="text-right px-3 py-2 font-medium text-muted-foreground">Value</th>}
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Commodity / HS Code</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Origin</th>
+                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Pkgs</th>
+                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Gross Wt (kg)</th>
+                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Vol (m³)</th>
+                  {doc.line_items && <th className="text-right px-3 py-2 font-medium text-muted-foreground">Unit $</th>}
+                  {doc.line_items && <th className="text-right px-3 py-2 font-medium text-muted-foreground">Total $</th>}
                 </tr>
               </thead>
               <tbody>
                 {(doc.cargo_description || doc.cargo_items || doc.line_items || doc.items || doc.cargo || []).map((item: any, idx: number) => (
-                  <tr key={idx} className="border-t">
+                  <tr key={idx} className="border-t align-top">
                     <td className="px-3 py-2 text-muted-foreground">{item.line || idx + 1}</td>
                     <td className="px-3 py-2 text-foreground">
-                      {item.commodity || item.commodity || "—"}
-                      {(item.hs_code && item.hs_code !== "—") && (
-                        <span className="text-muted-foreground ml-2 font-mono text-[10px]">HS: {item.hs_code}</span>
+                      <div className="font-medium">{item.commodity || "—"}</div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
+                        {item.hs_code && item.hs_code !== "—" && <span className="font-mono">HS: {item.hs_code}</span>}
+                        {item.package_type && <span>Pkg: {item.package_type}</span>}
+                        {item.dimensions && item.dimensions !== "—" && <span>Dim: {item.dimensions}</span>}
+                        {item.marks && item.marks !== "N/M" && <span>Marks: {item.marks}</span>}
+                      </div>
+                      {item.special_instructions && (
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5">⚠ {item.special_instructions}</div>
                       )}
                     </td>
+                    <td className="px-3 py-2 text-foreground">{item.country_of_origin || "—"}</td>
                     <td className="text-right px-3 py-2">{item.packages || item.quantity || item.pieces || 0}</td>
                     <td className="text-right px-3 py-2">{item.gross_weight_kg || item.gross_weight || 0}</td>
+                    <td className="text-right px-3 py-2">{item.volume_cbm || 0}</td>
+                    {doc.line_items && <td className="text-right px-3 py-2">${item.unit_value?.toLocaleString() || 0}</td>}
                     {doc.line_items && <td className="text-right px-3 py-2 font-medium">${item.total_value?.toLocaleString() || 0}</td>}
                   </tr>
                 ))}
               </tbody>
+              {doc.totals && (
+                <tfoot className="bg-muted/30 font-medium">
+                  <tr className="border-t">
+                    <td colSpan={3} className="px-3 py-2 text-right text-muted-foreground">Totals</td>
+                    <td className="text-right px-3 py-2">{doc.totals.packages || 0}</td>
+                    <td className="text-right px-3 py-2">{doc.totals.gross_weight_kg || 0}</td>
+                    <td className="text-right px-3 py-2">{doc.totals.volume_cbm || 0}</td>
+                    {doc.line_items && <td></td>}
+                    {doc.line_items && <td className="text-right px-3 py-2">${doc.grand_total?.toLocaleString() || 0}</td>}
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
-          {doc.grand_total !== undefined && (
+          {doc.grand_total !== undefined && !doc.totals && (
             <div className="flex justify-end">
               <div className="border rounded-lg px-4 py-2 bg-muted/30">
                 <span className="text-xs text-muted-foreground mr-3">Grand Total:</span>
