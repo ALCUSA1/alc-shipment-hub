@@ -57,13 +57,84 @@ serve(async (req) => {
     }
 
     const user = authData.user;
-    const rate = (await req.json()) as RateSelection;
+    const clientRate = (await req.json()) as RateSelection;
 
-    if (!rate?.originPort || !rate?.destinationPort || !rate?.carrier || !rate?.mode) {
+    if (!clientRate?.originPort || !clientRate?.destinationPort || !clientRate?.carrier || !clientRate?.mode) {
       return new Response(JSON.stringify({ error: "Missing shipment booking details." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // SECURITY: Resolve canonical financial figures server-side from carrier_rates
+    // when a rateId is supplied. Never trust client-provided pricing.
+    let rate: RateSelection = clientRate;
+
+    if (clientRate.rateId) {
+      const { data: canonical, error: rateErr } = await adminClient
+        .from("carrier_rates")
+        .select("*")
+        .eq("id", clientRate.rateId)
+        .maybeSingle();
+
+      if (rateErr || !canonical) {
+        return new Response(JSON.stringify({ error: "Selected rate could not be verified." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const surchargesArr = Array.isArray((canonical as any).surcharges) ? (canonical as any).surcharges : [];
+      const surchargeTotal = surchargesArr.reduce(
+        (sum: number, s: any) => sum + (Number(s?.amount) || 0),
+        0,
+      );
+      const baseRate = Number((canonical as any).base_rate) || 0;
+      const totalRate = baseRate + surchargeTotal;
+
+      rate = {
+        ...clientRate,
+        carrier: (canonical as any).carrier,
+        originPort: (canonical as any).origin_port,
+        destinationPort: (canonical as any).destination_port,
+        mode: (canonical as any).mode,
+        containerType: (canonical as any).container_type,
+        currency: (canonical as any).currency,
+        baseRate,
+        surcharges: surchargesArr,
+        totalRate,
+        transitDays: (canonical as any).transit_days ?? null,
+        serviceLevel: (canonical as any).service_level ?? null,
+        freeTimeDays: (canonical as any).free_time_days ?? null,
+        validFrom: (canonical as any).valid_from,
+        validUntil: (canonical as any).valid_until,
+      };
+    } else {
+      // No canonical rateId — strictly validate client-supplied figures.
+      const MAX_AMOUNT = 10_000_000;
+      const baseRate = Number(clientRate.baseRate);
+      const totalRate = Number(clientRate.totalRate);
+      if (
+        !Number.isFinite(baseRate) || baseRate < 0 || baseRate > MAX_AMOUNT ||
+        !Number.isFinite(totalRate) || totalRate < 0 || totalRate > MAX_AMOUNT
+      ) {
+        return new Response(JSON.stringify({ error: "Invalid rate amounts." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const cleanSurcharges = (clientRate.surcharges || [])
+        .map((s) => {
+          const amt = Number(s?.amount) || 0;
+          if (!Number.isFinite(amt) || amt < 0 || amt > MAX_AMOUNT) return null;
+          return {
+            description: typeof s?.description === "string" ? s.description.slice(0, 200) : undefined,
+            code: typeof s?.code === "string" ? s.code.slice(0, 50) : undefined,
+            amount: amt,
+          };
+        })
+        .filter(Boolean) as Array<{ description?: string; code?: string; amount: number }>;
+      rate = { ...clientRate, baseRate, totalRate, surcharges: cleanSurcharges };
     }
 
     const { data: membership } = await adminClient
