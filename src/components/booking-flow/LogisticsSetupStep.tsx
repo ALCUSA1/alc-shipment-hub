@@ -62,7 +62,10 @@ export function LogisticsSetupStep({
   const [selectedPickupTrucker, setSelectedPickupTrucker] = useState<string | null>(null);
   const [selectedDeliveryTrucker, setSelectedDeliveryTrucker] = useState<string | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [truckingInstructions, setTruckingInstructions] = useState("");
+  const [savingInstructions, setSavingInstructions] = useState(false);
 
   // Fetch trucking companies from trucking_quotes or generate suggestions
   const { data: truckingQuotes = [] } = useQuery({
@@ -158,20 +161,56 @@ export function LogisticsSetupStep({
     ];
   }, [warehouseOrders, originPort]);
 
-  // Auto-generate trucking instructions from shipment data
+  // Hydrate persisted instruction fields and seed auto-generated trucking summary
   useEffect(() => {
-    if (shipment && !truckingInstructions) {
-      const parts = [];
+    if (!shipment) return;
+    if (shipment.pickup_instructions && !pickupInstructions) {
+      setPickupInstructions(shipment.pickup_instructions);
+    }
+    if (shipment.delivery_instructions && !deliveryInstructions) {
+      setDeliveryInstructions(shipment.delivery_instructions);
+    }
+    if (!truckingInstructions) {
+      const parts: string[] = [];
       if (shipment.carrier) parts.push(`Carrier: ${shipment.carrier}`);
       if (shipment.vessel) parts.push(`Vessel: ${shipment.vessel}`);
       if (shipment.voyage) parts.push(`Voyage: ${shipment.voyage}`);
       if (shipment.container_type) parts.push(`Container: ${shipment.container_type}`);
       if (shipment.etd) parts.push(`ETD: ${new Date(shipment.etd).toLocaleDateString()}`);
       if (parts.length > 0) {
-        setTruckingInstructions(`Shipment: ${shipment.shipment_ref || ""}\n${parts.join("\n")}\n\nPlease coordinate pickup/delivery accordingly.`);
+        setTruckingInstructions(`Shipment: ${shipment.shipment_ref || ""}\n${parts.join("\n")}`);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipment]);
+
+  // Persist instructions to shipment row, then continue
+  const persistAndContinue = async () => {
+    if (!shipmentId) {
+      onContinue();
+      return;
+    }
+    setSavingInstructions(true);
+    try {
+      // Combine the auto-generated trucking summary with user pickup notes when present
+      const combinedPickup = [pickupInstructions, truckingInstructions]
+        .filter(Boolean)
+        .join("\n\n---\n")
+        .trim();
+      await supabase
+        .from("shipments")
+        .update({
+          pickup_instructions: combinedPickup || null,
+          delivery_instructions: deliveryInstructions || null,
+        })
+        .eq("id", shipmentId);
+    } catch (err) {
+      console.error("Failed to save trucking instructions", err);
+    } finally {
+      setSavingInstructions(false);
+      onContinue();
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -356,25 +395,59 @@ export function LogisticsSetupStep({
         )}
       </Card>
 
-      {/* Auto-generated trucking instructions */}
+      {/* Special Instructions for Trucking Company */}
       {needsTrucking && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
-              Auto-Generated Instructions
+              <Truck className="h-4 w-4 text-accent" />
+              Special Instructions for Trucking Company
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-[10px] text-muted-foreground mb-2">
-              These instructions are auto-populated from your shipment data. The trucking company will receive this information automatically.
+          <CardContent className="space-y-3">
+            <p className="text-[11px] text-muted-foreground">
+              Anything the driver should know — gate codes, dock numbers, lift-gate, hours of operation, contact on site, hazardous handling, etc. These notes will be sent to the assigned trucking partner.
             </p>
-            <Textarea
-              value={truckingInstructions}
-              onChange={e => setTruckingInstructions(e.target.value)}
-              rows={5}
-              className="text-xs"
-            />
+
+            <div>
+              <Label className="text-xs text-muted-foreground">Pickup Special Instructions</Label>
+              <Textarea
+                value={pickupInstructions}
+                onChange={e => setPickupInstructions(e.target.value)}
+                rows={3}
+                placeholder="e.g. Gate code 4421, ask for John at receiving, dock #6, liftgate required, open 8am–4pm"
+                className="text-xs mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs text-muted-foreground">Delivery Special Instructions</Label>
+              <Textarea
+                value={deliveryInstructions}
+                onChange={e => setDeliveryInstructions(e.target.value)}
+                rows={3}
+                placeholder="e.g. Call 30 min prior, residential — no semi-trailers, deliver to back loading bay, fragile cargo"
+                className="text-xs mt-1"
+              />
+            </div>
+
+            <Separator />
+
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="h-3.5 w-3.5 text-accent" />
+                <Label className="text-xs text-accent">Auto-Generated Shipment Summary</Label>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-2">
+                Auto-populated from your shipment data and appended to pickup instructions for the driver.
+              </p>
+              <Textarea
+                value={truckingInstructions}
+                onChange={e => setTruckingInstructions(e.target.value)}
+                rows={4}
+                className="text-xs"
+              />
+            </div>
           </CardContent>
         </Card>
       )}
@@ -417,8 +490,8 @@ export function LogisticsSetupStep({
           <Button variant="outline" onClick={onSaveDraft} disabled={saving}>
             <Save className="h-4 w-4 mr-1.5" />{saving ? "Saving..." : "Save Draft"}
           </Button>
-          <Button variant="electric" onClick={onContinue}>
-            <Send className="h-4 w-4 mr-1.5" /> Save & Continue
+          <Button variant="electric" onClick={persistAndContinue} disabled={savingInstructions}>
+            <Send className="h-4 w-4 mr-1.5" /> {savingInstructions ? "Saving..." : "Save & Continue"}
           </Button>
         </div>
       </div>
