@@ -79,16 +79,16 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } },
+      { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: claims } = await supabase.auth.getClaims(
-      (req.headers.get("Authorization") ?? "").replace("Bearer ", ""),
-    );
-    const userId = claims?.claims?.sub;
-    const userEmail = claims?.claims?.email;
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData } = token ? await supabase.auth.getUser(token) : { data: { user: null } } as any;
+    const userId = userData?.user?.id;
+    const userEmail = userData?.user?.email;
 
     const body = (await req.json()) as Body;
 
