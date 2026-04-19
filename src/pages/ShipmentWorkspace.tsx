@@ -148,7 +148,7 @@ const ShipmentWorkspace = () => {
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["ws-shipment", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name)").eq("id", id!).maybeSingle();
+      const { data, error } = await supabase.from("shipments").select("*, companies!shipments_company_id_fkey(company_name), alc_carriers(carrier_code, carrier_name)").eq("id", id!).maybeSingle();
       if (error) throw error;
       if (data) checkAndRedirect(data);
       return data;
