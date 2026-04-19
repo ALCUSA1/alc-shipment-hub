@@ -91,7 +91,19 @@ const BookingFlow = () => {
         query = query.eq("container_type", params.containerSize);
       }
 
-      const { data, error } = await query;
+      // Fetch in parallel: stored carrier_rates + live Hapag-Lloyd sailings (ocean only)
+      const hlagPromise = params.mode === "ocean"
+        ? supabase.functions.invoke("hapag-schedules", {
+            body: {
+              query_type: "point_to_point",
+              placeOfReceipt: params.origin,
+              placeOfDelivery: params.destination,
+              limit: 5,
+            },
+          }).catch((e) => { console.warn("HLAG sailings unavailable:", e); return { data: null }; })
+        : Promise.resolve({ data: null });
+
+      const [{ data, error }, hlagRes] = await Promise.all([query, hlagPromise]);
       if (error) throw error;
 
       const options: SailingOption[] = (data || []).map((r: any, idx: number) => {
