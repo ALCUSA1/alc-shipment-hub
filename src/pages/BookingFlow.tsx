@@ -43,6 +43,7 @@ export interface SailingOption {
   etd?: string;
   eta?: string;
   availability?: string;
+  hlag_offer_id?: string;
 }
 
 export interface QuoteData {
