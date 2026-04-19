@@ -256,14 +256,23 @@ function buildCommercialInvoice(ship: any, shipper: any, consignee: any, cargo: 
   const lineItems = cargo.map((c: any, i: number) => ({
     line: i + 1,
     commodity: c.commodity || "General Cargo",
-    hs_code: c.hs_code || "—",
+    hs_code: c.hs_code || c.hts_code || c.schedule_b || "—",
     country_of_origin: c.country_of_origin || "—",
+    packages: c.num_packages || c.pieces || 0,
+    package_type: c.package_type || "PKG",
+    gross_weight_kg: c.gross_weight || 0,
+    net_weight_kg: c.net_weight || 0,
+    volume_cbm: c.volume || 0,
+    dimensions: c.dimensions || "—",
     quantity: c.num_packages || c.pieces || 0,
     unit_value: c.unit_value || 0,
     total_value: c.total_value || 0,
     currency: "USD",
   }));
   const grandTotal = lineItems.reduce((s, l) => s + l.total_value, 0);
+  const totalGrossWeight = lineItems.reduce((s, l) => s + l.gross_weight_kg, 0);
+  const totalPackages = lineItems.reduce((s, l) => s + l.packages, 0);
+  const totalVolume = lineItems.reduce((s, l) => s + l.volume_cbm, 0);
 
   return {
     title: "COMMERCIAL INVOICE",
@@ -276,6 +285,11 @@ function buildCommercialInvoice(ship: any, shipper: any, consignee: any, cargo: 
     origin: ship.origin_port || "—",
     destination: ship.destination_port || "—",
     line_items: lineItems,
+    totals: {
+      packages: totalPackages,
+      gross_weight_kg: totalGrossWeight,
+      volume_cbm: totalVolume,
+    },
     grand_total: grandTotal,
     currency: "USD",
     declaration: "I declare that the information on this invoice is true and correct.",
