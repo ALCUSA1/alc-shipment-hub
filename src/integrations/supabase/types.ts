@@ -5912,6 +5912,105 @@ export type Database = {
           },
         ]
       }
+      platform_company_settings: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_address: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bank_swift: string | null
+          bill_of_lading_footer_note: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          ein: string | null
+          email: string | null
+          fax: string | null
+          fmc_license: string | null
+          id: string
+          invoice_footer_note: string | null
+          invoice_payment_instructions: string | null
+          is_active: boolean
+          legal_name: string
+          logo_url: string | null
+          oti_number: string | null
+          phone: string | null
+          postal_code: string | null
+          short_name: string | null
+          state: string | null
+          tagline: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_address?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bank_swift?: string | null
+          bill_of_lading_footer_note?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          ein?: string | null
+          email?: string | null
+          fax?: string | null
+          fmc_license?: string | null
+          id?: string
+          invoice_footer_note?: string | null
+          invoice_payment_instructions?: string | null
+          is_active?: boolean
+          legal_name?: string
+          logo_url?: string | null
+          oti_number?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          short_name?: string | null
+          state?: string | null
+          tagline?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_address?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bank_swift?: string | null
+          bill_of_lading_footer_note?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          ein?: string | null
+          email?: string | null
+          fax?: string | null
+          fmc_license?: string | null
+          id?: string
+          invoice_footer_note?: string | null
+          invoice_payment_instructions?: string | null
+          is_active?: boolean
+          legal_name?: string
+          logo_url?: string | null
+          oti_number?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          short_name?: string | null
+          state?: string | null
+          tagline?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           created_at: string
