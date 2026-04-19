@@ -194,7 +194,7 @@ export function HlagLiveTelemetryTab({
               {subs.map((s: any) => (
                 <div key={s.id} className="flex items-center justify-between border rounded-lg px-3 py-2 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
-                    {s.status === "active" ? <Wifi className="h-4 w-4 text-emerald-600" /> : <WifiOff className="h-4 w-4 text-muted-foreground" />}
+                    {s.status === "active" ? <Wifi className="h-4 w-4 text-accent" /> : <WifiOff className="h-4 w-4 text-muted-foreground" />}
                     <span className="font-medium capitalize">{s.feed_type}</span>
                     <Badge variant="outline" className="text-xs">{s.status}</Badge>
                     {s.simulated && <Badge variant="secondary" className="text-xs">simulation</Badge>}

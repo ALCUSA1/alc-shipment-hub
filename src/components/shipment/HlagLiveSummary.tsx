@@ -48,11 +48,11 @@ export function HlagLiveSummary({ shipmentId, carrierCode, onOpenTab }: HlagLive
   const latestEvent = latest.events[0];
 
   return (
-    <Card className="border-orange-200/50 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-900/30">
+    <Card className="border-accent/30 bg-accent/5">
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <Wifi className="h-4 w-4 text-emerald-600" />
+            <Wifi className="h-4 w-4 text-accent" />
             <span className="font-medium text-sm">Hapag-Lloyd Live</span>
             <Badge variant="outline" className="text-xs">
               {latest.subs.length} active feed{latest.subs.length === 1 ? "" : "s"}
