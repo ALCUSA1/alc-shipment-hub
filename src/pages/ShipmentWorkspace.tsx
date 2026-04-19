@@ -14,6 +14,8 @@ import { LogisticsServicesPanel } from "@/components/shipment/LogisticsServicesP
 import { AuditTrailPanel } from "@/components/shipment/AuditTrailPanel";
 import { CustomsFilingPanel } from "@/components/shipment/CustomsFilingPanel";
 import { LiveTrackingPanel } from "@/components/shipment/LiveTrackingPanel";
+import { HlagLiveTelemetryTab } from "@/components/shipment/HlagLiveTelemetryTab";
+import { HlagLiveSummary } from "@/components/shipment/HlagLiveSummary";
 import { TruckingRateSelector } from "@/components/shipment/TruckingRateSelector";
 import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar";
 import { ShipmentIntelligencePanel } from "@/components/shipment/ShipmentIntelligencePanel";
@@ -60,6 +62,7 @@ const LIFECYCLE_STAGES = [
 const TABS = [
   { id: "overview", label: "Overview", icon: Package },
   { id: "tracking", label: "Tracking", icon: Clock },
+  { id: "live", label: "Live Telemetry", icon: Activity },
   { id: "booking", label: "Booking", icon: Anchor },
   { id: "compliance", label: "Compliance", icon: Shield },
   { id: "logistics", label: "Logistics", icon: Truck },
@@ -498,8 +501,23 @@ const ShipmentWorkspace = () => {
           </TabsContent>
 
           {/* TRACKING TAB */}
-          <TabsContent value="tracking" className="mt-5">
+          <TabsContent value="tracking" className="mt-5 space-y-4">
+            <HlagLiveSummary
+              shipmentId={id!}
+              carrierCode={shipment.alc_carriers?.carrier_code}
+              onOpenTab={() => setActiveTab("live")}
+            />
             <LiveTrackingPanel shipmentId={id!} mode={(shipment.mode as "ocean" | "air") || "ocean"} />
+          </TabsContent>
+
+          {/* LIVE TELEMETRY TAB */}
+          <TabsContent value="live" className="mt-5">
+            <HlagLiveTelemetryTab
+              shipmentId={id!}
+              bookingRef={shipment.booking_ref}
+              containerNumber={containers?.[0]?.container_number}
+              carrierCode={shipment.alc_carriers?.carrier_code}
+            />
           </TabsContent>
 
           {/* COMPLIANCE TAB */}
