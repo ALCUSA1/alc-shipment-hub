@@ -106,23 +106,32 @@ async function callHlag(path: string, params: Record<string, any>) {
     if (v != null && v !== "") qs.set(k, String(v));
   }
   const url = `${HLAG_BASE_URL}${path}?${qs}`;
-  const resp = await fetch(url, {
-    headers: {
-      "X-IBM-Client-Id": clientId,
-      "X-IBM-Client-Secret": clientSecret,
-      "Accept": "application/json",
-      "API-Version": "1",
-    },
-  });
-  const text = await resp.text();
-  if (!resp.ok) {
-    throw new Error(`HLAG ${path} failed (${resp.status}): ${text.slice(0, 500)}`);
+  try {
+    const resp = await fetch(url, {
+      headers: {
+        "X-IBM-Client-Id": clientId,
+        "X-IBM-Client-Secret": clientSecret,
+        "Accept": "application/json",
+        "API-Version": "1",
+      },
+    });
+    let text = "";
+    try { text = await resp.text(); } catch (_) { text = ""; }
+    if (!resp.ok) {
+      console.warn(`HLAG ${path} → ${resp.status}: ${text.slice(0, 300)} — simulation fallback`);
+      return { simulated: true, payload: simulatePayload(path, params), upstreamStatus: resp.status, upstreamBody: text.slice(0, 300) };
+    }
+    let parsed: any = {};
+    try { parsed = text ? JSON.parse(text) : {}; } catch (_) { parsed = {}; }
+    return {
+      simulated: false,
+      payload: parsed,
+      nextCursor: resp.headers.get("Next-Page-Cursor"),
+    };
+  } catch (err) {
+    console.warn(`HLAG ${path} fetch error: ${(err as Error).message} — simulation fallback`);
+    return { simulated: true, payload: simulatePayload(path, params), upstreamError: (err as Error).message };
   }
-  return {
-    simulated: false,
-    payload: text ? JSON.parse(text) : {},
-    nextCursor: resp.headers.get("Next-Page-Cursor"),
-  };
 }
 
 /* ── simulation fallback (no creds) ── */
