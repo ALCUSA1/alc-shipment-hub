@@ -87,3 +87,5 @@ project_id = "sikosqmgmwvdmxzigjpl"
     verify_jwt = false
   [functions.hapag-live-webhook]
     verify_jwt = false
+  [functions.hapag-quick-quotes]
+    verify_jwt = false
