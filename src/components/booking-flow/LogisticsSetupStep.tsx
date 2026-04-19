@@ -161,20 +161,56 @@ export function LogisticsSetupStep({
     ];
   }, [warehouseOrders, originPort]);
 
-  // Auto-generate trucking instructions from shipment data
+  // Hydrate persisted instruction fields and seed auto-generated trucking summary
   useEffect(() => {
-    if (shipment && !truckingInstructions) {
-      const parts = [];
+    if (!shipment) return;
+    if (shipment.pickup_instructions && !pickupInstructions) {
+      setPickupInstructions(shipment.pickup_instructions);
+    }
+    if (shipment.delivery_instructions && !deliveryInstructions) {
+      setDeliveryInstructions(shipment.delivery_instructions);
+    }
+    if (!truckingInstructions) {
+      const parts: string[] = [];
       if (shipment.carrier) parts.push(`Carrier: ${shipment.carrier}`);
       if (shipment.vessel) parts.push(`Vessel: ${shipment.vessel}`);
       if (shipment.voyage) parts.push(`Voyage: ${shipment.voyage}`);
       if (shipment.container_type) parts.push(`Container: ${shipment.container_type}`);
       if (shipment.etd) parts.push(`ETD: ${new Date(shipment.etd).toLocaleDateString()}`);
       if (parts.length > 0) {
-        setTruckingInstructions(`Shipment: ${shipment.shipment_ref || ""}\n${parts.join("\n")}\n\nPlease coordinate pickup/delivery accordingly.`);
+        setTruckingInstructions(`Shipment: ${shipment.shipment_ref || ""}\n${parts.join("\n")}`);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipment]);
+
+  // Persist instructions to shipment row, then continue
+  const persistAndContinue = async () => {
+    if (!shipmentId) {
+      onContinue();
+      return;
+    }
+    setSavingInstructions(true);
+    try {
+      // Combine the auto-generated trucking summary with user pickup notes when present
+      const combinedPickup = [pickupInstructions, truckingInstructions]
+        .filter(Boolean)
+        .join("\n\n---\n")
+        .trim();
+      await supabase
+        .from("shipments")
+        .update({
+          pickup_instructions: combinedPickup || null,
+          delivery_instructions: deliveryInstructions || null,
+        })
+        .eq("id", shipmentId);
+    } catch (err) {
+      console.error("Failed to save trucking instructions", err);
+    } finally {
+      setSavingInstructions(false);
+      onContinue();
+    }
+  };
 
   return (
     <div className="space-y-4">
