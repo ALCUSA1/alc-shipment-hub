@@ -11,9 +11,9 @@ const HLAG_BASE_URL = "https://api.hlag.com/hlag/external/v2/quotation-booking-e
 
 interface PriceRequest {
   action: "prices";
-  placeOfReceipt: string;
-  placeOfDelivery: string;
-  isoEquipmentCode?: string; // e.g. "22GP" / "42GP"
+  placeOfReceipt: string;       // UN/LOCODE e.g. "DEHAM"
+  placeOfDelivery: string;      // UN/LOCODE e.g. "SGSIN"
+  isoEquipmentCode?: string;    // e.g. "22GP" / "42GP"
   units?: number;
   weightPerUnitKg?: number;
   earliestDepartureDate?: string; // YYYY-MM-DD
@@ -26,7 +26,7 @@ interface QuotationRequest {
   customerIdentifier: string;
   receivingEmail?: string;
   shipmentId?: string;
-  hlagQuotationId?: string; // existing row to update
+  hlagQuotationId?: string;
 }
 
 type Body = PriceRequest | QuotationRequest;
@@ -54,13 +54,13 @@ function simulatedPrices(req: PriceRequest) {
   };
 }
 
-async function hlagFetch(path: string, body: any) {
+async function hlagFetch(path: string, body: unknown) {
   const clientId = Deno.env.get("HLAG_CLIENT_ID");
   const clientSecret = Deno.env.get("HLAG_CLIENT_SECRET");
   if (!clientId || !clientSecret) return { ok: false, status: 401, body: "missing creds" };
 
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
+  const timer = setTimeout(() => ctrl.abort(), 10_000);
   try {
     const res = await fetch(`${HLAG_BASE_URL}${path}`, {
       method: "POST",
@@ -73,14 +73,20 @@ async function hlagFetch(path: string, body: any) {
       body: JSON.stringify(body),
       signal: ctrl.signal,
     });
+    // Read body safely — clone() avoids the "error reading a body" race on aborted/streamed responses
     let text = "";
-    try { text = await res.text(); } catch { /* ignore */ }
-    let json: any = null;
+    try {
+      text = await res.clone().text();
+    } catch (readErr) {
+      console.warn("hlagFetch body read failed:", (readErr as Error)?.message);
+    }
+    let json: unknown = null;
     try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
-    return { ok: res.ok, status: res.status, body: json ?? text };
-  } catch (e: any) {
-    console.warn("hlagFetch error:", e?.name, e?.message);
-    return { ok: false, status: 0, body: e?.message ?? "network error" };
+    return { ok: res.ok, status: res.status, body: (json ?? text) as any };
+  } catch (e) {
+    const err = e as Error;
+    console.warn("hlagFetch error:", err?.name, err?.message);
+    return { ok: false, status: 0, body: err?.message ?? "network error" };
   } finally {
     clearTimeout(timer);
   }
@@ -97,28 +103,35 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData } = token ? await supabase.auth.getUser(token) : { data: { user: null } } as any;
+    const { data: userData } = token
+      ? await supabase.auth.getUser(token)
+      : ({ data: { user: null } } as any);
     const userId = userData?.user?.id;
     const userEmail = userData?.user?.email;
 
     const body = (await req.json()) as Body;
 
     if (body.action === "prices") {
+      // ✅ DCSA-compliant payload: locationCode objects + requestedEquipment as ARRAY
       const hlagBody = {
-        placeOfReceipt: body.placeOfReceipt,
-        placeOfDelivery: body.placeOfDelivery,
-        requestedEquipment: {
-          units: body.units ?? 1,
-          isoEquipmentCode: body.isoEquipmentCode ?? "22GP",
-          weightPerUnit: { value: body.weightPerUnitKg ?? 10000, unit: "KGM" },
-        },
+        placeOfReceipt: { locationCode: body.placeOfReceipt },
+        placeOfDelivery: { locationCode: body.placeOfDelivery },
+        requestedEquipment: [
+          {
+            isoEquipmentCode: body.isoEquipmentCode ?? "22GP",
+            units: body.units ?? 1,
+            weightPerUnit: { value: body.weightPerUnitKg ?? 10000, unit: "KGM" },
+          },
+        ],
         commodity: { commodityTypeGroup: "FAK" },
         receiptTypeAtOrigin: "CY",
         deliveryTypeAtDestination: "CY",
         earliestDepartureDate:
-          body.earliestDepartureDate ?? new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+          body.earliestDepartureDate ??
+          new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
         productIdentifiers: ["QUICK_QUOTES", "QUICK_QUOTES_SPOT"],
-        customerIdentifier: body.customerIdentifier ?? userEmail ?? "platform@alllogisticscargo.com",
+        customerIdentifier:
+          body.customerIdentifier ?? userEmail ?? "platform@alllogisticscargo.com",
       };
 
       const upstream = await hlagFetch("/prices", hlagBody);
@@ -130,7 +143,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Map HLAG response → normalized offer list
       const raw = upstream.body as any;
       const offers = (raw?.offers ?? raw?.priceQuotes ?? []).map((o: any) => ({
         offerId: o.offerId ?? o.id,
@@ -157,7 +169,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      const customerEmail = body.customerIdentifier ?? userEmail ?? "platform@alllogisticscargo.com";
+      const customerEmail =
+        body.customerIdentifier ?? userEmail ?? "platform@alllogisticscargo.com";
       const isSimulatedOffer = body.offerId.startsWith("sim-");
 
       let upstream: any = null;
@@ -182,7 +195,6 @@ Deno.serve(async (req) => {
         quotationReference = `SIM-Q-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
       }
 
-      // Persist
       const updatePayload = {
         quotation_reference: quotationReference,
         status: "locked",
@@ -213,9 +225,10 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
-    console.error("hapag-quick-quotes error:", e);
-    return new Response(JSON.stringify({ error: e.message ?? "Internal error" }), {
+  } catch (e) {
+    const err = e as Error;
+    console.error("hapag-quick-quotes error:", err);
+    return new Response(JSON.stringify({ error: err.message ?? "Internal error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
