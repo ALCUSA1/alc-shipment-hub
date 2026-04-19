@@ -4782,6 +4782,93 @@ export type Database = {
           },
         ]
       }
+      hlag_quotations: {
+        Row: {
+          created_at: string
+          currency: string | null
+          customer_identifier: string
+          earliest_departure_date: string | null
+          id: string
+          is_simulated: boolean | null
+          iso_equipment_code: string | null
+          offer_id: string | null
+          place_of_delivery: string
+          place_of_receipt: string
+          quotation_reference: string | null
+          raw_price_response: Json | null
+          raw_quotation_response: Json | null
+          shipment_id: string | null
+          status: string
+          total_price: number | null
+          transit_days: number | null
+          units: number | null
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          customer_identifier: string
+          earliest_departure_date?: string | null
+          id?: string
+          is_simulated?: boolean | null
+          iso_equipment_code?: string | null
+          offer_id?: string | null
+          place_of_delivery: string
+          place_of_receipt: string
+          quotation_reference?: string | null
+          raw_price_response?: Json | null
+          raw_quotation_response?: Json | null
+          shipment_id?: string | null
+          status?: string
+          total_price?: number | null
+          transit_days?: number | null
+          units?: number | null
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          customer_identifier?: string
+          earliest_departure_date?: string | null
+          id?: string
+          is_simulated?: boolean | null
+          iso_equipment_code?: string | null
+          offer_id?: string | null
+          place_of_delivery?: string
+          place_of_receipt?: string
+          quotation_reference?: string | null
+          raw_price_response?: Json | null
+          raw_quotation_response?: Json | null
+          shipment_id?: string | null
+          status?: string
+          total_price?: number | null
+          transit_days?: number | null
+          units?: number | null
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hlag_quotations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_quotations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hs_code_reference: {
         Row: {
           category: string | null

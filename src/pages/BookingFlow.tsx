@@ -43,6 +43,7 @@ export interface SailingOption {
   etd?: string;
   eta?: string;
   availability?: string;
+  hlag_offer_id?: string;
 }
 
 export interface QuoteData {
@@ -91,7 +92,7 @@ const BookingFlow = () => {
         query = query.eq("container_type", params.containerSize);
       }
 
-      // Fetch in parallel: stored carrier_rates + live Hapag-Lloyd sailings (ocean only)
+      // Fetch in parallel: stored carrier_rates + live HLAG schedules + HLAG quick quotes
       const hlagPromise = params.mode === "ocean"
         ? supabase.functions.invoke("hapag-schedules", {
             body: {
@@ -103,7 +104,24 @@ const BookingFlow = () => {
           }).catch((e) => { console.warn("HLAG sailings unavailable:", e); return { data: null }; })
         : Promise.resolve({ data: null });
 
-      const [{ data, error }, hlagRes] = await Promise.all([query, hlagPromise]);
+      const isoEquip = params.containerSize === "20gp" ? "22GP"
+        : params.containerSize === "40gp" ? "42GP"
+        : params.containerSize === "40hc" ? "45GP" : "22GP";
+
+      const quickQuotesPromise = params.mode === "ocean"
+        ? supabase.functions.invoke("hapag-quick-quotes", {
+            body: {
+              action: "prices",
+              placeOfReceipt: params.origin,
+              placeOfDelivery: params.destination,
+              isoEquipmentCode: isoEquip,
+              units: params.containers || 1,
+              weightPerUnitKg: Number(params.weight) || 10000,
+            },
+          }).catch((e) => { console.warn("HLAG quick quotes unavailable:", e); return { data: null }; })
+        : Promise.resolve({ data: null });
+
+      const [{ data, error }, hlagRes, quickRes] = await Promise.all([query, hlagPromise, quickQuotesPromise]);
       if (error) throw error;
 
       const options: SailingOption[] = (data || []).map((r: any, idx: number) => {
@@ -170,7 +188,31 @@ const BookingFlow = () => {
         };
       });
 
-      setSailingOptions([...options, ...hlagOptions]);
+      // HLAG Quick Quotes — instant live pricing offers
+      const quickOffers: any[] = (quickRes as any)?.data?.offers || [];
+      const quickOptions: SailingOption[] = quickOffers.map((o: any, i: number) => ({
+        id: `hlag-quote-${o.offerId}`,
+        carrier: "Hapag-Lloyd (Quick Quote)",
+        origin_port: params.origin,
+        destination_port: params.destination,
+        container_type: params.containerSize,
+        base_rate: Number(o.totalPrice) || 0,
+        currency: o.currency || "USD",
+        transit_days: o.transitDays ?? null,
+        valid_from: new Date().toISOString().split("T")[0],
+        valid_until: o.validUntil ? o.validUntil.split("T")[0] : new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0],
+        surcharges: [],
+        notes: `Live HLAG quick quote · ${o.productIdentifier || "QUICK_QUOTES"} · Locks on booking`,
+        service_level: o.label || null,
+        free_time_days: 14,
+        total_rate: Number(o.totalPrice) || 0,
+        ai_label: i === 0 ? "Live Quote" : undefined,
+        ai_reason: "Instant binding price from Hapag-Lloyd",
+        availability: "High",
+        hlag_offer_id: o.offerId,
+      }));
+
+      setSailingOptions([...options, ...hlagOptions, ...quickOptions]);
       setStep("sailings");
     } catch (err) {
       console.error("Search error:", err);
@@ -204,6 +246,7 @@ const BookingFlow = () => {
         validUntil: sailing.valid_until,
         serviceLevel: sailing.service_level,
         freeTimeDays: sailing.free_time_days,
+        hlagOfferId: sailing.hlag_offer_id,
       };
 
       const draft = await createShipmentDraft(rateSelection);
