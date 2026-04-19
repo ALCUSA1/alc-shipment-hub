@@ -81,3 +81,9 @@ project_id = "sikosqmgmwvdmxzigjpl"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.hapag-schedules]
+    verify_jwt = false
+  [functions.hapag-live-subscribe]
+    verify_jwt = false
+  [functions.hapag-live-webhook]
+    verify_jwt = false
