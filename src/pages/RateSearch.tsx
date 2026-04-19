@@ -141,7 +141,46 @@ const RateSearch = () => {
       }
     }
 
-    setResults([...(localRates || []), ...liveRates]);
+    // 3) HLAG Quick Quotes — instant live pricing (ocean only)
+    let quickQuotes: any[] = [];
+    if (params.mode === "ocean") {
+      try {
+        const isoEquip = params.containerSize === "20gp" ? "22GP"
+          : params.containerSize === "40gp" ? "42GP"
+          : params.containerSize === "40hc" ? "45GP" : "22GP";
+        const { data: qq } = await supabase.functions.invoke("hapag-quick-quotes", {
+          body: {
+            action: "prices",
+            placeOfReceipt: params.origin,
+            placeOfDelivery: params.destination,
+            isoEquipmentCode: isoEquip,
+            units: 1,
+          },
+        });
+        if (qq?.offers?.length) {
+          quickQuotes = qq.offers.map((o: any, idx: number) => ({
+            id: `hlag-quote-${o.offerId}`,
+            carrier: "Hapag-Lloyd (Quick Quote)",
+            origin_port: params.origin,
+            destination_port: params.destination,
+            container_type: params.containerSize,
+            base_rate: Number(o.totalPrice) || 0,
+            currency: o.currency || "USD",
+            transit_days: o.transitDays ?? null,
+            valid_from: today,
+            valid_until: o.validUntil ? o.validUntil.split("T")[0] : today,
+            surcharges: [],
+            notes: `Live HLAG quick quote • ${o.productIdentifier || "QUICK_QUOTES"} • Binding on booking`,
+            rate_basis_type: "live_quote",
+            hlag_offer_id: o.offerId,
+          }));
+        }
+      } catch (e) {
+        console.warn("HLAG quick quotes failed:", e);
+      }
+    }
+
+    setResults([...(localRates || []), ...liveRates, ...quickQuotes]);
   };
 
   // Auto-search when arriving from hero with URL params
