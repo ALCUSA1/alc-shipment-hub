@@ -59,20 +59,31 @@ async function hlagFetch(path: string, body: any) {
   const clientSecret = Deno.env.get("HLAG_CLIENT_SECRET");
   if (!clientId || !clientSecret) return { ok: false, status: 401, body: "missing creds" };
 
-  const res = await fetch(`${HLAG_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "X-IBM-Client-Id": clientId,
-      "X-IBM-Client-Secret": clientSecret,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
-  let json: any = null;
-  try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
-  return { ok: res.ok, status: res.status, body: json ?? text };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(`${HLAG_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "X-IBM-Client-Id": clientId,
+        "X-IBM-Client-Secret": clientSecret,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    let text = "";
+    try { text = await res.text(); } catch { /* ignore */ }
+    let json: any = null;
+    try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
+    return { ok: res.ok, status: res.status, body: json ?? text };
+  } catch (e: any) {
+    console.warn("hlagFetch error:", e?.name, e?.message);
+    return { ok: false, status: 0, body: e?.message ?? "network error" };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 Deno.serve(async (req) => {
