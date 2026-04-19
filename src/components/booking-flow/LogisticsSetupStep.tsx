@@ -62,7 +62,10 @@ export function LogisticsSetupStep({
   const [selectedPickupTrucker, setSelectedPickupTrucker] = useState<string | null>(null);
   const [selectedDeliveryTrucker, setSelectedDeliveryTrucker] = useState<string | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [truckingInstructions, setTruckingInstructions] = useState("");
+  const [savingInstructions, setSavingInstructions] = useState(false);
 
   // Fetch trucking companies from trucking_quotes or generate suggestions
   const { data: truckingQuotes = [] } = useQuery({
