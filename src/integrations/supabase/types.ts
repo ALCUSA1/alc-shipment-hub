@@ -4616,6 +4616,172 @@ export type Database = {
         }
         Relationships: []
       }
+      hlag_live_events: {
+        Row: {
+          carrier_booking_reference: string | null
+          co2_percent: number | null
+          equipment_reference: string | null
+          event_datetime: string
+          event_type: string | null
+          feed_type: string
+          heading_degrees: number | null
+          humidity_percent: number | null
+          id: string
+          ingested_at: string
+          latitude: number | null
+          longitude: number | null
+          o2_percent: number | null
+          power_status: string | null
+          raw_payload: Json | null
+          setpoint_celsius: number | null
+          shipment_id: string | null
+          speed_knots: number | null
+          subscription_id: string | null
+          temperature_celsius: number | null
+        }
+        Insert: {
+          carrier_booking_reference?: string | null
+          co2_percent?: number | null
+          equipment_reference?: string | null
+          event_datetime?: string
+          event_type?: string | null
+          feed_type: string
+          heading_degrees?: number | null
+          humidity_percent?: number | null
+          id?: string
+          ingested_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          o2_percent?: number | null
+          power_status?: string | null
+          raw_payload?: Json | null
+          setpoint_celsius?: number | null
+          shipment_id?: string | null
+          speed_knots?: number | null
+          subscription_id?: string | null
+          temperature_celsius?: number | null
+        }
+        Update: {
+          carrier_booking_reference?: string | null
+          co2_percent?: number | null
+          equipment_reference?: string | null
+          event_datetime?: string
+          event_type?: string | null
+          feed_type?: string
+          heading_degrees?: number | null
+          humidity_percent?: number | null
+          id?: string
+          ingested_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          o2_percent?: number | null
+          power_status?: string | null
+          raw_payload?: Json | null
+          setpoint_celsius?: number | null
+          shipment_id?: string | null
+          speed_knots?: number | null
+          subscription_id?: string | null
+          temperature_celsius?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hlag_live_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_live_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_live_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "hlag_live_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hlag_live_subscriptions: {
+        Row: {
+          callback_secret: string
+          callback_url: string
+          carrier_booking_reference: string | null
+          created_at: string
+          created_by_user_id: string | null
+          equipment_reference: string | null
+          feed_type: string
+          hlag_subscription_id: string | null
+          id: string
+          last_error: string | null
+          last_event_at: string | null
+          package_name: string | null
+          shipment_id: string | null
+          simulated: boolean
+          status: string
+          trigger_source: string
+          updated_at: string
+        }
+        Insert: {
+          callback_secret: string
+          callback_url: string
+          carrier_booking_reference?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          equipment_reference?: string | null
+          feed_type: string
+          hlag_subscription_id?: string | null
+          id?: string
+          last_error?: string | null
+          last_event_at?: string | null
+          package_name?: string | null
+          shipment_id?: string | null
+          simulated?: boolean
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Update: {
+          callback_secret?: string
+          callback_url?: string
+          carrier_booking_reference?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          equipment_reference?: string | null
+          feed_type?: string
+          hlag_subscription_id?: string | null
+          id?: string
+          last_error?: string | null
+          last_event_at?: string | null
+          package_name?: string | null
+          shipment_id?: string | null
+          simulated?: boolean
+          status?: string
+          trigger_source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hlag_live_subscriptions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_live_subscriptions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hs_code_reference: {
         Row: {
           category: string | null
