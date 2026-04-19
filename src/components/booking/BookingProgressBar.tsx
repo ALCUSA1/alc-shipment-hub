@@ -1,9 +1,9 @@
-import { Check, Search, Ship, FileText, Package, Shield, DollarSign, CheckCircle, Plane } from "lucide-react";
+import { Check, Search, Ship, FileText, Package, Shield, DollarSign, CheckCircle, Anchor } from "lucide-react";
 
 const STEP_META: Record<string, { label: string; icon: any }> = {
   search: { label: "Search", icon: Search },
-  rates: { label: "Rate Selection", icon: Ship },
-  details: { label: "Shipment Details", icon: Plane },
+  rates: { label: "Rate Selection", icon: Anchor },
+  details: { label: "Shipment Details", icon: Ship },
   cargo: { label: "Cargo & Parties", icon: Package },
   compliance: { label: "Compliance", icon: Shield },
   documents: { label: "Documents", icon: FileText },
