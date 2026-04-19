@@ -91,7 +91,19 @@ const BookingFlow = () => {
         query = query.eq("container_type", params.containerSize);
       }
 
-      const { data, error } = await query;
+      // Fetch in parallel: stored carrier_rates + live Hapag-Lloyd sailings (ocean only)
+      const hlagPromise = params.mode === "ocean"
+        ? supabase.functions.invoke("hapag-schedules", {
+            body: {
+              query_type: "point_to_point",
+              placeOfReceipt: params.origin,
+              placeOfDelivery: params.destination,
+              limit: 5,
+            },
+          }).catch((e) => { console.warn("HLAG sailings unavailable:", e); return { data: null }; })
+        : Promise.resolve({ data: null });
+
+      const [{ data, error }, hlagRes] = await Promise.all([query, hlagPromise]);
       if (error) throw error;
 
       const options: SailingOption[] = (data || []).map((r: any, idx: number) => {
@@ -130,7 +142,35 @@ const BookingFlow = () => {
         };
       });
 
-      setSailingOptions(options);
+      // Append live Hapag-Lloyd sailings (indicative pricing) so users see real schedules
+      const hlagSailings: any[] = (hlagRes as any)?.data?.sailings || [];
+      const hlagOptions: SailingOption[] = hlagSailings.map((s: any, i: number) => {
+        const indicativeRate = params.containerSize === "20gp" ? 1850 : 2950;
+        return {
+          id: `hlag-${s.schedule_id || i}`,
+          carrier: "Hapag-Lloyd",
+          origin_port: params.origin,
+          destination_port: params.destination,
+          container_type: params.containerSize,
+          base_rate: indicativeRate,
+          currency: "USD",
+          transit_days: s.transit_days,
+          valid_from: new Date().toISOString().split("T")[0],
+          valid_until: new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0],
+          surcharges: [],
+          notes: `Live HLAG sailing · Service ${s.service_code || "—"}${s.is_direct ? " · Direct" : ` · ${s.leg_count} legs`}`,
+          service_level: s.service_name || null,
+          free_time_days: 14,
+          total_rate: indicativeRate,
+          ai_label: i === 0 && options.length === 0 ? "Live Sailing" : undefined,
+          ai_reason: "Real-time schedule from Hapag-Lloyd",
+          etd: s.etd || undefined,
+          eta: s.eta || undefined,
+          availability: "High",
+        };
+      });
+
+      setSailingOptions([...options, ...hlagOptions]);
       setStep("sailings");
     } catch (err) {
       console.error("Search error:", err);
