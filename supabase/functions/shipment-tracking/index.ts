@@ -6,17 +6,40 @@ const corsHeaders = {
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // Require authenticated user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Auth client (validates JWT + applies RLS for the caller)
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await authClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use the auth client (RLS-scoped) for all reads so users only see shipments they can view
+    const supabase = authClient;
+
     const url = new URL(req.url);
     const shipmentId = url.searchParams.get("shipment_id");
     const reference = url.searchParams.get("reference");
@@ -74,7 +97,7 @@ Deno.serve(async (req) => {
           alc_carriers!shipments_alc_carrier_id_fkey(carrier_code, carrier_name)
         `)
         .eq("id", resolvedShipmentId)
-        .single(),
+        .maybeSingle(),
       supabase
         .from("shipment_references")
         .select("reference_type, reference_value, is_primary, created_at")
@@ -122,6 +145,14 @@ Deno.serve(async (req) => {
     ]);
 
     if (shipmentRes.error) throw shipmentRes.error;
+
+    // RLS will return null/empty if user has no access
+    if (!shipmentRes.data) {
+      return new Response(
+        JSON.stringify({ error: "Shipment not found or access denied" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const response = {
       shipment: shipmentRes.data,
