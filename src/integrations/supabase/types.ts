@@ -4209,6 +4209,7 @@ export type Database = {
           email: string
           id: string
           token: string
+          token_hash: string | null
           used_at: string | null
         }
         Insert: {
@@ -4216,6 +4217,7 @@ export type Database = {
           email: string
           id?: string
           token: string
+          token_hash?: string | null
           used_at?: string | null
         }
         Update: {
@@ -4223,6 +4225,7 @@ export type Database = {
           email?: string
           id?: string
           token?: string
+          token_hash?: string | null
           used_at?: string | null
         }
         Relationships: []
@@ -4703,6 +4706,13 @@ export type Database = {
             columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "hlag_live_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_live_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "hlag_live_subscriptions_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -11407,6 +11417,72 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      hlag_live_subscriptions_safe: {
+        Row: {
+          carrier_booking_reference: string | null
+          created_at: string | null
+          equipment_reference: string | null
+          feed_type: string | null
+          hlag_subscription_id: string | null
+          id: string | null
+          last_error: string | null
+          last_event_at: string | null
+          package_name: string | null
+          shipment_id: string | null
+          simulated: boolean | null
+          status: string | null
+          trigger_source: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          carrier_booking_reference?: string | null
+          created_at?: string | null
+          equipment_reference?: string | null
+          feed_type?: string | null
+          hlag_subscription_id?: string | null
+          id?: string | null
+          last_error?: string | null
+          last_event_at?: string | null
+          package_name?: string | null
+          shipment_id?: string | null
+          simulated?: boolean | null
+          status?: string | null
+          trigger_source?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          carrier_booking_reference?: string | null
+          created_at?: string | null
+          equipment_reference?: string | null
+          feed_type?: string | null
+          hlag_subscription_id?: string | null
+          id?: string | null
+          last_error?: string | null
+          last_event_at?: string | null
+          package_name?: string | null
+          shipment_id?: string | null
+          simulated?: boolean | null
+          status?: string | null
+          trigger_source?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hlag_live_subscriptions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workspace_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hlag_live_subscriptions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_company_settings_public: {
         Row: {
