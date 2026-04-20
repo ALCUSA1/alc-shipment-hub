@@ -11408,6 +11408,123 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_company_settings_public: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          is_active: boolean | null
+          legal_name: string | null
+          logo_url: string | null
+          oti_number: string | null
+          phone: string | null
+          postal_code: string | null
+          short_name: string | null
+          state: string | null
+          tagline: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
+          oti_number?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          short_name?: string | null
+          state?: string | null
+          tagline?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          legal_name?: string | null
+          logo_url?: string | null
+          oti_number?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          short_name?: string | null
+          state?: string | null
+          tagline?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      profiles_public: {
+        Row: {
+          about: string | null
+          avatar_url: string | null
+          company_name: string | null
+          cover_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          logo_url: string | null
+          portfolio_urls: string[] | null
+          role: string | null
+          services: string[] | null
+          social_links: Json | null
+          tagline: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          about?: string | null
+          avatar_url?: string | null
+          company_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          logo_url?: string | null
+          portfolio_urls?: string[] | null
+          role?: string | null
+          services?: string[] | null
+          social_links?: Json | null
+          tagline?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          about?: string | null
+          avatar_url?: string | null
+          company_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          logo_url?: string | null
+          portfolio_urls?: string[] | null
+          role?: string | null
+          services?: string[] | null
+          social_links?: Json | null
+          tagline?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       shipment_workspace_view: {
         Row: {
           company_id: string | null
