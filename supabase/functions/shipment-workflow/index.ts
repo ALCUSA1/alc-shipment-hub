@@ -41,6 +41,187 @@ Deno.serve(async (req) => {
 
     if (!action) throw new Error("action is required");
 
+    // ===== Authorization helpers =====
+    const isPlatformAdmin = async (): Promise<boolean> => {
+      const { data: roles } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      return (roles || []).some((r) => r.role === "admin");
+    };
+
+    const userCanEditShipment = async (sid: string): Promise<boolean> => {
+      const { data: ship } = await adminClient
+        .from("shipments")
+        .select("user_id, company_id")
+        .eq("id", sid)
+        .single();
+      if (!ship) return false;
+      if (ship.user_id === user.id) return true;
+      if (await isPlatformAdmin()) return true;
+      if (ship.company_id) {
+        const { data: member } = await adminClient
+          .from("company_members")
+          .select("role, is_active")
+          .eq("user_id", user.id)
+          .eq("company_id", ship.company_id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (member && ["admin", "operations_manager", "pricing_manager", "sales_manager"].includes(member.role as string)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const userInCompany = async (companyId: string, allowedRoles?: string[]): Promise<boolean> => {
+      if (await isPlatformAdmin()) return true;
+      const { data: member } = await adminClient
+        .from("company_members")
+        .select("role, is_active")
+        .eq("user_id", user.id)
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!member) return false;
+      if (!allowedRoles) return true;
+      return allowedRoles.includes(member.role as string);
+    };
+
+    // Mutating actions that require shipment ownership/edit rights
+    const SHIPMENT_GUARDED_ACTIONS = new Set([
+      "submit_for_pricing",
+      "request_repricing",
+      "approve_quote",
+      "reject_quote",
+      "start_transit",
+      "mark_delivered",
+      "close_shipment",
+      "cancel_shipment",
+      "assign_partner",
+      "upload_document",
+      "send_message",
+    ]);
+
+    if (SHIPMENT_GUARDED_ACTIONS.has(action)) {
+      if (!shipment_id) throw new Error("shipment_id required");
+      if (!(await userCanEditShipment(shipment_id))) {
+        return new Response(JSON.stringify({ error: "Forbidden: you don't have access to this shipment" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Document-level actions: verify the document belongs to a shipment the user can edit
+    if (action === "approve_document" || action === "reject_document") {
+      const docId = data.document_id as string;
+      if (!docId) throw new Error("document_id required");
+      const { data: doc } = await adminClient
+        .from("documents")
+        .select("shipment_id")
+        .eq("id", docId)
+        .single();
+      if (!doc || !(await userCanEditShipment(doc.shipment_id))) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Partner removal: verify ownership via the party's shipment
+    if (action === "remove_partner") {
+      const partyId = data.party_id as string;
+      if (!partyId) throw new Error("party_id required");
+      const { data: party } = await adminClient
+        .from("shipment_parties")
+        .select("shipment_id")
+        .eq("id", partyId)
+        .single();
+      if (!party || !(await userCanEditShipment(party.shipment_id))) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Task / milestone updates: verify via parent shipment
+    if (action === "complete_task") {
+      const taskId = data.task_id as string;
+      if (!taskId) throw new Error("task_id required");
+      const { data: task } = await adminClient
+        .from("tasks")
+        .select("shipment_id, assigned_to_user_id")
+        .eq("id", taskId)
+        .single();
+      const allowed =
+        task &&
+        (task.assigned_to_user_id === user.id ||
+          (task.shipment_id && (await userCanEditShipment(task.shipment_id))));
+      if (!allowed) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (action === "update_milestone") {
+      const milestoneId = data.milestone_id as string;
+      if (!milestoneId) throw new Error("milestone_id required");
+      const { data: ev } = await adminClient
+        .from("tracking_events")
+        .select("shipment_id")
+        .eq("id", milestoneId)
+        .single();
+      if (!ev || !(await userCanEditShipment(ev.shipment_id))) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Pricing calculation: verify the user belongs to the company with a pricing role
+    if (action === "calculate_pricing") {
+      const companyId = data.company_id as string;
+      if (!companyId) throw new Error("company_id required");
+      if (!(await userInCompany(companyId, ["admin", "pricing_manager", "operations_manager", "sales_manager"]))) {
+        return new Response(JSON.stringify({ error: "Forbidden: pricing role required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (shipment_id && !(await userCanEditShipment(shipment_id))) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Internal approval (approve_quote with approval_type === 'internal'): require admin or pricing_manager on company
+    if (action === "approve_quote" && (data.approval_type as string) === "internal") {
+      const approvalId = data.approval_id as string;
+      if (!approvalId) throw new Error("approval_id required");
+      const { data: appr } = await adminClient
+        .from("approvals")
+        .select("company_id")
+        .eq("id", approvalId)
+        .single();
+      if (
+        !appr ||
+        !(await userInCompany(appr.company_id, ["admin", "pricing_manager"]))
+      ) {
+        return new Response(JSON.stringify({ error: "Forbidden: approval role required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     let result: Record<string, unknown> = {};
 
     switch (action) {
