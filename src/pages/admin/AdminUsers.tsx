@@ -433,7 +433,7 @@ const AdminUsers = () => {
 
         <TabsContent value="all-users">
           <AllUsersTable profiles={profiles || []} search={search} getRoles={getRoles} roleColor={roleColor}
-            onGetStatus={handleGetStatus} onManage={manageUser} onAddRole={(userId) => { setAddRoleUserId(userId); setAddRoleOpen(true); }} />
+            onGetStatus={handleGetStatus} onManage={manageUser} onEdit={setEditUser} onAddRole={(userId) => { setAddRoleUserId(userId); setAddRoleOpen(true); }} />
         </TabsContent>
 
         <TabsContent value="pending">
