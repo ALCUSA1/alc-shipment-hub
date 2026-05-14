@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Target, Calculator, CreditCard
+  Radio, ShieldCheck, Target, Calculator, CreditCard, Ship
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
