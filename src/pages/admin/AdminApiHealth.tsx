@@ -209,7 +209,7 @@ const AdminApiHealth = () => {
           <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-sm font-semibold text-white">Evergreen (EGLV) Connection</h2>
+                <h2 className="text-sm font-semibold text-white">{activeCarrier.label} Connection</h2>
                 <p className="text-xs text-[hsl(220,10%,45%)] mt-1">Verify OAuth status and API connectivity</p>
               </div>
               <div className="flex gap-2">
