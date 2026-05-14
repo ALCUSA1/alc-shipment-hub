@@ -86,7 +86,7 @@ const AdminApiHealth = () => {
     setConnLoading(true);
     setConnError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("evergreen-auth", {
+      const { data, error } = await supabase.functions.invoke(activeCarrier.authFn, {
         body: { action: "status", environment: "production" },
       });
       if (error) throw error;
@@ -105,7 +105,7 @@ const AdminApiHealth = () => {
     setConnLoading(true);
     setConnError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("evergreen-auth", {
+      const { data, error } = await supabase.functions.invoke(activeCarrier.authFn, {
         body: { action: "refresh", environment: "production" },
       });
       if (error) throw error;
