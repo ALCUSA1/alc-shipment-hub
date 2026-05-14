@@ -452,7 +452,7 @@ const AdminUsers = () => {
 
 // ---- Sub-components ----
 
-function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole }: any) {
+function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole, onEdit }: any) {
   const filtered = profiles.filter((p: any) => {
     if (!search) return true;
     const q = search.toLowerCase();
