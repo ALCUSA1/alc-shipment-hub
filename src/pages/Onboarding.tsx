@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import { toast } from "@/hooks/use-toast";
 import { Building2, Package, Truck, Loader2, ArrowRight, SkipForward, Warehouse, Ship, Info } from "lucide-react";
 import alcLogo from "@/assets/alc-logo.png";
 import { cn } from "@/lib/utils";
+import { useOnboardingCheck } from "@/hooks/useOnboardingCheck";
+import { getPostLoginRoute } from "@/lib/role-routing";
 
 type OrgType = "shipper" | "freight_forwarder" | "trucking_provider" | "warehouse_provider";
 
@@ -61,6 +63,7 @@ const WAREHOUSE_SERVICES = ["General Storage", "Cross-Dock", "Container Devannin
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { needsOnboarding, isLoading: onboardingLoading } = useOnboardingCheck();
   const [companyName, setCompanyName] = useState("");
   const [country, setCountry] = useState("US");
   const [registrationNumber, setRegistrationNumber] = useState("");
@@ -79,6 +82,14 @@ const Onboarding = () => {
 
   const canSubmit = companyName.trim() && orgType;
   const selectedOrg = ORG_TYPES.find((t) => t.value === orgType);
+
+  useEffect(() => {
+    if (!user || onboardingLoading || needsOnboarding) return;
+
+    getPostLoginRoute(user.id).then((route) => {
+      navigate(route, { replace: true });
+    });
+  }, [user, onboardingLoading, needsOnboarding, navigate]);
 
   const toggleItem = (list: string[], setList: (v: string[]) => void, item: string) => {
     setList(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
@@ -150,6 +161,14 @@ const Onboarding = () => {
     if (user) localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
     navigate("/dashboard");
   };
+
+  if (onboardingLoading || !needsOnboarding) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

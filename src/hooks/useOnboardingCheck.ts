@@ -38,6 +38,15 @@ export function useOnboardingCheck() {
         .limit(1);
       if (memberships && memberships.length > 0) return false;
 
+      // Users with an existing profile company name were already registered
+      // by admin/team setup, even if no company_members row was created yet.
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (profile?.company_name?.trim()) return false;
+
       // Users who own a company record — skip onboarding.
       const { data, error } = await supabase
         .from("companies")
