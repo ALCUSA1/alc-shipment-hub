@@ -33,7 +33,15 @@ type TntResult = {
   events_count: number | null;
 };
 
+type CarrierKey = "evergreen" | "hapag";
+const CARRIERS: { key: CarrierKey; label: string; code: string; authFn: string }[] = [
+  { key: "evergreen", label: "Evergreen (EGLV)", code: "EGLV", authFn: "evergreen-auth" },
+  { key: "hapag", label: "Hapag-Lloyd (HLCU)", code: "HLCU", authFn: "hapag-auth" },
+];
+
 const AdminApiHealth = () => {
+  const [carrier, setCarrier] = useState<CarrierKey>("evergreen");
+  const activeCarrier = CARRIERS.find((c) => c.key === carrier)!;
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [connLoading, setConnLoading] = useState(false);
   const [connError, setConnError] = useState<string | null>(null);
