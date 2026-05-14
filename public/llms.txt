@@ -1,0 +1,21 @@
+# ALC Shipper Portal
+
+> Shipment coordination workspace where shippers, freight forwarders, trucking companies, and warehouses collaborate on every shipment — pricing, booking, documents, and tracking in one platform.
+
+ALC Shipper Portal turns carrier rates into profitable quotes, coordinates execution across freight, trucking, and warehousing, and tracks margins on every shipment. Built for small and mid-sized shippers, exporters, importers, and supply chain teams who need transparency and speed in international logistics.
+
+## Pages
+
+- [Home](/): Price, book, and profit from every shipment in one logistics operating system.
+- [Product](/product): Shipment coordination workspace overview.
+- [How It Works](/how-it-works): Step-by-step coordinated shipping workflow.
+- [Features](/features): Freight, trucking, warehouse, and tracking tools.
+- [Rates](/rates): Search live ocean and air freight rates.
+- [Category](/category): A new category of shipper logistics software.
+- [About](/about): About ALC and our network logistics approach.
+- [Security](/security): Platform security, encryption, RBAC, and compliance.
+
+## Optional
+
+- [Login](/login): Sign in to the portal.
+- [Sign Up](/signup): Create a new shipper account.
