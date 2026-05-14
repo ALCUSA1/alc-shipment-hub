@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Only admins can manage users");
 
-    const { action, target_user_id, role, ban_duration } = await req.json();
+    const payload = await req.json();
+    const { action, target_user_id, role, ban_duration } = payload;
     if (!action || !target_user_id) throw new Error("action and target_user_id required");
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
