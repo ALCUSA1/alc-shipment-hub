@@ -33,7 +33,15 @@ type TntResult = {
   events_count: number | null;
 };
 
+type CarrierKey = "evergreen" | "hapag";
+const CARRIERS: { key: CarrierKey; label: string; code: string; authFn: string }[] = [
+  { key: "evergreen", label: "Evergreen (EGLV)", code: "EGLV", authFn: "evergreen-auth" },
+  { key: "hapag", label: "Hapag-Lloyd (HLCU)", code: "HLCU", authFn: "hapag-auth" },
+];
+
 const AdminApiHealth = () => {
+  const [carrier, setCarrier] = useState<CarrierKey>("evergreen");
+  const activeCarrier = CARRIERS.find((c) => c.key === carrier)!;
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [connLoading, setConnLoading] = useState(false);
   const [connError, setConnError] = useState<string | null>(null);
@@ -78,7 +86,7 @@ const AdminApiHealth = () => {
     setConnLoading(true);
     setConnError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("evergreen-auth", {
+      const { data, error } = await supabase.functions.invoke(activeCarrier.authFn, {
         body: { action: "status", environment: "production" },
       });
       if (error) throw error;
@@ -97,7 +105,7 @@ const AdminApiHealth = () => {
     setConnLoading(true);
     setConnError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("evergreen-auth", {
+      const { data, error } = await supabase.functions.invoke(activeCarrier.authFn, {
         body: { action: "refresh", environment: "production" },
       });
       if (error) throw error;
@@ -162,6 +170,24 @@ const AdminApiHealth = () => {
         </p>
       </div>
 
+      {/* Carrier selector */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[10px] uppercase tracking-wider text-[hsl(220,10%,40%)] mr-1">Carrier</span>
+        {CARRIERS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => { setCarrier(c.key); setConnectionStatus(null); setConnError(null); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+              carrier === c.key
+                ? "bg-indigo-600 text-white border-indigo-500"
+                : "bg-[hsl(220,18%,10%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,15%)] hover:bg-[hsl(220,15%,12%)]"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       <Tabs defaultValue="connection" className="space-y-4">
         <TabsList className="bg-[hsl(220,18%,10%)] border border-[hsl(220,15%,15%)]">
           <TabsTrigger value="connection" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-[hsl(220,10%,50%)]">
@@ -183,7 +209,7 @@ const AdminApiHealth = () => {
           <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-sm font-semibold text-white">Evergreen (EGLV) Connection</h2>
+                <h2 className="text-sm font-semibold text-white">{activeCarrier.label} Connection</h2>
                 <p className="text-xs text-[hsl(220,10%,45%)] mt-1">Verify OAuth status and API connectivity</p>
               </div>
               <div className="flex gap-2">
@@ -230,7 +256,7 @@ const AdminApiHealth = () => {
 
             {!connectionStatus && !connError && !connLoading && (
               <div className="text-center py-12 text-[hsl(220,10%,35%)] text-xs">
-                Click "Test Connection" to check Evergreen API status
+                Click "Test Connection" to check {activeCarrier.label} API status
               </div>
             )}
           </div>
