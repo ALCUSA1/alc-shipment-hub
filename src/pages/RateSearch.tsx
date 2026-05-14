@@ -83,7 +83,8 @@ const RateSearch = () => {
       .gte("valid_until", today)
       .order("base_rate", { ascending: true });
     if (params.mode === "ocean") {
-      query = query.eq("container_type", params.containerSize);
+      const cs = String(params.containerSize || "");
+      query = query.in("container_type", [cs, cs.toUpperCase(), cs.toLowerCase()]);
     }
     const { data: localRates, error } = await query;
     if (error) throw error;
