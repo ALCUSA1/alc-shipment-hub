@@ -17,15 +17,16 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   Users, Shield, Building2, MoreVertical, Ban, CheckCircle,
-  KeyRound, Plus, X, Search, Loader2, ChevronRight, ArrowLeft, Eye,
+  KeyRound, Plus, X, Search, Loader2, ChevronRight, ArrowLeft, Eye, Trash2, Pencil,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PendingApprovalsPanel from "@/components/admin/PendingApprovalsPanel";
 
-type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status";
+type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status" | "update_profile" | "delete_user" | "delete_company";
 const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer", "trucker", "driver", "warehouse", "forwarder"] as const;
 
 const roleColor: Record<string, string> = {
