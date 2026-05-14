@@ -137,6 +137,8 @@ const AdminUsers = () => {
       toast.success(data.message || "Action completed");
       queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-companies-list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-company-members"] });
     },
     onError: (err: any) => toast.error(err.message || "Action failed"),
   });
