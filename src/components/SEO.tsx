@@ -25,6 +25,7 @@ export function SEO({
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
+      {canonical && <meta property="og:url" content={canonical} />}
       <meta property="og:image" content={ogImage} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
