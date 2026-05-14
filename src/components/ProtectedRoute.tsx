@@ -36,10 +36,12 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Subscription paywall — choose-plan and subscribe pages are exempt
+  // Subscription paywall — applies only to shipper/customer accounts.
+  // Internal staff and non-shipper portal roles (admin, forwarder, trucker, driver, warehouse, viewer, etc.) bypass.
+  const exemptByRole = (roles || []).some((r) => PAYWALL_EXEMPT_ROLES.has(r));
   const exemptPaths = ["/choose-plan", "/subscribe", "/subscribe/success"];
-  const isExempt = exemptPaths.some((p) => location.pathname.startsWith(p));
-  if (!isExempt) {
+  const isExemptPath = exemptPaths.some((p) => location.pathname.startsWith(p));
+  if (!exemptByRole && !isExemptPath) {
     if (needsPlanSelection) return <Navigate to="/choose-plan" replace />;
     if (!hasAccess) return <Navigate to="/subscribe" replace />;
   }
