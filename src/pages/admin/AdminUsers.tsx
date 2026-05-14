@@ -514,10 +514,15 @@ function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onM
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
                         <DropdownMenuItem onClick={() => onGetStatus(p.user_id)} className="focus:bg-[hsl(220,15%,18%)]"><Eye className="h-4 w-4 mr-2" /> View Status</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit?.(p)} className="focus:bg-[hsl(220,15%,18%)]"><Pencil className="h-4 w-4 mr-2" /> Edit Profile</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "reset_password", target_user_id: p.user_id })} className="focus:bg-[hsl(220,15%,18%)]"><KeyRound className="h-4 w-4 mr-2" /> Reset Password</DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-[hsl(220,15%,18%)]" />
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "disable", target_user_id: p.user_id })} className="text-red-400 focus:bg-red-500/10"><Ban className="h-4 w-4 mr-2" /> Disable</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "enable", target_user_id: p.user_id })} className="text-emerald-400 focus:bg-emerald-500/10"><CheckCircle className="h-4 w-4 mr-2" /> Enable</DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-[hsl(220,15%,18%)]" />
+                        <DropdownMenuItem
+                          onClick={() => { if (confirm(`Permanently delete ${p.full_name || "this user"}? This cannot be undone.`)) onManage.mutate({ action: "delete_user", target_user_id: p.user_id }); }}
+                          className="text-red-400 focus:bg-red-500/10"><Trash2 className="h-4 w-4 mr-2" /> Delete User</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
