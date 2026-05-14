@@ -21,6 +21,24 @@ export function useOnboardingCheck() {
         return false;
       }
 
+      // Users with any assigned role (admin, ops, trucker, forwarder, viewer, etc.)
+      // are part of the platform via team management — skip onboarding.
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (roles && roles.length > 0) return false;
+
+      // Users who are members of an existing company — skip onboarding.
+      const { data: memberships } = await supabase
+        .from("company_members")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (memberships && memberships.length > 0) return false;
+
+      // Users who own a company record — skip onboarding.
       const { data, error } = await supabase
         .from("companies")
         .select("id")
@@ -28,10 +46,7 @@ export function useOnboardingCheck() {
         .limit(1)
         .maybeSingle();
 
-      if (error) {
-        return false;
-      }
-
+      if (error) return false;
       return !data;
     },
     enabled: !!user && !authLoading,
