@@ -20,6 +20,17 @@ const PAYWALL_EXEMPT_USER_IDS = new Set([
   "96700cf5-6b2a-4b84-8073-a9b2a55f79be", // chanty@alllogisticscargo.com
 ]);
 
+// ALC internal team — always bypass paywall by email (covers users whose roles
+// haven't been assigned yet or who sign up later).
+const PAYWALL_EXEMPT_EMAILS = new Set([
+  "ahad@alllogisticscargo.com",
+  "syed@alllogisticscargo.com",
+  "chanty@alllogisticscargo.com",
+  "paul@alllogisticscargo.com",
+  "michael@alllogisticscargo.com",
+  "michael@alllogisitcscargo.com", // typo variant
+]);
+
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const { needsOnboarding, isLoading: onboardingLoading } = useOnboardingCheck();
