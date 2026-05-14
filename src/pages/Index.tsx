@@ -35,6 +35,7 @@ const Index = () => {
       <FeaturesSection />
       <NetworkSection />
       <SecuritySection />
+      <PricingPlansSection />
       <CTASection />
     </MarketingLayout>
   );
