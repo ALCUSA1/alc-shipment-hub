@@ -3,7 +3,7 @@ import {
   ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
   FileText, Truck, Warehouse, FileCheck,
   TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Target, Calculator, CreditCard
+  Radio, ShieldCheck, Target, Calculator, CreditCard, Ship
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,7 @@ const navGroups = [
       { title: "Quotes", url: "/admin/quotes", icon: FileText },
       { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
       { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: TrendingUp },
+      { title: "Shipping Lines", url: "/admin/shipping-lines", icon: Ship },
       { title: "Commercial Command", url: "/admin/commercial", icon: Target },
     ],
   },

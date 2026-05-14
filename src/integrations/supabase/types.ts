@@ -2030,6 +2030,83 @@ export type Database = {
           },
         ]
       }
+      carrier_manual_rates: {
+        Row: {
+          amendment: string | null
+          cargo_type: string | null
+          carrier_code: string
+          created_at: string
+          currency: string | null
+          delivery: string | null
+          id: string
+          pod: string | null
+          pol: string | null
+          rate_20sd: number | null
+          rate_40hc: number | null
+          rate_40sd: number | null
+          rate_group: string | null
+          receipt: string | null
+          surcharges: string | null
+          svc_mode: string | null
+          trade: string | null
+          upload_id: string | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          amendment?: string | null
+          cargo_type?: string | null
+          carrier_code: string
+          created_at?: string
+          currency?: string | null
+          delivery?: string | null
+          id?: string
+          pod?: string | null
+          pol?: string | null
+          rate_20sd?: number | null
+          rate_40hc?: number | null
+          rate_40sd?: number | null
+          rate_group?: string | null
+          receipt?: string | null
+          surcharges?: string | null
+          svc_mode?: string | null
+          trade?: string | null
+          upload_id?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          amendment?: string | null
+          cargo_type?: string | null
+          carrier_code?: string
+          created_at?: string
+          currency?: string | null
+          delivery?: string | null
+          id?: string
+          pod?: string | null
+          pol?: string | null
+          rate_20sd?: number | null
+          rate_40hc?: number | null
+          rate_40sd?: number | null
+          rate_group?: string | null
+          receipt?: string | null
+          surcharges?: string | null
+          svc_mode?: string | null
+          trade?: string | null
+          upload_id?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_manual_rates_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_rate_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_payment_profiles: {
         Row: {
           account_holder: string | null
@@ -2078,6 +2155,42 @@ export type Database = {
           stripe_account_id?: string | null
           swift_code?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      carrier_rate_uploads: {
+        Row: {
+          carrier_code: string
+          created_at: string
+          file_name: string
+          id: string
+          notes: string | null
+          row_count: number
+          uploaded_by: string | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          carrier_code: string
+          created_at?: string
+          file_name: string
+          id?: string
+          notes?: string | null
+          row_count?: number
+          uploaded_by?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          carrier_code?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          notes?: string | null
+          row_count?: number
+          uploaded_by?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: []
       }
@@ -11675,6 +11788,7 @@ export type Database = {
     }
     Functions: {
       can_edit_shipment: { Args: { _shipment_id: string }; Returns: boolean }
+      can_manage_carrier_rates: { Args: never; Returns: boolean }
       can_view_shipment: { Args: { _shipment_id: string }; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
