@@ -421,7 +421,24 @@ const AdminUsers = () => {
                         </td>
                         <td className="p-4 text-[hsl(220,10%,45%)] text-xs">{format(new Date(c.created_at), "MMM d, yyyy")}</td>
                         <td className="p-4 text-right">
-                          <ChevronRight className="h-4 w-4 text-[hsl(220,10%,30%)]" />
+                          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {stats.total === 0 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                title="Delete empty company"
+                                onClick={() => {
+                                  if (confirm(`Delete company "${c.company_name}"? It has no members.`)) {
+                                    manageUser.mutate({ action: "delete_company", target_user_id: c.id } as any);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            <ChevronRight className="h-4 w-4 text-[hsl(220,10%,30%)]" />
+                          </div>
                         </td>
                       </tr>
                     );
