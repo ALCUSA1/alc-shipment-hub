@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 const HowItWorks = () => (
   <MarketingLayout>
     <SEO
-      title="How It Works — 7 Steps to Coordinated Shipping"
+      title="How It Works — Coordinated Shipping"
       description="From shipment creation through trucking, warehousing, and delivery — every step is managed in one workspace."
       canonical="https://alcshipper.com/how-it-works"
     />
