@@ -11939,6 +11939,7 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_company_name: { Args: { _name: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
