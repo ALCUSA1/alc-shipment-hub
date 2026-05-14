@@ -112,7 +112,22 @@ const AdminUsers = () => {
   const manageUser = useMutation({
     mutationFn: async (params: { action: ManageAction; target_user_id: string; role?: string }) => {
       const { data, error } = await supabase.functions.invoke("admin-manage-user", { body: params });
-      if (error) throw error;
+      if (error) {
+        // Try to extract the real error message from the function response body
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx?.json) {
+            const body = await ctx.json();
+            if (body?.error) throw new Error(body.error);
+          } else if (ctx?.text) {
+            const text = await ctx.text();
+            if (text) throw new Error(text);
+          }
+        } catch (inner: any) {
+          if (inner?.message) throw inner;
+        }
+        throw error;
+      }
       if (data?.error) throw new Error(data.error);
       return data;
     },
