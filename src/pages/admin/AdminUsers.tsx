@@ -631,12 +631,13 @@ function EditUserDialog({ user, onClose, onSave }: { user: any; onClose: () => v
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
-  // Reset fields when user changes
-  if (user && (fullName !== (user.full_name || "") || email !== (user.email || "") || companyName !== (user.company_name || "")) && fullName === "" && email === "" && companyName === "") {
-    setFullName(user.full_name || "");
-    setEmail(user.email || "");
-    setCompanyName(user.company_name || "");
-  }
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "");
+      setEmail(user.email || "");
+      setCompanyName(user.company_name || "");
+    }
+  }, [user]);
   return (
     <Dialog open={!!user} onOpenChange={(v) => { if (!v) { setFullName(""); setEmail(""); setCompanyName(""); onClose(); } }}>
       <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-md">
