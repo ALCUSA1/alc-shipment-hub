@@ -1,7 +1,7 @@
 // Reads the user's Stripe subscription and upserts public.subscriptions to reflect status.
 // Returns { subscribed, status, plan, billing_interval, trial_ends_at, current_period_end }.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
+import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {

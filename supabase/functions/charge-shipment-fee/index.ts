@@ -1,7 +1,7 @@
 // Charges the per-shipment fee on the user's saved card (off-session).
 // Called server-side when a booking is confirmed. Body: { shipment_id, user_id (optional, defaults to auth user) }.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
+import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
