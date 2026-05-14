@@ -14,6 +14,7 @@ import { SecuritySection } from "@/components/marketing/SecuritySection";
 import { CTASection } from "@/components/marketing/CTASection";
 import { PricingPlansSection } from "@/components/marketing/PricingPlansSection";
 import { SEO } from "@/components/SEO";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   return (
