@@ -17,15 +17,16 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   Users, Shield, Building2, MoreVertical, Ban, CheckCircle,
-  KeyRound, Plus, X, Search, Loader2, ChevronRight, ArrowLeft, Eye,
+  KeyRound, Plus, X, Search, Loader2, ChevronRight, ArrowLeft, Eye, Trash2, Pencil,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PendingApprovalsPanel from "@/components/admin/PendingApprovalsPanel";
 
-type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status";
+type ManageAction = "disable" | "enable" | "reset_password" | "add_role" | "remove_role" | "get_user_status" | "update_profile" | "delete_user" | "delete_company";
 const ALL_ROLES = ["admin", "ops_manager", "sales", "viewer", "trucker", "driver", "warehouse", "forwarder"] as const;
 
 const roleColor: Record<string, string> = {
@@ -58,6 +59,7 @@ const AdminUsers = () => {
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [editUser, setEditUser] = useState<any>(null);
 
   // Fetch companies
   const { data: companies, isLoading: companiesLoading } = useQuery({
@@ -135,6 +137,8 @@ const AdminUsers = () => {
       toast.success(data.message || "Action completed");
       queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-companies-list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-company-members"] });
     },
     onError: (err: any) => toast.error(err.message || "Action failed"),
   });
@@ -290,6 +294,9 @@ const AdminUsers = () => {
                             <DropdownMenuItem onClick={() => handleGetStatus(p.user_id)} className="focus:bg-[hsl(220,15%,18%)]">
                               <Eye className="h-4 w-4 mr-2" /> View Status
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setEditUser(p)} className="focus:bg-[hsl(220,15%,18%)]">
+                              <Pencil className="h-4 w-4 mr-2" /> Edit Profile
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => manageUser.mutate({ action: "reset_password", target_user_id: p.user_id })} className="focus:bg-[hsl(220,15%,18%)]">
                               <KeyRound className="h-4 w-4 mr-2" /> Reset Password
                             </DropdownMenuItem>
@@ -299,6 +306,12 @@ const AdminUsers = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => manageUser.mutate({ action: "enable", target_user_id: p.user_id })} className="text-emerald-400 focus:bg-emerald-500/10 focus:text-emerald-400">
                               <CheckCircle className="h-4 w-4 mr-2" /> Enable
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-[hsl(220,15%,18%)]" />
+                            <DropdownMenuItem
+                              onClick={() => { if (confirm(`Permanently delete ${p.full_name || "this user"}? This cannot be undone.`)) manageUser.mutate({ action: "delete_user", target_user_id: p.user_id }); }}
+                              className="text-red-400 focus:bg-red-500/10 focus:text-red-400">
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete User
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -315,6 +328,7 @@ const AdminUsers = () => {
         <AssignRoleDialog open={addRoleOpen} onOpenChange={setAddRoleOpen} userId={addRoleUserId} onAssign={(role) => manageUser.mutate({ action: "add_role", target_user_id: addRoleUserId, role }, { onSuccess: () => setAddRoleOpen(false) })} />
         <UserStatusDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
         <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} email={inviteEmail} setEmail={setInviteEmail} name={inviteName} setName={setInviteName} role={inviteRole} setRole={setInviteRole} onInvite={handleInvite} inviting={inviting} />
+        <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as any, { onSuccess: () => setEditUser(null) })} />
       </AdminLayout>
     );
   }
@@ -409,7 +423,24 @@ const AdminUsers = () => {
                         </td>
                         <td className="p-4 text-[hsl(220,10%,45%)] text-xs">{format(new Date(c.created_at), "MMM d, yyyy")}</td>
                         <td className="p-4 text-right">
-                          <ChevronRight className="h-4 w-4 text-[hsl(220,10%,30%)]" />
+                          <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {stats.total === 0 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                title="Delete empty company"
+                                onClick={() => {
+                                  if (confirm(`Delete company "${c.company_name}"? It has no members.`)) {
+                                    manageUser.mutate({ action: "delete_company", target_user_id: c.id } as any);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            <ChevronRight className="h-4 w-4 text-[hsl(220,10%,30%)]" />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -422,7 +453,7 @@ const AdminUsers = () => {
 
         <TabsContent value="all-users">
           <AllUsersTable profiles={profiles || []} search={search} getRoles={getRoles} roleColor={roleColor}
-            onGetStatus={handleGetStatus} onManage={manageUser} onAddRole={(userId) => { setAddRoleUserId(userId); setAddRoleOpen(true); }} />
+            onGetStatus={handleGetStatus} onManage={manageUser} onEdit={setEditUser} onAddRole={(userId) => { setAddRoleUserId(userId); setAddRoleOpen(true); }} />
         </TabsContent>
 
         <TabsContent value="pending">
@@ -433,13 +464,14 @@ const AdminUsers = () => {
       <AssignRoleDialog open={addRoleOpen} onOpenChange={setAddRoleOpen} userId={addRoleUserId} onAssign={(role) => manageUser.mutate({ action: "add_role", target_user_id: addRoleUserId, role }, { onSuccess: () => setAddRoleOpen(false) })} />
       <UserStatusDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} email={inviteEmail} setEmail={setInviteEmail} name={inviteName} setName={setInviteName} role={inviteRole} setRole={setInviteRole} onInvite={handleInvite} inviting={inviting} />
+      <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as any, { onSuccess: () => setEditUser(null) })} />
     </AdminLayout>
   );
 };
 
 // ---- Sub-components ----
 
-function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole }: any) {
+function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole, onEdit }: any) {
   const filtered = profiles.filter((p: any) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -501,10 +533,15 @@ function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onM
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white">
                         <DropdownMenuItem onClick={() => onGetStatus(p.user_id)} className="focus:bg-[hsl(220,15%,18%)]"><Eye className="h-4 w-4 mr-2" /> View Status</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit?.(p)} className="focus:bg-[hsl(220,15%,18%)]"><Pencil className="h-4 w-4 mr-2" /> Edit Profile</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "reset_password", target_user_id: p.user_id })} className="focus:bg-[hsl(220,15%,18%)]"><KeyRound className="h-4 w-4 mr-2" /> Reset Password</DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-[hsl(220,15%,18%)]" />
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "disable", target_user_id: p.user_id })} className="text-red-400 focus:bg-red-500/10"><Ban className="h-4 w-4 mr-2" /> Disable</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onManage.mutate({ action: "enable", target_user_id: p.user_id })} className="text-emerald-400 focus:bg-emerald-500/10"><CheckCircle className="h-4 w-4 mr-2" /> Enable</DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-[hsl(220,15%,18%)]" />
+                        <DropdownMenuItem
+                          onClick={() => { if (confirm(`Permanently delete ${p.full_name || "this user"}? This cannot be undone.`)) onManage.mutate({ action: "delete_user", target_user_id: p.user_id }); }}
+                          className="text-red-400 focus:bg-red-500/10"><Trash2 className="h-4 w-4 mr-2" /> Delete User</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -587,6 +624,56 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="text-[hsl(220,10%,45%)]">{label}</span>
       <span className="text-white">{value}</span>
     </div>
+  );
+}
+
+function EditUserDialog({ user, onClose, onSave }: { user: any; onClose: () => void; onSave: (updates: { full_name?: string; email?: string; company_name?: string }) => void }) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "");
+      setEmail(user.email || "");
+      setCompanyName(user.company_name || "");
+    }
+  }, [user]);
+  return (
+    <Dialog open={!!user} onOpenChange={(v) => { if (!v) { setFullName(""); setEmail(""); setCompanyName(""); onClose(); } }}>
+      <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-md">
+        <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
+        {user && (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Full Name</Label>
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Company Name</Label>
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => { setFullName(""); setEmail(""); setCompanyName(""); onClose(); }}>Cancel</Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  const updates: any = {};
+                  if (fullName !== (user.full_name || "")) updates.full_name = fullName;
+                  if (email !== (user.email || "")) updates.email = email;
+                  if (companyName !== (user.company_name || "")) updates.company_name = companyName;
+                  if (Object.keys(updates).length === 0) { onClose(); return; }
+                  onSave(updates);
+                }}
+              >Save</Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

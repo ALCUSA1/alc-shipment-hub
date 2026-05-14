@@ -88,9 +88,35 @@ const Onboarding = () => {
     if (!user || !canSubmit || !selectedOrg) return;
     setSaving(true);
 
+    // Pre-check for similar / duplicate company names
+    const trimmedName = companyName.trim();
+    const { data: existingCompanies } = await supabase
+      .from("companies")
+      .select("id, company_name")
+      .ilike("company_name", `%${trimmedName.split(" ")[0]}%`)
+      .limit(50);
+
+    const normalize = (s: string) =>
+      s.toLowerCase()
+        .replace(/\b(inc|incorporated|llc|l\.l\.c\.|ltd|limited|corp|corporation|co|company|gmbh|sa|s\.a\.|ag|plc|llp|lp|pte|pvt|pty|bv|nv|kg|srl|spa|oy|ab)\.?\b/gi, "")
+        .replace(/[^a-z0-9]+/g, "")
+        .trim();
+
+    const target = normalize(trimmedName);
+    const conflict = (existingCompanies || []).find((c: any) => normalize(c.company_name) === target);
+    if (conflict) {
+      toast({
+        title: "Company already exists",
+        description: `"${conflict.company_name}" is already registered. Please ask an existing team member to invite you, or contact support if you believe this is an error.`,
+        variant: "destructive",
+      });
+      setSaving(false);
+      return;
+    }
+
     const { error } = await supabase.from("companies").insert({
       user_id: user.id,
-      company_name: companyName.trim(),
+      company_name: trimmedName,
       country,
       ein: registrationNumber.trim() || null,
       company_type: selectedOrg.companyType,
@@ -104,7 +130,10 @@ const Onboarding = () => {
     });
 
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      const friendly = error.code === "23505" || /duplicate|unique/i.test(error.message)
+        ? "A company with this name (or a very similar one) is already registered. Please ask an existing team member to invite you."
+        : error.message;
+      toast({ title: "Could not create organization", description: friendly, variant: "destructive" });
       setSaving(false);
       return;
     }

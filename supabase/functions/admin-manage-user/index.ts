@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Only admins can manage users");
 
-    const { action, target_user_id, role, ban_duration } = await req.json();
+    const payload = await req.json();
+    const { action, target_user_id, role, ban_duration } = payload;
     if (!action || !target_user_id) throw new Error("action and target_user_id required");
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -113,6 +114,49 @@ Deno.serve(async (req) => {
           created_at: userData.user.created_at,
           email_confirmed: userData.user.email_confirmed_at != null,
         };
+        break;
+      }
+      case "update_profile": {
+        const { full_name, email, company_name } = payload;
+        if (email) {
+          const { error } = await adminClient.auth.admin.updateUserById(target_user_id, { email });
+          if (error) throw error;
+        }
+        const profileUpdate: Record<string, any> = {};
+        if (full_name !== undefined) profileUpdate.full_name = full_name;
+        if (email !== undefined) profileUpdate.email = email;
+        if (company_name !== undefined) profileUpdate.company_name = company_name;
+        if (Object.keys(profileUpdate).length > 0) {
+          const { error } = await adminClient.from("profiles").update(profileUpdate as any).eq("user_id", target_user_id);
+          if (error) throw error;
+        }
+        result = { message: "Profile updated" };
+        break;
+      }
+      case "delete_user": {
+        // Remove role rows (FK), memberships, profile, then auth user
+        await adminClient.from("user_roles").delete().eq("user_id", target_user_id);
+        await adminClient.from("company_members").delete().eq("user_id", target_user_id);
+        await adminClient.from("profiles").delete().eq("user_id", target_user_id);
+        const { error } = await adminClient.auth.admin.deleteUser(target_user_id);
+        if (error) throw error;
+        result = { message: "User permanently deleted" };
+        break;
+      }
+      case "delete_company": {
+        // target_user_id field is reused as company_id for this action
+        const { data: members } = await adminClient
+          .from("company_members")
+          .select("id")
+          .eq("company_id", target_user_id)
+          .eq("is_active", true);
+        if (members && members.length > 0) {
+          throw new Error(`Cannot delete: company still has ${members.length} active member(s). Remove them first.`);
+        }
+        await adminClient.from("company_members").delete().eq("company_id", target_user_id);
+        const { error } = await adminClient.from("companies").delete().eq("id", target_user_id);
+        if (error) throw error;
+        result = { message: "Company deleted" };
         break;
       }
       default:
