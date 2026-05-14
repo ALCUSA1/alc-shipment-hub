@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 const Product = () => (
   <MarketingLayout>
     <SEO
-      title="Product — Shipment Coordination Workspace"
+      title="Product — Coordination Workspace"
       description="One platform to coordinate freight, trucking, warehouses, documents, and shipment tracking across all logistics parties."
       canonical="https://alcshipper.com/product"
     />
