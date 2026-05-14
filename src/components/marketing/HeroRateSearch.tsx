@@ -46,7 +46,7 @@ export function HeroRateSearch() {
         .eq("mode", mode)
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
-      if (mode === "ocean") query = query.eq("container_type", "40hc");
+      if (mode === "ocean") query = query.in("container_type", ["40HC", "40hc"]);
       const { data, error } = await query;
       if (error) throw error;
       setResults(data || []);
