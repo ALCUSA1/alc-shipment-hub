@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Phone, Mail, MapPin } from "lucide-react";
 import alcLogo from "@/assets/alc-logo.png";
 
 export function MarketingFooter() {
@@ -10,9 +11,23 @@ export function MarketingFooter() {
             <div className="flex items-center gap-2 font-bold text-lg mb-4">
               <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto brightness-0 invert" />
             </div>
-            <p className="text-sm text-primary-foreground/60">
+            <p className="text-sm text-primary-foreground/60 mb-4">
               The Shipper Logistics Workspace for modern exporters and importers.
             </p>
+            <div className="space-y-2 text-sm text-primary-foreground/70">
+              <a href="tel:+13106090144" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
+                <Phone className="h-4 w-4 text-electric" />
+                (310) 609-0144
+              </a>
+              <a href="mailto:info@allogisticscargo.com" className="flex items-center gap-2 hover:text-primary-foreground transition-colors">
+                <Mail className="h-4 w-4 text-electric" />
+                info@allogisticscargo.com
+              </a>
+              <div className="flex items-start gap-2 text-primary-foreground/60">
+                <MapPin className="h-4 w-4 text-electric mt-0.5 shrink-0" />
+                <span>2320 N. Alameda St, Compton, CA 90222</span>
+              </div>
+            </div>
           </div>
           <div>
             <h4 className="font-semibold text-sm mb-4">Product</h4>
