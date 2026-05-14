@@ -256,6 +256,15 @@ const AdminApiHealth = () => {
               </div>
             )}
 
+            {connectionStatus?.error_reason && (
+              <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                <p className="text-[10px] uppercase tracking-wider text-amber-400 mb-1">
+                  Error detail{connectionStatus.ping_http_status ? ` · HTTP ${connectionStatus.ping_http_status}` : ""}
+                </p>
+                <p className="text-xs text-amber-200 leading-relaxed">{connectionStatus.error_reason}</p>
+              </div>
+            )}
+
             {!connectionStatus && !connError && !connLoading && (
               <div className="text-center py-12 text-[hsl(220,10%,35%)] text-xs">
                 Click "Test Connection" to check {activeCarrier.label} API status
