@@ -445,6 +445,7 @@ const AdminUsers = () => {
       <AssignRoleDialog open={addRoleOpen} onOpenChange={setAddRoleOpen} userId={addRoleUserId} onAssign={(role) => manageUser.mutate({ action: "add_role", target_user_id: addRoleUserId, role }, { onSuccess: () => setAddRoleOpen(false) })} />
       <UserStatusDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} email={inviteEmail} setEmail={setInviteEmail} name={inviteName} setName={setInviteName} role={inviteRole} setRole={setInviteRole} onInvite={handleInvite} inviting={inviting} />
+      <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as any, { onSuccess: () => setEditUser(null) })} />
     </AdminLayout>
   );
 };
