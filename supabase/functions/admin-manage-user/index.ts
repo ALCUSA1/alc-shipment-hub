@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       }
       case "add_role": {
         if (!role) throw new Error("role is required");
-        const validRoles = ["admin", "ops_manager", "sales", "viewer"];
+        const validRoles = ["admin", "ops_manager", "sales", "viewer", "forwarder", "trucker", "driver", "warehouse", "tradeline"];
         if (!validRoles.includes(role)) throw new Error("Invalid role");
         
         const { error } = await adminClient
