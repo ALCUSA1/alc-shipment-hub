@@ -11,6 +11,7 @@ import { RoleGate } from "@/components/RoleGate";
 import { AdminGate } from "@/components/admin/AdminGate";
 import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
+import Pricing from "./pages/Pricing";
 import Product from "./pages/Product";
 import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
