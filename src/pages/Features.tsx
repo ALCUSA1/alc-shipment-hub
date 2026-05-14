@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 const Features = () => (
   <MarketingLayout>
     <SEO
-      title="Features — Freight, Trucking & Warehouse Tools"
+      title="Features — Freight, Trucking & Warehouse"
       description="Freight coordination, trucking dispatch, warehouse handling, and live shipment tracking — all in one platform."
       canonical="https://alcshipper.com/features"
     />

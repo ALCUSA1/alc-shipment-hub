@@ -7,7 +7,7 @@ import { SEO } from "@/components/SEO";
 const Category = () => (
   <MarketingLayout>
     <SEO
-      title="Shipper Logistics Workspace — A New Category"
+      title="Shipper Logistics Workspace — Category"
       description="A new category of logistics software built from the shipper's perspective. See how ALC replaces scattered tools with one workspace."
       canonical="https://alcshipper.com/category"
     />

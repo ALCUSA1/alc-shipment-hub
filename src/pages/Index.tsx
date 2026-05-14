@@ -18,7 +18,7 @@ const Index = () => {
   return (
     <MarketingLayout>
       <SEO
-        title="ALC Shipper Portal — Price, Manage & Profit from Every Shipment"
+        title="ALC Shipper Portal — Price, Book & Profit"
         description="Turn carrier rates into profitable quotes, coordinate execution, and track margins — all in one logistics operating system."
         canonical="https://alcshipper.com/"
       />
