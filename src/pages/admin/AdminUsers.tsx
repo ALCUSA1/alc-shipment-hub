@@ -59,6 +59,7 @@ const AdminUsers = () => {
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [editUser, setEditUser] = useState<any>(null);
 
   // Fetch companies
   const { data: companies, isLoading: companiesLoading } = useQuery({
