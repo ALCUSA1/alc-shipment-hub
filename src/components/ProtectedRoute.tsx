@@ -12,6 +12,14 @@ const PAYWALL_EXEMPT_ROLES = new Set([
   "warehouse", "viewer",
 ]);
 
+// Specific user IDs that bypass the paywall (Ahad, Syed, Chanty)
+const PAYWALL_EXEMPT_USER_IDS = new Set([
+  "0f234d38-3d58-4be5-8c95-c93769789ef2", // ahad@alllogisticscargo.com
+  "b11985da-e67e-4b0a-82b0-e873e04985d8", // syed@alllogisticscargo.com
+  "25af8927-be04-433e-abcb-fa6be10ee3d2", // syed@utopiakingdom.io
+  "96700cf5-6b2a-4b84-8073-a9b2a55f79be", // chanty@alllogisticscargo.com
+]);
+
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const { needsOnboarding, isLoading: onboardingLoading } = useOnboardingCheck();
@@ -39,9 +47,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   // Subscription paywall — applies only to shipper/customer accounts.
   // Internal staff and non-shipper portal roles (admin, forwarder, trucker, driver, warehouse, viewer, etc.) bypass.
   const exemptByRole = (roles || []).some((r) => PAYWALL_EXEMPT_ROLES.has(r));
+  const exemptByUserId = PAYWALL_EXEMPT_USER_IDS.has(user.id);
   const exemptPaths = ["/choose-plan", "/subscribe", "/subscribe/success"];
   const isExemptPath = exemptPaths.some((p) => location.pathname.startsWith(p));
-  if (!exemptByRole && !isExemptPath) {
+  if (!exemptByRole && !exemptByUserId && !isExemptPath) {
     if (needsPlanSelection) return <Navigate to="/choose-plan" replace />;
     if (!hasAccess) return <Navigate to="/subscribe" replace />;
   }
