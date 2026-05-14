@@ -229,6 +229,7 @@ const App = () => (
             <Route path="/admin/financials" element={<AdminGate><AdminFinancials /></AdminGate>} />
             <Route path="/admin/compliance" element={<AdminGate><AdminCompliance /></AdminGate>} />
             <Route path="/admin/api-health" element={<AdminGate><AdminApiHealth /></AdminGate>} />
+            <Route path="/admin/shipping-lines" element={<AdminGate><AdminShippingLines /></AdminGate>} />
             <Route path="/admin/system" element={<AdminGate><AdminSystem /></AdminGate>} />
             <Route path="/admin/data" element={<AdminGate><AdminDataExplorer /></AdminGate>} />
             <Route path="/admin/team" element={<AdminGate><AdminTeam /></AdminGate>} />
