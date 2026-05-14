@@ -27,6 +27,7 @@ const navGroups = [
       { title: "Quotes", url: "/admin/quotes", icon: FileText },
       { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
       { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: TrendingUp },
+      { title: "Shipping Lines", url: "/admin/shipping-lines", icon: Ship },
       { title: "Commercial Command", url: "/admin/commercial", icon: Target },
     ],
   },
