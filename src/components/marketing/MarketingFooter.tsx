@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Phone, Mail, MapPin } from "lucide-react";
 import alcLogo from "@/assets/alc-logo.png";
 
 export function MarketingFooter() {
