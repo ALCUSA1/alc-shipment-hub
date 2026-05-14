@@ -70,20 +70,17 @@ serve(async (req) => {
     // when a rateId is supplied. Never trust client-provided pricing.
     let rate: RateSelection = clientRate;
 
+    let canonical: any = null;
     if (clientRate.rateId) {
-      const { data: canonical, error: rateErr } = await adminClient
+      const { data } = await adminClient
         .from("carrier_rates")
         .select("*")
         .eq("id", clientRate.rateId)
         .maybeSingle();
+      canonical = data;
+    }
 
-      if (rateErr || !canonical) {
-        return new Response(JSON.stringify({ error: "Selected rate could not be verified." }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
+    if (canonical) {
       const surchargesArr = Array.isArray((canonical as any).surcharges) ? (canonical as any).surcharges : [];
       const surchargeTotal = surchargesArr.reduce(
         (sum: number, s: any) => sum + (Number(s?.amount) || 0),
