@@ -59,9 +59,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   // Internal staff and non-shipper portal roles (admin, forwarder, trucker, driver, warehouse, viewer, etc.) bypass.
   const exemptByRole = (roles || []).some((r) => PAYWALL_EXEMPT_ROLES.has(r));
   const exemptByUserId = PAYWALL_EXEMPT_USER_IDS.has(user.id);
+  const exemptByEmail = !!user.email && PAYWALL_EXEMPT_EMAILS.has(user.email.toLowerCase());
   const exemptPaths = ["/choose-plan", "/subscribe", "/subscribe/success"];
   const isExemptPath = exemptPaths.some((p) => location.pathname.startsWith(p));
-  if (!exemptByRole && !exemptByUserId && !isExemptPath) {
+  if (!exemptByRole && !exemptByUserId && !exemptByEmail && !isExemptPath) {
     if (needsPlanSelection) return <Navigate to="/choose-plan" replace />;
     if (!hasAccess) return <Navigate to="/subscribe" replace />;
   }
