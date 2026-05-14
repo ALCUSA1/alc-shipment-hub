@@ -7235,6 +7235,52 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_leads: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          email: string | null
+          estimated_shipments_per_month: number | null
+          id: string
+          notes: string | null
+          phone: string | null
+          plan_interest: Database["public"]["Enums"]["subscription_plan"] | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_shipments_per_month?: number | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          plan_interest?:
+            | Database["public"]["Enums"]["subscription_plan"]
+            | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_shipments_per_month?: number | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          plan_interest?:
+            | Database["public"]["Enums"]["subscription_plan"]
+            | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       schedule_cutoffs: {
         Row: {
           carrier_id: string | null
@@ -9410,6 +9456,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscriptions: {
+        Row: {
+          billing_interval:
+            | Database["public"]["Enums"]["billing_interval"]
+            | null
+          company_id: string | null
+          created_at: string
+          current_period_end: string | null
+          default_payment_method_id: string | null
+          id: string
+          per_shipment_fee_cents: number | null
+          plan: Database["public"]["Enums"]["subscription_plan"] | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_interval?:
+            | Database["public"]["Enums"]["billing_interval"]
+            | null
+          company_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          default_payment_method_id?: string | null
+          id?: string
+          per_shipment_fee_cents?: number | null
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_interval?:
+            | Database["public"]["Enums"]["billing_interval"]
+            | null
+          company_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          default_payment_method_id?: string | null
+          id?: string
+          per_shipment_fee_cents?: number | null
+          plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       support_tickets: {
         Row: {
@@ -11869,6 +11975,7 @@ export type Database = {
         | "warehouse"
         | "forwarder"
         | "tradeline"
+      billing_interval: "monthly" | "annual"
       company_role:
         | "admin"
         | "pricing_manager"
@@ -11884,6 +11991,14 @@ export type Database = {
         | "active"
         | "suspended"
         | "inactive"
+      subscription_plan: "solo" | "team" | "enterprise"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "incomplete"
+        | "sales_lead"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -12022,6 +12137,7 @@ export const Constants = {
         "forwarder",
         "tradeline",
       ],
+      billing_interval: ["monthly", "annual"],
       company_role: [
         "admin",
         "pricing_manager",
@@ -12038,6 +12154,15 @@ export const Constants = {
         "active",
         "suspended",
         "inactive",
+      ],
+      subscription_plan: ["solo", "team", "enterprise"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete",
+        "sales_lead",
       ],
     },
   },
