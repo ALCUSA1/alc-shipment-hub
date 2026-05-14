@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
             "X-IBM-Client-Id": clientId,
             "X-IBM-Client-Secret": clientSecret,
             "Accept": "application/json",
+            "API-Version": "1",
           },
         });
         pingStatus = r.status;
