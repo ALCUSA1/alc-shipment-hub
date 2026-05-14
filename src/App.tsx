@@ -11,6 +11,7 @@ import { RoleGate } from "@/components/RoleGate";
 import { AdminGate } from "@/components/admin/AdminGate";
 import { ForwarderGate } from "@/components/forwarder/ForwarderGate";
 import Index from "./pages/Index";
+import Pricing from "./pages/Pricing";
 import Product from "./pages/Product";
 import RateSearch from "./pages/RateSearch";
 import HowItWorks from "./pages/HowItWorks";
@@ -156,6 +157,7 @@ const App = () => (
             <Route path="/features" element={<Features />} />
             <Route path="/category" element={<Category />} />
             <Route path="/about" element={<About />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/rates" element={<RateSearch />} />
             <Route path="/rate-search" element={<Navigate to="/rates" replace />} />
             <Route path="/rates-search" element={<Navigate to="/rates" replace />} />
