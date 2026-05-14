@@ -46,7 +46,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
             <img
               src={item.logo}
               alt={item.name}
-              className="h-6 w-6 object-contain md:h-8 md:w-8"
+              className="h-9 w-9 object-contain md:h-12 md:w-12"
               loading="lazy"
             />
             <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
@@ -66,7 +66,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
             <img
               src={item.logo}
               alt={item.name}
-              className="h-6 w-6 object-contain md:h-8 md:w-8"
+              className="h-9 w-9 object-contain md:h-12 md:w-12"
               loading="lazy"
             />
             <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
