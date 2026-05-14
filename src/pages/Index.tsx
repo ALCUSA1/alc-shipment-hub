@@ -12,6 +12,7 @@ import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { NetworkSection } from "@/components/marketing/NetworkSection";
 import { SecuritySection } from "@/components/marketing/SecuritySection";
 import { CTASection } from "@/components/marketing/CTASection";
+import { PricingPlansSection } from "@/components/marketing/PricingPlansSection";
 import { SEO } from "@/components/SEO";
 
 const Index = () => {
@@ -34,6 +35,7 @@ const Index = () => {
       <FeaturesSection />
       <NetworkSection />
       <SecuritySection />
+      <PricingPlansSection />
       <CTASection />
     </MarketingLayout>
   );
