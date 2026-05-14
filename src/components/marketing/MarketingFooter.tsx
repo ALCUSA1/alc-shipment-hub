@@ -9,7 +9,7 @@ export function MarketingFooter() {
         <div className="grid md:grid-cols-4 gap-10">
           <div>
             <div className="flex items-center gap-2 font-bold text-lg mb-4">
-              <img src={alcLogo} alt="ALC Logo" className="h-8 w-auto brightness-0 invert" />
+              <img src={alcLogo} alt="ALC Logo" className="h-16 md:h-20 w-auto brightness-0 invert" />
             </div>
             <p className="text-sm text-primary-foreground/60 mb-4">
               The Shipper Logistics Workspace for modern exporters and importers.
