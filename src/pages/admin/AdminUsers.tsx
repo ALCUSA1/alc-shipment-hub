@@ -627,4 +627,53 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+function EditUserDialog({ user, onClose, onSave }: { user: any; onClose: () => void; onSave: (updates: { full_name?: string; email?: string; company_name?: string }) => void }) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  // Reset fields when user changes
+  if (user && (fullName !== (user.full_name || "") || email !== (user.email || "") || companyName !== (user.company_name || "")) && fullName === "" && email === "" && companyName === "") {
+    setFullName(user.full_name || "");
+    setEmail(user.email || "");
+    setCompanyName(user.company_name || "");
+  }
+  return (
+    <Dialog open={!!user} onOpenChange={(v) => { if (!v) { setFullName(""); setEmail(""); setCompanyName(""); onClose(); } }}>
+      <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-md">
+        <DialogHeader><DialogTitle>Edit User</DialogTitle></DialogHeader>
+        {user && (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Full Name</Label>
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div>
+              <Label className="text-xs text-[hsl(220,10%,55%)]">Company Name</Label>
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="mt-1 bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white" />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => { setFullName(""); setEmail(""); setCompanyName(""); onClose(); }}>Cancel</Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => {
+                  const updates: any = {};
+                  if (fullName !== (user.full_name || "")) updates.full_name = fullName;
+                  if (email !== (user.email || "")) updates.email = email;
+                  if (companyName !== (user.company_name || "")) updates.company_name = companyName;
+                  if (Object.keys(updates).length === 0) { onClose(); return; }
+                  onSave(updates);
+                }}
+              >Save</Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default AdminUsers;
