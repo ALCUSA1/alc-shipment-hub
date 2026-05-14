@@ -35,16 +35,11 @@ export function HeroSection() {
             Logistics Operating System
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6 text-center"
-          >
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-foreground mb-6 text-center">
             Price, manage, and profit
             <br />
             <span className="text-gradient">from every shipment in one platform.</span>
-          </motion.h1>
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
