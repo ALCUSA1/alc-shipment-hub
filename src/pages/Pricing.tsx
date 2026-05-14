@@ -385,7 +385,19 @@ export default function Pricing() {
                 </ul>
 
                 <Button variant={plan.ctaVariant} size="lg" className="w-full" asChild>
-                  <Link to={plan.ctaTo}>{plan.ctaLabel}</Link>
+                  <Link
+                    to={plan.ctaTo}
+                    onClick={() => {
+                      try {
+                        sessionStorage.setItem(
+                          "selectedPlan",
+                          JSON.stringify({ plan: plan.id, billing }),
+                        );
+                      } catch { /* noop */ }
+                    }}
+                  >
+                    {plan.ctaLabel}
+                  </Link>
                 </Button>
               </div>
             );

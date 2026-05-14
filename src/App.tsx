@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ImpersonationProvider } from "@/contexts/ImpersonationContext";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -73,6 +74,9 @@ import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 // PendingApproval page kept but unlinked from routing
 import Onboarding from "./pages/Onboarding";
+import ChoosePlan from "./pages/ChoosePlan";
+import Subscribe from "./pages/Subscribe";
+import SubscribeSuccess from "./pages/SubscribeSuccess";
 import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
 import Messages from "./pages/Messages";
@@ -147,6 +151,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <SubscriptionProvider>
           <ImpersonationProvider>
             <ImpersonationBanner />
             <Routes>
@@ -169,6 +174,9 @@ const App = () => (
             <Route path="/quote/approve" element={<QuoteApproval />} />
             {/* /pending-approval removed — direct role assignment on signup */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/choose-plan" element={<ProtectedRoute><ChoosePlan /></ProtectedRoute>} />
+            <Route path="/subscribe" element={<ProtectedRoute><Subscribe /></ProtectedRoute>} />
+            <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
 
             {/* Quick entry routes */}
             <Route path="/shipments/new" element={<Navigate to="/book" replace />} />
@@ -298,6 +306,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
             </Routes>
           </ImpersonationProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
