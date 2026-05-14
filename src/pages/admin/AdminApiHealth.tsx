@@ -256,7 +256,7 @@ const AdminApiHealth = () => {
 
             {!connectionStatus && !connError && !connLoading && (
               <div className="text-center py-12 text-[hsl(220,10%,35%)] text-xs">
-                Click "Test Connection" to check Evergreen API status
+                Click "Test Connection" to check {activeCarrier.label} API status
               </div>
             )}
           </div>
