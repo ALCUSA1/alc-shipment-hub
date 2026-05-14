@@ -170,6 +170,24 @@ const AdminApiHealth = () => {
         </p>
       </div>
 
+      {/* Carrier selector */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[10px] uppercase tracking-wider text-[hsl(220,10%,40%)] mr-1">Carrier</span>
+        {CARRIERS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => { setCarrier(c.key); setConnectionStatus(null); setConnError(null); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+              carrier === c.key
+                ? "bg-indigo-600 text-white border-indigo-500"
+                : "bg-[hsl(220,18%,10%)] text-[hsl(220,10%,55%)] border-[hsl(220,15%,15%)] hover:bg-[hsl(220,15%,12%)]"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       <Tabs defaultValue="connection" className="space-y-4">
         <TabsList className="bg-[hsl(220,18%,10%)] border border-[hsl(220,15%,15%)]">
           <TabsTrigger value="connection" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-[hsl(220,10%,50%)]">
