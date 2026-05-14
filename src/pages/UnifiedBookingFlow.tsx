@@ -315,7 +315,10 @@ const UnifiedBookingFlow = () => {
         .eq("mode", params.mode)
         .gte("valid_until", today)
         .order("base_rate", { ascending: true });
-      if (params.mode === "ocean") ratesQuery = ratesQuery.eq("container_type", params.containerSize);
+      if (params.mode === "ocean") {
+        const cs = String(params.containerSize || "");
+        ratesQuery = ratesQuery.in("container_type", [cs, cs.toUpperCase(), cs.toLowerCase()]);
+      }
 
       // 2. Live Evergreen sailings via DCSA Commercial Schedules (ocean only)
       const evergreenPromise = params.mode === "ocean"
