@@ -11754,6 +11754,7 @@ export type Database = {
         | "driver"
         | "warehouse"
         | "forwarder"
+        | "tradeline"
       company_role:
         | "admin"
         | "pricing_manager"
@@ -11905,6 +11906,7 @@ export const Constants = {
         "driver",
         "warehouse",
         "forwarder",
+        "tradeline",
       ],
       company_role: [
         "admin",
