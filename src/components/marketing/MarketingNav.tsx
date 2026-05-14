@@ -31,6 +31,14 @@ export function MarketingNav() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          <a
+            href="tel:+13106090144"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-electric transition-colors"
+            aria-label="Call ALC at (310) 609-0144"
+          >
+            <Phone className="h-4 w-4 text-electric" />
+            (310) 609-0144
+          </a>
           <Button variant="ghost" asChild>
             <Link to="/login">Log In</Link>
           </Button>
