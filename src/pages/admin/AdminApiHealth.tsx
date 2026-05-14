@@ -23,6 +23,8 @@ type ConnectionStatus = {
   last_success_at: string | null;
   base_url_configured: boolean;
   environment: string;
+  ping_http_status?: number | null;
+  error_reason?: string | null;
 };
 
 type TntResult = {
@@ -251,6 +253,15 @@ const AdminApiHealth = () => {
                     </p>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {connectionStatus?.error_reason && (
+              <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                <p className="text-[10px] uppercase tracking-wider text-amber-400 mb-1">
+                  Error detail{connectionStatus.ping_http_status ? ` · HTTP ${connectionStatus.ping_http_status}` : ""}
+                </p>
+                <p className="text-xs text-amber-200 leading-relaxed">{connectionStatus.error_reason}</p>
               </div>
             )}
 
