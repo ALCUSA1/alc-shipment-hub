@@ -117,10 +117,6 @@ Deno.serve(async (req) => {
         break;
       }
       case "update_profile": {
-        const body = await (async () => ({}))();
-        // re-parse not needed: we already consumed; use a dedicated variable
-        // (handled via outer payload below)
-        const payload: any = (globalThis as any).__lastPayload || {};
         const { full_name, email, company_name } = payload;
         if (email) {
           const { error } = await adminClient.auth.admin.updateUserById(target_user_id, { email });
