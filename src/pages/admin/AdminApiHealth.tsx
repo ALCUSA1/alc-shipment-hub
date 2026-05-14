@@ -23,6 +23,8 @@ type ConnectionStatus = {
   last_success_at: string | null;
   base_url_configured: boolean;
   environment: string;
+  ping_http_status?: number | null;
+  error_reason?: string | null;
 };
 
 type TntResult = {
