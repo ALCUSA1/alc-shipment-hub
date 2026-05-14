@@ -59,6 +59,14 @@ export function MarketingNav() {
               {l.label}
             </Link>
           ))}
+          <a
+            href="tel:+13106090144"
+            className="flex items-center gap-2 text-sm font-semibold text-foreground"
+            onClick={() => setOpen(false)}
+          >
+            <Phone className="h-4 w-4 text-electric" />
+            (310) 609-0144
+          </a>
           <div className="flex gap-3 pt-3">
             <Button variant="ghost" asChild size="sm">
               <Link to="/login">Log In</Link>
