@@ -111,6 +111,7 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAccount from "./pages/admin/AdminAccount";
 import AdminCompliance from "./pages/admin/AdminCompliance";
 import AdminApiHealth from "./pages/admin/AdminApiHealth";
+import AdminShippingLines from "./pages/admin/AdminShippingLines";
 import AdminDataExplorer from "./pages/admin/AdminDataExplorer";
 import AdminCompanyDetail from "./pages/admin/AdminCompanyDetail";
 import AdminSalesPipeline from "./pages/admin/AdminSalesPipeline";
