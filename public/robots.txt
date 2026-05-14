@@ -6,4 +6,4 @@ Disallow: /trucking/
 Disallow: /driver/
 Disallow: /warehouse/
 
-Sitemap: https://alcshipper.com/sitemap.xml
+Sitemap: https://www.alllogisticscargo.com/sitemap.xml
