@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
     // Live ping (action=status or refresh both ping IBM gateway)
     let pingStatus: number | null = null;
     let pingOk = false;
+    let pingBody: string | null = null;
     if (credsConfigured) {
       try {
         const r = await fetch(`${baseUrl}/point-to-point-routes?placeOfReceipt=USHOU&placeOfDelivery=DEHAM&limit=1`, {
@@ -81,12 +82,30 @@ Deno.serve(async (req) => {
         });
         pingStatus = r.status;
         pingOk = r.ok || r.status === 404; // 404 still means auth worked
-      } catch {
+        try {
+          const txt = await r.text();
+          pingBody = txt.slice(0, 500);
+        } catch { /* ignore */ }
+      } catch (e: any) {
         pingOk = false;
+        pingBody = e?.message ?? "fetch failed";
       }
     }
 
     const overall = credsConfigured && pingOk ? "active" : credsConfigured ? "error" : "missing_credentials";
+
+    let errorReason: string | null = null;
+    if (overall === "error") {
+      if (pingStatus === 401 || pingStatus === 403) {
+        errorReason = "Hapag-Lloyd rejected the IBM API credentials (HTTP " + pingStatus + "). The HLAG_CLIENT_ID / HLAG_CLIENT_SECRET secrets are invalid, expired, or not subscribed to the point-to-point-routes product. Please regenerate them in the Hapag-Lloyd developer portal and update the secrets.";
+      } else if (pingStatus === 429) {
+        errorReason = "Rate limited by Hapag-Lloyd (HTTP 429). Try again shortly.";
+      } else if (pingStatus && pingStatus >= 500) {
+        errorReason = "Hapag-Lloyd gateway returned HTTP " + pingStatus + ". Upstream issue, retry later.";
+      } else {
+        errorReason = "Unable to reach Hapag-Lloyd API (HTTP " + (pingStatus ?? "n/a") + ").";
+      }
+    }
 
     if (overall === "active" && carrierId) {
       await supabase
@@ -107,6 +126,8 @@ Deno.serve(async (req) => {
         last_success_at: conn?.last_success_at || null,
         base_url_configured: !!baseUrl,
         ping_http_status: pingStatus,
+        ping_response_preview: pingBody,
+        error_reason: errorReason,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
