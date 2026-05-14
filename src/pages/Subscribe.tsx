@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,8 +8,6 @@ import { Lock, AlertCircle } from "lucide-react";
 import alcLogo from "@/assets/alc-logo.png";
 
 export default function Subscribe() {
-  const { user } = useAuth();
-  const { subscription, signOut: _ } = useAuth() as any;
   const { subscription: sub } = useSubscription();
   const { toast } = useToast();
   const navigate = useNavigate();
