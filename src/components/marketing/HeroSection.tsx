@@ -39,7 +39,7 @@ export function HeroSection() {
             Price, manage, and profit
             <br />
             <span className="text-gradient">from every shipment in one platform.</span>
-          </motion.h1>
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
