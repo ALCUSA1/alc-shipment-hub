@@ -7,7 +7,8 @@ const supabase = createClient(
 );
 
 const HLAG_CARRIER_CODE = "HLCU";
-const HLAG_DEFAULT_BASE_URL = "https://api.hlag.com/hlag/external/v1";
+// Prices API v2.1.3 base (per official Hapag-Lloyd OpenAPI spec)
+const HLAG_DEFAULT_BASE_URL = "https://api.hlag.com/hlag/external/v2/quotation-booking-engine/external";
 
 async function resolveCarrier(code: string) {
   const { data, error } = await supabase
