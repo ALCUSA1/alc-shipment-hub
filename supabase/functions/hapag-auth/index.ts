@@ -7,7 +7,8 @@ const supabase = createClient(
 );
 
 const HLAG_CARRIER_CODE = "HLCU";
-const HLAG_DEFAULT_BASE_URL = "https://api.hlag.com/hlag/external/v1";
+// Prices API v2.1.3 base (per official Hapag-Lloyd OpenAPI spec)
+const HLAG_DEFAULT_BASE_URL = "https://api.hlag.com/hlag/external/v2/quotation-booking-engine/external";
 
 async function resolveCarrier(code: string) {
   const { data, error } = await supabase
@@ -71,17 +72,21 @@ Deno.serve(async (req) => {
     let pingBody: string | null = null;
     if (credsConfigured) {
       try {
-        const r = await fetch(`${baseUrl}/point-to-point-routes?placeOfReceipt=USHOU&placeOfDelivery=DEHAM&limit=1`, {
-          method: "GET",
+        // Ping the Prices API with an intentionally minimal POST body.
+        // Anything other than 401/403 (e.g. 400 "missing fields") proves the IBM
+        // gateway accepted our credentials — that's all we want from a health check.
+        const r = await fetch(`${baseUrl}/prices`, {
+          method: "POST",
           headers: {
             "X-IBM-Client-Id": clientId,
             "X-IBM-Client-Secret": clientSecret,
             "Accept": "application/json",
-            "API-Version": "1",
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({ healthCheck: true }),
         });
         pingStatus = r.status;
-        pingOk = r.ok || r.status === 404; // 404 still means auth worked
+        pingOk = r.status !== 401 && r.status !== 403;
         try {
           const txt = await r.text();
           pingBody = txt.slice(0, 500);
@@ -97,7 +102,7 @@ Deno.serve(async (req) => {
     let errorReason: string | null = null;
     if (overall === "error") {
       if (pingStatus === 401 || pingStatus === 403) {
-        errorReason = "Hapag-Lloyd rejected the IBM API credentials (HTTP " + pingStatus + "). The HLAG_CLIENT_ID / HLAG_CLIENT_SECRET secrets are invalid, expired, or not subscribed to the point-to-point-routes product. Please regenerate them in the Hapag-Lloyd developer portal and update the secrets.";
+        errorReason = "Hapag-Lloyd rejected the IBM API credentials (HTTP " + pingStatus + "). The HLAG_CLIENT_ID / HLAG_CLIENT_SECRET secrets are invalid, expired, or the app is not subscribed to the Prices API (Quotation & Booking Engine v2). Regenerate them in https://api-portal.hlag.com and confirm the subscription is active.";
       } else if (pingStatus === 429) {
         errorReason = "Rate limited by Hapag-Lloyd (HTTP 429). Try again shortly.";
       } else if (pingStatus && pingStatus >= 500) {
