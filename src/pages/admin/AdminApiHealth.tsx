@@ -14,6 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+type ProductPing = {
+  key: string;
+  label: string;
+  base_url: string;
+  http_status: number | null;
+  auth_ok: boolean;
+  subscribed: "yes" | "no" | "unknown";
+  reason: string | null;
+};
+
 type ConnectionStatus = {
   carrier: string;
   auth_type: string;
@@ -25,6 +35,9 @@ type ConnectionStatus = {
   environment: string;
   ping_http_status?: number | null;
   error_reason?: string | null;
+  products_total?: number;
+  products_subscribed?: number;
+  products?: ProductPing[];
 };
 
 type TntResult = {
