@@ -72,17 +72,21 @@ Deno.serve(async (req) => {
     let pingBody: string | null = null;
     if (credsConfigured) {
       try {
-        const r = await fetch(`${baseUrl}/point-to-point-routes?placeOfReceipt=USHOU&placeOfDelivery=DEHAM&limit=1`, {
-          method: "GET",
+        // Ping the Prices API with an intentionally minimal POST body.
+        // Anything other than 401/403 (e.g. 400 "missing fields") proves the IBM
+        // gateway accepted our credentials — that's all we want from a health check.
+        const r = await fetch(`${baseUrl}/prices`, {
+          method: "POST",
           headers: {
             "X-IBM-Client-Id": clientId,
             "X-IBM-Client-Secret": clientSecret,
             "Accept": "application/json",
-            "API-Version": "1",
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({ healthCheck: true }),
         });
         pingStatus = r.status;
-        pingOk = r.ok || r.status === 404; // 404 still means auth worked
+        pingOk = r.status !== 401 && r.status !== 403;
         try {
           const txt = await r.text();
           pingBody = txt.slice(0, 500);
