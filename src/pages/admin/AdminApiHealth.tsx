@@ -278,6 +278,46 @@ const AdminApiHealth = () => {
               </div>
             )}
 
+            {connectionStatus?.products && connectionStatus.products.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+                    {activeCarrier.label} · Product Subscriptions
+                  </h3>
+                  <span className="text-[10px] text-[hsl(220,10%,45%)]">
+                    {connectionStatus.products_subscribed ?? 0} of {connectionStatus.products_total ?? 0} subscribed
+                  </span>
+                </div>
+                <div className="rounded-lg border border-[hsl(220,15%,15%)] bg-[hsl(220,18%,8%)] divide-y divide-[hsl(220,15%,13%)] overflow-hidden">
+                  {connectionStatus.products.map((p) => (
+                    <div key={p.key} className="flex items-center gap-3 px-4 py-3">
+                      {p.subscribed === "yes" ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      ) : p.subscribed === "no" ? (
+                        <XCircle className="h-4 w-4 text-red-400 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-white truncate">{p.label}</p>
+                        <p className="text-[10px] text-[hsl(220,10%,45%)] font-mono truncate">{p.base_url}</p>
+                        {p.reason && (
+                          <p className="text-[10px] text-amber-300/80 mt-0.5">{p.reason}</p>
+                        )}
+                      </div>
+                      <Badge variant="outline" className={`text-[10px] shrink-0 ${
+                        p.subscribed === "yes" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                        p.subscribed === "no" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                        "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      }`}>
+                        HTTP {p.http_status ?? "—"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {!connectionStatus && !connError && !connLoading && (
               <div className="text-center py-12 text-[hsl(220,10%,35%)] text-xs">
                 Click "Test Connection" to check {activeCarrier.label} API status
