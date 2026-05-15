@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     let errorReason: string | null = null;
     if (overall === "error") {
       if (pingStatus === 401 || pingStatus === 403) {
-        errorReason = "Hapag-Lloyd rejected the IBM API credentials (HTTP " + pingStatus + "). The HLAG_CLIENT_ID / HLAG_CLIENT_SECRET secrets are invalid, expired, or not subscribed to the point-to-point-routes product. Please regenerate them in the Hapag-Lloyd developer portal and update the secrets.";
+        errorReason = "Hapag-Lloyd rejected the IBM API credentials (HTTP " + pingStatus + "). The HLAG_CLIENT_ID / HLAG_CLIENT_SECRET secrets are invalid, expired, or the app is not subscribed to the Prices API (Quotation & Booking Engine v2). Regenerate them in https://api-portal.hlag.com and confirm the subscription is active.";
       } else if (pingStatus === 429) {
         errorReason = "Rate limited by Hapag-Lloyd (HTTP 429). Try again shortly.";
       } else if (pingStatus && pingStatus >= 500) {
