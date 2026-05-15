@@ -1,0 +1,1384 @@
+openapi: 3.0.3
+info:
+  title: DCSA Track & Trace API specification
+  description: "# Disclaimer\nPlease note that the Track & Trace API is currently available only as a BETA version. The solution is still in development and will undergo changes and improvements. It is offered with the Basic Rate Limit for subscription and is recommended primarily for testing purposes. Enhanced capabilities and higher rate limits will be available in the coming months.\n# Overview \nThe Hapag-Lloyd Track & Trace API, developed in accordance with the Digital Container Shipping Association (DCSA) standard specifications, provides subscribers with detailed information on shipment, equipment, and milestones (EPOS) events for shipments booked with Hapag-Lloyd AG. This API enables seamless integration, allowing customers to retrieve tracking data and status updates for containers and shipments.\n## Use Cases\nThe Track & Trace API offers several key functionalities:\n  - **Container Tracking**: Retrieve all planned, and actual events for a specific container using its carrier booking reference, equipment reference or bill of lading number.\n  - **Shipment Status Updates**: Access comprehensive event data for all containers under a specific Carrier Booking Reference, including transport and shipment events.\n  - **Document Tracking**: Obtain all events related to a particular Transport Document Reference, covering equipment, transport, and shipment events.\n  - **Filtered Event Retrieval**: Refine event data using various query parameters such as event type, document type, vessel IMO number, voyage number, service code, and event creation date.\n\nThese capabilities empower customers to monitor their shipments effectively, anticipate potential delays, and make informed logistical decisions.\n# Who can get access?\nThis API is publicly available to all customers and registered customers on the API Portal. To get started, please register on the Hapag-Lloyd API Developer Portal and subscribe to the Track & Trace API. \n# Getting started\n\nThe DCSA T&T API provides event retrieval methods based on different references and query parameters, enabling customers to filter and sort data.\n  1.\tEquipment Reference (HLCU 4*****6): \n    This option allows retrieving all planned, estimated, and actual events for a single container.\n\n  2.\tCarrier Booking Reference (9*****8): This option allows retrieving all planned, estimated, and actual events for all containers under a specific carrier booking reference. Additionally, access transport and shipment events related to this reference.\n\n  3.\tTransport Document Reference (HLCUDE1********8): This option allows retrieving all equipment (for all containers), transport, and shipment events assigned to a specific transport document.\n\nAdditionally, customers can employ combinations of the following query parameters to refine their search:\n  - eventType\n  - shipmentEventTypeCode (only when combined with filtering onShipmentEvents)\n  - documentTypeCode\n  - carrierBookingReference\n  - transportEventTypeCode (only when combined with filtering on TransportEvents)\n  - vesselIMONumber\n  - exportVoyageNumber\n  - carrierServiceCode\n  - UNLocationCode\n  - equipmentEventTypeCode (only when combined with filtering on EquipmentEvent)\n  -\teventCreatedDateTime (possible to use with operators: :gte (≥ Greater than or equal), :gt (> Greater than), :lte (≤ Less than or equal), :lt (< Less than), :eq (= Equal to) – default).\n\nThe filters require an Equipment Reference, Carrier Booking Reference, or Transport Document Reference in the query to function correctly. Additionally, customers can limit the number of returned items or sort items by a parameter of their choice.\n# Rate Limits (Plans) \nThe Track & Trace API offers different rate limits based on your subscription plan. Below is an overview:\n| Plan    | Rate Limit day | Rate Limit minute   | \n| ------- | ----------------- | ----------------- | \n| Tryout  | 100 calls / day  | 10 calls / minute| \n| Default | 6000 calls / day | 10 calls / minute| \n| Premium | 100000 calls / day | 150 calls / minute| \n# FAQs\n<details>\n  <summary>What is the Hapag-Lloyd Track & Trace API?</summary>\n  <div>\n    The Track & Trace API provides information on shipment, equipment, and milestone (EPOS) events for shipments booked with Hapag-Lloyd, enabling seamless integration and efficient supply chain management.\n  </div>\n</details>\n\n<details>\n  <summary>Why does the API show different data from the Track and Trace data obtained via the website? </summary>\n  <div>\n    We’re including additional data sources for the API to better reflect the changes and align with the website view. We encourage you to trust the website data until our next release (please observe the release notes).\n  </div>\n</details>\n\n<details>\n  <summary>How can I search for events data?</summary>\n  <div>\n    A valid carrier booking reference, equipment reference or bill of lading number is required to query the API\n  </div>\n</details>\n\n<details>\n  <summary>Do you offer a notification service for the DCSA Track & Trace events that pushes data to my system?</summary>\n  <div>\n    Not yet, but please observe the release notes for changes.  \n  </div>\n</details>\n\n# Tutorials & How-To's\nTo effectively utilize the Track & Trace API:\n1.\tTracking by Equipment Reference:\n    -\tObjective: Retrieve all events for a specific container.\n    -\tReplace HLCU1234567 with your specific Equipment Reference\n    - Request: GET https://api.hlag.com/hlag/external/v2/events/?equipmentReference=HLCU1234567\n    - Description: Replace HLCU1234567 with your container's Equipment Reference to obtain all related events.\n\n2.\tTracking by Carrier Booking Reference:\n    - Objective: Access events for all containers under a specific booking.\n    - Request:GET https://api.hlag.com/hlag/external/v2/events/?carrierBookingReference=912345678\n    - Description: Replace 912345678 with your Carrier Booking Reference to retrieve associated events.\n\n3.\tTracking by Transport Document Reference:\n    - Objective: Obtain events related to a specific transport document.\n    - Request:GET https://api.hlag.com/hlag/external/v2/events/?transportDocumentReference=HLCUDE1234567890\n    - Description: Replace HLCUDE1234567890 with your Transport Document Reference to access relevant events.\n\n4.  Using Query Parameters for Filtering:\n    - Objective: Refine event data using filters.\n    - Request:GET https://api.hlag.com/hlag/external/v2/events/?equipmentReference=HLCU1234567&eventType=EQUIPMENT&eventCreatedDateTime:gte=2023-01-01T00:00:00Z\n    - Description: This example retrieves equipment events for the specified container created on or after January 1, 2023. Adjust parameters as needed.\n\nFor more detailed tutorials and examples, visit the API documentation.\n# Release notes/changelog \n| Version | Date      | Description | \n| ------- | --------- | ----------- | \n| 2.2.2 | 2025 May | Pilot Test | \n"
+  termsOfService: https://api-portal.hlag.com/terms
+  contact:
+    name: API Portal
+    url: https://api-portal.hlag.com
+  license:
+    name: Privacy Terms
+    url: https://api-portal.hlag.com/privacy
+  version: 2.2.4
+servers:
+  - url: https://api.hlag.com/hlag/external/v2/events
+  - url: https://mock.api-portal.hlag.com/v2/events
+security:
+  - Client ID Header: []
+    Client Secret Header: []
+tags:
+  - name: Events
+    description: Event operations
+paths:
+  /:
+    get:
+      tags:
+        - Events
+      summary: Find events.
+      description: >
+        Returns all events filtered by the queryParameters.
+
+
+        <b>NB</b>&#58; It is possible to combine queryParameters. When combining
+        queryParameters be aware that it is also possible to make combinations
+        that are mutual contradicting.
+
+
+        Example&#58; <i>shipmentEventTypeCode=ISSU and
+        equipmentEventTypeCode=GTIN</i>
+
+
+        Since there is no event that can be a ShipmentEvent <u>and</u> an
+        EquipmentEvent at the same time <b>this will return an empty list<b>!
+      operationId: get
+      parameters:
+        - name: eventType
+          in: query
+          description: >
+            The type of event(s) to filter by. Possible values are
+
+
+            - SHIPMENT (Shipment events)
+
+            - TRANSPORT (Transport events)
+
+            - EQUIPMENT (Equipment events)
+
+
+            It is possible to select multiple values by comma (,) separating
+            them. For multiple values the OR-operator is used. For example
+            eventType=SHIPMENT,EQUIPMENT matches both Shipment- and
+            Equipment-events.
+
+
+            Default value is all event types.
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - SHIPMENT
+                - TRANSPORT
+                - EQUIPMENT
+        - name: shipmentEventTypeCode
+          in: query
+          description: >
+            The status of the document in the process to filter by. Possible
+            values are
+
+            - ISSU (Issued)
+
+            - CONF (Confirmed)
+
+
+
+            It is possible to select multiple values by comma (,) separating
+            them. For multiple values the OR-operator is used. For example
+            <i>shipmentEventTypeCode=ISSU,CONF</i>  Matches <b>both</b>
+            Confirmed (CONF) and Issued (ISSU) shipment events.
+
+
+            Default is all shipmentEventTypeCodes.
+
+
+            This filter is only relevant when filtering on ShipmentEvents
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/shipmentEventTypeCode'
+            default:
+              - ISSU
+        - name: documentTypeCode
+          in: query
+          description: >
+            The documentTypeCode to filter by. Possible values are
+
+            - BKG (Booking)
+
+            - TRD (Transport Document)
+
+
+
+            It is possible to select multiple values by comma (,) separating
+            them. For multiple values the OR-operator is used. For example
+            <i>documentTypeCode=SHI,TRD</i> Matches <b>both</b> Booking (BKG)
+            and TransportDocument (TRD) shipment events.
+
+
+            Default is all documentTypeCodes.
+
+
+            This filter is only relevant when filtering on ShipmentEvents
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/documentTypeCode'
+            default:
+              - BKG
+        - name: carrierBookingReference
+          in: query
+          description: >
+            A set of unique characters provided by carrier to identify a
+            booking.
+
+
+            Specifying this filter will only return events related to this
+            particular carrierBookingReference.
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/carrierBookingReference'
+        - name: transportDocumentReference
+          in: query
+          description: >
+            A unique number reference allocated by the shipping line to the
+            transport document and the main number used for the tracking of the
+            status of the shipment.
+
+
+            Specifying this filter will only return events related to this
+            particular transportDocumentReference
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/transportDocumentReference'
+        - name: transportEventTypeCode
+          in: query
+          description: >
+            Identifier for type of Transport event to filter by
+
+            - ARRI (Arrived)
+
+            - DEPA (Departed)
+
+
+            It is possible to select multiple values by comma (,) separating
+            them. For multiple values the OR-operator is used. For example
+            <i>transportEventTypeCode=ARRI,DEPA</i> matches <b>both</b> Arrived
+            (ARRI) and Departed (DEPA) transport events.
+
+
+            Default is all transportEventTypeCodes.
+
+
+            This filter is only relevant when filtering on TransportEvents
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/transportEventTypeCode'
+            default:
+              - ARRI
+        - name: exportVoyageNumber
+          in: query
+          description: >
+            Filter on the vessel operator-specific identifier of the export
+            Voyage.
+
+
+            Specifying this filter will only return events related to this
+            particular exportVoyageNumber.
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/exportVoyageNumber'
+        - name: UNLocationCode
+          in: query
+          description: >
+            The UN Location code specifying where the place is located.
+
+
+            Specifying this filter will only return events related to this
+            particular UN Location code.
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/UNLocationCode'
+        - name: equipmentEventTypeCode
+          in: query
+          description: >
+            Unique identifier for equipmentEventTypeCode.
+
+            - LOAD (Loaded)
+
+            - DISC (Discharged)
+
+            - GTIN (Gated in)
+
+            - GTOT (Gated out)
+
+            - STUF (Stuffed)
+
+            - STRP (Stripped)
+
+
+            It is possible to select multiple values by comma (,) separating
+            them. For multiple values the OR-operator is used. For example
+            <i>equipmentEventTypeCode=GTIN,GTOT</i> matches <b>both</b> Gated in
+            (GTIN) and Gated out (GTOT) equipment events.
+
+
+            Default is all equipmentEventTypeCodes.
+
+
+            This filter is only relevant when filtering on EquipmentEvents
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/equipmentEventTypeCode'
+            default:
+              - LOAD
+        - name: equipmentReference
+          in: query
+          description: >
+            Will filter by the unique identifier for the equipment, which should
+            follow the BIC ISO Container Identification Number where possible.
+
+
+            Specifying this filter will only return events related to this
+            particular equipmentReference
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/equipmentReference'
+        - name: eventCreatedDateTime
+          in: query
+          description: >
+            Limit the result based on the creating date of the event. It is
+            possible to use operators on this query parameter. This is done by
+            adding a colon followed by an operator at the end of the
+            queryParameterName (before the =)
+
+
+            <i>eventCreatedDateTime<b>&#58;gte</b>=2021-04-01T14&#58;12&#58;56+01&#58;00</i>
+
+
+            would result in all events created &#8805;
+            2021-04-01T14&#58;12&#58;56+01&#58;00
+
+
+            The following operators are supported
+
+            - &#58;gte (&#8805; Greater than or equal)
+
+            - &#58;gt (&#62; Greater than)
+
+            - &#58;lte (&#8804; Less than or equal)
+
+            - &#58;lt (&#60; Less than)
+
+            - &#58;eq (&#61; Equal to)
+
+
+            If no operator is provided, a <b>strictly equal</b> is used (this is
+            equivalent to <b>&#58;eq</b> operator).
+          required: false
+          style: form
+          explode: false
+          schema:
+            $ref: '#/components/schemas/eventCreatedDateTime'
+          example: '2021-04-01T13:12:56.000Z'
+        - name: limit
+          in: query
+          description: Maximum number of items to return.
+          required: false
+          style: form
+          explode: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 100
+          example: 100
+        - name: sort
+          in: query
+          description: >
+            A comma-separated list of field names to define the sort order.
+            Field names should be suffixed by a (:) followed by either the
+            keyword ASC (for ascending order) or DESC (for descening order) to
+            specify direction. <b>:ASC</b> may be omitted, in which case
+            ascending order will be used.
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: string
+          example: carrierBookingReference:DESC
+        - name: API-Version
+          in: header
+          description: >
+            An API-Version header MAY be added to the request (optional); if
+            added it MUST only contain MAJOR version. API-Version header MUST be
+            aligned with the URI version.
+          required: false
+          style: simple
+          explode: false
+          schema:
+            type: string
+            example: '1'
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            API-Version:
+              $ref: '#/components/headers/API-Version'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  anyOf:
+                    - $ref: '#/components/schemas/transportEvent'
+                    - $ref: '#/components/schemas/shipmentEvent'
+                    - $ref: '#/components/schemas/equipmentEvent'
+        '204':
+          description: No content
+        '400':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/error'
+        '401':
+          description: JWT expired
+        '403':
+          description: Unauthorized access
+        '429':
+          description: Too many requests. Rate limit exceeded
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    shipmentEventTypeCode:
+      type: string
+      description: >
+        The status of the document in the process. Possible values are
+
+        - ISSU (Issued)
+
+        - CONF (Confirmed)
+
+
+
+        More details can be found on <a
+        href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/shipmenteventtypecodes.csv">GitHub</a>
+      example: ISSU
+      enum:
+        - ISSU
+        - CONF
+    documentTypeCode:
+      maxLength: 3
+      type: string
+      description: >
+        The code to identify the type of information documentID points to. Can
+        be one of the following values
+
+
+        - BKG (Booking)
+
+        - TRD (Transport Document)
+
+
+
+        More details can be found on <a
+        href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/documenttypecodes.csv">GitHub</a>
+      example: TRD
+      enum:
+        - BKG
+        - TRD
+    carrierBookingReference:
+      maxLength: 35
+      type: string
+      description: A set of unique characters provided by carrier to identify a booking.
+      example: '98765432'
+    transportDocumentReference:
+      maxLength: 20
+      type: string
+      description: >
+        A unique number allocated by the shipping line to the transport document
+        and the main number used for the tracking of the status of the shipment.
+    transportEventTypeCode:
+      type: string
+      description: >
+        Identifier for type of Transport event
+
+        - ARRI (Arrived)
+
+        - DEPA (Departed)
+
+
+        More details can be found on <a
+        href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/transporteventtypecodes.csv">GitHub</a>
+      example: ARRI
+      enum:
+        - ARRI
+        - DEPA
+    transportCallID:
+      maxLength: 100
+      type: string
+      description: The unique identifier for a transport call
+      example: 123e4567-e89b-12d3-a456-426614174000
+    vesselIMONumber:
+      maxLength: 7
+      type: string
+      description: >
+        The unique reference for a registered Vessel. The reference is the
+        International Maritime Organisation (IMO) number, also sometimes known
+        as the Lloyd&apos;s register code, which does not change during the
+        lifetime of the vessel
+      example: '9321483'
+    exportVoyageNumber:
+      maxLength: 50
+      type: string
+      description: The vessel operator-specific identifier of the export Voyage.
+      example: 2103S
+    UNLocationCode:
+      maxLength: 5
+      type: string
+      description: The UN Location code specifying where the place is located.
+      example: FRPAR
+    facilityTypeCodeTRN:
+      type: string
+      description: >
+        A specialized version of the facilityCode to be used in TransportCalls.
+        The code to identify the specific type of facility.
+
+        - BOCR (Border crossing)
+
+        - CLOC (Customer location)
+
+        - COFS (Container freight station)
+
+        - COYA (Deprecated - use OFFD intead)
+
+        - OFFD (Off dock storage)
+
+        - DEPO (Depot)
+
+        - INTE (Inland terminal)
+
+        - POTE (Port terminal)
+
+        - RAMP (Ramp)
+      example: POTE
+      enum:
+        - BOCR
+        - CLOC
+        - COFS
+        - COYA
+        - OFFD
+        - DEPO
+        - INTE
+        - POTE
+        - RAMP
+    equipmentEventTypeCode:
+      type: string
+      description: >
+        Unique identifier for equipmentEventTypeCode.
+
+        - LOAD (Loaded)
+
+        - DISC (Discharged)
+
+        - GTIN (Gated in)
+
+        - GTOT (Gated out)
+
+        - STUF (Stuffed)
+
+        - STRP (Stripped)
+
+
+        More details can be found on <a
+        href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/equipmenteventtypecodes.csv">GitHub</a>
+      example: LOAD
+      enum:
+        - LOAD
+        - DISC
+        - GTIN
+        - GTOT
+        - STUF
+        - STRP
+    equipmentReference:
+      maxLength: 15
+      type: string
+      description: >
+        The unique identifier for the equipment, which should follow the BIC ISO
+        Container Identification Number where possible.
+
+        According to ISO 6346, a container identification code consists of a
+        4-letter prefix and a 7-digit number (composed of a 3-letter owner code,
+        a category identifier, a serial number, and a check-digit). If a
+        container does not comply with ISO 6346, it is suggested to follow
+        Recommendation #2 “Container with non-ISO identification” from SMDG.
+      example: APZU4812090
+    eventCreatedDateTime:
+      type: string
+      description: |
+        The timestamp of when the event was created.
+
+        <b>NB</b>&#58; This field should be considered Metadata
+      format: date-time
+    transportEvent:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/operationsTransportEvent'
+        - type: object
+    operationsTransportEvent:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/baseEvent'
+        - $ref: '#/components/schemas/baseTransportEvent'
+    baseEvent:
+      required:
+        - eventCreatedDateTime
+      type: object
+      allOf:
+        - type: object
+          properties:
+            eventCreatedDateTime:
+              $ref: '#/components/schemas/eventCreatedDateTime'
+        - $ref: '#/components/schemas/baseEventBody'
+    baseEventBody:
+      required:
+        - eventClassifierCode
+        - eventDateTime
+        - eventType
+      type: object
+      description: >
+        The Event entity is described as a generalization of all the specific
+        event categories. An event always takes place in relation to a shipment
+        and can additionally be linked to a transport or an equipment
+      allOf:
+        - type: object
+          properties:
+            eventType:
+              $ref: '#/components/schemas/eventType'
+        - type: object
+          properties:
+            eventClassifierCode:
+              $ref: '#/components/schemas/eventClassifierCode'
+        - type: object
+          properties:
+            eventDateTime:
+              $ref: '#/components/schemas/eventDateTime'
+    eventType:
+      type: string
+      description: |
+        The Event Type of the object - to be used as a discriminator.
+
+        <b>NB</b>&#58; This field should be considered Metadata
+    eventClassifierCode:
+      type: string
+      description: |
+        Code for the event classifier. Values can vary depending on eventType
+    eventDateTime:
+      type: string
+      description: >-
+        The local date and time, where the event took place or when the event
+        will take place, in ISO 8601 format.
+      format: date-time
+    baseTransportEvent:
+      required:
+        - transportCall
+        - transportEventTypeCode
+      type: object
+      description: >
+        The transport event entity is a specialization of the event entity to
+        support specification of data that only applies to a transport event.
+      allOf:
+        - type: object
+          properties:
+            eventType:
+              type: string
+              example: TRANSPORT
+              enum:
+                - TRANSPORT
+        - type: object
+          properties:
+            eventClassifierCode:
+              type: string
+              description: |
+                Code for the event classifier can be
+                - ACT (Actual)
+                - PLN (Planned)
+                - EST (Estimated)
+              example: ACT
+              enum:
+                - ACT
+                - PLN
+                - EST
+        - type: object
+          properties:
+            transportEventTypeCode:
+              $ref: '#/components/schemas/transportEventTypeCode'
+        - type: object
+          properties:
+            transportCallID:
+              allOf:
+                - $ref: '#/components/schemas/transportCallID'
+                - deprecated: true
+                - description: >-
+                    The unique identifier for a transport call<br><br>Deprecated
+                    - not needed as the TransportCall object is included
+        - type: object
+          properties:
+            transportCall:
+              $ref: '#/components/schemas/transportCall'
+    transportCall:
+      required:
+        - modeOfTransport
+        - transportCallID
+      type: object
+      allOf:
+        - type: object
+          properties:
+            transportCallID:
+              $ref: '#/components/schemas/transportCallID'
+        - type: object
+          properties:
+            exportVoyageNumber:
+              $ref: '#/components/schemas/exportVoyageNumber'
+        - type: object
+          properties:
+            importVoyageNumber:
+              $ref: '#/components/schemas/importVoyageNumber'
+        - type: object
+          properties:
+            UNLocationCode:
+              $ref: '#/components/schemas/UNLocationCode'
+        - type: object
+          properties:
+            facilityTypeCode:
+              $ref: '#/components/schemas/facilityTypeCodeTRN'
+        - type: object
+          properties:
+            modeOfTransport:
+              $ref: '#/components/schemas/modeOfTransport'
+        - type: object
+          properties:
+            location:
+              allOf:
+                - $ref: '#/components/schemas/location'
+                - type: object
+                  description: >-
+                    Location of the facility. Can often be omitted when it is
+                    just repeating the contents of the UNLocationCode field.
+        - type: object
+          properties:
+            vessel:
+              $ref: '#/components/schemas/vessel'
+    importVoyageNumber:
+      maxLength: 50
+      type: string
+      description: The vessel operator-specific identifier of the import Voyage.
+      example: 2103N
+    modeOfTransport:
+      type: string
+      description: |
+        The mode of transport as defined by DCSA.
+      enum:
+        - VESSEL
+        - RAIL
+        - TRUCK
+        - BARGE
+    location:
+      type: object
+      description: >
+        generally used to capture location-related data, also for locations
+        without UN Location Codes.
+      allOf:
+        - type: object
+          properties:
+            locationName:
+              $ref: '#/components/schemas/locationName'
+        - type: object
+          properties:
+            UNLocationCode:
+              $ref: '#/components/schemas/UNLocationCode'
+        - type: object
+          properties:
+            address:
+              description: Address related information
+              allOf:
+                - $ref: '#/components/schemas/address'
+    locationName:
+      maxLength: 100
+      type: string
+      description: The name of the location.
+      example: Eiffel Tower
+    address:
+      type: object
+      description: An object for storing address related information
+      allOf:
+        - type: object
+          properties:
+            name:
+              $ref: '#/components/schemas/addressName'
+    addressName:
+      maxLength: 100
+      type: string
+      description: Name of the address
+      example: Henrik
+    vessel:
+      required:
+        - vesselIMONumber
+      type: object
+      description: >
+        describes a floating, sea going structure (mother vessels and feeder
+        vessels) with either an internal or external mode of propulsion designed
+        for the transport of cargo and/or passengers. Ocean vessels are uniquely
+        identified by an IMO number consisting of 7 digits, or alternatively by
+        their AIS signal with an MMSI number. 
+      allOf:
+        - type: object
+          properties:
+            vesselIMONumber:
+              $ref: '#/components/schemas/vesselIMONumber'
+        - type: object
+          properties:
+            vesselName:
+              $ref: '#/components/schemas/vesselName'
+    vesselName:
+      maxLength: 35
+      type: string
+      description: >
+        The name of the Vessel given by the Vessel Operator and registered with
+        IMO.
+      example: King of the Seas
+    shipmentEvent:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/baseEvent'
+        - $ref: '#/components/schemas/baseShipmentEvent'
+    baseShipmentEvent:
+      required:
+        - documentID
+        - documentTypeCode
+        - shipmentEventTypeCode
+      type: object
+      description: >
+        The shipment event entity is a specialization of the event entity to
+        support specification of data that only applies to a shipment event.
+      allOf:
+        - type: object
+          properties:
+            eventType:
+              type: string
+              example: SHIPMENT
+              enum:
+                - SHIPMENT
+        - type: object
+          properties:
+            eventDateTime:
+              description: >
+                Value for eventDateTime must be the same value as
+                eventCreatedDateTime
+        - type: object
+          properties:
+            eventClassifierCode:
+              type: string
+              description: |
+                Code for the event classifier can be
+                - ACT (Actual)
+              example: ACT
+              enum:
+                - ACT
+        - type: object
+          properties:
+            shipmentEventTypeCode:
+              $ref: '#/components/schemas/shipmentEventTypeCode'
+        - type: object
+          properties:
+            documentID:
+              $ref: '#/components/schemas/documentID'
+        - type: object
+          properties:
+            documentTypeCode:
+              $ref: '#/components/schemas/documentTypeCode'
+    documentID:
+      type: string
+      description: |
+        The id of the object defined by the documentTypeCode.
+      example: HLCUGDN0000000
+    equipmentEvent:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/baseEvent'
+        - $ref: '#/components/schemas/baseEquipmentEvent'
+    baseEquipmentEvent:
+      required:
+        - emptyIndicatorCode
+        - equipmentEventTypeCode
+      type: object
+      description: >
+        The equipment event entity is a specialization of the event entity to
+        support specification of data that only applies to an equipment event.
+      allOf:
+        - type: object
+          properties:
+            eventType:
+              type: string
+              example: EQUIPMENT
+              enum:
+                - EQUIPMENT
+        - type: object
+          properties:
+            eventClassifierCode:
+              type: string
+              description: |
+                Code for the event classifier can be
+                - PLN (Planned)
+                - ACT (Actual)
+                - EST (Estimated)
+              example: ACT
+              enum:
+                - PLN
+                - ACT
+                - EST
+        - type: object
+          properties:
+            equipmentEventTypeCode:
+              $ref: '#/components/schemas/equipmentEventTypeCode'
+        - type: object
+          properties:
+            equipmentReference:
+              $ref: '#/components/schemas/equipmentReference'
+        - type: object
+          properties:
+            ISOEquipmentCode:
+              $ref: '#/components/schemas/ISOEquipmentCode'
+        - type: object
+          properties:
+            emptyIndicatorCode:
+              $ref: '#/components/schemas/emptyIndicatorCode'
+        - type: object
+          properties:
+            eventLocation:
+              $ref: '#/components/schemas/location'
+        - type: object
+          properties:
+            transportCallID:
+              allOf:
+                - $ref: '#/components/schemas/transportCallID'
+                - deprecated: true
+                - description: >-
+                    The unique identifier for a transport call<br><br>Deprecated
+                    - not needed as the TransportCall object is included
+        - type: object
+          properties:
+            transportCall:
+              $ref: '#/components/schemas/transportCall'
+    ISOEquipmentCode:
+      maxLength: 4
+      type: string
+      description: >-
+        Unique code for the different equipment size/type used for transporting
+        commodities. The code is a concatenation of ISO Equipment Size Code and
+        ISO Equipment Type Code A and follows the ISO 6346 standard.
+      example: 22GP
+    emptyIndicatorCode:
+      type: string
+      description: Code to denote whether the equipment is empty or laden.
+      example: EMPTY
+      enum:
+        - EMPTY
+        - LADEN
+    error:
+      required:
+        - errorDateTime
+        - errors
+        - httpMethod
+        - requestUri
+        - statusCode
+        - statusCodeText
+      type: object
+      properties:
+        httpMethod:
+          type: string
+          description: The HTTP request method type
+          example: GET
+        requestUri:
+          type: string
+          description: The request URI.
+          example: https://dcsa.org/dcsa/tnt/v2/events
+        errors:
+          $ref: '#/components/schemas/subErrors'
+        statusCode:
+          type: integer
+          description: The HTTP status code
+          example: 400
+        statusCodeText:
+          type: string
+          description: The textual representation of the response status.
+          example: Bad Request
+        errorDateTime:
+          type: string
+          description: The date and time (in ISO 8601 format) the error occurred.
+          format: $date-time
+          example: '2019-11-11T23:11:00.000Z'
+    subErrors:
+      type: array
+      items:
+        $ref: '#/components/schemas/subErrors_inner'
+    inline_response_default:
+      allOf:
+        - $ref: '#/components/schemas/error'
+        - type: object
+          properties:
+            httpMethod:
+              example: GET
+        - type: object
+          properties:
+            requestUri:
+              example: https://dcsa.org/dcsa/tnt/v2/events
+    subErrors_inner:
+      required:
+        - message
+        - reason
+      type: object
+      properties:
+        reason:
+          type: string
+          description: High level error message.
+          example: invalidQuery
+        message:
+          type: string
+          description: Detailed error message.
+          example: >-
+            The request did not contain one of the three required query
+            parameters.
+  parameters:
+    shipmentEventTypeCode:
+      name: shipmentEventTypeCode
+      in: query
+      description: >
+        The status of the document in the process to filter by. Possible values
+        are
+
+        - ISSU (Issued)
+
+        - CONF (Confirmed)
+
+
+
+        It is possible to select multiple values by comma (,) separating them.
+        For multiple values the OR-operator is used. For example
+        <i>shipmentEventTypeCode=RECE,DRFT</i>  Matches <b>both</b> Received
+        (RECE) and Drafted (DRFT) shipment events.
+
+
+        Default is all shipmentEventTypeCodes.
+
+
+        This filter is only relevant when filtering on ShipmentEvents
+      required: false
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/shipmentEventTypeCode'
+        default:
+          - ISSU
+          - CONF
+      example: ISSU,CONF
+    documentTypeCode:
+      name: documentTypeCode
+      in: query
+      description: >
+        The documentTypeCode to filter by. Possible values are
+
+        - BKG (Booking)
+
+        - TRD (Transport Document)
+
+
+        It is possible to select multiple values by comma (,) separating them.
+        For multiple values the OR-operator is used. For example
+        <i>documentTypeCode=SHI,TRD</i> Matches <b>both</b> ShippingInstruction
+        (SHI) and TransportDocument (TRD) shipment events.
+
+
+        Default is all documentTypeCodes.
+
+
+        This filter is only relevant when filtering on ShipmentEvents
+      required: false
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/documentTypeCode'
+        default:
+          - BKG
+          - TRD
+      example: BKG,TRD
+    carrierBookingReference:
+      name: carrierBookingReference
+      in: query
+      description: >
+        A set of unique characters provided by carrier to identify a booking.
+
+
+        Specifying this filter will only return events related to this
+        particular carrierBookingReference.
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/carrierBookingReference'
+    transportDocumentReference:
+      name: transportDocumentReference
+      in: query
+      description: >
+        A unique number reference allocated by the shipping line to the
+        transport document and the main number used for the tracking of the
+        status of the shipment.
+
+
+        Specifying this filter will only return events related to this
+        particular transportDocumentReference
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/transportDocumentReference'
+    transportEventTypeCode:
+      name: transportEventTypeCode
+      in: query
+      description: >
+        Identifier for type of Transport event to filter by
+
+        - ARRI (Arrived)
+
+        - DEPA (Departed)
+
+
+        It is possible to select multiple values by comma (,) separating them.
+        For multiple values the OR-operator is used. For example
+        <i>transportEventTypeCode=ARRI,DEPA</i> matches <b>both</b> Arrived
+        (ARRI) and Departed (DEPA) transport events.
+
+
+        Default is all transportEventTypeCodes.
+
+
+        This filter is only relevant when filtering on TransportEvents
+      required: false
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/transportEventTypeCode'
+        default:
+          - ARRI
+          - DEPA
+      example: ARRI,DEPA
+    exportVoyageNumber:
+      name: exportVoyageNumber
+      in: query
+      description: >
+        Filter on the vessel operator-specific identifier of the export Voyage.
+
+
+        Specifying this filter will only return events related to this
+        particular exportVoyageNumber.
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/exportVoyageNumber'
+    UNLocationCode:
+      name: UNLocationCode
+      in: query
+      description: >
+        The UN Location code specifying where the place is located.
+
+
+        Specifying this filter will only return events related to this
+        particular UN Location code.
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/UNLocationCode'
+    equipmentEventTypeCode:
+      name: equipmentEventTypeCode
+      in: query
+      description: >
+        Unique identifier for equipmentEventTypeCode.
+
+        - LOAD (Loaded)
+
+        - DISC (Discharged)
+
+        - GTIN (Gated in)
+
+        - GTOT (Gated out)
+
+        - STUF (Stuffed)
+
+        - STRP (Stripped)
+
+
+
+        It is possible to select multiple values by comma (,) separating them.
+        For multiple values the OR-operator is used. For example
+        <i>equipmentEventTypeCode=GTIN,GTOT</i> matches <b>both</b> Gated in
+        (GTIN) and Gated out (GTOT) equipment events.
+
+
+        Default is all equipmentEventTypeCodes.
+
+
+        This filter is only relevant when filtering on EquipmentEvents
+      required: false
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/equipmentEventTypeCode'
+        default:
+          - LOAD
+          - DISC
+          - GTIN
+          - GTOT
+          - STUF
+          - STRP
+      example: GTIN,GTOT
+    equipmentReference:
+      name: equipmentReference
+      in: query
+      description: >
+        Will filter by the unique identifier for the equipment, which should
+        follow the BIC ISO Container Identification Number where possible.
+
+
+        Specifying this filter will only return events related to this
+        particular equipmentReference
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/equipmentReference'
+    eventCreatedDateTime:
+      name: eventCreatedDateTime
+      in: query
+      description: >
+        Limit the result based on the creating date of the event. It is possible
+        to use operators on this query parameter. This is done by adding a colon
+        followed by an operator at the end of the queryParameterName (before the
+        =)
+
+
+        <i>eventCreatedDateTime<b>&#58;gte</b>=2021-04-01T14&#58;12&#58;56+01&#58;00</i>
+
+
+        would result in all events created &#8805;
+        2021-04-01T14&#58;12&#58;56+01&#58;00
+
+
+        The following operators are supported
+
+        - &#58;gte (&#8805; Greater than or equal)
+
+        - &#58;gt (&#62; Greater than)
+
+        - &#58;lte (&#8804; Less than or equal)
+
+        - &#58;lt (&#60; Less than)
+
+        - &#58;eq (&#61; Equal to)
+
+
+        If no operator is provided, a <b>strictly equal</b> is used (this is
+        equivalent to <b>&#58;eq</b> operator).
+      required: false
+      style: form
+      explode: false
+      schema:
+        $ref: '#/components/schemas/eventCreatedDateTime'
+      example: '2021-04-01T13:12:56.000Z'
+    limit:
+      name: limit
+      in: query
+      description: Maximum number of items to return.
+      required: false
+      style: form
+      explode: false
+      schema:
+        minimum: 1
+        type: integer
+        format: int32
+        default: 100
+      example: 100
+    sort:
+      name: sort
+      in: query
+      description: >
+        A comma-separated list of field names to define the sort order. Field
+        names should be suffixed by a (:) followed by either the keyword ASC
+        (for ascending order) or DESC (for descening order) to specify
+        direction. <b>:ASC</b> may be omitted, in which case ascending order
+        will be used.
+      required: false
+      style: form
+      explode: false
+      schema:
+        type: string
+      example: carrierBookingReference:DESC
+    Api-Version-Major:
+      name: API-Version
+      in: header
+      description: >
+        An API-Version header MAY be added to the request (optional); if added
+        it MUST only contain MAJOR version. API-Version header MUST be aligned
+        with the URI version.
+      required: false
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: '1'
+    signatureHeader:
+      name: Signature
+      in: header
+      description: |
+        The signature certifying the request originates from the carrier.
+      required: true
+      deprecated: true
+      style: simple
+      explode: false
+      schema:
+        type: object
+        properties:
+          keyId:
+            type: string
+            format: uuid
+            example: 4fb682bc-3cd1-43a9-a23a-618a61bd87ca
+          created:
+            type: integer
+            example: 1591960384
+          headers:
+            type: string
+            example: (request-target) (created) date host
+          signature:
+            type: string
+            example: aGkgZnJvbSBkZW5tYXJr
+    subscriptionIDHeader:
+      name: Subscription-ID
+      in: header
+      description: The ID of the subscription triggering the event being sent.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        format: uuid
+        example: b80d923d-e8ac-4c34-9506-55d3de347034
+    notificationSignature:
+      name: Notification-Signature
+      in: header
+      description: >
+        the Notification-Signature is used to sign the notification. The header
+        has the following format: 
+
+
+        <i>Notification-Signature&#58;
+        &lt;signature-type&gt;=&lt;signature&gt;</i>
+
+
+        The <i>&lt;signature-type&gt;</i> part is a keyword that determines
+        which algorithm was used to compute the signature.
+
+
+        The signature <b>MUST</b> cover the entire request body of the request
+        including whitespace and newlines. The content <b>MUST</b> decoded into
+        bytes using the UTF-8 encoding before computing the signature. None of
+        the HTTP headers nor the request URL is covered by the signature.
+
+
+        Supported signature typies are&#58;
+
+        - sha256
+
+
+        Example&#58;
+        sha256=ae688919f5e31f4c210ca6af362ce4d9ed87acfb51c1721a8507ee395de5e2de
+      required: true
+      style: simple
+      explode: false
+      schema:
+        pattern: \s*([a-zA-Z0-9-_+]+=[0-9a-fA-F]+)\s*
+        type: string
+        example: >-
+          sha256=ae688919f5e31f4c210ca6af362ce4d9ed87acfb51c1721a8507ee395de5e2de
+    apiVersion:
+      name: API-Version
+      in: header
+      description: >
+        SemVer used to indicate the version of the contract (API version)
+        returned.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: 2.2.0
+  headers:
+    API-Version:
+      description: >-
+        SemVer used to indicate the version of the contract (API version)
+        returned.
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: 2.2.0
+  securitySchemes:
+    Client ID Header:
+      type: apiKey
+      description: The client ID to identify the partner calling the API.
+      name: X-IBM-Client-Id
+      in: header
+      x-key-type: client_id
+    Client Secret Header:
+      type: apiKey
+      description: The client secret belonging to the client ID.
+      name: X-IBM-Client-Secret
+      in: header
+      x-key-type: client_secret

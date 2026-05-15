@@ -1,0 +1,298 @@
+swagger: '2.0'
+info:
+  description: >
+    # Overview
+
+
+    The Inland Transportation Status API allows inland carriers to report the
+    transportation status of containers on a Hapag-Lloyd work order. This API is
+    crucial for ensuring accurate tracking and timely updates of container
+    arrivals.
+
+
+    ## Use Cases
+
+
+    The API provides several key benefits and use cases:
+
+
+    - **Tracking and Visibility**: Sending the _Actual Arrival_ helps carriers
+    and their customers gain insight into the location of the container.
+    Customers can track the tracing on the web and receive emails based on their
+    configuration.
+
+    - **Operational Efficiency**: By reporting the actual arrival of containers,
+    carriers can ensure that all stakeholders are informed promptly, reducing
+    delays and improving service reliability.
+
+
+    # Who can get access?
+
+
+    The API is specifically designed for suppliers. Business customers are not
+    eligible to access this API. It is intended for posting delays, which will
+    be reflected in the Track and Trace information.
+
+
+    ## Authentication
+
+
+    Business customers can authenticate via the Application `Client ID & Secret`
+    generated for their application. If you don't have an Application yet,
+    please follow our Getting Started guide for the portal.
+
+
+    # Getting Started
+
+
+    To begin using the Inland Transportation Status API, ensure you have the
+    necessary credentials and understand the key input information required for
+    reporting:
+
+
+    - **Actual Arrival Date and Time**: The local time of the place of arrival.
+
+    - **Container Number**: The identifier for the container being reported.
+
+    - **Place of Arrival**: Defined with the point sequence in the transport
+    chain.
+
+
+    For export cases, additional information may be required:
+
+
+    - **Shipment Number**: Necessary for identifying the transportation request
+    within the work order.
+
+    - **Container Sequence Number**: Used alongside the shipment number for
+    export moves.
+
+
+    # Rate Limits (Plans)
+
+
+    | Plan  | Description                         | Rate limit daily |
+
+    | ----- | ----------------------------------- | ---------------- |
+
+    | Basic | Call volume for the Inland product. | 4.000\*          |
+
+
+    \* Please note that the rate limit is shared with the calls to the "Inland
+    Delays API."
+
+
+    # FAQs
+
+
+    <details>
+        <summary>How do I report the actual arrival of a container?</summary>
+        <div>
+            To report the actual arrival, provide the container number, place of arrival, and the actual arrival date and time. For export cases, include the shipment number and container sequence number.
+        </div>
+    </details>
+
+
+    # Release Notes
+
+
+    | Version | Date       | Description                    |
+
+    | ------- | ---------- | ------------------------------ |
+
+    | 1.1.8   | May 2025   | Updated Documentaton           |
+
+    | 1.1.0   | March 2024 | New response object strucutre. |
+  version: 1.1.8
+  title: Transportation Status
+  termsOfService: https://api-portal.hlag.com/terms
+  contact:
+    name: Hapag-Lloyd API Team
+    url: https://api-portal.hlag.com/#/contact
+  license:
+    name: Privacy Terms
+    url: https://api-portal.hlag.com/privacy
+host: api.hlag.com
+basePath: /hlag/external/v1/transport-work-orders
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - Client ID Header: []
+    Client Secret Header: []
+paths:
+  /{work_order_number}/actual-arrivals:
+    post:
+      tags:
+        - actualArrival
+      summary: Actual arrival of a container.
+      description: >-
+        Report the actual arrival of a container at a place requested on the
+        work order.Usually the reporting of the positioning or delivery is
+        expected. The container, the place of arrival and the actual arrival
+        date and time has to be reported.
+      operationId: createActualArrivalStatus
+      produces:
+        - application/json
+      parameters:
+        - name: work_order_number
+          in: path
+          description: Unique number of the work order the actual arrival is reported for.
+          required: true
+          type: integer
+          format: int32
+        - in: body
+          name: actualArrival
+          description: Information on when and where which container has arrived.
+          required: true
+          schema:
+            $ref: '#/definitions/ActualArrival'
+      externalDocs:
+        url: http://developer.hlag.com
+      responses:
+        '200':
+          description: Actual arrival successfully announced.
+          schema:
+            $ref: '#/definitions/ActualArrival'
+        '400':
+          description: Bad Request. Invalid Parameters passed.
+          schema:
+            $ref: '#/definitions/Problem'
+        '401':
+          description: User is not authenticated.
+          schema:
+            $ref: '#/definitions/Problem'
+        '403':
+          description: >-
+            Unauthorized Access. The user is missing access privileges for the
+            service.
+          schema:
+            $ref: '#/definitions/Problem'
+        '404':
+          description: Resource does not exist.
+          schema:
+            $ref: '#/definitions/Problem'
+        '500':
+          description: Internal Server Error.
+          schema:
+            $ref: '#/definitions/Problem'
+securityDefinitions:
+  Client ID Header:
+    description: The client ID to identify the partner calling the API.
+    type: apiKey
+    name: X-IBM-Client-Id
+    in: header
+    x-key-type: client_id
+  Client Secret Header:
+    description: The client secret belonging to the client ID.
+    type: apiKey
+    name: X-IBM-Client-Secret
+    in: header
+    x-key-type: client_secret
+definitions:
+  ActualArrival:
+    type: object
+    required:
+      - actualArrivalDateTime
+      - containerNumber
+      - placeOfArrival
+    properties:
+      actualArrivalDateTime:
+        type: string
+        example: 2021-02-24T10:15
+        description: >-
+          Actual date and time of arrival in local time of the place of arrival
+          in the format: d{4}-\d{2}-\d{2}T\d{2}:\d{2}. 
+      containerNumber:
+        type: string
+        example: HLXU6334795
+        description: >-
+          Number of the container for which the actual arrival is
+          reported.        
+        minLength: 0
+        maxLength: 11
+      shipmentNumber:
+        type: integer
+        format: int32
+        example: 53174803
+        description: >-
+          Number of the shipment the actual arrival is reported for. Together
+          with the containerSequence the shipmentNumber is necessary for export
+          moves to identify the transportation request within the work order. It
+          is also required if the PlaceOfArrival is identified  by
+          relativeNumber.
+      containerSequence:
+        type: integer
+        format: int32
+        example: 2
+        description: >-
+          Sequence of the container within the shipment as given on the work
+          order.  It is required together with the shipmentNumber if the arrival
+          is reported for an export move. On a Hapag-Lloyd PDF work order you
+          find the following text "Shipment: 53174803-002". In an Hapag-Lloyd
+          Edifact IFTSUM you find the shipment and sequence in the CNI
+          segment(E.g.:CNI+2+53174803-002). In this example 53174803 is the
+          ShipmentNumber and 2 the containerSequence. Either the
+          containerSequence or the placeOfArrival relativeNumber are required.
+      reportedBy:
+        type: string
+        example: Tom Schmith, SmithAG
+        description: >-
+          Information on who reported the actual arrival. This can be any kind
+          of source information, such as a person's name, company name or email
+          address.
+        minLength: 0
+        maxLength: 100
+      reportingTimestamp:
+        type: string
+        format: date-time
+        example: '2021-11-25T08:00:00.000Z'
+        description: >-
+          Timestamp when the actual arrival was originally reported. It has to
+          be specified, if this API is called by a portal and should reflect 
+          the date and time of reporting to or on this portal.   
+      placeOfArrival:
+        $ref: '#/definitions/PlaceOfArrival'
+  PlaceOfArrival:
+    type: object
+    properties:
+      pointSequence:
+        type: integer
+        format: int32
+        example: 3
+        description: >-
+          The number of the point in the transport chain where the actual
+          arrival is reported for. It refers to the points in the routing
+          defined on the work order. The numbering starts at point 1. From
+          external partners this number is required to identify the place of
+          late arrival.
+      relativeNumber:
+        type: integer
+        format: int32
+        example: 4
+        description: >-
+          Hapag-Lloyd internal number to identify the point in the routing. 
+          This property is not required, if the pointSequence is transfered. 
+  Problem:
+    type: object
+    required:
+      - status
+      - title
+    properties:
+      type:
+        type: string
+      title:
+        type: string
+      status:
+        type: integer
+        format: int32
+      detail:
+        type: string
+      transactionId:
+        type: string
+    example:
+      title: Not Found
+      status: 404
