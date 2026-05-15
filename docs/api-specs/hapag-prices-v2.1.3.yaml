@@ -1,0 +1,1643 @@
+openapi: 3.0.3
+info:
+  title: Prices API
+  description: >
+    # Overview 
+
+
+    Get real-time access to prices to get an overview of the price development
+    with Hapag-Lloyd, get a quotation and enhance your shipping operations. It
+    allows seamless quotation generation and initiates the booking process. By
+    integrating this API, you can automate the retrieval of the latest shipping
+    prices, ensuring accuracy and reducing errors to enhance customer
+    experience. Suitable for both small businesses and global enterprises, our
+    API offers a scalable and reliable solution that integrates effortlessly
+    with existing systems. It improves operational efficiency, cost management,
+    and service offerings, equipping you with the digital tools necessary to
+    thrive in a competitive market.
+
+
+    ## Use Cases 
+
+
+    The Prices API is designed to get cost estimates and create quotations for
+    short-term and spot market rates of Hapag-Lloyd. Use this API when: 
+      - Requesting prices and quotations for [Quick Quotes]( https://www.hapag-lloyd.com/solutions/new-quote/#/simple), our short-term rate (valid up to 90 days) product. 
+      - Create rates for specific departures and get Quick Quotes Spot prices, including fees for booking cancellation, amendment or roll-over. 
+      - See the price breakdown and compare prices between Quick Quotes and Quick Quotes Spot products. 
+      - See upcoming departures within the duration of the Quick Quotes validity 
+      - See the price details and availability of Additional Services like [Ship Green](https://www.hapag-lloyd.com/en/online-business/book/ship-green.html) and [Live Position](https://www.hapag-lloyd.com/en/online-business/track/live-position.html) 
+      - Obtain pre- or on-carriage prices, specified for the requested routing service inland (door) locations using UN Locodes. 
+      - Generate quotations with the option to add Ship Green or another Additional Service (VAS). 
+      - Receive the quotation document as PDF sent to a specified email address. 
+    This API allows you to generate quotations. Additionally, you can find all
+    of your quotations under [My
+    Quotations](https://www.hapag-lloyd.com/solutions/my-quotations/) in the
+    Online Business Suite of your account for further action. 
+
+
+    Booking via API is not yet possible, but you use the [Booking
+    solution](https://www.hapag-lloyd.com/solutions/booking/) on our Website.  
+
+
+    # Who can get access? 
+
+
+    While the API is in the Pilot phase, this API is only subscribed to a few
+    selected customers. Please contact your account manager to determine if you
+    are eligible to use it. 
+
+
+    You can request access while subscribing to the API. Our team manually
+    validates each request, and it may take a few days to hear back from us via
+    email when the status of the request changes. 
+
+
+    If you cannot subscribe, you can use the Contact Us button to send us a
+    message or reach out to your local office. 
+
+
+    Once the API leaves the Pilot phase, everyone can get instant access via the
+    Tryout Plan to develop and integrate the API. Please contact us in advance
+    about your use case and request an increase in rate limit via “upgrade
+    subscription” in your application overview. 
+
+
+    ## Authentication 
+
+
+    Business customers can authenticate via the Application Client ID and Client
+    Secret generated for their application. If you don’t have an Application
+    yet, please follow our [Getting
+    Started](https://api-portal.hlag.com/getting-started) guide for the portal.
+
+
+    # Getting Started 
+
+
+    The Offer API is divided into two main endpoints: the Prices endpoint and
+    the Quotation endpoint. The Prices endpoint provides real-time prices, while
+    the Quotation endpoint allows you to request and convert your price into a
+    binding quote. To successfully create a quote, you need to generate a
+    “carrierOfferRequestReference” via the Prices endpoint. Creation of the
+    price request payload requires the following fields and constraints for a
+    successful request.
+
+
+    1. Enter the applicable UN Locode from the "placeOfReceipt" and
+    "placeOfDelivery". This can be Door or Port locations using [UN
+    Locodes](https://unece.org/trade/cefact/unlocode-code-list-country-and-territory)
+    applicable by Hapag-Lloyd. For example DEHAM to SGSIN.
+
+
+    2. Choose your "requestedEquipment" by using the [ISO Codes for Container
+    Type
+    Groups](https://www.hapag-lloyd.com/en/services-information/cargo-fleet/container/container-type-groups.html).
+    We cover the following Container Types:
+
+    - 22GP (20' General Purpose)
+
+    - 42GP (40' General Purpose)
+
+    - 45GP (40' General Purpose High Cube)
+
+    - 22RT (20' Operating Reefer)
+
+    - 45RT (40' Operating Reefer / Non Operating Reefer)
+
+    - 22PC (20' Flatrack in-gauge)
+
+    - 42PC (40' Flatrack in-gauge)
+
+    - 45PC (40' High Cube Flatrack in-gauge)
+
+    - 22UT (20' Open Top in-gauge)
+
+    - 25UT (20' Open Top in-gauge)
+
+    - 42UT (40' Open Top in-gauge)
+
+    - 45UT (40' High Cube Open Top in-gauge)
+
+    - 45UP (40' High Cube Hard Top in-gauge)
+
+    - 22KL (20' Gas Tank Liquified)
+
+    - 22TG (20' Gas Tank Non-Liquified)
+
+    - 22TN (20' Tank Non-DG)
+
+    - 22TD (20' Tank DG)
+
+
+    3. Select a commodity (Defaults to FAK) using the API Endpoint to get a
+    valid list – FAK is always valid and set as the default option. For the
+    weight, it is necessary that the customer provides the weight as close as
+    possible to their booking request as this can influence the provided
+    departures and prices. If the provided weight exceeds the container's
+    maximum payload, an error will be posted.
+
+
+    4. You can optionally add "isHazardous", “IMO Class” or “unNumber” for
+    dangerous goods to determine the fee based on the DG type. The fee is
+    calculated using the IMO class or UN code, or in case of no for IMO class or
+    UN number, you’ll receive a default amount. The accurate amount of the
+    Dangerous Goods Premium is calculated only at booking stage when all needed
+    information are known. [Links for the IMO and
+    DG](https://www.hapag-lloyd.com/en/online-business/olb-user-guide/booking/user-guide--dg-details.html#anchor_698406) 
+
+
+    5.  Select “receiptTypeAtOrigin” and “deliveryTypeAtDestination” to specify
+    the type of haulage. CY (Container Yard) for port or ramp locations or SD
+    (Store Door) for delivery to or pick-up from a specified address. In
+    example, if you’d pick-up the empty container at a depot and then deliver
+    the loaded container to the Port Of Loading yourself, you should select CY.
+    In case you want Hapag-Lloyd to bring the container to your address to load
+    it and then take care of the transport from your address to the Port Of
+    Loading, then you should select SD. 
+
+
+    6. The "earliestDepartureDate" is when validity starts and you plan to ship
+    the first container with us. This needs to be at least 4 calendar days in
+    the future, otherwise, a default value of request timestamp + 4 days will be
+    applied. Ensure to enter a date that meets this requirement to receive
+    accurate pricing. 
+
+
+    7. Select "productIdentifiers": [QUICK_QUOTES_SPOT, QUICK_QUOTES] to get
+    both the short term rate and the spot rate returned. 
+
+
+    8. Add your "customerIdentifier", which identifies the office via the "user"
+    that is requesting the quotation. The email is required to have valid Hapag
+    Lloyd Online business access. 
+
+
+    After you have generated a price and would like to continue generating a
+    quotation for a Quick Quotes rate, you can afterwards use the
+    “carrierPriceRequestReference” and the “VAS ID” to call the Quotation
+    endpoint. This endpoint creates a bookable quotation including the added
+    Additional Services via the "carrierOfferRequestReference" that returns and
+    sends the PDF document to the “receivingEmail”. 
+
+
+    # Unsuccessful Calls / Error Messages  
+
+    | Technical error in the API                | Description |
+
+    | ----------------------------------------- | ----------- |
+
+    | MISSING_INFORMATION | QQ/QQS: We have encountered an error calculating
+    your quote. Please try again later or contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+    | RESTRICTIONS | QQ/QQS: The requested offer is temporarily restricted.
+    Please try again later or contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+    | CAN_NOT_BE_OFFERED | For QQ/ QQS: This routing is currently unavailable.
+    Please try an alternative routing, exchange Port/Terminal or Door or contact
+    your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+    | USER_UNKNOWN | Your account is currently being created. Try again later. |
+
+    | MISSING_PERMISSIONS | For QQ/QQS: This service is unavailable due to
+    missing permissions. Please contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    to resolve this issues. |
+
+    | TECHNICAL_ERROR | We have encountered a temporary technical issue
+    calculating your quote. We're actively working on resolving this issue.
+    Please try again later. |
+
+    | JONES_ACT | Hapag-Lloyd does not offer routes within US Territories to
+    comply with the Jones Act. |
+
+    | OPTIMIZED_ROUTINGS | For QQ/QQS: We cannot fulfill your request online.
+    Please contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance with this request. |
+
+    | INLAND_UNAVAILABLE | For QQ/QQS: Our service is currently unavailable
+    to/from your requested inland location. Please try requesting an offer from
+    a suitable port location instead, or contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+    | CAPACITY | QQS: Your request exceeds the available capacity on this
+    departure. Please try again later or reduce the requested number of units. |
+
+    | INLAND_RESTRICTIONS | For QQS: Our service is currently unavailable
+    to/from your requested inland location. Please try requesting an offer from
+    a suitable port location instead, or contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+    | DANGEROUS_GOODS_RESTRICTION | For QQ/QQS: Dangerous Goods are not
+    available for your request. |
+
+    | COMMODITY_PROHIBITED_FOR_REEFER_AND_SPOT | We currently do not offer the
+    requested commodity. Please try requesting rates for FAK – Freight all Kind.
+    |
+
+    | IN_GAUGE_PROHIBITED | The requested offer is temporarily unavailable for
+    special containers. |
+
+    | NO_OFFERS_FOUND_FOR_ROUTE | The routes requested are currently
+    unavailable. Please try an alternative route, exchange Port/Terminal or Door
+    or contact your [local sales
+    representative](https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html)
+    for assistance. |
+
+
+    # Rate Limits (Plans) 
+
+
+    The Tryout plan allows you to integrate our API and explore its features at
+    a limited rate, perfect for initial testing and development. When moving to
+    production workloads, subscribe to our more advanced plans. Please see that
+    the rate limit for prices will cover most of your call volume requirements.
+    The rate limit for actual quotations is closely aligned with your booking
+    needs.
+
+
+    | Plan    | Limits   |
+
+    | ------- | ------------------------------------------------- |
+
+    | Tryout  | 40 calls per day, 10 calls per minute, 1 call per second |
+
+    | Low Usage | 800 calls per day, 20 calls per 1 minute, 1 call per second |
+
+    | Basic  | 3,500 calls per day, 20 calls per 1 minute, 1 call per second |
+
+    | Advanced | 7,000 calls per day, 50 calls per 1 minute, 2 calls per second
+    |
+
+    | Premium | 14,000 calls per day, 85 calls per 1 minute, 2 calls per second
+    |
+
+
+    If you find that your usage exceeds these limits, or if you have unique
+    requirements, contact us for a custom plan. We accept custom plan requests
+    only after reaching your current rate limit or by providing additional
+    information to support your rate limit increase request.
+
+
+    # FAQs 
+
+
+    <details>
+      <summary>Can I send the Quotation PDF to multiple email addresses?</summary>
+      <div>
+        Currently, you can only send a quotation to one specified email address. If you need to share the quotation with multiple recipients, please forward the received email or use a group mailbox within your company to distribute the PDF. Avoid calling the API multiple times for different email addresses, as this will generate a new quotation for each request.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>Can I add Value Added Services to my Quotation?</summary>
+      <div>
+        Add Value Added Services (VAS) directly to your quotation by specifying, next to the Price ID, the VAS ID for each service you wish to include. When generating quotations, the surcharges for the added VAS will also be incorporated. Please reach out to your sales manager if you require further assistance.
+      </div> 
+    </details>
+
+
+    <details>
+      <summary>How do I handle Dangerous Goods in my quotation?</summary>
+      <div>
+        For Dangerous Goods, you need to provide the appropriate DG details. There are 3 ways to determine the DGP: 
+        1. Only set the isHazardous flag – this will return a default amount. 
+        2. Provide an IMO Class – this will return the most restrictive DGP for that IMO Class.
+        3. Provide a UN Number – this will return the DGP for that UN Number. 
+
+        In any case, the final DGP will only be determined during booking when all DG details are known. Note that Dangerous Goods IMO Classes 1, 6.2, and 7, as well as Military Cargo and Waste Shipments (Amber Listed under the Basel Convention and used/waste Batteries), are excluded from web quotations. For these shipments, please contact your local Hapag-Lloyd Sales representative to obtain a quote. Ensure that the IMO classification is provided as an enumerated type rather than a freeform string.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>What happens if no "commodityTypeGroup" is selected?</summary>
+      <div>
+        If you do not select a "commodityTypeGroup," it defaults to FAK (Freight All Kinds). This ensures that your quotation is processed with a standard commodity type unless specified otherwise.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How can I access HS Codes?</summary>
+      <div>
+        You can access standard HS Codes through the <a href="https://ec.europa.eu/taxation_customs/dds2/taric/taric_consultation.jsp?Lang=en&Expand=true&SimDate=20250203#afterForm">European Commission's TARIC Consultation</a>. This resource provides comprehensive information on tariff classifications and duty rates.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>Can I adjust the "latestArrivalDate" for my quotation?</summary>
+      <div>
+        Yes, you can shorten the validity of the "latestArrivalDate," but it cannot be extended beyond 42 days from the requested earliest departure date. Please understand that prices may vary until you have a quotation, as future rates are subject to change until the booking is finalized.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>Should I always create a quotation from a price?</summary>
+      <div>
+        No, you do not always need to create a quotation from a price. The rate limit for the prices endpoint is higher than for quotations. Use the prices endpoint to get an overview, benchmark and compare expected rates for different routes. Only generate a quotation with Value Added Services when it is necessary and you want to use this price for a booking or present to your client.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How instant can I request a booking?</summary>
+      <div>
+        You can submit booking requests for quotations immediately using the web booking feature in Hapag-Lloyd’s Online Business Suite; however, please ensure that your selected departure date falls within the quotation's validity period.<br />
+        In the current version of the Prices endpoint in the OFFER API product, the Quick Quote Spot rate cannot be directly converted into a bookable quotation number. If you wish to proceed with booking the Quick Quote spot rate, please use our Online Business Suite: <a href="https://www.hapag-lloyd.com/solutions/new-quote/#/simple">New Quote | Hapag-Lloyd</a>
+      </div> 
+    </details>
+
+
+    <details>
+      <summary>Can I request multilane for my quotation?</summary>
+      <div>
+        We do not plan to offer multilane functionality via the API at this point. 
+      </div> 
+    </details>
+
+
+    <details>
+      <summary>Where do I find the VAS IDs for my quotations?</summary>
+      <div>
+        The VAS ID is provided as part of the prices endpoint response. In addition, the Quotation Request endpoint allows you to include a list of selectedValueAddedServices. Please refer to the accompanying illustration for further details.
+      </div> 
+    </details>
+
+
+    <details>
+      <summary>Are all the rates VATOS?</summary>
+      <div>
+        This depends on the product you choose. We offer fixed sea freight for both Quick Quotes and Quick Quotes Spot. However, for Quick Quotes, while the sea freight remains fixed, all surcharges are subject to refresh at booking, meaning that the latest amounts from our tariff will apply. In contrast, with Quick Quotes Spot, both sea freight and surcharges are locked in and remain unchanged even if the tariff is updated. For complete details, please review the product terms and conditions for Quick Quotes and Quick Quotes Spot. 
+      </div> 
+    </details>
+
+
+    <details>
+      <summary>Can I generate a quotation for Quick Quotes Spot?</summary>
+      <div>
+        As this is spot, you need to be spot on and immediately submit the booking request to get the price. After submitting your booking request, you will receive the booking confirmation and quotation document immediately.
+      </div>
+    </details>
+
+
+    If you have any additional questions, please use the [Contact
+    us](https://api-portal.hlag.com/contact) form.
+
+
+    # Release Notes 
+
+
+    | Version | Date           | Description |
+
+    | ------- | -------------- | ----------- |  
+
+    | 1.0.0   | June 2024      | Pilot Test  |
+
+    | 2.0.0   | September 2025 | The API now supports multiple container types
+    within a single quotation, enabling more flexible and efficient rate
+    requests.
+  termsOfService: https://api-portal.hlag.com/terms
+  contact:
+    name: API Portal
+    url: https://api-portal.hlag.com
+  license:
+    name: Privacy Terms
+    url: https://api-portal.hlag.com/privacy
+  version: 2.1.3
+servers:
+  - url: https://api.hlag.com/hlag/external/v2/quotation-booking-engine/external
+  - url: https://mock.api-portal.hlag.com/v2/quotation-booking-engine/external
+security:
+  - Client ID Header: []
+    Client Secret Header: []
+tags:
+  - name: Prices
+    description: Endpoints to create and retrieve price-offers
+  - name: Quotations
+    description: Endpoints to create and retrieve quotations based on price-offers
+paths:
+  /prices:
+    post:
+      tags:
+        - Prices
+      summary: Create and view prices for your products between a start and end point.
+      description: |
+        create and return price-offers
+      operationId: createProductOffers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+        required: true
+      responses:
+        '201':
+          description: Offer created
+          headers:
+            Location:
+              description: URI of the created offer
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: url
+            Expires:
+              description: Expiration date-time of the created offer
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+        '400':
+          description: |
+            Bad Request. Mandatory parameter(s) missing or request is malformed.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          description: >
+            User not authenticated / recognized. Please make sure you are a
+            registered user at HLAG.COM or check with your Rate Management
+            System provider.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |
+            Business Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: |
+            Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /quotations:
+    post:
+      tags:
+        - Quotations
+      summary: >-
+        Create a quotation for a previously created price-offer and get a
+        quotation number
+      description: >
+        Create a quotation for a previously created price-offer and get a
+        quotation number.
+      operationId: createQuotationFromOffer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationFromOfferRequest'
+        required: true
+      responses:
+        '201':
+          description: Quotation created
+          headers:
+            Location:
+              description: URI of the created quotation
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Expires:
+              description: Expiration date-time of the created quotation
+              required: true
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationFromOfferResponse'
+        '400':
+          description: |
+            Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: |
+            BusinessError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: |
+            Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    QuotationFromOfferRequest:
+      required:
+        - customerIdentifier
+        - offerId
+      type: object
+      properties:
+        offerId:
+          $ref: '#/components/schemas/OfferId'
+        selectedServices:
+          $ref: '#/components/schemas/SelectedServices'
+        selectedValueAddedServices:
+          $ref: '#/components/schemas/SelectedValueAddedServices'
+        receivingEmail:
+          $ref: '#/components/schemas/ReceivingEmailAddress'
+        customerIdentifier:
+          $ref: '#/components/schemas/EmailAddress'
+      description: >-
+        Object required to request the creation of a quotation from a
+        price-offer
+    ReceivingEmailAddress:
+      type: string
+      description: Email address of the receiver for the created quotation
+      example: name@company.com
+    SelectedValueAddedServices:
+      type: array
+      items:
+        required:
+          - vasId
+        type: object
+        properties:
+          vasId:
+            $ref: '#/components/schemas/VasId'
+          services:
+            $ref: '#/components/schemas/SelectedServices'
+    QuotationFromOfferResponse:
+      required:
+        - quotationNumber
+        - validFrom
+        - validTo
+      type: object
+      properties:
+        quotationNumber:
+          $ref: '#/components/schemas/QuotationNumber'
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+      description: Object representing response for quotation creation
+    QuotationNumber:
+      type: string
+      description: Quotation Number
+      example: V210800000192
+    OfferId:
+      type: string
+      description: |
+        Id of the price-offer from which the quotation should be created
+      format: uuid
+      example: 24595eb0-5cfc-4381-9c3a-cedc1975e9aa
+    SelectedServices:
+      type: array
+      description: |
+        the selected Services which should be included in the quotation. 
+        If not set, all services of the offer are included.
+      items:
+        required:
+          - offerRoutingId
+        type: object
+        properties:
+          offerRoutingId:
+            $ref: '#/components/schemas/OfferRoutingId'
+    OfferRoutingId:
+      type: string
+      description: A reference to the service (OfferRouting) in the offer
+      format: UUID
+      example: 24595eb0-5cfc-4381-9c3a-cedc1975e9aa
+    OfferRequest:
+      required:
+        - commodity
+        - customerIdentifier
+        - deliveryTypeAtDestination
+        - earliestDepartureDate
+        - placeOfDelivery
+        - placeOfReceipt
+        - productIdentifiers
+        - receiptTypeAtOrigin
+        - requestedEquipment
+      type: object
+      properties:
+        placeOfReceipt:
+          $ref: '#/components/schemas/Location'
+        portOfLoading:
+          $ref: '#/components/schemas/Location'
+        portOfDischarge:
+          $ref: '#/components/schemas/Location'
+        placeOfDelivery:
+          $ref: '#/components/schemas/Location'
+        exportMot:
+          $ref: '#/components/schemas/RequestModeOfTransport'
+        importMot:
+          $ref: '#/components/schemas/RequestModeOfTransport'
+        requestedEquipment:
+          $ref: '#/components/schemas/RequestedEquipment'
+        commodity:
+          $ref: '#/components/schemas/RequestCommodity'
+        receiptTypeAtOrigin:
+          $ref: '#/components/schemas/ServiceType'
+        deliveryTypeAtDestination:
+          $ref: '#/components/schemas/ServiceType'
+        earliestDepartureDate:
+          type: string
+          format: date
+        latestArrivalDate:
+          type: string
+          format: date
+        productIdentifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductIdentifier'
+        customerIdentifier:
+          $ref: '#/components/schemas/EmailAddress'
+      description: the object needed to request an offer
+    OfferResponse:
+      type: object
+      properties:
+        carrierPriceRequestReference:
+          type: string
+          format: uuid
+        request:
+          $ref: '#/components/schemas/OfferRequest'
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
+        overarchingErrorReason:
+          $ref: '#/components/schemas/ErrorReason'
+      description: response object with multiple offer objects
+    ErrorReason:
+      type: string
+      description: the reason why a filter was applied
+      enum:
+        - MISSING_INFORMATION
+        - RESTRICTIONS
+        - CAN_NOT_BE_OFFERED
+        - USER_UNKNOWN
+        - MISSING_PERMISSIONS
+        - TECHNICAL_ERROR
+        - JONES_ACT
+        - OPTIMIZED_ROUTING
+        - INLAND_UNAVAILABLE
+        - CAPACITY
+        - INLAND_RESTRICTIONS
+        - DANGEROUS_GOODS_RESTRICTION
+        - COMMODITY_PROHIBITED_FOR_REEFER_AND_SPOT
+        - IN_GAUGE_PROHIBITED
+        - QQS_CAN_NOT_BE_OFFERED_FOR_LIGHT_USER
+        - SOC_PROHIBITED_FOR_SPOT
+        - NO_ROUTE_FOR_EQUIPMENT
+        - DEPARTURE_DATE_TO_EARLY
+    Offer:
+      required:
+        - carrierOfferRequestReference
+        - deliveryTypeAtDestination
+        - legs
+        - offerValidTo
+        - offeredEquipment
+        - placeOfDelivery
+        - placeOfDeliveryDateTime
+        - placeOfReceipt
+        - placeOfReceiptDate
+        - portOfDischarge
+        - portOfDischargeDateTime
+        - portOfLoading
+        - portOfLoadingDateTime
+        - potentialQuotationExpiryDate
+        - potentialQuotationValidFrom
+        - potentialQuotationValidTo
+        - productIdentifier
+        - receiptTypeAtOrigin
+        - termsAndConditions
+        - transitTime
+      type: object
+      properties:
+        carrierOfferRequestReference:
+          $ref: '#/components/schemas/CarrierOfferRequestReference'
+        productIdentifier:
+          $ref: '#/components/schemas/ProductIdentifier'
+        placeOfReceipt:
+          $ref: '#/components/schemas/Locode'
+        placeOfReceiptDate:
+          type: string
+          description: >-
+            The date and time when the goods will leave at the `Place of
+            Receipt`.
+          format: date-time
+        placeOfDelivery:
+          $ref: '#/components/schemas/Locode'
+        placeOfDeliveryDateTime:
+          type: string
+          description: >-
+            The date and time when the goods will arrive at the `Place of
+            Delivery`.
+          format: date-time
+        portOfLoading:
+          $ref: '#/components/schemas/Locode'
+        portOfLoadingDateTime:
+          type: string
+          description: >-
+            The date and time when the goods will depart from the `Port of
+            Load`.
+          format: date-time
+        portOfDischarge:
+          $ref: '#/components/schemas/Locode'
+        portOfDischargeDateTime:
+          type: string
+          description: >-
+            The date and time when the goods will arrive at the `Port of
+            Discharge`.
+          format: date-time
+        receiptTypeAtOrigin:
+          $ref: '#/components/schemas/ServiceType'
+        deliveryTypeAtDestination:
+          $ref: '#/components/schemas/ServiceType'
+        isOriginLocationExchangedWithTwinCity:
+          type: boolean
+        isDestinationLocationExchangedWithTwinCity:
+          type: boolean
+        transitTime:
+          type: integer
+          description: >-
+            The estimated total time in days that it takes a shipment to move
+            from place of receipt to place of delivery. Transit time includes
+            stop-over time during transshipments and waiting time at connection
+            points.
+        cutOffDateTime:
+          type: string
+          description: >-
+            The last time that the container has to be delivered to the port
+            terminal in order to make the schedule that you requested.
+          format: date-time
+        documentationClosureDateTime:
+          type: string
+          description: >-
+            The last time that all necessary documents have to be delivered  in
+            order to make the schedule that you requested.
+          format: date-time
+        verifiedGrossMassDateTime:
+          type: string
+          description: >-
+            The last time by which the Verified Gross Mass (VGM) of a container
+            must be reported to the shipping company in order to make the
+            schedule that you requested.
+          format: date-time
+        offerValidTo:
+          type: string
+          description: After that time the offer can not be used anymore.
+          format: date-time
+        termsAndConditions:
+          type: array
+          items:
+            type: string
+        legs:
+          type: array
+          description: >-
+            Leg of the Point-to-Point routing. Can be either an `Intermodal` leg
+            or an `Ocean` leg
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/Intermodal'
+              - $ref: '#/components/schemas/Ocean'
+        equipments:
+          type: array
+          description: all equipments offered for this routing
+          items:
+            $ref: '#/components/schemas/OfferEquipment'
+        errorReason:
+          $ref: '#/components/schemas/ErrorReason'
+        potentialQuotationValidFrom:
+          type: string
+          description: Valid From for a potential quotation
+          format: date
+        potentialQuotationValidTo:
+          type: string
+          description: Valid To for a potential quotation
+          format: date
+        potentialQuotationExpiryDate:
+          type: string
+          description: Expiry date for a potential quotation
+          format: date
+      description: a specific offer containing all details regarding this offer
+    OfferEquipment:
+      required:
+        - rates
+        - requestedEquipment
+      type: object
+      properties:
+        requestedEquipment:
+          $ref: '#/components/schemas/RequestedEquipment'
+        dangerousGoods:
+          $ref: '#/components/schemas/DangerousGoods'
+        commodity:
+          $ref: '#/components/schemas/OfferCommodity'
+        cancellationFeeAmount:
+          type: number
+        cancellationFeeCurrency:
+          $ref: '#/components/schemas/Currency'
+        cancellationFeeUoM:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        noShowFeeAmount:
+          type: number
+        noShowFeeCurrency:
+          $ref: '#/components/schemas/Currency'
+        noShowFeeUoM:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        compensationFeeAmount:
+          type: number
+        compensationFeeCurrency:
+          $ref: '#/components/schemas/Currency'
+        compensationFeeUoM:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rate'
+        valueAddedServices:
+          type: array
+          description: list of value added services that can be optionally selected
+          items:
+            $ref: '#/components/schemas/ValueAddedService'
+        errorReason:
+          $ref: '#/components/schemas/ErrorReason'
+      description: an equipment that is part of a specific offer
+    Intermodal:
+      required:
+        - arrivalDateTime
+        - arrivalLocation
+        - departureDateTime
+        - departureLocation
+      type: object
+      properties:
+        modeOfTransport:
+          allOf:
+            - $ref: '#/components/schemas/ModeOfTransport'
+            - example: TRAIN
+        departureLocation:
+          anyOf:
+            - $ref: '#/components/schemas/AddressLocation'
+            - $ref: '#/components/schemas/UnLocationLocation'
+            - $ref: '#/components/schemas/FacilityLocation'
+        departureDateTime:
+          type: string
+          description: |
+            The date and time when the departure of the cargo takes place
+          format: date-time
+        arrivalLocation:
+          anyOf:
+            - $ref: '#/components/schemas/AddressLocation'
+            - $ref: '#/components/schemas/UnLocationLocation'
+            - $ref: '#/components/schemas/FacilityLocation'
+        arrivalDateTime:
+          type: string
+          description: >
+            The date and time when the cargo is scheduled to arrive at the
+            specified location
+          format: date-time
+      description: >
+        Intermodal section of the route. Describing a section that does not take
+        place via the Ocean but any other transport medium
+    Ocean:
+      required:
+        - arrivalDateTime
+        - arrivalLocation
+        - carrierServiceName
+        - departureDateTime
+        - departureLocation
+      type: object
+      description: >
+        An route section taking place via Ocean. contains all information
+        regarding the section and the vessel as an medium
+      allOf:
+        - $ref: '#/components/schemas/Intermodal'
+        - $ref: '#/components/schemas/LegInformation'
+    LegInformation:
+      type: object
+      properties:
+        vesselName:
+          $ref: '#/components/schemas/VesselName'
+        vesselYearBuilt:
+          type: integer
+          example: 1925
+        vesselCallSign:
+          type: string
+          example: Alpha 1
+        vesselFlag:
+          $ref: '#/components/schemas/VesselFlag'
+        vesselImoNumber:
+          $ref: '#/components/schemas/VesselImoNumber'
+        carrierServiceName:
+          $ref: '#/components/schemas/CarrierServiceName'
+        scheduleVoyageNumber:
+          $ref: '#/components/schemas/ScheduleVoyageNumber'
+      example:
+        vesselName: King of the Seas
+        vesselImoNumber: 9321483
+        carrierServiceName: Great Lion Service
+        scheduleVoyageNumber: '111'
+        departureLocation: FRPAR
+        departureDateTime: '2022-04-01T13:12:56.000Z'
+        arrivalLocation: DEHAM
+        arrivalDateTime: '2022-03-29T13:12:56.000Z'
+    ScheduleVoyageNumber:
+      maxLength: 50
+      type: string
+      description: The vessel operator-specific identifier of the Voyage.
+      example: 2103S
+    VesselImoNumber:
+      maxLength: 7
+      type: string
+      description: >
+        The unique reference for a registered Vessel. The reference is the
+        International Maritime Organisation (IMO) number, also sometimes known
+        as the Lloyd&apos;s register code, which does not change during the
+        lifetime of the vessel
+      example: '9321483'
+    CarrierServiceName:
+      maximum: 3
+      minimum: 3
+      type: string
+      description: |
+        ship system code
+      example: FE5
+    Rate:
+      required:
+        - amount
+        - chargeTypeCode
+        - chargeable
+        - currency
+        - exclusiveRate
+        - included
+        - locationProposal
+        - modeOfTransport
+        - motDirectionIndicator
+        - rateBaseType
+        - seaFreightIndicator
+        - subjectToGri
+        - unitOfMeasure
+      type: object
+      properties:
+        chargeTypeCode:
+          $ref: '#/components/schemas/ChargeTypeCode'
+        chargeTypeShortDescription:
+          $ref: '#/components/schemas/ChargeTypeShortDescription'
+        currency:
+          $ref: '#/components/schemas/Currency'
+        unitOfMeasure:
+          $ref: '#/components/schemas/UnitOfMeasure'
+        amount:
+          $ref: '#/components/schemas/QuotationRateAmount'
+        subjectToGri:
+          $ref: '#/components/schemas/SubjectToGri'
+        included:
+          $ref: '#/components/schemas/QuotationRateIncluded'
+        chargeable:
+          $ref: '#/components/schemas/QuotationRateChargeable'
+        graduatedLowValue:
+          $ref: '#/components/schemas/GraduatedLowValue'
+        graduatedHighValue:
+          $ref: '#/components/schemas/GraduatedHighValue'
+        graduatedCalculationRule:
+          $ref: '#/components/schemas/GraduatedCalculationRule'
+        graduatedUnitOfMeasure:
+          type: string
+          enum:
+            - CBM
+            - CTR
+            - KMT
+            - SMI
+            - TON
+        graduatedUnitOfMeasureType:
+          type: string
+          enum:
+            - DISTANCE
+            - QUANTITY
+            - VOLUME
+            - WEIGHT
+        modeOfTransport:
+          $ref: '#/components/schemas/ModeOfTransport'
+        carrierServiceName:
+          $ref: '#/components/schemas/CarrierServiceName'
+        exclusiveRate:
+          $ref: '#/components/schemas/ExclusiveRate'
+        motDirectionIndicator:
+          $ref: '#/components/schemas/MotDirectionIndicator'
+        reeferOperationMode:
+          $ref: '#/components/schemas/ReeferOperationMode'
+        baseCharges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseRate'
+        locationProposal:
+          $ref: '#/components/schemas/LocationProposal'
+        seaFreightIndicator:
+          $ref: '#/components/schemas/SeaFreightIndicator'
+        rateBaseType:
+          $ref: '#/components/schemas/RateBaseType'
+        chargeTypeClass:
+          $ref: '#/components/schemas/ChargeTypeClass'
+        chargeTypeSequenceInClass:
+          $ref: '#/components/schemas/ChargeTypeSequenceInClass'
+        graduatedLowerUpperUom:
+          $ref: '#/components/schemas/GraduatedLowerUpperUom'
+        dangerousGoodsStatus:
+          type: string
+        invoiceItemGroup:
+          type: number
+        pcIndicator:
+          type: string
+          enum:
+            - PREPAID
+            - COLLECT
+        baseAmount:
+          type: number
+          description: >-
+            Amount of the underlying base rate. Will be filled for Additional
+            Freetime VAS Rates which are based on another rate
+          example: 1
+        shippingInstructionReceival:
+          type: string
+          enum:
+            - NON_ELECTRONICALLY
+            - ELECTRONICALLY
+      description: the rate for a specific offer
+    BaseRate:
+      required:
+        - chargeCode
+        - chargeText
+      type: object
+      properties:
+        chargeCode:
+          $ref: '#/components/schemas/ChargeCode'
+        chargeText:
+          $ref: '#/components/schemas/ChargeText'
+      description: the base rate of the offered journey.
+    Location:
+      required:
+        - locode
+      type: object
+      properties:
+        locode:
+          $ref: '#/components/schemas/Locode'
+      description: contains the un code of a location
+    AddressLocation:
+      required:
+        - Address
+      type: object
+      properties:
+        locationName:
+          $ref: '#/components/schemas/LocationName'
+        address:
+          $ref: '#/components/schemas/Address'
+      description: |
+        An interfrace used to express a location using an `Address` object
+    UnLocationLocation:
+      required:
+        - UNLocationCode
+      type: object
+      properties:
+        locationName:
+          $ref: '#/components/schemas/LocationName'
+        unLocationCode:
+          $ref: '#/components/schemas/Locode'
+      description: |
+        An interface used to express a location using a `Un Location Code`
+    FacilityLocation:
+      allOf:
+        - $ref: '#/components/schemas/UnLocationLocation'
+        - type: object
+          properties:
+            facilityCode:
+              $ref: '#/components/schemas/FacilityCode'
+            facilityCodeListProvider:
+              $ref: '#/components/schemas/FacilityCodeListProvider'
+          description: >
+            An interface used to express a location using a `Facility`. The
+            facility can either be expressed using a `BIC` code or a `SMDG` code
+    Address:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/AddressName'
+        street:
+          $ref: '#/components/schemas/StreetName'
+        StreetNumber:
+          $ref: '#/components/schemas/StreetNumber'
+        Floor:
+          $ref: '#/components/schemas/Floor'
+        PostCode:
+          $ref: '#/components/schemas/PostCode'
+        city:
+          $ref: '#/components/schemas/CityName'
+        stateRegion:
+          $ref: '#/components/schemas/StateRegion'
+        country:
+          $ref: '#/components/schemas/Country'
+      description: |
+        An object for storing Address related information
+    LocationName:
+      maxLength: 100
+      type: string
+      description: The name of the location.
+      example: Eiffel Tower
+    VesselFlag:
+      maxLength: 2
+      type: string
+      description: >
+        The flag of the nation whose laws the vessel is registered under. This
+        is the ISO 3166 two-letter Country code
+      example: DE
+    VesselName:
+      type: string
+      description: The name of the vessel that contains the cargo
+      example: VESSEL NAME 1
+    FacilityCodeListProvider:
+      type: string
+      description: |
+        The provider used for identifying the facility Code
+      example: SMDG
+      enum:
+        - BIC
+        - SMDG
+    FacilityCode:
+      maxLength: 6
+      type: string
+      description: >
+        The code used for identifying the specific facility. This code does
+        <b>not</b> include the UN Location Code.
+      nullable: false
+      example: ADT
+    Country:
+      maxLength: 75
+      type: string
+      description: The Country of the party’s Address.
+      example: Denmark
+    StateRegion:
+      maxLength: 65
+      type: string
+      description: The state/region of the party’s Address.
+      example: N/A
+    CityName:
+      maxLength: 65
+      type: string
+      description: The city name of the party’s Address.
+      example: København
+    PostCode:
+      maxLength: 10
+      type: string
+      description: The post code of the party’s Address.
+      example: '1306'
+    Floor:
+      maxLength: 50
+      type: string
+      description: The Floor of the party’s street number.
+      example: 5. sal
+    StreetNumber:
+      maxLength: 50
+      type: string
+      description: The number of the street of the party’s Address.
+      example: '54'
+    StreetName:
+      maxLength: 100
+      type: string
+      description: The name of the street of the party’s Address.
+      example: Kronprincessegade
+    AddressName:
+      maxLength: 100
+      type: string
+      description: Name of the Address
+      example: Henrik
+    CarrierOfferRequestReference:
+      type: string
+      description: |
+        A reference to the price offer during the booking request phase
+      format: UUID
+      example: 24595eb0-5cfc-4381-9c3a-cedc1975e9aa
+    EmailAddress:
+      type: string
+      description: Generic email address field
+      example: name@company.com
+    SubjectToGri:
+      type: boolean
+      description: >
+        Indicates whether the rate is based on the current market price and 
+
+        may be changed before its end of validity according to general rate
+        increases. 
+
+        This attribute can only be filled for CHARGE_TYPE_CODE = ‘SEA’
+    QuotationRateChargeable:
+      type: boolean
+      description: Flags whether charge is chargeable
+    GraduatedHighValue:
+      type: number
+      description: |
+        Upper bound of the range of the graduated unit of measure.
+    GraduatedLowValue:
+      type: number
+      description: |
+        Lower bound of the range of the graduated unit of measure.
+    ExclusiveRate:
+      type: boolean
+      description: |
+        Flags whether rate is set exclusively for a displayed routing, 
+        without additional haulage at both origin and destination
+    QuotationRateAmount:
+      type: number
+      description: |
+        Amount to be charged, absolute or percent
+    Currency:
+      type: string
+      description: three-letter-code of used currency, (null if unitOfMeasure=PERCENT)
+    QuotationRateIncluded:
+      type: boolean
+      description: |
+        Flags whether charge is included into lump sum
+    ServiceType:
+      type: string
+      description: CY - Container Yard (incl. rail ramp); SD - Store door
+      enum:
+        - CY
+        - SD
+    RequestedEquipment:
+      required:
+        - isNonOperatingReefer
+        - requestedEquipmentSizeType
+        - requestedEquipmentUnits
+        - shippersOwnedContainer
+      type: object
+      properties:
+        requestedEquipmentSizeType:
+          maxLength: 4
+          type: string
+          description: >-
+            Unique code for the different equipment/type used for transporting
+            commodities.
+        requestedEquipmentUnits:
+          maximum: 20
+          minimum: 1
+          type: integer
+          description: Number of requested equipment units
+        isNonOperatingReefer:
+          type: boolean
+        shippersOwnedContainer:
+          type: boolean
+      description: specifies which equipment should be used to transport the cargo
+    DangerousGoods:
+      required:
+        - imoClass
+        - isHazardous
+        - unNumber
+      type: object
+      properties:
+        isHazardous:
+          type: boolean
+        imoClass:
+          type: string
+          description: >-
+            Group of dangerous or hazardous goods, harmful substances or marine
+            pollutants in sea transport.
+          example: 1.2B
+        unNumber:
+          pattern: ([0-9]{4}|)
+          type: string
+      description: Information on dangerous goods
+    RequestCommodity:
+      required:
+        - cargoGrossWeight
+        - cargoGrossWeightUnit
+      type: object
+      properties:
+        commodityTypeGroup:
+          type: string
+          example: FAK
+        commodityTypeGroupNumber:
+          type: integer
+        cargoGrossWeight:
+          type: integer
+          description: ''
+        cargoGrossWeightUnit:
+          type: string
+          description: ''
+          enum:
+            - LBS
+            - KG
+        isHazardous:
+          type: boolean
+        imoClass:
+          type: string
+          description: >-
+            Group of dangerous or hazardous goods, harmful substances or marine
+            pollutants in sea transport.
+          example: 1.2B
+        unNumber:
+          pattern: ([0-9]{4}|)
+          type: string
+      description: |
+        Commodity may be defined as a raw material or product that is traded, 
+        such as ores, grain, coffee etc. Commodity becomes Cargo when it 
+        enters the transportation realm.
+    OfferCommodity:
+      required:
+        - commodityTypeGroup
+        - commodityTypeGroupNumber
+      type: object
+      properties:
+        commodityTypeGroup:
+          type: string
+          example: FAK
+        commodityTypeGroupNumber:
+          type: integer
+        name:
+          $ref: '#/components/schemas/CommodityName'
+        description:
+          $ref: '#/components/schemas/CommodityDescription'
+    GraduatedLowerUpperUom:
+      type: string
+      description: Another unit of measure
+      example: CONTAINER
+      enum:
+        - CUBIC_METER
+        - CONTAINER
+        - KMT
+        - SMI
+        - TON
+    GraduatedCalculationRule:
+      type: string
+      description: The Calculation Rule Number
+      enum:
+        - ONE
+        - TWO
+        - THREE
+        - FOUR
+        - FIVE
+        - SIX
+        - SEVEN
+    UnitOfMeasure:
+      type: string
+      description: the unit of measurement
+      enum:
+        - BL
+        - CUBIC_METER
+        - CONTAINER
+        - DAY
+        - FREIGHT_FREE
+        - FREIGHT_TONS
+        - HOUR
+        - KILOGRAM
+        - POUND_US
+        - LITRE
+        - PERCENT
+        - SHORT_TON
+        - METRIC_TON
+        - TON
+        - UNIT
+    MotDirectionIndicator:
+      type: string
+      description: >-
+        Indicates whether the mode of transport is derived from the (PRE)
+        section, the (POST) section or from the section itself (LOCAL)
+      enum:
+        - LOCAL
+        - PRE
+        - POST
+    ReeferOperationMode:
+      type: string
+      description: Rate is applicable to reefer containers in entered mode.
+      enum:
+        - OPERATIVE
+        - NON_OPERATIVE
+        - NOT_RELEVANT
+    LocationProposal:
+      type: string
+      description: |
+        Indicates in which location the charge is used normally
+      enum:
+        - BASE_PORT_FROM
+        - BASE_PORT_TO
+        - MAIN_CARRIAGE
+        - ON_CARRIAGE
+        - PC_CARRIAGE
+    RateBaseType:
+      type: string
+      description: >-
+        Indicates whether the rate is related to container, cargo item or
+        document.
+      enum:
+        - CONTAINER
+        - CARGO_ITEM
+        - DOCUMENT
+    ChargeCode:
+      type: string
+      description: |
+        The ChargeCode is a three letter short-identifier for the 
+        Charge that is present, e.g. the ChargeCode for the "SEA Rate" = "SEA"
+    ProductIdentifier:
+      type: string
+      description: >-
+        The ProductIdentifier specifies the available products on Hapag-Lloyd
+        site.
+      example: QUICK_QUOTES
+      enum:
+        - QUICK_QUOTES_SPOT
+        - QUICK_QUOTES
+    ModeOfTransport:
+      type: string
+      description: >
+        Mode of Transport, sometimes called by its short form MOT, is one of the
+        following types to transport a container. 
+
+        This can be by Vessel, Truck, Rail, Waterway, Combined Rail, Combined
+        Waterway. 
+
+        Possible options are further Inland transport, which includes Truck,
+        Rail, Combined Rail and Combined Waterway, or Overland transport, which
+        includes Truck, Rail and Combined Rail.
+      example: VESSEL
+      enum:
+        - VESSEL
+        - TRUCK
+        - RAIL
+        - WATERWAY
+        - COMBINED_RAIL
+        - COMBINED_WATERWAY
+        - INLAND_TR_CR_CW
+        - OVERLAND_TR_CR
+    RequestModeOfTransport:
+      type: string
+      description: >
+        Mode of Transport, sometimes called by its short form MOT, is one of the
+        following types to transport a container. 
+
+        This can be by Vessel, Truck, Rail, Waterway, Combined Rail, Combined
+        Waterway.
+      example: VESSEL
+      enum:
+        - VESSEL
+        - TRUCK
+        - RAIL
+        - WATERWAY
+        - COMBINED_RAIL
+        - COMBINED_WATERWAY
+    ChargeTypeCode:
+      type: string
+      description: Three-letter-code of a charge type.
+    Locode:
+      maxLength: 5
+      minLength: 5
+      pattern: ^[a-z,A-Z,0-9]{5}$
+      type: string
+      description: Location code
+      example: DEHAM
+    SeaFreightIndicator:
+      type: boolean
+      description: |
+        Indicates that the charge type represents the 
+        main revenue. Is used as a main indicator for SEA charge.
+    ChargeTypeShortDescription:
+      type: string
+      description: >
+        Short Description of the applicable ChargeType, e.g. "SGD 130 per Bill
+        of Lading"
+    ChargeTypeClass:
+      type: integer
+      description: >
+        Technical field to indicate which class type charge belongs to for
+        correct order on the invoice
+      format: int32
+    ChargeTypeSequenceInClass:
+      type: integer
+      description: >
+        Technical field to indicate individual sequence within charge type
+        class, 
+
+        which describes the position in that class for the invoice
+      format: int32
+    ChargeText:
+      type: string
+      description: |
+        The written out variant of the ChargeCode
+    CommodityName:
+      type: string
+      description: name of the transported goods
+      example: WOOD
+    CommodityDescription:
+      type: string
+      description: description of the transported goods
+      example: Description of Commodity
+    Problem:
+      required:
+        - status
+        - title
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+          example: Service Unavailable
+        status:
+          type: integer
+          description: The HTTP status code
+          format: int32
+          example: 503
+        detail:
+          type: string
+          description: The textual representation of the response status
+          example: Connection timed out
+        globalTransactionId:
+          type: string
+    ValueAddedService:
+      properties:
+        vasId:
+          $ref: '#/components/schemas/VasId'
+        productConfiguratorVasId:
+          type: string
+          description: id of the value added service inside the product configurator
+          example: 24595eb0-5cfc-4381-9c3a-cedc1975e6ff
+        vasGroup:
+          maxLength: 35
+          type: string
+          description: defines the group of services the service belongs to
+          example: ShipGreen
+        vasCode:
+          maxLength: 4
+          type: string
+          description: the special code of the value added service
+          example: BI25
+        name:
+          maxLength: 35
+          type: string
+          description: the the name of the value added service in english language
+          example: Ship Green 25 %
+        description:
+          maxLength: 200
+          type: string
+          description: the description of the value added service in english language
+          example: Ship Green 25 % is a special service for decarbonisation
+        vasRates:
+          type: array
+          description: the rate list of the value added service
+          items:
+            $ref: '#/components/schemas/Rate'
+        included:
+          type: boolean
+          description: the value adds service must be included into the quotation.
+        freetimeDays:
+          type: integer
+          description: >-
+            for ADFT this field describes the amount of days for which this VAS
+            is valid
+      description: the definition of a value added service (vas) the customer can select
+    VasId:
+      type: string
+      description: A reference to the value added service
+      format: UUID
+      example: 24595eb0-5cfc-4381-9c3a-cedc1975e9aa
+  securitySchemes:
+    Client ID Header:
+      type: apiKey
+      description: The client ID to identify the partner calling the API.
+      name: X-IBM-Client-Id
+      in: header
+      x-key-type: client_id
+    Client Secret Header:
+      type: apiKey
+      description: The client secret belonging to the client ID.
+      name: X-IBM-Client-Secret
+      in: header
+      x-key-type: client_secret

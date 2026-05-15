@@ -1,0 +1,888 @@
+openapi: 3.0.3
+info:
+  title: Live Position Subscription Management API
+  description: >
+    # Overview
+      The Container Live Position API product provides customers a great customer experience to buy , book and use the API product, which provides real-time geo-location information of their containers, and integrates such into their IT systems.
+
+    ### Introduction
+
+    Our smart container fleet takes the tracking experience to a new level: Live
+    Position enables our customers to track their container in real -time
+    throughout the entire journey. From ship to rail to truck – they benefit
+    from full visibility no matter which mode of transport is used.
+
+
+    #### Features
+      - **Push API**: Real-time data is pushed directly to your system.
+      - **Real-Time Data**: Longitude and latitude data of containers.
+      - **Data coverage**: The data coverage starts from the gate-out event when the empty container leaves the export depot and continues until the gate-in event when the empty container is returned to the import depot. The data transmission starts and end automatically.
+      - **Frequency**: Pre- & On-Carriage: Updates every 15 minutes. Ocean Leg: Updates every 24 hours.
+      - **Coverage**: all legs of the journey (pre-carriage, ocean, on-carriage).
+      - Designed for seamless integration with your system.
+      - This API is based on DCSA IoT events standard
+
+    # Use Cases
+
+    This Push API improves supply chain visibility by automating container
+    tracking data delivery at the specified frequency, enabling you to
+    streamline operations and enhance customer experience.
+      - Leverage the dot-on-the-map in the customer’s internal platform (i.e. Transport Management System e.g. Cargowise or Enterprise Resource Platform e.g. SAP)
+      - Create value-added services and products to the customer’s end users
+      - Enhance internal operational efficiency, i.e. yard management, reduce empty miles
+      - Data-driven decision making and improved planning e.g., street turns, automated warehouse gate scheduling.
+      - Create geofence events on gate-in and gate-out movements on your customer premise
+
+    # Rate Limits (Plans)
+
+
+    The Live Position API allows following 
+
+
+    | Plan    | Rate Limit hour | 
+
+    | ------- | ----------------- | 
+
+    | Basic | 100 calls / hour | 
+
+
+    # FAQs
+
+
+    <details>
+      <summary>What dry container types are supported by the Live Position API?</summary>
+      <div>
+        The following container types are valid:<br>
+        22GP: General Purpose Container without Ventilation<br>
+        22UT: Open-Top Container<br>
+        25UT: Open-Top Container High Cube<br>
+        42GP: General Purpose Container without Ventilation<br>
+        42UT: Open-Top Container<br>
+        45GP: General Purpose Container without Ventilation<br>
+        45UT: Open-Top Container High Cube<br>
+      </div>
+    </details>
+
+
+    <details>
+      <summary>If I opt for on-demand shipment tracking, how can I buy this product for a specific shipment?</summary>
+      <div>
+        You can raise a subscription API call using the Hapag-Lloyd shipment reference in the subscription request. You will receive a subscription confirmation message instantly via the API. There is no need to mention the VAS in the booking process, include it in remarks, or manually purchase the product through the Hapag-Lloyd Online Business Suite.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How do I handle scenarios where IoT data is not available?</summary>
+      <div>
+        In case IoT data is unavailable due to a technical failure or device unavailability, the API will return an error message indicating the issue. This ensures transparency and allows you to handle such cases programmatically.For specific IoT-equipped containers that are not released, the charges are automatically reversed by the system.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>What is the subscription buy window for a specific shipment if I opt for on-demand shipment tracking?</summary>
+      <div>
+        You can subscribe to this product anytime from the moment the booking is created until the empty container has been picked up from the depot for the specific shipment. This is because we need to inform the depot in advance to ensure that the smart container is released for the shipment that the customer wishes to track.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How is invoicing handled for Live Position API?</summary>
+      <div>
+        Invoices are based on the number of containers tracked. The Live Position API charges are added as a value-added service (VAS) to the sea freight invoice. The freight payer of the sea freight will also pay for the Live Position API charges.
+      </div>
+    </details>
+
+
+
+    <details>
+      <summary>Even though I book port-to-port shipping (only vessel leg) with Hapag-Lloyd, will I get complete real-time visibility of the end-to-end transport?</summary>
+      <div>
+        Yes, that’s the main pain point we aim to solve with this API. We want to share the data starting from the moment the container leaves the export depot until it is returned to the empty depot on the import side. You will receive end-to-end visibility, including the pre-vessel leg, vessel leg, and post-vessel leg.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>If we want to opt for All Shipments, how will this data be sent to our backend? What effort is needed from us?</summary>
+      <div>
+        You only need to perform a one-time subscription to provide your endpoint where the data will be channeled. This can even be done using a simple Postman call. Once the contract is finalized, our IT system will automatically detect all newly created shipments. Subscriptions will be created seamlessly, and you will start receiving the data for every dry container directly into your backend automatically.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How would I know the first and last position of a specific container?</summary>
+      <div>
+        You can use the iotEventTypeCode from the payload: For the first message of the container, the code is "TRS". For the last message, the code is "TRF".
+      </div>
+    </details>
+
+
+    # Tutorials & How To
+
+
+    <details>
+      <summary>Who can get access?</summary>
+      <div>
+        Hapag Lloyd customers, freight forwarders and their partners acting on behalf of the Hapag Lloyd customers can get access to the API. While many customers are eager to leverage this data to optimize their supply chains, we will initially collaborate with pilot customers who commit to tracking at least 1,500 containers per year using this API. This focused approach allows us to gather valuable feedback and further refine and optimize the API for broader usage in the future.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How many calls I can make?</summary>
+      <div>
+        We configured the rate limit for subscription management calls to allow for handling all the business volume for both on-demand and automatic subscriptions. Push mechanism is not rate limited, so you should expect to receive all events for your containers within their shipment journey with the standard frequency (Pre- & On-Carriage: 15 minutes / Ocean Leg: 24 hours)
+      </div>
+    </details>
+
+
+    <details>
+      <summary>How to buy and pay live position API?</summary>
+      <div>
+        Customers who have purchased Live Position API contract may integrate to our API Portal. To obtain Live Position API Packages offer please contact your respective account managers: https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html Please reach out to liveposition@hlag.com for further queries.
+      </div>
+    </details>
+
+
+    <details>
+      <summary>What are the different subscription options?</summary>
+      <div>
+        - On-Demand Shipment Customers can purchase the Live Position API for a specific shipment. This allows them to receive real-time data for all containers associated with the selected shipment reference.
+
+        - All Shipments Customers can opt to receive real-time data automatically for all their shipments. This includes every shipment booked with Hapag-Lloyd, provided the service is active for the agreed contract period (e.g. one year).
+      </div>
+    </details>
+
+
+    #### Invoicing Details
+
+    The invoicing is based on the number of containers tracked. Charges for the
+    Live Position API are included as a value-added service (VAS) within the sea
+    freight invoice. The freight payer of the sea freight is also responsible
+    for covering the costs associated with the Live Position API.
+
+
+    #### Subscription Process
+
+    <ol>
+      <li>Customers initiate a subscription by providing their Hapag-Lloyd Shipment number or all shipment reference.</li>
+      <li>This subscription request is sent to our system, where it is processed and recorded.</li>
+      <li>The customer subscribes to get Live Position data for dry containers.</li>
+    </ol>
+
+
+    #### POST Request for subscription (all shipments):
+
+    ```javascript
+
+    {
+
+    "callbackUrl": "https://www.test.com",
+        "callbackCredentials": {
+            "apiKeys": [
+                {
+                    "apiKeyName": "x-ibm-client-id",
+                    "apiKeyLocation": "header",
+                    "apiKeyValue": "abcd1234abcd1234abcd1234abcd1234"
+                },
+                {
+                    "apiKeyName": "x-ibm-client-secret",
+                    "apiKeyLocation": "header",
+                    "apiKeyValue": "abcd1234abcd1234abcd1234abcd1234"
+                }
+            ]
+        },
+      "eventType": "IOT_AUTOMATIC",
+    }
+
+    ```
+
+    #### **Response (201):**
+
+
+    ```javascript
+
+    {
+        "subscriptionID": "1a1a12a1-123a-12avf-12a1-ab123a1a1234",
+        "subscriptionCreatedDateTime": "2024-01-02T03:04:05Z",
+        "subscriptionUpdatedDateTime": "2024-01-02T03:04:05Z",
+        "subscriptionStatus": "ACTIVE"
+    }
+
+    ```
+
+
+    #### POST Request for subscription (on-demand shipment):
+
+    ```javascript
+
+    {
+
+    "callbackUrl": "https://www.test.com",
+        "callbackCredentials": {
+            "apiKeys": [
+                {
+                    "apiKeyName": "x-ibm-client-id",
+                    "apiKeyLocation": "header",
+                    "apiKeyValue": "abcd1234abcd1234abcd1234abcd1234"
+                },
+                {
+                    "apiKeyName": "x-ibm-client-secret",
+                    "apiKeyLocation": "header",
+                    "apiKeyValue": "abcd1234abcd1234abcd1234abcd1234"
+                }
+            ]
+        },
+      "eventType": "IOT",
+      "carrierBookingReference": "12345678"
+    }
+
+    ```
+
+    #### **Response (201):**
+
+
+    ```javascript
+
+    {
+        "subscriptionID": "1a1a12a1-123a-12avf-12a1-ab123a1a1234",
+        "subscriptionCreatedDateTime": "2024-01-02T03:04:05Z",
+        "subscriptionUpdatedDateTime": "2024-01-02T03:04:05Z",
+        "carrierBookingReference": 12345678,
+        "subscriptionStatus": "ACTIVE"
+    }
+
+    ```
+
+    #### **Data Push Mechanism::**
+
+    <ol>
+      <li>Our system will regularly gather relevant data or updates related to the specified shipment and container numbers.</li>
+      <li>Based on the frequency mentioned above, our system will push this data to the specified URL provided by the customer.</li>
+    </ol>
+
+
+    # Release notes/changelog 
+
+    | Version | Date      | Description |
+
+    | ------- | --------- | ----------- |  
+
+    | 1.1.1   | 2026 May | Documentation update  |
+
+    | 1.1.0   | 2025 September | Addition of Dynamic ETA events  |
+
+    | 1.0.6   | 2025 August | Addition of secret encoding option  |
+
+    | 1.0.5   | 2025 May | Addition of PUT method  |
+
+    | 1.0.4   | 2025 January | Initial Release  |
+  termsOfService: https://api-portal.hlag.com/terms
+  contact:
+    name: API Portal
+    url: https://api-portal.hlag.com
+  license:
+    name: Privacy Terms
+    url: https://api-portal.hlag.com/privacy
+  version: 1.1.1
+servers:
+  - url: https://api.hlag.com/hlag/external/iot
+  - url: https://mock.api-portal.hlag.com/iot
+security:
+  - Client ID Header: []
+    Client Secret Header: []
+tags:
+  - name: Subscriptions
+    description: Subscription operations
+paths:
+  /v1/event-subscriptions:
+    post:
+      tags:
+        - Subscriptions
+      summary: Create a subscription
+      description: >
+        Creates a new subscription and allows events matching the subscription
+        to be pushed to the `callBackUrl`
+      parameters:
+        - $ref: '#/components/parameters/authorizationParam'
+      requestBody:
+        description: |
+          Parameters used to configure the subscription.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionBodyWithCreds'
+        required: true
+      responses:
+        '201':
+          description: Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscription'
+        '400':
+          description: CarrierBookingReference should be a number.
+        '403':
+          description: Not allowed to subscribe for this shipment.
+        '404':
+          description: No shipment with this carrierBookingReference found.
+        '409':
+          description: >-
+            Subscribed shipment does not contain any container type which is
+            suitable for Live Position product
+        '422':
+          description: >-
+            The shipment is already in progress. Setting up a subscription is
+            not possible anymore.
+        '503':
+          description: Subscription request processing server error. Try later.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /v1/event-subscriptions/{subscriptionID}:
+    put:
+      tags:
+        - Subscriptions
+      summary: Modify a subscription
+      description: |
+        Updates an existing subscription callback details.
+      parameters:
+        - $ref: '#/components/parameters/authorizationParam'
+        - $ref: '#/components/parameters/subscriptionID'
+      requestBody:
+        description: |
+          Parameters used to configure the subscription.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionBodyWithCreds'
+        required: true
+      responses:
+        '200':
+          description: Subscription updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscription'
+        '400':
+          description: CarrierBookingReference should be a number.
+        '409':
+          description: No active subscription found.
+        '503':
+          description: Subscription request processing server error. Try later.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+components:
+  schemas:
+    subscriptionBody:
+      required:
+        - callbackUrl
+      type: object
+      allOf:
+        - type: object
+          properties:
+            callbackUrl:
+              $ref: '#/components/schemas/callbackUrl'
+        - $ref: '#/components/schemas/iotSubscriptionBody'
+    callbackCredentials:
+      type: object
+      anyOf:
+        - type: object
+          properties:
+            apiKeys:
+              $ref: '#/components/schemas/apiKeyList'
+        - type: object
+          properties:
+            oauth:
+              $ref: '#/components/schemas/oAuthTokenRequest'
+        - type: object
+          properties:
+            secret:
+              $ref: '#/components/schemas/secret'
+    subscriptionBodyWithCreds:
+      required:
+        - callbackCredentials
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/subscriptionBody'
+        - type: object
+          properties:
+            callbackCredentials:
+              $ref: '#/components/schemas/callbackCredentials'
+    subscription:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            organisation:
+              $ref: '#/components/schemas/organisation'
+        - type: object
+          properties:
+            userid:
+              $ref: '#/components/schemas/userid'
+        - type: object
+          properties:
+            subscriptionID:
+              $ref: '#/components/schemas/subscriptionID'
+        - $ref: '#/components/schemas/subscriptionBodyWithCreds'
+    carrierBookingReference:
+      maxLength: 35
+      pattern: ^\S+(\s+\S+)*$
+      type: string
+      description: A set of unique characters provided by carrier to identify a booking.
+      example: '12345678'
+    error:
+      required:
+        - errorDateTime
+        - errors
+        - httpMethod
+        - requestUri
+        - statusCode
+        - statusCodeText
+      type: object
+      properties:
+        httpMethod:
+          type: string
+          description: |
+            The http request method type e.g. GET, POST
+          example: POST
+          enum:
+            - GET
+            - HEAD
+            - POST
+            - PUT
+            - DELETE
+            - OPTION
+            - PATCH
+        requestUri:
+          type: string
+          description: |
+            The request URI as it was sent
+          example: /v1/events
+        statusCode:
+          type: integer
+          description: |
+            The HTTP status code
+          format: int32
+          example: 400
+        statusCodeText:
+          maxLength: 50
+          type: string
+          description: |
+            The textual representation of the status code
+          example: Bad Request
+        errorMessage:
+          maxLength: 200
+          type: string
+          description: |
+            Other error information
+          example: The supplied data could not be accepted
+        providerCorrelationID:
+          maxLength: 100
+          type: string
+          description: |
+            A unique identifier for the transaction, e.g. a UUID
+          example: 4426d965-0dd8-4005-8c63-dc68b01c4962
+        errorDateTime:
+          type: string
+          description: |
+            The date and time (in ISO 8601 format) the error occurred.
+          format: date-time
+        errors:
+          minItems: 1
+          type: array
+          description: |
+            List of detailed errors, e.g. fields that could not pass validation
+          items:
+            allOf:
+              - $ref: '#/components/schemas/detailedError'
+    detailedError:
+      required:
+        - message
+        - reason
+      type: object
+      properties:
+        errorCode:
+          maximum: 9999
+          minimum: 7000
+          type: integer
+          description: >
+            Standard error code see http://dcsa.org/error-codes (to be created).
+            Examples: 7003 – out or range value, 7004 -  invalid type
+          format: int32
+          example: 7003
+        field:
+          maxLength: 50
+          type: string
+          description: >
+            The field that caused the error, e.g. a failed validation. The field
+            can be expressed as a
+            [JSONpath](https://github.com/json-path/JsonPath)
+          example: location.facilityCode
+        value:
+          maxLength: 500
+          type: string
+          description: |
+            The value that of the field that caused the error
+          example: SG SIN WHS
+        reason:
+          maxLength: 100
+          type: string
+          description: |
+            High level error message
+          example: invalidQuery
+        message:
+          maxLength: 200
+          type: string
+          description: |
+            Additional information as to why the error occured
+          example: Spaces not allowed in facility code
+    subscriptionID:
+      type: string
+      description: |
+        A unique ID for that subscription
+      format: uuid
+      example: 8fbdc2d8-57c8-48b9-a04b-18fd8ec1d809
+    organisation:
+      type: string
+      description: |
+        The organisation of the subcriber
+      example: https://hlagweb.b2clogin.com/279e785a-03bc-4336-bca9-90e8a6e6b8e5/v2.0/
+    userid:
+      type: string
+      description: |
+        The userid of the subcriber
+      example: myuser
+    secret:
+      anyOf:
+        - type: string
+          description: >
+            A encoded secret shared between the Publisher and the Subscriber.
+
+            It is used to compute the contents of the Notification-Signature
+            header.
+
+            Default value is utf6, but can be specified with optional paramter.
+          format: byte
+          example:
+            '0': 84
+            '1': 86
+            '2': 82
+            '3': 74
+            '4': 101
+            '5': 107
+            '6': 53
+            '7': 69
+            '8': 86
+            '9': 84
+            '10': 74
+            '11': 79
+            '12': 101
+            '13': 109
+            '14': 99
+            '15': 49
+            '16': 84
+            '17': 85
+            '18': 82
+            '19': 70
+            '20': 101
+            '21': 85
+            '22': 49
+            '23': 54
+            '24': 85
+            '25': 84
+            '26': 70
+            '27': 79
+            '28': 97
+            '29': 109
+            '30': 77
+            '31': 48
+            '32': 84
+            '33': 49
+            '34': 82
+            '35': 66
+            '36': 101
+            '37': 69
+            '38': 49
+            '39': 113
+            '40': 84
+            '41': 84
+            '42': 66
+            '43': 79
+            '44': 86
+            '45': 70
+            '46': 107
+            '47': 122
+            '48': 84
+            '49': 48
+            '50': 82
+            '51': 114
+            '52': 100
+            '53': 48
+            '54': 49
+            '55': 85
+            '56': 83
+            '57': 88
+            '58': 112
+            '59': 79
+            '60': 82
+            '61': 69
+            '62': 48
+            '63': 121
+            '64': 84
+            '65': 108
+            '66': 82
+            '67': 106
+            '68': 78
+            '69': 69
+            '70': 53
+            '71': 113
+            '72': 83
+            '73': 88
+            '74': 112
+            '75': 80
+            '76': 82
+            '77': 71
+            '78': 115
+            '79': 122
+            '80': 84
+            '81': 107
+            '82': 82
+            '83': 90
+            '84': 78
+            '85': 85
+            '86': 49
+            '87': 69
+            '88': 90
+            '89': 51
+            '90': 108
+            '91': 79
+            '92': 101
+            '93': 107
+            '94': 48
+            '95': 119
+            '96': 84
+            '97': 49
+            '98': 82
+            '99': 110
+            '100': 77
+            '101': 48
+            '102': 49
+            '103': 85
+            '104': 83
+            '105': 88
+            '106': 112
+            '107': 79
+            '108': 101
+            '109': 109
+            '110': 99
+            '111': 121
+            '112': 84
+            '113': 107
+            '114': 69
+            '115': 57
+            '116': 80
+            '117': 81
+            '118': 61
+            '119': 61
+        - type: object
+          properties:
+            value:
+              type: string
+            encoding:
+              type: string
+              description: |
+                Encoding of the secret parameter in base64
+              enum:
+                - base64
+    apiKeyList:
+      type: array
+      items:
+        $ref: '#/components/schemas/apiKeyValue'
+    apiKeyValue:
+      required:
+        - apiKeyLocation
+        - apiKeyName
+        - apiKeyValue
+      type: object
+      properties:
+        apiKeyName:
+          type: string
+        apiKeyLocation:
+          type: string
+        apiKeyValue:
+          type: string
+    oAuthTokenRequest:
+      required:
+        - oauthClientId
+        - oauthClientSecret
+        - oauthTokenUrl
+      type: object
+      properties:
+        oauthTokenUrl:
+          type: string
+        oauthClientId:
+          type: string
+        oauthClientSecret:
+          type: string
+    callbackUrl:
+      type: string
+      description: >
+        The endPoint where a Carrier whould send back events to the Shipper. The
+        callback can contain query parameters uniquely identifying the
+        originator of the events.
+      format: uri
+      example: >-
+        https://myserver.com/send/callback/here?shipperRef=<shipper defined
+        unique id>
+    iotSubscriptionBody:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            eventType:
+              allOf:
+                - $ref: '#/components/schemas/eventType'
+        - type: object
+          properties:
+            carrierBookingReference:
+              allOf:
+                - $ref: '#/components/schemas/carrierBookingReference'
+                - description: >
+                    The reference to a Booking. Using this filter in a
+                    subscription will only return Events that are related to the
+                    `carrierBookingReference` specified
+    eventType:
+      type: string
+      description: |
+        eventType for which to create a subscription 
+      example: '["IOT"]'
+      enum:
+        - IOT
+        - IOT_AUTOMATIC
+  parameters:
+    authorizationParam:
+      name: Authorization
+      in: header
+      required: false
+      style: simple
+      explode: false
+      schema:
+        minimum: 0
+        type: string
+    signatureHeader:
+      name: Signature
+      in: header
+      description: |
+        The signature certifying the request originates from the carrier
+      required: true
+      deprecated: true
+      style: simple
+      explode: false
+      schema:
+        type: object
+        properties:
+          keyId:
+            type: string
+            format: uuid
+            example: 4fb682bc-3cd1-43a9-a23a-618a61bd87ca
+          created:
+            type: integer
+            example: 1591960384
+          headers:
+            type: string
+            example: (request-target) (created) date host
+          signature:
+            type: string
+            example: aGkgZnJvbSBkZW5tYXJr
+    subscriptionIDHeader:
+      name: Subscription-ID
+      in: header
+      description: |
+        The ID of the subscription triggering the event being sent
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        format: uuid
+        example: b80d923d-e8ac-4c34-9506-55d3de347034
+    notificationSignature:
+      name: Notification-Signature
+      in: header
+      description: >
+        the Notification-Signature is used to sign the notification. The header
+        has the following format: 
+
+           Notification-Signature: <signature-type>=<signature>
+
+        The `signature-type` part is a keyword that determines which algorithm
+        was used to compute the signature.
+
+
+        The signature ***MUST*** cover the entire request body of the request
+        including whitespace and newlines. The content ***MUST*** be decoded
+        into bytes using the UTF-8 encoding before computing the signature. None
+        of the HTTP headers nor the request URL is covered by the signature.
+
+
+        Supported signature typies are:
+
+        - sha256
+
+
+        Example:
+        `sha256=ae688919f5e31f4c210ca6af362ce4d9ed87acfb51c1721a8507ee395de5e2de`
+      required: true
+      style: simple
+      explode: false
+      schema:
+        pattern: \s*([a-zA-Z0-9-_+]+=[0-9a-fA-F]+)\s*
+        type: string
+        example: >-
+          sha256=ae688919f5e31f4c210ca6af362ce4d9ed87acfb51c1721a8507ee395de5e2de
+    subscriptionID:
+      name: subscriptionID
+      in: path
+      description: |
+        The ID of the subscription to retrieve
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: '#/components/schemas/subscriptionID'
+      example: 123e4567-e89b-12d3-a456-426614174000
+  securitySchemes:
+    clientId:
+      type: apiKey
+      name: x-hlag-client-id
+      in: header
+      x-key-type: client_id
+    clientSecret:
+      type: apiKey
+      name: x-hlag-client-secret
+      in: header
+      x-key-type: client_secret
+    Client ID Header:
+      type: apiKey
+      description: The client ID to identify the partner calling the API.
+      name: X-IBM-Client-Id
+      in: header
+      x-key-type: client_id
+    Client Secret Header:
+      type: apiKey
+      description: The client secret belonging to the client ID.
+      name: X-IBM-Client-Secret
+      in: header
+      x-key-type: client_secret

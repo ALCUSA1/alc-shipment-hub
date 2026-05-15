@@ -1,0 +1,479 @@
+swagger: '2.0'
+info:
+  description: >-
+    Our HL LIVE API is more than a monitoring solution, it represents a
+    significant step in digitalizing the supply chain for refrigerated cargo,
+    focusing on transparency and data provided to customer’s IT system directly.
+    Customers stand to benefit from full visibility throughout the multimodal
+    journey, easy access to the digital cold chain within their systems,
+    customized data packages, enhanced security, optimized cold chain planning,
+    and confidence in the efficiency of operational performance. How to get HL
+    LIVE API access? HL LIVE Customers who have purchased API contract may
+    integrate to HL LIVE API on our API Portal. To obtain HL LIVE API Packages
+    offer please contact your respective sales representative:
+    https://www.hapag-lloyd.com/en/services-information/offices-localinfo.html
+  version: 3.0.7
+  title: HL LIVE Subscription
+  termsOfService: https://api-portal.hlag.com/terms
+  contact:
+    name: API Portal
+    url: https://api-portal.hlag.com
+  license:
+    name: Privacy Terms
+    url: https://api-portal.hlag.com/privacy
+host: api.hlag.com
+basePath: /hlag/external/v3/reefer
+tags:
+  - name: Subscriptions
+    description: Subscription operations.
+schemes:
+  - https
+security:
+  - Client ID Header: []
+    Client Secret Header: []
+paths:
+  /event-subscriptions:
+    get:
+      tags:
+        - Subscriptions
+      summary: Receive a list of your active subscriptions.
+      description: >-
+        Lists all subscriptions belonging to you. If not specified the list will
+        be sorted on the creation date of the subscription
+        (`subscriptionCreatedDateTime`) in ascending (`ASC`) order.
+      produces:
+        - application/json
+      parameters:
+        - name: sort
+          in: query
+          description: >-
+            A comma-separated (`,`) list of field names is used to define the
+            sort order. To specify the sort order for each field name required,
+            use a colon (`:`) between the field name and the keyword `ASC`
+            (ascending) or `DESC` (descending). If the keyword is not used,
+            ascending (`ASC`) order is applied by default.
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: Maximum number of items to return.
+          required: false
+          type: integer
+          default: 100
+          minimum: 1
+          format: int32
+      responses:
+        '200':
+          description: Returns a list of subscriptions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Subscription'
+            x-generate-alias-as-model: true
+        '404':
+          description: No Subscription found./Could not find customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      tags:
+        - Subscriptions
+      summary: Create a subscription.
+      description: >-
+        Creates a new subscription and allows events matching the subscription
+        to be pushed to the `callBackUrl`.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: subscriptionBodyWithSecret
+          description: >-
+            The object with the necessary information required to subscribe to
+            HL Live API which contains carrierBookingReference,
+            equipmentReference, secret, callbackUrl, packageName.
+          required: true
+          schema:
+            type: object
+            required:
+              - callbackUrl
+              - secret
+            properties:
+              secret:
+                type: string
+                example: >-
+                  MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDM2NTc4NjIzODk3NDY5MDgyNzM0OTg3MTIzNzg2NA==
+                maxLength: 255
+              callbackUrl:
+                type: string
+                format: uri
+                example: >-
+                  https://myserver.com/send/callback/here?shipperRef=<shipper
+                  defined unique id>
+              carrierBookingReference:
+                type: string
+                example: ABC709951
+                description: >-
+                  A set of unique characters provided by carrier to identify a
+                  booking.
+                maxLength: 35
+                pattern: ^\S+(\s+\S+)*$
+              equipmentReference:
+                type: string
+                example: APZU4812090
+                description: >-
+                  The unique identifier for the equipment, which should follow
+                  the BIC ISO Container Identification Number where possible.
+                maxLength: 11
+                pattern: ^\S+(\s+\S+)*$
+              packageName:
+                type: string
+                description: The name of the data package name.
+                maxLength: 30
+      responses:
+        '200':
+          description: >-
+            Active subscription for equipment reference
+            <equipment_reference_number>, carrier booking reference
+            <carrier_booking_reference> and package <package_name> already
+            exists with subscription ID <subscription_id>.
+          schema:
+            $ref: '#/definitions/Error'
+        '201':
+          description: Subscription created
+          schema:
+            $ref: '#/definitions/Subscription'
+        '400':
+          description: CarrierBookingReference should be a number
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Package expired or not yet valid. / Not allowed.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: >-
+            Could not find customer while trying to subscribe. / Could not find
+            package. / No shipment found.
+          schema:
+            $ref: '#/definitions/Error'
+        '422':
+          description: HL LIVE device of equipment not available
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/Error'
+  /event-subscriptions/{subscription_id}:
+    get:
+      tags:
+        - Subscriptions
+      summary: Find a subscription by subscription ID.
+      description: Gets a subscription matching the `subscriptionID`.
+      produces:
+        - application/json
+      parameters:
+        - name: subscription_id
+          in: path
+          description: The ID of the subscription to retrieve.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Subscription returned
+          schema:
+            $ref: '#/definitions/Subscription'
+        '403':
+          description: Subscription does not belong to customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Could not find customer. / Subscription not found.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      tags:
+        - Subscriptions
+      summary: Alter a subscription using the subscriptionID.
+      description: Updates a subscription matching `subscriptionID`.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: subscription_id
+          in: path
+          description: The ID of the subscription to retrieve.
+          required: true
+          type: string
+        - in: body
+          name: subscriptionBodyWithSecret
+          description: >-
+            The object with the necessary information required to update HL Live
+            API subscription which contains carrierBookingReference,
+            equipmentReference, secret, callbackUrl, packageName.
+          required: true
+          schema:
+            type: object
+            required:
+              - callbackUrl
+              - secret
+            properties:
+              secret:
+                type: string
+                example: >-
+                  MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDM2NTc4NjIzODk3NDY5MDgyNzM0OTg3MTIzNzg2NA==
+                maxLength: 255
+              callbackUrl:
+                type: string
+                format: uri
+                example: >-
+                  https://myserver.com/send/callback/here?shipperRef=<shipper
+                  defined unique id>
+              carrierBookingReference:
+                type: string
+                example: ABC709951
+                description: >-
+                  A set of unique characters provided by carrier to identify a
+                  booking.
+                maxLength: 35
+                pattern: ^\S+(\s+\S+)*$
+              equipmentReference:
+                type: string
+                example: APZU4812090
+                description: >-
+                  The unique identifier for the equipment, which should follow
+                  the BIC ISO Container Identification Number where possible.
+                maxLength: 11
+                pattern: ^\S+(\s+\S+)*$
+              packageName:
+                type: string
+                description: The name of the data package name.
+                maxLength: 30
+      responses:
+        '200':
+          description: Subscription updated.
+          schema:
+            $ref: '#/definitions/Subscription'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: This endPoint has not been implemented.
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      tags:
+        - Subscriptions
+      summary: Stop a subscription, using the subscription ID.
+      description: Deletes a subscription matching `subscriptionID`.
+      produces:
+        - application/json
+      parameters:
+        - name: subscription_id
+          in: path
+          description: The ID of the subscription to retrieve.
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Subscription stopped.
+        '403':
+          description: Subscription does not belong to customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Subscription not found. / Could not find customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/Error'
+  /event-subscriptions/{subscription_id}/secret:
+    put:
+      tags:
+        - Subscriptions
+      summary: Alter a subscription secret using the subscriptionID.
+      description: >-
+        This endPoint is used to update the secret of the subscription matching
+        `subscriptionID`.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: subscription_id
+          in: path
+          description: The ID of the subscription to retrieve.
+          required: true
+          type: string
+        - in: body
+          name: bodyWithOnlySecret
+          description: >-
+            The object which contains the secret you can update for an existing
+            subscription.
+          required: true
+          schema:
+            type: object
+            required:
+              - secret
+            properties:
+              secret:
+                type: string
+                example: >-
+                  MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDM2NTc4NjIzODk3NDY5MDgyNzM0OTg3MTIzNzg2NA==
+                maxLength: 255
+      responses:
+        '204':
+          description: Subscription secret updated successfully.
+        '403':
+          description: Subscription does not belong to customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: >-
+            Subscription not found in workWithSubscription. / Could not find
+            customer.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+        '501':
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/Error'
+securityDefinitions:
+  Client ID Header:
+    description: The client ID to identify the partner calling the API.
+    type: apiKey
+    name: X-IBM-Client-Id
+    in: header
+    x-key-type: client_id
+  Client Secret Header:
+    description: The client secret belonging to the client ID.
+    type: apiKey
+    name: X-IBM-Client-Secret
+    in: header
+    x-key-type: client_secret
+definitions:
+  SubscriptionCreatedDateTime:
+    type: string
+    format: date-time
+    description: The date and time when the subscription was created.
+    example: '2021-11-03T09:41:00+08:30'
+  SubscriptionUpdatedDateTime:
+    type: string
+    format: date-time
+    description: The date and time when the subscription was last updated.
+    example: '2021-11-03T09:41:00+08:30'
+  CallbackUrl:
+    type: string
+    format: uri
+    description: >-
+      The endPoint where a Carrier would send back events to the Shipper. The
+      callback can contain query parameters uniquely identifying the originator
+      of the events.
+    example: >-
+      https://myserver.com/send/callback/here?shipperRef=<shipper defined unique
+      id>
+  EquipmentReference:
+    type: string
+    maxLength: 11
+    pattern: ^\\S+(\\s+\\S+)*$
+    description: >-
+      The unique identifier for the equipment, which should follow the BIC ISO
+      Container Identification Number where possible.<br/>According to ISO 6346,
+      a container identification code consists of a 4-letter prefix and a
+      7-digit number (composed of a 3-letter owner code, a category identifier,
+      a serial number, and a check-digit).<br/><br/>If a container does not
+      comply with ISO 6346, it is suggested to follow [Recommendation #2:
+      Containers with non-ISO
+      identification](https://smdg.org/documents/smdg-recommendations) from
+      SMDG.
+    example: APZU4812090
+  CarrierBookingReference:
+    type: string
+    maxLength: 35
+    pattern: ^\\S+(\\s+\\S+)*$
+    description: Set of unique characters provided by carrier to identify a booking.
+    example: ABC709951
+  ReeferSubscriptionBody:
+    type: object
+    properties:
+      carrierBookingReference:
+        description: >-
+          The reference to a Booking. Using this filter in a subscription will
+          only return Events that are related to the `carrierBookingReference`
+          specified.
+        $ref: '#/definitions/CarrierBookingReference'
+      equipmentReference:
+        description: >-
+          The `equipmentReference` to filter by. Specifying this value will only
+          return `reeferEvents` related to this specific `equipmentReference`.
+        $ref: '#/definitions/EquipmentReference'
+  SubscriptionId:
+    type: string
+    description: The ID of the subscription to retrieve.
+    example: 123e4567-e89b-12d3-a456-426614174000
+  SubscriptionStatus:
+    type: string
+    description: The status of the subscription to retrieve.
+    example: ACTIVE
+  PackageName:
+    type: string
+    description: The name of the data package name.
+  SubscriptionBody:
+    type: object
+    required:
+      - callbackUrl
+    properties:
+      callbackUrl:
+        $ref: '#/definitions/CallbackUrl'
+      reeferSubscriptionBody:
+        $ref: '#/definitions/ReeferSubscriptionBody'
+  Subscription:
+    type: object
+    properties:
+      subscriptionId:
+        $ref: '#/definitions/SubscriptionId'
+      subscriptionCreatedDateTime:
+        $ref: '#/definitions/SubscriptionCreatedDateTime'
+      subscriptionStatus:
+        $ref: '#/definitions/SubscriptionStatus'
+      packageName:
+        $ref: '#/definitions/PackageName'
+      subscriptionUpdatedDateTime:
+        $ref: '#/definitions/SubscriptionUpdatedDateTime'
+      subscriptionBody:
+        $ref: '#/definitions/SubscriptionBody'
+  Error:
+    type: object
