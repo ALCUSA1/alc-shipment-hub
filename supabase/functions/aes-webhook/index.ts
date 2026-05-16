@@ -6,6 +6,31 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Verify HMAC-SHA256 signature with constant-time comparison.
+// Accepts hex-encoded signatures, optionally prefixed (e.g. "sha256=...").
+async function verifyHmac(secret: string, body: string, signatureHeader: string): Promise<boolean> {
+  try {
+    const provided = signatureHeader.replace(/^sha256=/i, "").trim().toLowerCase();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
+    const expected = Array.from(new Uint8Array(sigBuf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    if (expected.length !== provided.length) return false;
+    let diff = 0;
+    for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ provided.charCodeAt(i);
+    return diff === 0;
+  } catch (_e) {
+    return false;
+  }
+}
+
 /**
  * aes-webhook Edge Function
  *
@@ -39,16 +64,22 @@ Deno.serve(async (req) => {
     }
 
     // ─── ZeusLogics AES Webhook Handler ─────────────────────────────────
-    // Validate webhook signature
+    // Mandatory webhook signature validation (HMAC-SHA256, constant-time compare).
     const webhookSecret = Deno.env.get("ZEUSLOGICS_WEBHOOK_SECRET") || Deno.env.get("AES_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const signature = req.headers.get("x-zeuslogics-signature") || req.headers.get("x-aes-signature") || req.headers.get("x-webhook-signature");
-      if (!signature || signature !== webhookSecret) {
-        return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    if (!webhookSecret) {
+      console.error("ZEUSLOGICS_WEBHOOK_SECRET / AES_WEBHOOK_SECRET not configured — refusing webhook");
+      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const signature = req.headers.get("x-zeuslogics-signature") || req.headers.get("x-aes-signature") || req.headers.get("x-webhook-signature");
+    const rawBody = JSON.stringify(body);
+    if (!signature || !(await verifyHmac(webhookSecret, rawBody, signature))) {
+      return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { event_type, filing_ref, itn, aes_citation, status, message, details } = body;
@@ -159,21 +190,21 @@ Deno.serve(async (req) => {
 async function handleTerminal49Webhook(supabase: any, body: any, req?: Request) {
   try {
     const webhookSecret = Deno.env.get("TERMINAL49_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const signature =
-        req?.headers.get("x-terminal49-signature") ||
-        req?.headers.get("x-terminal49-hmac-sha256") ||
-        req?.headers.get("x-webhook-signature");
-      if (!signature || signature !== webhookSecret) {
-        return new Response(
-          JSON.stringify({ error: "Invalid webhook signature" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    } else {
-      console.warn("TERMINAL49_WEBHOOK_SECRET not configured — rejecting webhook");
+    if (!webhookSecret) {
+      console.error("TERMINAL49_WEBHOOK_SECRET not configured — refusing webhook");
       return new Response(
         JSON.stringify({ error: "Webhook secret not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const signature =
+      req?.headers.get("x-terminal49-signature") ||
+      req?.headers.get("x-terminal49-hmac-sha256") ||
+      req?.headers.get("x-webhook-signature");
+    const rawBody = JSON.stringify(body);
+    if (!signature || !(await verifyHmac(webhookSecret, rawBody, signature))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid webhook signature" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

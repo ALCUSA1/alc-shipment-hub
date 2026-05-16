@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,13 +52,23 @@ interface ParsedRate {
   surcharges?: string; amendment?: string;
 }
 
-function parseEvergreenWorkbook(file: ArrayBuffer): ParsedRate[] {
-  const wb = XLSX.read(file, { type: "array" });
-  const sheetName = wb.SheetNames.find((n) => n.toLowerCase() === "rate")
-    || wb.SheetNames.find((n) => n.toLowerCase().includes("rate"));
-  if (!sheetName) throw new Error("Could not find a 'Rate' sheet in the workbook.");
-  const ws = wb.Sheets[sheetName];
-  const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+async function parseEvergreenWorkbook(file: ArrayBuffer): Promise<ParsedRate[]> {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(file);
+  const ws = wb.worksheets.find((w) => w.name.toLowerCase() === "rate")
+    || wb.worksheets.find((w) => w.name.toLowerCase().includes("rate"));
+  if (!ws) throw new Error("Could not find a 'Rate' sheet in the workbook.");
+  const rows: any[][] = [];
+  ws.eachRow({ includeEmpty: true }, (row) => {
+    const values = row.values as any[];
+    // exceljs row.values is 1-indexed; slice(1) to make 0-indexed
+    const arr = values.slice(1).map((v) => {
+      if (v && typeof v === "object" && "result" in v) return (v as any).result; // formulas
+      if (v && typeof v === "object" && "text" in v) return (v as any).text; // rich text
+      return v ?? null;
+    });
+    rows.push(arr);
+  });
 
   // Locate header row (looks for the row that contains 'Trade' and 'POL')
   let headerIdx = -1;
@@ -151,7 +161,7 @@ function EvergreenTab() {
     setFile(f); setParseError(null); setParsed([]);
     try {
       const buf = await f.arrayBuffer();
-      const rows = parseEvergreenWorkbook(buf);
+      const rows = await parseEvergreenWorkbook(buf);
       if (rows.length === 0) throw new Error("No rate rows found.");
       setParsed(rows);
       toast.success(`Parsed ${rows.length} rate rows from ${f.name}`);
