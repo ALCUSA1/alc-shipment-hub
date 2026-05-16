@@ -100,4 +100,29 @@
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
+  <url>
+    <loc>https://www.alllogisticscargo.com/pricing-preview</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.alllogisticscargo.com/book</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.alllogisticscargo.com/dashboard</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://www.alllogisticscargo.com/shipments/new</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://www.alllogisticscargo.com/subscribe/success</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
 </urlset>
