@@ -11976,6 +11976,7 @@ export type Database = {
         | "warehouse"
         | "forwarder"
         | "tradeline"
+        | "blocked"
       billing_interval: "monthly" | "annual"
       company_role:
         | "admin"
@@ -12137,6 +12138,7 @@ export const Constants = {
         "warehouse",
         "forwarder",
         "tradeline",
+        "blocked",
       ],
       billing_interval: ["monthly", "annual"],
       company_role: [

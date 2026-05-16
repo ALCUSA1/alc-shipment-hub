@@ -50,6 +50,11 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Blocked users are routed to a suspension page
+  if ((roles || []).includes("blocked") && location.pathname !== "/suspended") {
+    return <Navigate to="/suspended" replace />;
+  }
+
   // Redirect to onboarding if needed (but not if already on onboarding page)
   if (needsOnboarding && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
