@@ -73,5 +73,14 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     if (!hasAccess) return <Navigate to="/subscribe" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SEO
+        title="Dashboard — ALC Shipper Portal"
+        description="Private ALC Shipper Portal workspace for managing shipments, quotes, documents, and bookings."
+        noIndex
+      />
+      {children}
+    </>
+  );
 }
