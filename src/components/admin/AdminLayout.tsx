@@ -16,7 +16,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     location.pathname === url || location.pathname.startsWith(url + "/");
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="admin-light-shell min-h-screen bg-background text-foreground flex">
       <div
         className={cn(
           "relative z-20 transition-all duration-300 shrink-0",
