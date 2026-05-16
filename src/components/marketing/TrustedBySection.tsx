@@ -49,7 +49,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
               className="h-9 w-9 object-contain md:h-12 md:w-12"
               loading="lazy"
             />
-            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
+            <span className="whitespace-nowrap text-xs font-semibold text-white/90 transition-colors duration-300 hover:text-white md:text-sm">
               {item.name}
             </span>
           </div>
@@ -69,7 +69,7 @@ function MarqueeRow({ items, reverse = false }: { items: typeof row1; reverse?: 
               className="h-9 w-9 object-contain md:h-12 md:w-12"
               loading="lazy"
             />
-            <span className="whitespace-nowrap text-xs font-semibold text-white/60 transition-colors duration-300 hover:text-white/90 md:text-sm">
+            <span className="whitespace-nowrap text-xs font-semibold text-white/90 transition-colors duration-300 hover:text-white md:text-sm">
               {item.name}
             </span>
           </div>
@@ -97,7 +97,7 @@ export function TrustedBySection() {
             <h3 className="text-2xl md:text-3xl font-bold text-white">
               Trusted by global trade leaders
             </h3>
-            <p className="text-sm text-white/50 mt-3 max-w-lg mx-auto">
+            <p className="text-sm text-white/80 mt-3 max-w-lg mx-auto">
               Ship with the world's leading carriers and commodity traders — all through one platform
             </p>
           </div>
