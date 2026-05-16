@@ -82,6 +82,11 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEO
+        title="Sign In — ALC Shipper Portal"
+        description="Sign in to your ALC Shipper Portal account to manage shipments, request quotes, and track cargo in real time."
+        canonical="https://alcshipper.com/login"
+      />
       {/* Left panel — brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-navy items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(217,95%,58%)]/10 to-transparent" />
