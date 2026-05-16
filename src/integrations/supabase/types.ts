@@ -11964,6 +11964,10 @@ export type Database = {
       }
       scenario_company_id: { Args: { _scenario_id: string }; Returns: string }
       shipment_company_id: { Args: { _shipment_id: string }; Returns: string }
+      trucker_has_shipment_access: {
+        Args: { _shipment_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
