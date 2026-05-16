@@ -6,6 +6,31 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Verify HMAC-SHA256 signature with constant-time comparison.
+// Accepts hex-encoded signatures, optionally prefixed (e.g. "sha256=...").
+async function verifyHmac(secret: string, body: string, signatureHeader: string): Promise<boolean> {
+  try {
+    const provided = signatureHeader.replace(/^sha256=/i, "").trim().toLowerCase();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
+    const expected = Array.from(new Uint8Array(sigBuf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    if (expected.length !== provided.length) return false;
+    let diff = 0;
+    for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ provided.charCodeAt(i);
+    return diff === 0;
+  } catch (_e) {
+    return false;
+  }
+}
+
 /**
  * aes-webhook Edge Function
  *
