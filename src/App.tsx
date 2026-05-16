@@ -74,9 +74,6 @@ import ResetPassword from "./pages/ResetPassword";
 import NotificationPreferences from "./pages/NotificationPreferences";
 // PendingApproval page kept but unlinked from routing
 import Onboarding from "./pages/Onboarding";
-import ChoosePlan from "./pages/ChoosePlan";
-import Subscribe from "./pages/Subscribe";
-import SubscribeSuccess from "./pages/SubscribeSuccess";
 import Analytics from "./pages/Analytics";
 import CustomerPortal from "./pages/CustomerPortal";
 import Messages from "./pages/Messages";
@@ -174,9 +171,10 @@ const App = () => (
             <Route path="/quote/approve" element={<QuoteApproval />} />
             {/* /pending-approval removed — direct role assignment on signup */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/choose-plan" element={<ProtectedRoute><ChoosePlan /></ProtectedRoute>} />
-            <Route path="/subscribe" element={<ProtectedRoute><Subscribe /></ProtectedRoute>} />
-            <Route path="/subscribe/success" element={<ProtectedRoute><SubscribeSuccess /></ProtectedRoute>} />
+            {/* Legacy SaaS subscription routes retired — redirect to new Milestone pricing */}
+            <Route path="/choose-plan" element={<Navigate to="/pricing" replace />} />
+            <Route path="/subscribe" element={<Navigate to="/pricing" replace />} />
+            <Route path="/subscribe/success" element={<Navigate to="/dashboard" replace />} />
 
             {/* Quick entry routes */}
             <Route path="/shipments/new" element={<Navigate to="/book" replace />} />

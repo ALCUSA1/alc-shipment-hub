@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
+import { MilestoneSubsidyWidget } from "@/components/forwarder/MilestoneSubsidyWidget";
 import {
   Ship, Users, FileText, ClipboardList, DollarSign, Plane,
   AlertTriangle, ArrowRight, Plus, Package, CheckCircle2,
@@ -147,6 +148,11 @@ const ForwarderDashboard = () => {
             <div key={stat.title}>{inner}</div>
           );
         })}
+      </div>
+
+      {/* Milestone Subsidy Tracker */}
+      <div className="mb-8">
+        <MilestoneSubsidyWidget />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
