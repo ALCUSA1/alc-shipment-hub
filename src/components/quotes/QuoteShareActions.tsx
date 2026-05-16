@@ -7,6 +7,7 @@ import { FileDown, Share2, MessageCircle, Smartphone, Sparkles, Loader2 } from "
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { e } from "@/lib/html-escape";
 
 interface QuoteData {
   id: string;
@@ -30,22 +31,22 @@ interface QuoteShareActionsProps {
 }
 
 function buildQuoteSummary(q: QuoteData): string {
-  const route = q.origin_port && q.destination_port ? `${q.origin_port} → ${q.destination_port}` : "N/A";
+  const route = q.origin_port && q.destination_port ? `${e(q.origin_port)} → ${e(q.destination_port)}` : "N/A";
   const price = q.customer_price || q.amount;
   const lines = [
     `📦 Freight Quote`,
-    `Route: ${route}`,
-    q.carrier ? `Carrier: ${q.carrier}` : null,
-    q.container_type ? `Container: ${q.container_type.toUpperCase()}` : null,
-    price ? `Price: $${price.toLocaleString()} ${q.currency || "USD"}` : null,
-    q.transit_days ? `Transit: ${q.transit_days} days` : null,
-    q.valid_until ? `Valid until: ${new Date(q.valid_until).toLocaleDateString()}` : null,
+    `Route: ${e(route)}`,
+    q.carrier ? `Carrier: ${e(q.carrier)}` : null,
+    q.container_type ? `Container: ${e(q.container_type.toUpperCase())}` : null,
+    price ? `Price: $${e(price.toLocaleString())} ${e(q.currency || "USD")}` : null,
+    q.transit_days ? `Transit: ${e(q.transit_days)} days` : null,
+    q.valid_until ? `Valid until: ${e(new Date(q.valid_until).toLocaleDateString())}` : null,
   ];
   return lines.filter(Boolean).join("\n");
 }
 
 function generateQuotePdfHtml(q: QuoteData): string {
-  const route = q.origin_port && q.destination_port ? `${q.origin_port} → ${q.destination_port}` : "N/A";
+  const route = q.origin_port && q.destination_port ? `${e(q.origin_port)} → ${e(q.destination_port)}` : "N/A";
   const price = q.customer_price || q.amount;
   const date = q.created_at ? new Date(q.created_at).toLocaleDateString() : "—";
   const validUntil = q.valid_until ? new Date(q.valid_until).toLocaleDateString() : "—";
@@ -54,7 +55,7 @@ function generateQuotePdfHtml(q: QuoteData): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Freight Quote — ${route}</title>
+  <title>Freight Quote — ${e(route)}</title>
   <style>
     @media print { @page { margin: 0.75in; } body { -webkit-print-color-adjust: exact; } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -84,17 +85,17 @@ function generateQuotePdfHtml(q: QuoteData): string {
 <body>
   <div class="header">
     <h1>Freight Quote</h1>
-    <div class="sub">Generated on ${new Date().toLocaleDateString()}</div>
+    <div class="sub">Generated on ${e(new Date().toLocaleDateString())}</div>
   </div>
 
   <div class="info-grid">
     <div class="info-box">
       <div class="label">Route</div>
-      <div class="value">${route}</div>
+      <div class="value">${e(route)}</div>
     </div>
     <div class="info-box">
       <div class="label">Status</div>
-      <div class="value"><span class="badge badge-${q.status || 'pending'}">${(q.status || 'pending').toUpperCase()}</span></div>
+      <div class="value"><span class="badge badge-${e(q.status || 'pending')}">${e((q.status || 'pending').toUpperCase())}</span></div>
     </div>
     ${q.customer_name ? `<div class="info-box"><div class="label">Customer</div><div class="value">${q.customer_name}</div></div>` : ""}
     ${q.carrier ? `<div class="info-box"><div class="label">Carrier</div><div class="value">${q.carrier}</div></div>` : ""}
@@ -110,8 +111,8 @@ function generateQuotePdfHtml(q: QuoteData): string {
     <tbody>
       ${q.container_type ? `<tr><td>Container Type</td><td>${q.container_type.toUpperCase()}</td></tr>` : ""}
       ${q.transit_days ? `<tr><td>Transit Time</td><td>${q.transit_days} days</td></tr>` : ""}
-      <tr><td>Quote Date</td><td>${date}</td></tr>
-      <tr><td>Valid Until</td><td>${validUntil}</td></tr>
+      <tr><td>Quote Date</td><td>${e(date)}</td></tr>
+      <tr><td>Valid Until</td><td>${e(validUntil)}</td></tr>
       ${price ? `<tr class="price-row"><td>Total Price</td><td>$${price.toLocaleString()} ${q.currency || "USD"}</td></tr>` : ""}
     </tbody>
   </table>
@@ -147,12 +148,12 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(buildQuoteSummary(quote));
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    window.open(`https://wa.me/?text=${e(text)}`, "_blank");
   };
 
   const handleSms = () => {
     const text = encodeURIComponent(buildQuoteSummary(quote));
-    window.open(`sms:?body=${text}`, "_blank");
+    window.open(`sms:?body=${e(text)}`, "_blank");
   };
 
   const handleSparkPost = async () => {
@@ -167,16 +168,16 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
         .maybeSingle();
 
       const route = quote.origin_port && quote.destination_port
-        ? `${quote.origin_port} → ${quote.destination_port}`
+        ? `${e(quote.origin_port)} → ${e(quote.destination_port)}`
         : "";
       const price = quote.customer_price || quote.amount;
       const quoteEmbed = [
         sparkMessage,
         "",
         `📦 Freight Quote${route ? `: ${route}` : ""}`,
-        quote.carrier ? `🚢 ${quote.carrier}` : null,
-        price ? `💰 $${price.toLocaleString()} ${quote.currency || "USD"}` : null,
-        quote.transit_days ? `⏱ ${quote.transit_days} day transit` : null,
+        quote.carrier ? `🚢 ${e(quote.carrier)}` : null,
+        price ? `💰 $${e(price.toLocaleString())} ${e(quote.currency || "USD")}` : null,
+        quote.transit_days ? `⏱ ${e(quote.transit_days)} day transit` : null,
       ].filter(Boolean).join("\n");
 
       await supabase.from("feed_posts").insert({
@@ -235,7 +236,7 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
             <div className="rounded-lg border bg-muted/30 p-3 text-xs space-y-1">
               <p className="font-medium text-foreground">
                 {quote.origin_port && quote.destination_port
-                  ? `${quote.origin_port} → ${quote.destination_port}`
+                  ? `${e(quote.origin_port)} → ${e(quote.destination_port)}`
                   : "Freight Quote"}
               </p>
               {quote.carrier && <p className="text-muted-foreground">Carrier: {quote.carrier}</p>}

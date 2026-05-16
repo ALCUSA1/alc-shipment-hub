@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Download, Loader2, Printer, Ship, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { e } from "@/lib/html-escape";
 
 interface DocumentGeneratorProps {
   shipmentId: string;
@@ -32,7 +33,7 @@ export function DocumentGenerator({ shipmentId, shipmentRef, mode, open, onOpenC
       setDocuments(data.documents);
       const firstKey = Object.keys(data.documents)[0];
       if (firstKey) setActiveTab(firstKey);
-      toast({ title: "Documents Generated", description: `${Object.keys(data.documents).length} documents ready for review.` });
+      toast({ title: "Documents Generated", description: `${e(Object.keys(data.documents).length)} documents ready for review.` });
     } catch (err: any) {
       toast({ title: "Generation Failed", description: err.message, variant: "destructive" });
     } finally {
@@ -255,7 +256,7 @@ function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: 
             {doc.containers.map((c: any, i: number) => (
               <div key={i} className="border rounded-lg px-3 py-2 text-xs">
                 <p className="font-mono font-medium text-foreground">{c.number}</p>
-                <p className="text-muted-foreground">{c.type} {c.size && `/ ${c.size}`}</p>
+                <p className="text-muted-foreground">{c.type} {c.size && `/ ${e(c.size)}`}</p>
                 {c.seal && c.seal !== "—" && <p className="text-muted-foreground">Seal: {c.seal}</p>}
               </div>
             ))}
@@ -311,15 +312,15 @@ function Field({ label, value }: { label: string; value: string }) {
 function renderDocumentHTML(doc: any, docType: string): string {
   const partyHTML = (label: string, p: any) => p ? `
     <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px">
-      <p style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600;margin:0 0 4px">${label}</p>
-      <p style="font-size:14px;font-weight:600;margin:0">${p.name}</p>
+      <p style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600;margin:0 0 4px">${e(label)}</p>
+      <p style="font-size:14px;font-weight:600;margin:0">${e(p.name)}</p>
       ${p.address !== "—" ? `<p style="font-size:12px;color:#6b7280;margin:2px 0">${p.address}</p>` : ""}
       ${p.contact !== "—" ? `<p style="font-size:12px;color:#6b7280;margin:2px 0">Attn: ${p.contact}</p>` : ""}
       ${p.email !== "—" ? `<p style="font-size:12px;color:#6b7280;margin:2px 0">${p.email}</p>` : ""}
     </div>
   ` : "";
 
-  return `<!DOCTYPE html><html><head><title>${doc.title}</title>
+  return `<!DOCTYPE html><html><head><title>${e(doc.title)}</title>
     <style>
       body { font-family: Arial, sans-serif; margin: 40px; color: #1a1a1a; font-size: 13px; }
       h1 { text-align: center; font-size: 20px; letter-spacing: 2px; margin-bottom: 4px; }
@@ -335,15 +336,15 @@ function renderDocumentHTML(doc: any, docType: string): string {
       @media print { body { margin: 20px; } }
     </style>
   </head><body>
-    <h1>${doc.title}</h1>
+    <h1>${e(doc.title)}</h1>
     ${doc.subtitle ? `<p class="subtitle">${doc.subtitle}</p>` : ""}
     ${doc.ref ? `<p class="subtitle">Ref: ${doc.ref}</p>` : ""}
     ${doc.invoice_number ? `<p class="subtitle">${doc.invoice_number} — ${doc.invoice_date || ""}</p>` : ""}
     ${doc.hawb_number ? `<p class="subtitle">HAWB: ${doc.hawb_number}</p>` : ""}
     ${doc.mawb_number ? `<p class="subtitle">MAWB: ${doc.mawb_number}</p>` : ""}
     <div class="parties">
-      ${partyHTML("Shipper / Exporter", doc.shipper || doc.exporter)}
-      ${partyHTML("Consignee", doc.consignee)}
+      ${e(partyHTML("Shipper / Exporter", doc.shipper || doc.exporter))}
+      ${e(partyHTML("Consignee", doc.consignee))}
       ${doc.notify_party ? partyHTML("Notify Party", doc.notify_party) : ""}
     </div>
     ${(doc.declaration || doc.certification) ? `<div class="declaration">${doc.declaration || doc.certification}</div>` : ""}

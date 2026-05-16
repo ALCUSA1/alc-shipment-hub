@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useDocumentPdf } from "@/hooks/useDocumentPdf";
 import {
+import { e } from "@/lib/html-escape";
   FileText, Download, Loader2, Package, Check, Clock, Lock,
   Circle, Printer, Receipt, Ship, AlertTriangle,
 } from "lucide-react";
@@ -89,7 +90,7 @@ export function ShipmentDocumentPack({ shipmentId, shipmentRef, mode }: Props) {
       printWindow.document.close();
       setTimeout(() => printWindow.print(), 600);
 
-      toast({ title: "Document Pack Ready", description: `${Object.keys(docs).length} documents ready for print/download.` });
+      toast({ title: "Document Pack Ready", description: `${e(Object.keys(docs).length)} documents ready for print/download.` });
     } catch (err: any) {
       toast({ title: "Pack generation failed", description: err.message, variant: "destructive" });
     } finally {
@@ -164,7 +165,7 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Document Pack — ${shipRef}</title>
+  <title>Document Pack — ${e(shipRef)}</title>
   <style>
     @media print { @page { margin: 0.6in; } body { -webkit-print-color-adjust: exact; } }
     * { margin: 0; padding: 0; box-sizing: border-box; }

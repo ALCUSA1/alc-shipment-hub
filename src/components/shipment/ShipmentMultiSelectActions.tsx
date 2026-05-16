@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { format, differenceInDays } from "date-fns";
+import { e } from "@/lib/html-escape";
 
 interface ShipmentMultiSelectActionsProps {
   selectedIds: Set<string>;
@@ -54,7 +55,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
         const bucket = agingDays <= 30 ? "Current" : agingDays <= 60 ? "31–60" : agingDays <= 90 ? "61–90" : "Over 90";
         return {
           shipmentRef: shipRef,
-          invoiceRef: f.invoice_ref || `INV-${f.id.slice(0, 8).toUpperCase()}`,
+          invoiceRef: f.invoice_ref || `INV-${e(f.id.slice(0, 8).toUpperCase())}`,
           description: f.description || f.category || "Charge",
           date: f.date ? format(new Date(f.date), "MMM dd, yyyy") : "—",
           dueDate: format(dueDate, "MMM dd, yyyy"),
@@ -92,7 +93,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
       printWindow.document.close();
       setTimeout(() => printWindow.print(), 600);
 
-      toast({ title: "SOA Generated", description: `Statement of Account for ${selectedShipments.length} shipments ready.` });
+      toast({ title: "SOA Generated", description: `Statement of Account for ${e(selectedShipments.length)} shipments ready.` });
     } catch (err: any) {
       toast({ title: "SOA generation failed", description: err.message, variant: "destructive" });
     } finally {
@@ -116,8 +117,8 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
         const allHtml = Object.entries(docs).map(([key, doc]: [string, any]) => {
           const label = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
           return `<div style="page-break-before:always;">
-            <h2 style="text-align:center;margin-bottom:20px;font-size:18px;text-transform:uppercase;letter-spacing:2px;">${label}</h2>
-            <p style="text-align:center;font-size:12px;color:#666;margin-bottom:30px;">${shipment.shipment_ref || "Shipment"}</p>
+            <h2 style="text-align:center;margin-bottom:20px;font-size:18px;text-transform:uppercase;letter-spacing:2px;">${e(label)}</h2>
+            <p style="text-align:center;font-size:12px;color:#666;margin-bottom:30px;">${e(shipment.shipment_ref || "Shipment")}</p>
           </div>`;
         }).join("");
 
@@ -151,7 +152,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
         <Separator orientation="vertical" className="h-5" />
         <span className="text-sm text-muted-foreground">
           {selectedShipments.map(s => s.shipment_ref).filter(Boolean).slice(0, 3).join(", ")}
-          {selectedIds.size > 3 && ` +${selectedIds.size - 3} more`}
+          {selectedIds.size > 3 && ` +${e(selectedIds.size - 3)} more`}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -180,13 +181,13 @@ function renderSOAHtml(data: {
   invoiceRows: any[];
 }): string {
   const { customerName, dateGenerated, shipmentCount, totalOutstanding, bucketTotals, invoiceRows } = data;
-  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+  const fmt = (n: number) => `$${e(n.toLocaleString("en-US", { minimumFractionDigits: 2 }))}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Statement of Account — ${customerName}</title>
+  <title>Statement of Account — ${e(customerName)}</title>
   <style>
     @media print { @page { margin: 0.6in; } body { -webkit-print-color-adjust: exact; } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -223,32 +224,32 @@ function renderSOAHtml(data: {
       <div style="margin-top:8px;font-size:12px;">All Logistics Cargo</div>
     </div>
     <div class="meta">
-      <div><strong>Customer:</strong> ${customerName}</div>
-      <div><strong>Date:</strong> ${dateGenerated}</div>
-      <div><strong>Shipments:</strong> ${shipmentCount}</div>
+      <div><strong>Customer:</strong> ${e(customerName)}</div>
+      <div><strong>Date:</strong> ${e(dateGenerated)}</div>
+      <div><strong>Shipments:</strong> ${e(shipmentCount)}</div>
     </div>
   </div>
 
   <div class="summary">
     <div class="summary-card total">
       <div class="label">Total Outstanding</div>
-      <div class="value">${fmt(totalOutstanding)}</div>
+      <div class="value">${e(fmt(totalOutstanding))}</div>
     </div>
     <div class="summary-card">
       <div class="label">Current (0–30)</div>
-      <div class="value bucket-current">${fmt(bucketTotals.current)}</div>
+      <div class="value bucket-current">${e(fmt(bucketTotals.current))}</div>
     </div>
     <div class="summary-card">
       <div class="label">31–60 Days</div>
-      <div class="value bucket-3160">${fmt(bucketTotals.b3160)}</div>
+      <div class="value bucket-3160">${e(fmt(bucketTotals.b3160))}</div>
     </div>
     <div class="summary-card">
       <div class="label">61–90 Days</div>
-      <div class="value bucket-6190">${fmt(bucketTotals.b6190)}</div>
+      <div class="value bucket-6190">${e(fmt(bucketTotals.b6190))}</div>
     </div>
     <div class="summary-card">
       <div class="label">Over 90 Days</div>
-      <div class="value bucket-over90">${fmt(bucketTotals.over90)}</div>
+      <div class="value bucket-over90">${e(fmt(bucketTotals.over90))}</div>
     </div>
   </div>
 
@@ -279,13 +280,13 @@ function renderSOAHtml(data: {
       `).join("")}
       <tr class="total-row">
         <td colspan="6">Total Outstanding</td>
-        <td class="amount">${fmt(totalOutstanding)} USD</td>
+        <td class="amount">${e(fmt(totalOutstanding))} USD</td>
       </tr>
     </tbody>
   </table>
 
   <div class="footer">
-    <p>This statement was generated by All Logistics Cargo on ${dateGenerated}.</p>
+    <p>This statement was generated by All Logistics Cargo on ${e(dateGenerated)}.</p>
     <p>For questions, contact billing@alllogisticscargo.com</p>
   </div>
 </body>
@@ -300,7 +301,7 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
     const pageBreak = idx > 0 ? 'style="page-break-before:always;"' : '';
     
     const parties = ["shipper", "consignee", "notify_party"].filter(k => doc[k] && typeof doc[k] === "object");
-    const partyHtml = parties.length > 0 ? `<div style="display:grid;grid-template-columns:${parties.length >= 3 ? "1fr 1fr 1fr" : "1fr 1fr"};gap:12px;margin-bottom:16px;">
+    const partyHtml = parties.length > 0 ? `<div style="display:grid;grid-template-columns:${e(parties.length >= 3 ? "1fr 1fr 1fr" : "1fr 1fr")};gap:12px;margin-bottom:16px;">
       ${parties.map(k => {
         const p = doc[k];
         return `<div style="border:1px solid #ddd;padding:8px;border-radius:4px;">
@@ -318,10 +319,10 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
         <tbody>${cargo.map((row: any) => `<tr>${Object.values(row).map(v => `<td style="border:1px solid #ddd;padding:5px;font-size:10px;">${v ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
       </table>` : "";
 
-    return `<div ${pageBreak}>
+    return `<div ${e(pageBreak)}>
       <div style="text-align:center;border-bottom:3px double #333;padding-bottom:16px;margin-bottom:24px;">
-        <h1 style="font-size:20px;letter-spacing:2px;text-transform:uppercase;">${doc.title || label}</h1>
-        <div style="font-size:12px;margin-top:6px;font-weight:600;">${doc.ref || shipRef}</div>
+        <h1 style="font-size:20px;letter-spacing:2px;text-transform:uppercase;">${e(doc.title || label)}</h1>
+        <div style="font-size:12px;margin-top:6px;font-weight:600;">${e(doc.ref || shipRef)}</div>
         ${doc.date ? `<div style="font-size:11px;color:#666;">Date: ${doc.date}</div>` : ""}
       </div>
       ${partyHtml}
@@ -333,7 +334,7 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Document Pack — ${shipRef}</title>
+  <title>Document Pack — ${e(shipRef)}</title>
   <style>
     @media print { @page { margin: 0.6in; } body { -webkit-print-color-adjust: exact; } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
