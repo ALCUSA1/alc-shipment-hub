@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link } from "react-router-dom";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
@@ -339,9 +339,8 @@ export default function Pricing() {
           </p>
           <div className="grid md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-stretch">
             {MILESTONES.map((m, i) => (
-              <>
+              <Fragment key={m.range}>
                 <div
-                  key={m.range}
                   className={cn(
                     "rounded-xl p-5 flex flex-col text-center bg-white/5",
                     m.highlight ? "border-2 border-teal-400/60 shadow-lg shadow-teal-500/10" : "border border-white/10"
@@ -357,7 +356,7 @@ export default function Pricing() {
                     <ArrowRight className="h-6 w-6 text-teal-400/60" />
                   </div>
                 )}
-              </>
+              </Fragment>
             ))}
           </div>
         </div>
