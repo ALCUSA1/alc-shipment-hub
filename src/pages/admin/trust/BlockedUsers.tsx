@@ -37,12 +37,12 @@ export default function BlockedUsers() {
           .from("profiles")
           .select("id, email, full_name")
           .in("id", ids);
-        const m = new Map((profs || []).map((p: any) => [p.id, p]));
+        const m = new Map<string, any>((profs || []).map((p: any) => [p.id, p]));
         setRows(
           (roles || []).map((r: any) => ({
             user_id: r.user_id,
-            email: m.get(r.user_id)?.email ?? null,
-            full_name: m.get(r.user_id)?.full_name ?? null,
+            email: (m.get(r.user_id) as any)?.email ?? null,
+            full_name: (m.get(r.user_id) as any)?.full_name ?? null,
             blocked_at: r.created_at,
           }))
         );
