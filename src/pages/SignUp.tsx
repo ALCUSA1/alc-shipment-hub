@@ -10,6 +10,7 @@ import { validateBusinessEmail } from "@/lib/email-validation";
 import alcLogo from "@/assets/alc-logo.png";
 import { Package, Ship, Truck, Warehouse, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SEO } from "@/components/SEO";
 
 const ROLE_OPTIONS = [
   {
@@ -137,6 +138,11 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEO
+        title="Create Your Account — ALC Shipper Portal"
+        description="Create your ALC Shipper Portal account to request freight quotes, book shipments, and track cargo across our global logistics network."
+        canonical="https://alcshipper.com/signup"
+      />
       {/* Left panel — brand */}
       <div className="hidden lg:flex lg:w-1/2 bg-navy items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(217,95%,58%)]/10 to-transparent" />
