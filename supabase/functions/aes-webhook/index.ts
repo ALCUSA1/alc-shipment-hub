@@ -39,16 +39,22 @@ Deno.serve(async (req) => {
     }
 
     // ─── ZeusLogics AES Webhook Handler ─────────────────────────────────
-    // Validate webhook signature
+    // Mandatory webhook signature validation (HMAC-SHA256, constant-time compare).
     const webhookSecret = Deno.env.get("ZEUSLOGICS_WEBHOOK_SECRET") || Deno.env.get("AES_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const signature = req.headers.get("x-zeuslogics-signature") || req.headers.get("x-aes-signature") || req.headers.get("x-webhook-signature");
-      if (!signature || signature !== webhookSecret) {
-        return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    if (!webhookSecret) {
+      console.error("ZEUSLOGICS_WEBHOOK_SECRET / AES_WEBHOOK_SECRET not configured — refusing webhook");
+      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const signature = req.headers.get("x-zeuslogics-signature") || req.headers.get("x-aes-signature") || req.headers.get("x-webhook-signature");
+    const rawBody = JSON.stringify(body);
+    if (!signature || !(await verifyHmac(webhookSecret, rawBody, signature))) {
+      return new Response(JSON.stringify({ error: "Invalid webhook signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { event_type, filing_ref, itn, aes_citation, status, message, details } = body;
