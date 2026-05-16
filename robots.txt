@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /trucking/
+Disallow: /driver/
+Disallow: /warehouse/
+
+Sitemap: https://www.alllogisticscargo.com/sitemap.xml
