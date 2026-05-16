@@ -196,7 +196,7 @@ export default function Pricing() {
       <SEO
         title="Pricing — Join Free. Earn on Every Shipment. | ALC"
         description="Join free as an Agent. Team and Enterprise plans for growing forwarders. Hit 25 shipments/month and your rate drops $200 automatically."
-        canonical="https://alllogisticscargo.com/pricing"
+        canonical="https://alcshipper.com/pricing"
       />
 
       {/* Header */}
