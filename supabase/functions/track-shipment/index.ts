@@ -395,6 +395,12 @@ Deno.serve(async (req) => {
 
     // Bulk mode
     if (tracking_mode === "bulk") {
+      // Bulk mode is for cron jobs only — require service-role
+      if (!_auth.isServiceRole) {
+        return new Response(JSON.stringify({ error: "Forbidden: bulk mode requires service role" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const { data: activeShipments, error } = await supabase
         .from("shipments")
         .select("id, mode, booking_ref, vessel, voyage, origin_port, destination_port, mawb_number, airline, flight_number, status, shipment_ref, carrier")
