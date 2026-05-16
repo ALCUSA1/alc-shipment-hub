@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import { Link } from "react-router-dom";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { SEO } from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -198,6 +199,42 @@ export default function Pricing() {
         description="Join free as an Agent. Team and Enterprise plans for growing forwarders. Hit 25 shipments/month and your rate drops $200 automatically."
         canonical="https://alcshipper.com/pricing"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: [
+            { name: "Agent", price: "0", description: "Free forever — earn markup on every shipment." },
+            { name: "Team", price: "124", description: "Lower platform rates and team management for growing forwarders." },
+            { name: "Enterprise", price: "249", description: "Best rates and advanced controls for high-volume forwarders." },
+          ].map((p, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "Product",
+              name: `ALC Shipper Portal — ${p.name}`,
+              description: p.description,
+              brand: { "@type": "Brand", name: "ALC Shipper Portal" },
+              offers: {
+                "@type": "Offer",
+                price: p.price,
+                priceCurrency: "USD",
+                url: "https://alcshipper.com/pricing",
+                availability: "https://schema.org/InStock",
+              },
+            },
+          })),
+        })}</script>
+      </Helmet>
 
       {/* Header */}
       <section className="pt-20 pb-10 px-6">
