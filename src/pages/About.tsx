@@ -87,6 +87,7 @@ const About = () => {
       <SEO
         title="About ALC – All Logistics Cargo | 25+ Years in Global Trade"
         description="Learn about All Logistics Cargo's 25+ year journey from a traditional freight forwarder to a digital-first NVOCC and Export Trading Company."
+        canonical="https://alcshipper.com/about"
       />
 
       {/* ═══ Hero ═══ */}
