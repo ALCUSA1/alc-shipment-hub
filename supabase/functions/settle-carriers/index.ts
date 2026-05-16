@@ -11,11 +11,11 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
   const _auth = await requireServiceRole(req);
   if (!_auth.ok) return _auth.response;
-    return new Response(null, { headers: corsHeaders });
-  }
 
   try {
     const supabaseAdmin = createClient(

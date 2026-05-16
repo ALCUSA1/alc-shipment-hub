@@ -380,11 +380,11 @@ function getScac(carrierKey: string | null, carrierName: string | null): string 
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
   const _auth = await requireUser(req);
   if (!_auth.ok) return _auth.response;
-    return new Response(null, { headers: corsHeaders });
-  }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
