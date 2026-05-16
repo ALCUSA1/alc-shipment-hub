@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getPostLoginRoute } from "@/lib/role-routing";
 import alcLogo from "@/assets/alc-logo.png";
 import { Ship, ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Login = () => {
   const navigate = useNavigate();
