@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireServiceRole, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -10,6 +11,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const _auth = await requireServiceRole(req);
+  if (!_auth.ok) return _auth.response;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

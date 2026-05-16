@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -382,6 +383,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -391,6 +395,12 @@ Deno.serve(async (req) => {
 
     // Bulk mode
     if (tracking_mode === "bulk") {
+      // Bulk mode is for cron jobs only — require service-role
+      if (!_auth.isServiceRole) {
+        return new Response(JSON.stringify({ error: "Forbidden: bulk mode requires service role" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const { data: activeShipments, error } = await supabase
         .from("shipments")
         .select("id, mode, booking_ref, vessel, voyage, origin_port, destination_port, mawb_number, airline, flight_number, status, shipment_ref, carrier")

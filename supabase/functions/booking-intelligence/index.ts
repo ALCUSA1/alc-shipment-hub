@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -8,6 +9,9 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
 
   try {
     const { origin, destination, mode, carrier, containerType, commodity, shipmentId } = await req.json();
@@ -27,16 +31,18 @@ serve(async (req) => {
         .eq("destination_port", destination || "")
         .order("valid_from", { ascending: false })
         .limit(10),
-      // Recent shipments on similar routes for pattern detection
+      // Recent shipments on similar routes (scoped to caller's own shipments)
       sb.from("shipments")
         .select("carrier, status, lifecycle_stage, origin_port, destination_port, etd, eta, mode")
         .eq("origin_port", origin || "")
         .eq("destination_port", destination || "")
+        .eq("user_id", _auth.userId)
         .order("created_at", { ascending: false })
         .limit(5),
-      // Detention/demurrage history
+      // Detention/demurrage history (caller's shipments only)
       sb.from("demurrage_charges")
-        .select("charge_type, total_amount, carrier, free_days, accrued_days")
+        .select("charge_type, total_amount, carrier, free_days, accrued_days, shipment_id, shipments!inner(user_id)")
+        .eq("shipments.user_id", _auth.userId)
         .limit(10),
       // Recent schedule queries for this route
       sb.from("commercial_schedules")

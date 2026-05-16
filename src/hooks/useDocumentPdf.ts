@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { e } from "@/lib/html-escape";
 
 /**
  * Calls the generate-documents edge function for a shipment,
@@ -51,7 +52,7 @@ function renderDocumentHtml(doc: Record<string, any>, label: string, shipRef: st
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>${label} — ${shipRef}</title>
+  <title>${e(label)} — ${e(shipRef)}</title>
   <style>
     @media print { @page { margin: 0.75in; } body { -webkit-print-color-adjust: exact; } }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -83,19 +84,19 @@ function renderDocumentHtml(doc: Record<string, any>, label: string, shipRef: st
 </head>
 <body>
   <div class="doc-header">
-    <h1>${doc.title || label}</h1>
+    <h1>${e(doc.title || label)}</h1>
     ${doc.subtitle ? `<div class="subtitle">${doc.subtitle}</div>` : ""}
-    <div class="ref">${doc.ref || doc.invoice_number || doc.hawb_number || doc.mawb_number || shipRef}</div>
+    <div class="ref">${e(doc.ref || doc.invoice_number || doc.hawb_number || doc.mawb_number || shipRef)}</div>
     ${doc.date || doc.invoice_date || doc.date_of_issue ? `<div class="subtitle">Date: ${doc.date || doc.invoice_date || doc.date_of_issue}</div>` : ""}
   </div>
 
-  ${renderParties(doc)}
-  ${renderKeyValues(doc)}
-  ${renderCargoTable(doc)}
-  ${renderContainers(doc)}
-  ${renderLineItems(doc)}
-  ${renderTotals(doc)}
-  ${renderDeclaration(doc)}
+  ${e(renderParties(doc))}
+  ${e(renderKeyValues(doc))}
+  ${e(renderCargoTable(doc))}
+  ${e(renderContainers(doc))}
+  ${e(renderLineItems(doc))}
+  ${e(renderTotals(doc))}
+  ${e(renderDeclaration(doc))}
 
   <div class="footer">
     <div class="sig-line">
@@ -115,7 +116,7 @@ function renderParties(doc: Record<string, any>): string {
   const cols = parties.length >= 3 ? "three" : "";
   return `<div class="section">
     <div class="section-title">Parties</div>
-    <div class="party-grid ${cols}">
+    <div class="party-grid ${e(cols)}">
       ${parties.map((k) => {
         const p = doc[k];
         const label = k.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
@@ -208,5 +209,5 @@ function renderTotals(doc: Record<string, any>): string {
 function renderDeclaration(doc: Record<string, any>): string {
   const text = doc.declaration || doc.certification;
   if (!text) return "";
-  return `<div class="declaration">${text}</div>`;
+  return `<div class="declaration">${e(text)}</div>`;
 }

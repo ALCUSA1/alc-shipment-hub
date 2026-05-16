@@ -1,6 +1,7 @@
 // HLAG Quick Quotes — POST /prices and POST /quotations
 // With simulation fallback while HLAG credentials/permissions are being approved.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,6 +95,9 @@ async function hlagFetch(path: string, body: unknown) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
