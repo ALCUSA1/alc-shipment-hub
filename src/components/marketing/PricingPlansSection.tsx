@@ -173,7 +173,7 @@ export function PricingPlansSection() {
                         )}
                         <span
                           className={cn(
-                            f.included ? "text-foreground" : "text-muted-foreground/60"
+                            f.included ? "text-foreground" : "text-muted-foreground"
                           )}
                         >
                           {f.label}
