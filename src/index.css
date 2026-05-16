@@ -109,19 +109,23 @@
     --input: 214 32% 91%;
   }
 
-  .admin-light-shell [class*="bg-[hsl(220"] {
+  .admin-light-shell [class*="bg-[hsl(220"],
+  .admin-light-mode [class*="bg-[hsl(220"] {
     background-color: hsl(var(--card));
   }
 
-  .admin-light-shell [class*="hover:bg-[hsl(220"]:hover {
+  .admin-light-shell [class*="hover:bg-[hsl(220"]:hover,
+  .admin-light-mode [class*="hover:bg-[hsl(220"]:hover {
     background-color: hsl(var(--muted));
   }
 
-  .admin-light-shell [class*="border-[hsl(220"] {
+  .admin-light-shell [class*="border-[hsl(220"],
+  .admin-light-mode [class*="border-[hsl(220"] {
     border-color: hsl(var(--border));
   }
 
-  .admin-light-shell [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]) {
+  .admin-light-shell [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]),
+  .admin-light-mode [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]) {
     border-color: hsl(var(--border));
   }
 
@@ -129,7 +133,8 @@
     color: hsl(var(--foreground));
   }
 
-  .admin-light-shell [class*="text-[hsl(220"] {
+  .admin-light-shell [class*="text-[hsl(220"],
+  .admin-light-mode [class*="text-[hsl(220"] {
     color: hsl(var(--muted-foreground));
   }
 
