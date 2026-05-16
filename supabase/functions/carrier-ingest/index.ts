@@ -855,20 +855,17 @@ async function transformIssuance(input: TransformInput): Promise<TransformResult
   const responseCode = payload.issuanceResponseCode || payload.responseCode || null;
   const status = responseCode === "ISSU" ? "issued" : responseCode === "REJE" ? "rejected" : (payload.status || "pending");
 
-  const { error: issuanceErr } = await supabase.from("ebl_issuances").insert({
+  const { error: issuanceErr } = await supabase.from("issuance_records").insert({
     shipment_id: shipmentId,
     alc_carrier_id: carrierId,
     source_message_id: rawMessageId,
     transport_document_reference: tdRef || null,
-    carrier_booking_reference: bookingRef || null,
     issuance_response_code: responseCode,
     issuance_status: status,
-    issuance_datetime: payload.issuanceDateTime || payload.eventCreatedDateTime || new Date().toISOString(),
-    response_reasons: payload.reasons || null,
-    raw_payload: payload,
+    issuance_completed_at: payload.issuanceDateTime || payload.eventCreatedDateTime || new Date().toISOString(),
   });
   if (issuanceErr) {
-    console.warn("[transformIssuance] insert ebl_issuances skipped:", issuanceErr.message);
+    console.warn("[transformIssuance] insert issuance_records skipped:", issuanceErr.message);
   } else {
     created++;
   }
