@@ -109,19 +109,19 @@
     --input: 214 32% 91%;
   }
 
-  .admin-light-shell :where(.bg-\[hsl\(220\2c 18\%\2c 6\%\)\], .bg-\[hsl\(220\2c 18\%\2c 8\%\)\], .bg-\[hsl\(220\2c 18\%\2c 9\%\)\], .bg-\[hsl\(220\2c 18\%\2c 10\%\)\], .bg-\[hsl\(220\2c 18\%\2c 12\%\)\], .bg-\[hsl\(220\2c 18\%\2c 13\%\)\], .bg-\[hsl\(220\2c 20\%\2c 7\%\)\], .bg-\[hsl\(220\2c 20\%\2c 10\%\)\], .bg-\[hsl\(220\2c 15\%\2c 8\%\)\], .bg-\[hsl\(220\2c 15\%\2c 10\%\)\], .bg-\[hsl\(220\2c 15\%\2c 11\%\)\], .bg-\[hsl\(220\2c 15\%\2c 12\%\)\], .bg-\[hsl\(220\2c 15\%\2c 14\%\)\], .bg-\[hsl\(220\2c 15\%\2c 15\%\)\], .bg-\[hsl\(220\2c 15\%\2c 18\%\)\], .bg-\[hsl\(220\2c 15\%\2c 20\%\)\], .bg-\[hsl\(220\2c 15\%\2c 25\%\)\], .bg-\[hsl\(220\2c 10\%\2c 15\%\)\], .bg-\[hsl\(220\2c 10\%\2c 20\%\)\], .bg-\[hsl\(220\2c 10\%\2c 25\%\)\], .bg-\[hsl\(220\2c 10\%\2c 30\%\)\]) {
+  .admin-light-shell [class*="bg-[hsl(220"] {
     background-color: hsl(var(--card));
   }
 
-  .admin-light-shell :where(.hover\:bg-\[hsl\(220\2c 15\%\2c 11\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 15\%\2c 12\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 15\%\2c 14\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 15\%\2c 15\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 15\%\2c 18\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 15\%\2c 20\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 18\%\2c 10\%\)\]:hover, .hover\:bg-\[hsl\(220\2c 18\%\2c 12\%\)\]:hover) {
+  .admin-light-shell [class*="hover:bg-[hsl(220"]:hover {
     background-color: hsl(var(--muted));
   }
 
-  .admin-light-shell :where(.border-\[hsl\(220\2c 15\%\2c 12\%\)\], .border-\[hsl\(220\2c 15\%\2c 13\%\)\], .border-\[hsl\(220\2c 15\%\2c 15\%\)\], .border-\[hsl\(220\2c 15\%\2c 16\%\)\], .border-\[hsl\(220\2c 15\%\2c 18\%\)\], .border-\[hsl\(220\2c 15\%\2c 20\%\)\], .border-\[hsl\(220\2c 15\%\2c 25\%\)]) {
+  .admin-light-shell [class*="border-[hsl(220"] {
     border-color: hsl(var(--border));
   }
 
-  .admin-light-shell :where(.divide-\[hsl\(220\2c 15\%\2c 12\%\)\]) > :not([hidden]) ~ :not([hidden]) {
+  .admin-light-shell [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]) {
     border-color: hsl(var(--border));
   }
 
@@ -129,7 +129,7 @@
     color: hsl(var(--foreground));
   }
 
-  .admin-light-shell :where(.text-\[hsl\(220\2c 10\%\2c 25\%\)\], .text-\[hsl\(220\2c 10\%\2c 30\%\)\], .text-\[hsl\(220\2c 10\%\2c 35\%\)\], .text-\[hsl\(220\2c 10\%\2c 40\%\)\], .text-\[hsl\(220\2c 10\%\2c 45\%\)\], .text-\[hsl\(220\2c 10\%\2c 50\%\)\], .text-\[hsl\(220\2c 10\%\2c 55\%\)\], .text-\[hsl\(220\2c 10\%\2c 60\%\)\], .text-\[hsl\(220\2c 10\%\2c 65\%\)\], .text-\[hsl\(220\2c 10\%\2c 70\%\)\]) {
+  .admin-light-shell [class*="text-[hsl(220"] {
     color: hsl(var(--muted-foreground));
   }
 
