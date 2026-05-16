@@ -165,21 +165,21 @@ Deno.serve(async (req) => {
 async function handleTerminal49Webhook(supabase: any, body: any, req?: Request) {
   try {
     const webhookSecret = Deno.env.get("TERMINAL49_WEBHOOK_SECRET");
-    if (webhookSecret) {
-      const signature =
-        req?.headers.get("x-terminal49-signature") ||
-        req?.headers.get("x-terminal49-hmac-sha256") ||
-        req?.headers.get("x-webhook-signature");
-      if (!signature || signature !== webhookSecret) {
-        return new Response(
-          JSON.stringify({ error: "Invalid webhook signature" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    } else {
-      console.warn("TERMINAL49_WEBHOOK_SECRET not configured — rejecting webhook");
+    if (!webhookSecret) {
+      console.error("TERMINAL49_WEBHOOK_SECRET not configured — refusing webhook");
       return new Response(
         JSON.stringify({ error: "Webhook secret not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const signature =
+      req?.headers.get("x-terminal49-signature") ||
+      req?.headers.get("x-terminal49-hmac-sha256") ||
+      req?.headers.get("x-webhook-signature");
+    const rawBody = JSON.stringify(body);
+    if (!signature || !(await verifyHmac(webhookSecret, rawBody, signature))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid webhook signature" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
