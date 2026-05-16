@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { useOnboardingCheck } from "@/hooks/useOnboardingCheck";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { SEO } from "@/components/SEO";
 
 // Roles that bypass the subscription paywall (internal staff & non-shipper portals)
 const PAYWALL_EXEMPT_ROLES = new Set([
