@@ -137,6 +137,10 @@
     color: hsl(var(--foreground));
   }
 
+  .admin-light-shell :where(.text-white[class*="bg-red-"], .text-white[class*="bg-blue-"], .text-white[class*="bg-emerald-"], .text-white[class*="bg-green-"], .text-white[class*="bg-amber-"], .text-white[class*="bg-orange-"], .text-white[class*="bg-indigo-"], .text-white[class*="bg-purple-"], .text-white[class*="from-"], .text-white[class*="to-"]) {
+    color: hsl(var(--primary-foreground));
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(var(--navy)), hsl(var(--electric)));
