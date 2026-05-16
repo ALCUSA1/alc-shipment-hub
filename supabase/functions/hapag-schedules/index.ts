@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { requireServiceRole, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 /**
@@ -360,6 +361,9 @@ async function ingestVesselSchedule(carrierId: string, params: any, payload: any
 /* ── HTTP handler ── */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const _auth = await requireServiceRole(req);
+  if (!_auth.ok) return _auth.response;
 
   try {
     const body = await req.json().catch(() => ({}));

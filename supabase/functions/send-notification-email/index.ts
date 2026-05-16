@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { requireServiceRole, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,6 +149,9 @@ const TEMPLATES: Record<string, (data: Record<string, unknown>) => { subject: st
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  const _auth = await requireServiceRole(req);
+  if (!_auth.ok) return _auth.response;
     return new Response(null, { headers: corsHeaders });
   }
 

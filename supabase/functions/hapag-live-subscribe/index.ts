@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 
 /**
  * Hapag-Lloyd Live Subscription Manager
@@ -72,6 +73,9 @@ async function callHlag(
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
 
   try {
     const body = await req.json().catch(() => ({}));

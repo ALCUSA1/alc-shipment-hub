@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -379,6 +380,9 @@ function getScac(carrierKey: string | null, carrierName: string | null): string 
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
     return new Response(null, { headers: corsHeaders });
   }
 

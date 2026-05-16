@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { requireServiceRole, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
@@ -10,6 +11,9 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  const _auth = await requireServiceRole(req);
+  if (!_auth.ok) return _auth.response;
     return new Response(null, { headers: corsHeaders });
   }
 

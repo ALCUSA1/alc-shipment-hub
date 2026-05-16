@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, corsHeaders as _sharedCors } from "../_shared/auth.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -8,6 +9,9 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
+
+  const _auth = await requireUser(req);
+  if (!_auth.ok) return _auth.response;
     return new Response(null, { headers: corsHeaders });
   }
 
