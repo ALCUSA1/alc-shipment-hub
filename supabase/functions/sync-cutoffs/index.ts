@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     }
 
     // Find the carrier from vessel_bookings or shipment carrier field
-    const carrierKey = (shipment as any).carrier?.toLowerCase?.() || "";
+    const carrierKey = (shipment as UnsafeAny).carrier?.toLowerCase?.() || "";
     const endpoint = CARRIER_CUTOFF_ENDPOINTS[carrierKey];
 
     // NOTE: In production, you'd call the carrier API here:
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          message: `Carrier API not configured for "${(shipment as any).carrier || "unknown"}". Cutoff dates can be entered manually or will be populated when carrier API credentials are configured.`,
+          message: `Carrier API not configured for "${(shipment as UnsafeAny).carrier || "unknown"}". Cutoff dates can be entered manually or will be populated when carrier API credentials are configured.`,
           supported_carriers: Object.keys(CARRIER_CUTOFF_ENDPOINTS),
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("sync-cutoffs error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

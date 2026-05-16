@@ -8,7 +8,7 @@ export interface RateSelection {
   mode: "ocean" | "air";
   containerType: string;
   baseRate: number;
-  surcharges: any[];
+  surcharges: UnsafeAny[];
   totalRate: number;
   currency: string;
   transitDays: number | null;

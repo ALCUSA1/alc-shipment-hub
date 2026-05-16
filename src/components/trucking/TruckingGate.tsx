@@ -26,7 +26,7 @@ export function TruckingGate({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  const hasTruckerRole = roles.includes("trucker" as any);
+  const hasTruckerRole = roles.includes("trucker" as UnsafeAny);
   if (roles.length > 0 && !hasTruckerRole) {
     return <Navigate to="/login" replace />;
   }

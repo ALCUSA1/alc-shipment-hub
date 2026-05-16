@@ -142,7 +142,7 @@ export function DocumentChecklist({
         queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
         setSeeded(true);
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       console.error("Failed to seed documents:", err);
     } finally {
       setSeeding(false);
@@ -169,7 +169,7 @@ export function DocumentChecklist({
         .eq("id", docId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Update failed", description: err.message, variant: "destructive" });
     } finally {
       setUpdating(null);
@@ -207,7 +207,7 @@ export function DocumentChecklist({
 
       queryClient.invalidateQueries({ queryKey: ["documents", shipmentId] });
       toast({ title: "Document uploaded", description: `${file.name} uploaded successfully.` });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
       setUploading(null);
@@ -247,7 +247,7 @@ export function DocumentChecklist({
     docs: documents.filter((d) => (DOC_SOURCE[d.doc_type] || "shipper") === source),
   })).filter((g) => g.docs.length > 0);
 
-  const renderDocRow = (doc: any) => {
+  const renderDocRow = (doc: UnsafeAny) => {
     const isCompleted = doc.status === "completed" || doc.status === "uploaded";
     const hasFile = !!doc.file_url;
     const source = DOC_SOURCE[doc.doc_type] || "shipper";

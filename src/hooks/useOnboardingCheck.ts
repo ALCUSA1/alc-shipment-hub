@@ -21,7 +21,7 @@ export function useOnboardingCheck() {
         return false;
       }
 
-      // Users with any assigned role (admin, ops, trucker, forwarder, viewer, etc.)
+      // Users with UnsafeAny assigned role (admin, ops, trucker, forwarder, viewer, etc.)
       // are part of the platform via team management — skip onboarding.
       const { data: roles } = await supabase
         .from("user_roles")

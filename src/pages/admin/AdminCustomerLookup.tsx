@@ -150,7 +150,7 @@ const AdminCustomerLookup = () => {
           <h1 className="text-2xl font-bold text-white">Customer Lookup</h1>
         </div>
         <p className="text-sm text-[hsl(220,10%,50%)]">
-          Search for any customer and view their full profile, shipments, quotes, and financials
+          Search for UnsafeAny customer and view their full profile, shipments, quotes, and financials
         </p>
       </div>
 
@@ -443,7 +443,7 @@ const SummaryCard = ({
 }: {
   label: string;
   value: string | number;
-  icon: any;
+  icon: UnsafeAny;
   color?: string;
 }) => (
   <div className="rounded-lg border border-[hsl(220,15%,13%)] bg-[hsl(220,15%,12%)] p-4">

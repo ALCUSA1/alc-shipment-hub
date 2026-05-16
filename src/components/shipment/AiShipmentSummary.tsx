@@ -13,7 +13,7 @@ interface ShipmentReport {
 }
 
 interface Props {
-  shipmentContext: Record<string, any>;
+  shipmentContext: Record<string, UnsafeAny>;
   shipmentId: string;
 }
 

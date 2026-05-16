@@ -60,7 +60,7 @@ export interface SailingOption {
   transit_days: number | null;
   valid_from: string;
   valid_until: string;
-  surcharges: any;
+  surcharges: UnsafeAny;
   notes: string | null;
   service_level: string | null;
   free_time_days: number | null;
@@ -77,7 +77,7 @@ const STEPS: FlowStep[] = ["search", "rates", "details", "cargo", "logistics", "
 
 /* ── Collapsible Section ── */
 function BookingSection({ title, icon: Icon, children, defaultOpen = false }: {
-  title: string; icon: any; children: React.ReactNode; defaultOpen?: boolean;
+  title: string; icon: UnsafeAny; children: React.ReactNode; defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -217,9 +217,9 @@ const UnifiedBookingFlow = () => {
     }
     if (containers?.[0]) setContainerQty(containers[0].quantity?.toString() || "1");
     if (parties) {
-      const shipper = parties.find((p: any) => p.role === "shipper");
-      const consignee = parties.find((p: any) => p.role === "consignee");
-      const notify = parties.find((p: any) => p.role === "notify_party");
+      const shipper = parties.find((p: UnsafeAny) => p.role === "shipper");
+      const consignee = parties.find((p: UnsafeAny) => p.role === "consignee");
+      const notify = parties.find((p: UnsafeAny) => p.role === "notify_party");
       if (shipper) { setShipperName(shipper.company_name || ""); setShipperAddress(shipper.address || ""); }
       if (consignee) { setConsigneeName(consignee.company_name || ""); setConsigneeAddress(consignee.address || ""); }
       if (notify) setNotifyParty(notify.company_name || "");
@@ -246,8 +246,8 @@ const UnifiedBookingFlow = () => {
       setAesFilingId(customsFiling.id);
     } else if (parties) {
       // Auto-fill from party data if no customs filing exists yet
-      const shipper = parties.find((p: any) => p.role === "shipper");
-      const consignee = parties.find((p: any) => p.role === "consignee");
+      const shipper = parties.find((p: UnsafeAny) => p.role === "shipper");
+      const consignee = parties.find((p: UnsafeAny) => p.role === "consignee");
       if (shipper && !aesExporterName) setAesExporterName(shipper.company_name || "");
       if (consignee && !aesConsigneeName) {
         setAesConsigneeName(consignee.company_name || "");
@@ -290,7 +290,7 @@ const UnifiedBookingFlow = () => {
         });
         toast.success(`Shipment ${draft.shipment_ref} created — continue your booking`);
         setStep("details");
-      } catch (err: any) {
+      } catch (err: UnsafeAny) {
         console.error("Failed to restore pending booking:", err);
         toast.error("We couldn't restore your selected quote. Please search and select a rate again.");
         setStep("search");
@@ -343,9 +343,9 @@ const UnifiedBookingFlow = () => {
       if (ratesErr) throw ratesErr;
 
       // Build stored-rate options first
-      const storedOptions: SailingOption[] = (ratesData || []).map((r: any, idx: number) => {
+      const storedOptions: SailingOption[] = (ratesData || []).map((r: UnsafeAny, idx: number) => {
         const surcharges = Array.isArray(r.surcharges) ? r.surcharges : [];
-        const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
+        const surchargeTotal = surcharges.reduce((s: number, sc: UnsafeAny) => s + (Number(sc.amount) || 0), 0);
         const etd = new Date(r.valid_from);
         etd.setDate(etd.getDate() + Math.floor(Math.random() * 7));
         const eta = new Date(etd);
@@ -371,13 +371,13 @@ const UnifiedBookingFlow = () => {
 
       if (scheduleIds.length > 0) {
         // Find stored Evergreen contract rate for this lane (preferred pricing source)
-        const evergreenRate = (ratesData || []).find((r: any) =>
+        const evergreenRate = (ratesData || []).find((r: UnsafeAny) =>
           (r.carrier || "").toLowerCase().includes("evergreen") ||
           (r.carrier_code || "").toUpperCase() === "EGLV"
         );
         const hasContractRate = !!evergreenRate;
 
-        // Fallback: derive a market-estimate price from any stored rate on this lane,
+        // Fallback: derive a market-estimate price from UnsafeAny stored rate on this lane,
         // or use a transit-distance-based estimate so live sailings always show a number.
         const anyStoredRate = (ratesData || [])[0];
         const fallbackBase = anyStoredRate
@@ -391,13 +391,13 @@ const UnifiedBookingFlow = () => {
               { code: "DOC", name: "Documentation", amount: 75 },
             ];
 
-        const surcharges: any[] = hasContractRate && Array.isArray((evergreenRate as any).surcharges)
-          ? ((evergreenRate as any).surcharges as any[])
+        const surcharges: UnsafeAny[] = hasContractRate && Array.isArray((evergreenRate as UnsafeAny).surcharges)
+          ? ((evergreenRate as UnsafeAny).surcharges as UnsafeAny[])
           : fallbackSurcharges;
-        const surchargeTotal: number = surcharges.reduce((s: number, sc: any) => s + (Number(sc?.amount) || 0), 0);
-        const baseRate: number = hasContractRate ? Number((evergreenRate as any).base_rate) : fallbackBase;
+        const surchargeTotal: number = surcharges.reduce((s: number, sc: UnsafeAny) => s + (Number(sc?.amount) || 0), 0);
+        const baseRate: number = hasContractRate ? Number((evergreenRate as UnsafeAny).base_rate) : fallbackBase;
         const totalRate: number = baseRate + surchargeTotal;
-        const currency: string = (evergreenRate as any)?.currency || "USD";
+        const currency: string = (evergreenRate as UnsafeAny)?.currency || "USD";
 
         // Fetch a small batch of schedule details (cap to 5 to keep search snappy)
         const detailFetches = scheduleIds.slice(0, 5).map((id) =>
@@ -407,7 +407,7 @@ const UnifiedBookingFlow = () => {
         const details = await Promise.all(detailFetches);
 
         details.forEach((res, i) => {
-          const sched = (res as any)?.data;
+          const sched = (res as UnsafeAny)?.data;
           if (!sched?.schedule) return;
           const firstLeg = sched.legs?.[0];
           const lastLeg = sched.legs?.[sched.legs.length - 1];
@@ -495,7 +495,7 @@ const UnifiedBookingFlow = () => {
       setShipmentId(draft.id);
       toast.success(`Shipment ${draft.shipment_ref} created — complete your booking details`);
       setStep("details");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to create shipment. Please log in.");
     } finally {
       setIsLoading(false);
@@ -527,7 +527,7 @@ const UnifiedBookingFlow = () => {
 
     const upsertParty = async (role: string, companyName: string, address: string) => {
       if (!companyName) return;
-      const existing = parties?.find((p: any) => p.role === role);
+      const existing = parties?.find((p: UnsafeAny) => p.role === role);
       if (existing) {
         await supabase.from("shipment_parties").update({ company_name: companyName, address: address || null }).eq("id", existing.id);
       } else {
@@ -547,7 +547,7 @@ const UnifiedBookingFlow = () => {
     await supabase.from("shipment_services").upsert({
       shipment_id: shipmentId,
       customs_clearance: needsCustoms, trucking: needsTrucking, warehousing: needsWarehouse, insurance: needsInsurance,
-    } as any, { onConflict: "shipment_id" });
+    } as UnsafeAny, { onConflict: "shipment_id" });
 
     // Save AES / Customs filing data
     if (aesExporterName || aesExporterEin || aesConsigneeName) {
@@ -609,7 +609,7 @@ const UnifiedBookingFlow = () => {
       await persistDraft();
       toast.success("Saved");
       validateAndAdvance(nextStep);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to save");
     } finally {
       setSaving(false);
@@ -618,7 +618,7 @@ const UnifiedBookingFlow = () => {
 
   const handleSaveDraft = async () => {
     setSaving(true);
-    try { await persistDraft(); toast.success("Draft saved"); } catch (err: any) { toast.error(err.message); }
+    try { await persistDraft(); toast.success("Draft saved"); } catch (err: UnsafeAny) { toast.error(err.message); }
     finally { setSaving(false); }
   };
 
@@ -639,7 +639,7 @@ const UnifiedBookingFlow = () => {
       await queryClient.invalidateQueries({ queryKey: ["book-shipment", shipmentId] });
       toast.success("Booking confirmed!");
       setStep("confirmed");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to confirm booking");
     } finally {
       setBookingLater(false);

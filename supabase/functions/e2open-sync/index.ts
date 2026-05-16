@@ -85,7 +85,7 @@ const MILESTONE_TO_STATUS: Record<string, string> = {
   "Delivered": "delivered",
 };
 
-async function fetchFromE2Open(path: string, apiKey: string): Promise<any> {
+async function fetchFromE2Open(path: string, apiKey: string): Promise<UnsafeAny> {
   const response = await fetch(`${E2OPEN_BASE_URL}${path}`, {
     headers: {
       "Authorization": `Bearer ${apiKey}`,
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const results: Record<string, any> = { synced: [] };
+    const results: Record<string, UnsafeAny> = { synced: [] };
 
     if (mode === "booking" || mode === "all") {
       // Fetch booking details from e2open
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       );
 
       // Update shipment with vessel & voyage info
-      const shipmentUpdate: Record<string, any> = {};
+      const shipmentUpdate: Record<string, UnsafeAny> = {};
       if (bookingData.vessel) shipmentUpdate.vessel = bookingData.vessel;
       if (bookingData.voyage) shipmentUpdate.voyage = bookingData.voyage;
       if (bookingData.etd) shipmentUpdate.etd = bookingData.etd;
@@ -338,7 +338,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("e2open sync error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

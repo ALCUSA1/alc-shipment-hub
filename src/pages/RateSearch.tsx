@@ -21,7 +21,7 @@ interface SearchParams {
 const RateSearch = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
-  const [results, setResults] = useState<any[] | null>(null);
+  const [results, setResults] = useState<UnsafeAny[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
   const [autoBooking, setAutoBooking] = useState(false);
@@ -46,7 +46,7 @@ const RateSearch = () => {
         const draft = await createShipmentDraft(rateSelection);
         toast.success(`Shipment ${draft.shipment_ref} created!`);
         navigate(`/dashboard/shipments/${draft.id}/workspace`);
-      } catch (err: any) {
+      } catch (err: UnsafeAny) {
         toast.error(err.message || "Failed to resume booking");
         sessionStorage.removeItem("pendingBooking");
         setAutoBooking(false);
@@ -90,7 +90,7 @@ const RateSearch = () => {
     if (error) throw error;
 
     // 2) Live Evergreen sailings (ocean only) → mapped to rate cards
-    let liveRates: any[] = [];
+    let liveRates: UnsafeAny[] = [];
     if (params.mode === "ocean") {
       try {
         const fromDate = today;
@@ -107,7 +107,7 @@ const RateSearch = () => {
           },
         });
         if (evg?.success && Array.isArray(evg.data)) {
-          liveRates = evg.data.map((sail: any, idx: number) => {
+          liveRates = evg.data.map((sail: UnsafeAny, idx: number) => {
             const firstLeg = sail.legs?.[0];
             const vessel = firstLeg?.transport?.vessel?.name || "Evergreen Vessel";
             const voyage = firstLeg?.transport?.servicePartners?.[0]?.carrierExportVoyageNumber || "";
@@ -143,7 +143,7 @@ const RateSearch = () => {
     }
 
     // 3) HLAG Quick Quotes — instant live pricing (ocean only)
-    let quickQuotes: any[] = [];
+    let quickQuotes: UnsafeAny[] = [];
     if (params.mode === "ocean") {
       try {
         const isoEquip = params.containerSize === "20gp" ? "22GP"
@@ -159,7 +159,7 @@ const RateSearch = () => {
           },
         });
         if (qq?.offers?.length) {
-          quickQuotes = qq.offers.map((o: any, idx: number) => ({
+          quickQuotes = qq.offers.map((o: UnsafeAny, idx: number) => ({
             id: `hlag-quote-${o.offerId}`,
             carrier: "Hapag-Lloyd (Quick Quote)",
             origin_port: params.origin,
@@ -237,7 +237,7 @@ const RateSearch = () => {
               Compare freight rates instantly.
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Search carrier rates for any route. Get real-time pricing with full cost breakdowns.
+              Search carrier rates for UnsafeAny route. Get real-time pricing with full cost breakdowns.
             </p>
           </motion.div>
 

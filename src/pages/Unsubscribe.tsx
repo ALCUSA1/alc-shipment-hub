@@ -57,7 +57,7 @@ export default function Unsubscribe() {
         setStatus("error");
         setErrorMsg(data?.error || "Unable to process request.");
       }
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       setStatus("error");
       setErrorMsg(e?.message || "Unable to process request.");
     }

@@ -159,10 +159,10 @@ function CompactPartyCard({
 }
 
 export function PartiesSection({ data, onChange, autoFilledShipper, companies = [], onSaveToCrm }: Props) {
-  const setParty = (key: keyof typeof data, p: PartyInfo) => onChange({ ...data, [key]: p } as any);
+  const setParty = (key: keyof typeof data, p: PartyInfo) => onChange({ ...data, [key]: p } as UnsafeAny);
 
   const handleSaveToCrm = (partyKey: string) => {
-    const party = (data as any)[partyKey] as PartyInfo;
+    const party = (data as UnsafeAny)[partyKey] as PartyInfo;
     onSaveToCrm?.(party, partyKey);
   };
 

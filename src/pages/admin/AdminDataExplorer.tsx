@@ -19,7 +19,7 @@ const AdminDataExplorer = () => {
     queryFn: async () => {
       const results: Record<string, number> = {};
       const promises = tables.map(async (t) => {
-        const { count } = await supabase.from(t as any).select("id", { count: "exact", head: true });
+        const { count } = await supabase.from(t as UnsafeAny).select("id", { count: "exact", head: true });
         results[t] = count || 0;
       });
       await Promise.all(promises);

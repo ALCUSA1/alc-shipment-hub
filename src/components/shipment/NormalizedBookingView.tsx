@@ -66,8 +66,8 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
 
   const { booking, carrier, shipment, equipments, cargo, transport_plan, charges, instructions, references, parties, documents } = data;
 
-  const shipper = parties?.find((p: any) => p.role === "shipper");
-  const consignee = parties?.find((p: any) => p.role === "consignee");
+  const shipper = parties?.find((p: UnsafeAny) => p.role === "shipper");
+  const consignee = parties?.find((p: UnsafeAny) => p.role === "consignee");
 
   return (
     <div className="space-y-6">
@@ -138,7 +138,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {equipments.map((eq: any) => (
+              {equipments.map((eq: UnsafeAny) => (
                 <div key={eq.id} className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-secondary/30 border border-border/50">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-accent/10 flex items-center justify-center">
@@ -180,7 +180,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {cargo.map((c: any) => (
+              {cargo.map((c: UnsafeAny) => (
                 <div key={c.id} className="py-2.5 px-3 rounded-lg bg-secondary/30 border border-border/50">
                   <div className="flex items-start justify-between">
                     <div>
@@ -217,7 +217,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {transport_plan.map((leg: any, i: number) => {
+              {transport_plan.map((leg: UnsafeAny, i: number) => {
                 const loadLoc = leg.load_location || leg.receipt_location;
                 const dischLoc = leg.discharge_location || leg.delivery_location;
                 const vessel = leg.alc_vessels;
@@ -275,7 +275,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {charges.map((ch: any) => (
+              {charges.map((ch: UnsafeAny) => (
                 <div key={ch.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                   <div>
                     <p className="text-sm text-foreground">{ch.charge_description || ch.charge_code}</p>
@@ -294,7 +294,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
               <div className="flex items-center justify-between pt-2 font-semibold">
                 <p className="text-sm text-foreground">Total</p>
                 <p className="text-sm text-foreground tabular-nums">
-                  {charges.reduce((s: number, c: any) => s + Number(c.amount || 0), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })} {charges[0]?.currency_code || "USD"}
+                  {charges.reduce((s: number, c: UnsafeAny) => s + Number(c.amount || 0), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })} {charges[0]?.currency_code || "USD"}
                 </p>
               </div>
             </div>
@@ -313,7 +313,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {instructions.map((instr: any) => (
+              {instructions.map((instr: UnsafeAny) => (
                 <div key={instr.id} className="py-2 px-3 rounded-lg bg-secondary/30 border border-border/50">
                   <Badge variant="secondary" className="text-[10px] mb-1">{fmtStatus(instr.instruction_type || "general")}</Badge>
                   <p className="text-sm text-foreground">{instr.instruction_text}</p>
@@ -336,7 +336,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
             </CardHeader>
             <CardContent>
               <div className="space-y-1.5">
-                {references.map((ref: any, i: number) => (
+                {references.map((ref: UnsafeAny, i: number) => (
                   <div key={i} className="flex items-center justify-between py-1.5">
                     <p className="text-[10px] text-muted-foreground uppercase">{fmtStatus(ref.reference_type)}</p>
                     <p className="text-sm font-mono font-medium text-foreground">{ref.reference_value}</p>
@@ -357,7 +357,7 @@ export function NormalizedBookingView({ shipmentId, bookingId }: NormalizedBooki
             </CardHeader>
             <CardContent>
               <div className="space-y-1.5">
-                {documents.map((doc: any) => (
+                {documents.map((doc: UnsafeAny) => (
                   <div key={doc.id} className="flex items-center justify-between py-1.5">
                     <p className="text-sm text-foreground">{fmtStatus(doc.doc_type)}</p>
                     <Badge variant={doc.status === "ready" ? "default" : "secondary"} className="text-[10px]">
@@ -399,7 +399,7 @@ function RoutePoint({ label, port, date, dateLabel }: { label: string; port?: st
   );
 }
 
-function PartyCard({ label, party }: { label: string; party?: any }) {
+function PartyCard({ label, party }: { label: string; party?: UnsafeAny }) {
   return (
     <div className="p-3 rounded-lg bg-secondary/30 border border-border/50">
       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">

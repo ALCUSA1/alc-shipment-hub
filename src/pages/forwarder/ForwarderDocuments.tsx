@@ -58,7 +58,7 @@ const ForwarderDocuments = () => {
                       {d.doc_type.replace(/_/g, " ")}
                     </TableCell>
                     <TableCell className="font-mono text-sm">
-                      {(d as any).shipments?.shipment_ref || "—"}
+                      {(d as UnsafeAny).shipments?.shipment_ref || "—"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{d.status}</Badge>

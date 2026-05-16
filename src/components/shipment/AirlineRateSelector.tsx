@@ -93,7 +93,7 @@ export function AirlineRateSelector({ shipmentId, shipmentRef, originAirport, de
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
       toast({ title: "Airline Selected", description: `${selectedRate.carrier} selected at $${getTotalRate(selectedRate).toLocaleString()}/kg` });
       setSelectedRate(null);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Failed", description: err.message, variant: "destructive" });
     } finally {
       setBooking(false);

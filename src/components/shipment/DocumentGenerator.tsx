@@ -19,7 +19,7 @@ interface DocumentGeneratorProps {
 
 export function DocumentGenerator({ shipmentId, shipmentRef, mode, open, onOpenChange }: DocumentGeneratorProps) {
   const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState<Record<string, any> | null>(null);
+  const [documents, setDocuments] = useState<Record<string, UnsafeAny> | null>(null);
   const [activeTab, setActiveTab] = useState("");
 
   const handleGenerate = async () => {
@@ -34,7 +34,7 @@ export function DocumentGenerator({ shipmentId, shipmentRef, mode, open, onOpenC
       const firstKey = Object.keys(data.documents)[0];
       if (firstKey) setActiveTab(firstKey);
       toast({ title: "Documents Generated", description: `${e(Object.keys(data.documents).length)} documents ready for review.` });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Generation Failed", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ export function DocumentGenerator({ shipmentId, shipmentRef, mode, open, onOpenC
                       Print / Save PDF
                     </Button>
                   </div>
-                  <DocumentPreview doc={doc as Record<string, any>} docType={key} />
+                  <DocumentPreview doc={doc as Record<string, UnsafeAny>} docType={key} />
                 </TabsContent>
               ))}
             </Tabs>
@@ -120,7 +120,7 @@ export function DocumentGenerator({ shipmentId, shipmentRef, mode, open, onOpenC
   );
 }
 
-function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: string }) {
+function DocumentPreview({ doc, docType }: { doc: Record<string, UnsafeAny>; docType: string }) {
   return (
     <div className="p-6 space-y-5 text-sm">
       {/* Title */}
@@ -198,7 +198,7 @@ function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: 
                 </tr>
               </thead>
               <tbody>
-                {(doc.cargo_description || doc.cargo_items || doc.line_items || doc.items || doc.cargo || []).map((item: any, idx: number) => (
+                {(doc.cargo_description || doc.cargo_items || doc.line_items || doc.items || doc.cargo || []).map((item: UnsafeAny, idx: number) => (
                   <tr key={idx} className="border-t align-top">
                     <td className="px-3 py-2 text-muted-foreground">{item.line || idx + 1}</td>
                     <td className="px-3 py-2 text-foreground">
@@ -253,7 +253,7 @@ function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: 
           <Separator />
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Containers</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {doc.containers.map((c: any, i: number) => (
+            {doc.containers.map((c: UnsafeAny, i: number) => (
               <div key={i} className="border rounded-lg px-3 py-2 text-xs">
                 <p className="font-mono font-medium text-foreground">{c.number}</p>
                 <p className="text-muted-foreground">{c.type} {c.size && `/ ${e(c.size)}`}</p>
@@ -288,7 +288,7 @@ function DocumentPreview({ doc, docType }: { doc: Record<string, any>; docType: 
   );
 }
 
-function PartyCard({ label, party }: { label: string; party: any }) {
+function PartyCard({ label, party }: { label: string; party: UnsafeAny }) {
   return (
     <div className="border rounded-lg p-3">
       <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
@@ -309,8 +309,8 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function renderDocumentHTML(doc: any, docType: string): string {
-  const partyHTML = (label: string, p: any) => p ? `
+function renderDocumentHTML(doc: UnsafeAny, docType: string): string {
+  const partyHTML = (label: string, p: UnsafeAny) => p ? `
     <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:8px">
       <p style="font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600;margin:0 0 4px">${e(label)}</p>
       <p style="font-size:14px;font-weight:600;margin:0">${e(p.name)}</p>

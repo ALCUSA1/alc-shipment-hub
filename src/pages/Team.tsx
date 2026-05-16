@@ -189,7 +189,7 @@ const Team = () => {
       setInviteRole("");
       setInviteTitle("");
       queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Invite Failed", description: err.message, variant: "destructive" });
     } finally {
       setInviting(false);
@@ -200,12 +200,12 @@ const Team = () => {
     try {
       const { error } = await supabase
         .from("company_members")
-        .update({ role: newRole as any })
+        .update({ role: newRole as UnsafeAny })
         .eq("id", membershipId);
       if (error) throw error;
       toast({ title: "Role Updated", description: `Changed to ${ROLES[newRole]?.label || newRole}` });
       queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -221,7 +221,7 @@ const Team = () => {
       if (error) throw error;
       toast({ title: "User Removed", description: `${member.full_name || "User"} has been removed from the team.` });
       queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -248,7 +248,7 @@ const Team = () => {
       if (membershipId) {
         const { error: memberErr } = await supabase
           .from("company_members")
-          .update({ role: editRole as any, title: editTitle.trim() || null })
+          .update({ role: editRole as UnsafeAny, title: editTitle.trim() || null })
           .eq("id", membershipId);
         if (memberErr) throw memberErr;
       }
@@ -256,7 +256,7 @@ const Team = () => {
       toast({ title: "Member Updated", description: `${editName || "User"}'s information has been saved.` });
       setEditOpen(false);
       queryClient.invalidateQueries({ queryKey: ["team-members", companyId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);

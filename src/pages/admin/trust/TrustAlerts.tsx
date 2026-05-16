@@ -5,12 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function TrustAlerts() {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<UnsafeAny[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
+      const { data } = await (supabase as UnsafeAny)
         .from("admin_alerts")
         .select("*")
         .order("created_at", { ascending: false })
@@ -45,7 +45,7 @@ export default function TrustAlerts() {
               ) : rows.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No alerts.</td></tr>
               ) : (
-                rows.map((r: any) => (
+                rows.map((r: UnsafeAny) => (
                   <tr key={r.id} className="border-t border-border">
                     <td className="px-4 py-2">
                       <Badge variant={r.severity === "high" || r.severity === "critical" ? "destructive" : "secondary"}>

@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { useState, InputHTMLAttributes, forwardRef } from "react";
 
-interface PasswordInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {}
+type PasswordInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type">;
 
 const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>((props, ref) => {
   const [visible, setVisible] = useState(false);

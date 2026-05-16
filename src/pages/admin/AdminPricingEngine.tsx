@@ -254,7 +254,7 @@ const AdminPricingEngine = () => {
     </div>
   );
 
-  const SectionHeader = ({ title, icon: Icon, total, sectionKey }: { title: string; icon: any; total: number; sectionKey: string }) => (
+  const SectionHeader = ({ title, icon: Icon, total, sectionKey }: { title: string; icon: UnsafeAny; total: number; sectionKey: string }) => (
     <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 rounded-lg transition-colors">
       <div className="flex items-center gap-2">
         <Icon className="h-4 w-4 text-accent" />
@@ -822,7 +822,7 @@ const AdminPricingEngine = () => {
                 <ul className="space-y-1.5 text-xs text-muted-foreground">
                   <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" /> All splits are applied to the Net Margin (Sell Price − True Cost)</li>
                   <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" /> Splits are normalized to 100% regardless of individual slider values</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" /> Admin can override any preset for individual deals</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" /> Admin can override UnsafeAny preset for individual deals</li>
                   <li className="flex items-start gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" /> Network payouts are separate from revenue splits — payouts are costs, splits are profit distribution</li>
                   <li className="flex items-start gap-2"><AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 shrink-0" /> If net margin is negative, no payouts are distributed to the network</li>
                 </ul>

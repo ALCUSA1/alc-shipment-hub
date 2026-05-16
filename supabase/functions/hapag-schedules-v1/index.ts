@@ -78,15 +78,15 @@ async function hlagGet(path: string) {
     return {
       ok: res.ok,
       status: res.status,
-      body: (json ?? text) as any,
+      body: (json ?? text) as UnsafeAny,
       headers: {
         nextCursor: res.headers.get("next-page-cursor") ?? null,
         apiVersion: res.headers.get("api-version") ?? null,
-      } as any,
+      } as UnsafeAny,
     };
   } catch (e) {
     const err = e as Error;
-    return { ok: false, status: 0, body: err.message, headers: {} as any };
+    return { ok: false, status: 0, body: err.message, headers: {} as UnsafeAny };
   } finally {
     clearTimeout(timer);
   }

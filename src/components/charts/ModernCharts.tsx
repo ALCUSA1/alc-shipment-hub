@@ -87,7 +87,7 @@ const getGridProps = (dark: boolean) => ({
    GLASS AREA CHART — Gradient fill + glow stroke
    ══════════════════════════════════════════════════ */
 interface GlassAreaChartProps {
-  data: any[];
+  data: UnsafeAny[];
   dataKey: string;
   xKey?: string;
   color?: string;
@@ -157,7 +157,7 @@ export function GlassAreaChart({
    GLASS BAR CHART — Rounded bars + gradient fill
    ══════════════════════════════════════════════════ */
 interface GlassBarChartProps {
-  data: any[];
+  data: UnsafeAny[];
   dataKey: string;
   xKey?: string;
   color?: string;
@@ -322,7 +322,7 @@ export function GlassGauge({
    GLASS LINE CHART — Multi-line + glow dots
    ══════════════════════════════════════════════════ */
 interface GlassLineChartProps {
-  data: any[];
+  data: UnsafeAny[];
   lines: { dataKey: string; color: string; name?: string }[];
   xKey?: string;
   height?: number;

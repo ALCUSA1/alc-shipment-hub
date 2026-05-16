@@ -23,7 +23,7 @@ export function CommercialSection({ data, charges, onChange, onChargesChange }: 
 
   const updateCharge = (idx: number, f: keyof ChargeLine, v: string) => {
     const next = [...charges];
-    (next[idx] as any)[f] = v;
+    (next[idx] as UnsafeAny)[f] = v;
     onChargesChange(next);
   };
 

@@ -81,7 +81,7 @@ export function AddressAutocomplete({
       if (data?.result) {
         const components = data.result.address_components || [];
         const get = (type: string) =>
-          components.find((c: any) => c.types.includes(type))?.long_name || "";
+          components.find((c: UnsafeAny) => c.types.includes(type))?.long_name || "";
 
         const structured: StructuredAddress = {
           formatted: data.result.formatted_address || prediction.description,

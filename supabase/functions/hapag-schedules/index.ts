@@ -31,7 +31,7 @@ async function resolveCarrier(): Promise<string> {
   return data.id;
 }
 
-async function resolveLocation(loc: any): Promise<string | null> {
+async function resolveLocation(loc: UnsafeAny): Promise<string | null> {
   if (!loc) return null;
   const unlocode = loc.UNLocationCode || loc.unLocationCode || loc.unlocode || null;
   const name = loc.locationName || loc.facilityName || loc.name || null;
@@ -58,7 +58,7 @@ async function resolveLocation(loc: any): Promise<string | null> {
   return data?.id ?? null;
 }
 
-async function resolveVessel(carrierId: string, v: any): Promise<string | null> {
+async function resolveVessel(carrierId: string, v: UnsafeAny): Promise<string | null> {
   if (!v) return null;
   const imo = v.vesselIMONumber || v.imoNumber || v.imo || null;
   const name = v.vesselName || v.name || null;
@@ -80,7 +80,7 @@ async function resolveVessel(carrierId: string, v: any): Promise<string | null> 
   return data?.id ?? null;
 }
 
-async function storeRaw(carrierId: string, type: string, payload: any) {
+async function storeRaw(carrierId: string, type: string, payload: UnsafeAny) {
   const { data } = await supabase.from("carrier_raw_messages").insert({
     carrier_id: carrierId,
     source_channel: "api",
@@ -95,7 +95,7 @@ async function storeRaw(carrierId: string, type: string, payload: any) {
 }
 
 /* ── HLAG API call ── */
-async function callHlag(path: string, params: Record<string, any>) {
+async function callHlag(path: string, params: Record<string, UnsafeAny>) {
   const clientId = Deno.env.get("HLAG_CLIENT_ID");
   const clientSecret = Deno.env.get("HLAG_CLIENT_SECRET");
   if (!clientId || !clientSecret) {
@@ -122,7 +122,7 @@ async function callHlag(path: string, params: Record<string, any>) {
       console.warn(`HLAG ${path} → ${resp.status}: ${text.slice(0, 300)} — simulation fallback`);
       return { simulated: true, payload: simulatePayload(path, params), upstreamStatus: resp.status, upstreamBody: text.slice(0, 300) };
     }
-    let parsed: any = {};
+    let parsed: UnsafeAny = {};
     try { parsed = text ? JSON.parse(text) : {}; } catch (_) { parsed = {}; }
     return {
       simulated: false,
@@ -136,7 +136,7 @@ async function callHlag(path: string, params: Record<string, any>) {
 }
 
 /* ── simulation fallback (no creds) ── */
-function simulatePayload(path: string, params: Record<string, any>) {
+function simulatePayload(path: string, params: Record<string, UnsafeAny>) {
   const por = params.placeOfReceipt || "DEHAM";
   const pod = params.placeOfDelivery || "USNYC";
   const today = new Date();
@@ -168,7 +168,7 @@ function simulatePayload(path: string, params: Record<string, any>) {
 }
 
 /* ── ingest a routing solution ── */
-async function ingestPointToPoint(carrierId: string, params: any, payload: any) {
+async function ingestPointToPoint(carrierId: string, params: UnsafeAny, payload: UnsafeAny) {
   const rawId = await storeRaw(carrierId, "point_to_point_response", payload);
   const solutions = payload.routingSolutions || payload.routings || payload || [];
   const arr = Array.isArray(solutions) ? solutions : [solutions];
@@ -190,7 +190,7 @@ async function ingestPointToPoint(carrierId: string, params: any, payload: any) 
     }).select("id").single();
 
   const scheduleIds: string[] = [];
-  const summaries: any[] = [];
+  const summaries: UnsafeAny[] = [];
 
   for (const sol of arr) {
     const legs = sol.legs || sol.transportLegs || [];
@@ -272,7 +272,7 @@ async function ingestPointToPoint(carrierId: string, params: any, payload: any) 
 }
 
 /* ── ingest vessel schedule ── */
-async function ingestVesselSchedule(carrierId: string, params: any, payload: any) {
+async function ingestVesselSchedule(carrierId: string, params: UnsafeAny, payload: UnsafeAny) {
   const rawId = await storeRaw(carrierId, "vessel_schedule_response", payload);
   const arr = Array.isArray(payload?.vesselSchedules)
     ? payload.vesselSchedules
@@ -310,9 +310,9 @@ async function ingestVesselSchedule(carrierId: string, params: any, payload: any
       const pc = callArr[i];
       const locId = await resolveLocation(pc.location || pc);
       const ts = pc.timestamps || [];
-      const arrTime = ts.find?.((t: any) => t.eventTypeCode === "ARRI")?.eventDateTime
+      const arrTime = ts.find?.((t: UnsafeAny) => t.eventTypeCode === "ARRI")?.eventDateTime
         || pc.arrivalDateTime || pc.eta || null;
-      const depTime = ts.find?.((t: any) => t.eventTypeCode === "DEPA")?.eventDateTime
+      const depTime = ts.find?.((t: UnsafeAny) => t.eventTypeCode === "DEPA")?.eventDateTime
         || pc.departureDateTime || pc.etd || null;
 
       if (i === 0) { firstLocId = locId; firstDep = depTime; }
@@ -431,7 +431,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, simulated, ...result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("hapag-schedules error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

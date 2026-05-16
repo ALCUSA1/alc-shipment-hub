@@ -89,7 +89,7 @@ const Accounting = () => {
       const netMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
       return {
         ...s,
-        companyName: (s.companies as any)?.company_name || null,
+        companyName: (s.companies as UnsafeAny)?.company_name || null,
         totalRevenue,
         totalCost: fin.cost,
         totalExpense: fin.expense,

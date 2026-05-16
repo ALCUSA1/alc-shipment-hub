@@ -70,7 +70,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            {/* Center: Global Universal Search (resolves any carrier/ALC reference) */}
+            {/* Center: Global Universal Search (resolves UnsafeAny carrier/ALC reference) */}
             <div className="flex-1 max-w-md hidden md:block">
               <UniversalSearch />
             </div>

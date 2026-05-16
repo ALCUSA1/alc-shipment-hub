@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const CATEGORIES = ["general", "rate_sheet", "brochure", "case_study", "one_pager", "presentation", "template", "video"];
 const FILE_TYPES = ["document", "image", "video", "spreadsheet", "presentation"];
 
-const typeIcons: Record<string, any> = { document: FileText, image: Image, video: Film, spreadsheet: FileText, presentation: FileText };
+const typeIcons: Record<string, UnsafeAny> = { document: FileText, image: Image, video: Film, spreadsheet: FileText, presentation: FileText };
 
 const AdminMaterials = () => {
   const { user } = useAuth();
@@ -40,6 +40,7 @@ const AdminMaterials = () => {
 
   const upload = useMutation({
     mutationFn: async () => {
+      if (!user?.id) throw new Error("User must be signed in to upload materials");
       setUploading(true);
       let file_url: string | null = null;
       if (selectedFile) {
@@ -53,7 +54,7 @@ const AdminMaterials = () => {
       const { error } = await supabase.from("promotional_materials").insert({
         ...newItem,
         file_url,
-        uploaded_by: user?.id!,
+        uploaded_by: user.id,
       });
       if (error) throw error;
     },
@@ -81,10 +82,10 @@ const AdminMaterials = () => {
 
   const filtered = categoryFilter === "all"
     ? materials || []
-    : (materials || []).filter((m: any) => m.category === categoryFilter);
+    : (materials || []).filter((m: UnsafeAny) => m.category === categoryFilter);
 
   const categoryCounts = CATEGORIES.reduce((acc, c) => {
-    acc[c] = (materials || []).filter((m: any) => m.category === c).length;
+    acc[c] = (materials || []).filter((m: UnsafeAny) => m.category === c).length;
     return acc;
   }, {} as Record<string, number>);
 
@@ -154,7 +155,7 @@ const AdminMaterials = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.length === 0 ? (
             <div className="sm:col-span-2 lg:col-span-3 text-center py-16 text-xs text-[hsl(220,10%,40%)]">No materials found</div>
-          ) : filtered.map((m: any) => {
+          ) : filtered.map((m: UnsafeAny) => {
             const Icon = typeIcons[m.file_type] || FileText;
             return (
               <div key={m.id} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5 flex flex-col">

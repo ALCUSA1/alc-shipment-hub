@@ -77,14 +77,14 @@ const AdminPaymentSettings = () => {
       const { data } = await supabase
         .from("payments")
         .select("amount, platform_fee, carrier_amount, status, carrier_settlement_status");
-      const payments = (data || []) as any[];
+      const payments = (data || []) as UnsafeAny[];
       const completed = payments.filter(p => p.status === "completed");
-      const totalCollected = completed.reduce((s: number, p: any) => s + (p.amount || 0), 0);
-      const totalFees = completed.reduce((s: number, p: any) => s + (p.platform_fee || 0), 0);
+      const totalCollected = completed.reduce((s: number, p: UnsafeAny) => s + (p.amount || 0), 0);
+      const totalFees = completed.reduce((s: number, p: UnsafeAny) => s + (p.platform_fee || 0), 0);
       const totalSettled = completed.filter(p => p.carrier_settlement_status === "settled")
-        .reduce((s: number, p: any) => s + (p.carrier_amount || 0), 0);
+        .reduce((s: number, p: UnsafeAny) => s + (p.carrier_amount || 0), 0);
       const pendingSettlement = completed.filter(p => p.carrier_settlement_status !== "settled")
-        .reduce((s: number, p: any) => s + (p.carrier_amount || 0), 0);
+        .reduce((s: number, p: UnsafeAny) => s + (p.carrier_amount || 0), 0);
       return { totalCollected, totalFees, totalSettled, pendingSettlement, count: completed.length };
     },
   });
@@ -111,12 +111,12 @@ const AdminPaymentSettings = () => {
           platform_fee_type: feeType,
           platform_fee_value: parseFloat(feeValue) || 0,
           stripe_connect_enabled: connectEnabled,
-        } as any)
+        } as UnsafeAny)
         .eq("id", settings.id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["admin-platform-settings"] });
       toast({ title: "Settings saved", description: "Platform fee and payment settings updated." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -142,18 +142,18 @@ const AdminPaymentSettings = () => {
       };
 
       if (isNewCarrier) {
-        const { error } = await supabase.from("carrier_payment_profiles").insert(payload as any);
+        const { error } = await supabase.from("carrier_payment_profiles").insert(payload as UnsafeAny);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("carrier_payment_profiles")
-          .update(payload as any).eq("id", carrierDialog.id);
+          .update(payload as UnsafeAny).eq("id", carrierDialog.id);
         if (error) throw error;
       }
 
       queryClient.invalidateQueries({ queryKey: ["admin-carrier-profiles"] });
       toast({ title: isNewCarrier ? "Carrier added" : "Carrier updated" });
       setCarrierDialog(null);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -165,7 +165,7 @@ const AdminPaymentSettings = () => {
       await supabase.from("carrier_payment_profiles").delete().eq("id", id);
       queryClient.invalidateQueries({ queryKey: ["admin-carrier-profiles"] });
       toast({ title: "Carrier profile removed" });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };

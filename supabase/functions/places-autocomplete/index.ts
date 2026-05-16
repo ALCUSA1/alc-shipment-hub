@@ -37,7 +37,7 @@ serve(async (req) => {
         });
       }
 
-      const predictions = (data.features || []).map((f: any) => ({
+      const predictions = (data.features || []).map((f: UnsafeAny) => ({
         place_id: f.id,
         description: f.place_name,
         structured_formatting: {
@@ -69,7 +69,7 @@ serve(async (req) => {
 
       // Parse context array for structured address components
       const ctx = feature.context || [];
-      const getCtx = (prefix: string) => ctx.find((c: any) => c.id?.startsWith(prefix))?.text || '';
+      const getCtx = (prefix: string) => ctx.find((c: UnsafeAny) => c.id?.startsWith(prefix))?.text || '';
 
       const result = {
         formatted_address: feature.place_name,

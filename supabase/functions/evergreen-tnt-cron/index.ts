@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
         const ok = resp.ok;
         invoked++;
         results.push({ shipment_id: s.id, ok });
-      } catch (err: any) {
+      } catch (err: UnsafeAny) {
         results.push({ shipment_id: s.id, ok: false, error: err.message });
       }
     }
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("[evergreen-tnt-cron] error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),

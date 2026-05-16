@@ -38,12 +38,12 @@ const AdminQuotes = () => {
     },
   });
 
-  const searchFields = useCallback((q: any) => [
+  const searchFields = useCallback((q: UnsafeAny) => [
     q.customer_name, q.customer_email, q.origin_port, q.destination_port,
-    q.carrier, (q.shipments as any)?.shipment_ref,
+    q.carrier, (q.shipments as UnsafeAny)?.shipment_ref,
   ], []);
-  const statusField = useCallback((q: any) => q.status, []);
-  const dateField = useCallback((q: any) => q.created_at, []);
+  const statusField = useCallback((q: UnsafeAny) => q.status, []);
+  const dateField = useCallback((q: UnsafeAny) => q.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
     data: quotes, searchFields, statusField, dateField,
@@ -51,13 +51,13 @@ const AdminQuotes = () => {
 
   // Apply carrier filter manually since it's not the status field
   const finalFiltered = filterValues.carrier && filterValues.carrier !== "all"
-    ? filtered.filter((q: any) => q.carrier === filterValues.carrier)
+    ? filtered.filter((q: UnsafeAny) => q.carrier === filterValues.carrier)
     : filtered;
 
   const totals = {
-    pending: finalFiltered.filter((q: any) => q.status === "pending").length,
-    accepted: finalFiltered.filter((q: any) => q.status === "accepted").length,
-    totalValue: finalFiltered.reduce((sum: number, q: any) => sum + (q.customer_price || 0), 0),
+    pending: finalFiltered.filter((q: UnsafeAny) => q.status === "pending").length,
+    accepted: finalFiltered.filter((q: UnsafeAny) => q.status === "accepted").length,
+    totalValue: finalFiltered.reduce((sum: number, q: UnsafeAny) => sum + (q.customer_price || 0), 0),
   };
 
   return (
@@ -114,9 +114,9 @@ const AdminQuotes = () => {
             <tbody>
               {finalFiltered.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No quotes match your filters</td></tr>
-              ) : finalFiltered.map((q: any) => (
+              ) : finalFiltered.map((q: UnsafeAny) => (
                 <tr key={q.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)] transition-colors">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{(q.shipments as any)?.shipment_ref || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-medium text-white">{(q.shipments as UnsafeAny)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{q.customer_name || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{q.origin_port} → {q.destination_port}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{q.carrier || "—"}</td>

@@ -91,7 +91,7 @@ export function useChatDrawer() {
       const memberDetails = teammateData?.memberDetails || [];
       
       return (profiles || []).map(p => {
-        const memberInfo = memberDetails.find((m: any) => m.user_id === p.user_id);
+        const memberInfo = memberDetails.find((m: UnsafeAny) => m.user_id === p.user_id);
         return {
           user_id: p.user_id,
           full_name: p.full_name || "Unnamed User",
@@ -143,7 +143,7 @@ export function useChatDrawer() {
           .map((p) => p.user_id)
       )];
 
-      let profileMap: Record<string, { name: string; company: string; email: string }> = {};
+      const profileMap: Record<string, { name: string; company: string; email: string }> = {};
       if (otherUserIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
@@ -253,7 +253,7 @@ export function useChatDrawer() {
   }, [activeConversationId, user, queryClient]);
 
   const handleSend = useCallback(
-    async (content: string, attachments: any[]) => {
+    async (content: string, attachments: UnsafeAny[]) => {
       if (!activeConversationId || !user) return;
       await supabase.from("messages").insert({ conversation_id: activeConversationId, sender_id: user.id, sender_name: currentUserName, content, attachments });
       queryClient.invalidateQueries({ queryKey: ["messages", activeConversationId] });

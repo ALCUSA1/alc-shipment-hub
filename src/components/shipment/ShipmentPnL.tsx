@@ -163,7 +163,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: Shipmen
       toast({ title: editingEntry ? "Entry updated" : "Entry added" });
       closeDialog(false);
       queryClient.invalidateQueries({ queryKey: ["shipment-financials", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -177,7 +177,7 @@ export function ShipmentPnL({ shipmentId, quoteAmount, shipmentStatus }: Shipmen
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["shipment-financials", shipmentId] });
       toast({ title: "Entry removed" });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setDeletingId(null);

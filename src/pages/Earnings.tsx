@@ -270,7 +270,7 @@ const Earnings = () => {
 };
 
 /* ─── Sub-components ─── */
-function EarningsCard({ icon: Icon, label, amount, accent, trend }: { icon: any; label: string; amount: number; accent: string; trend?: string }) {
+function EarningsCard({ icon: Icon, label, amount, accent, trend }: { icon: UnsafeAny; label: string; amount: number; accent: string; trend?: string }) {
   return (
     <Card className="border-border/50">
       <CardContent className="p-4">
@@ -285,7 +285,7 @@ function EarningsCard({ icon: Icon, label, amount, accent, trend }: { icon: any;
   );
 }
 
-function MetricRow({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+function MetricRow({ label, value, icon: Icon }: { label: string; value: string; icon: UnsafeAny }) {
   return (
     <div className="flex items-center gap-3">
       <div className="p-1.5 rounded-lg bg-muted"><Icon className="h-3.5 w-3.5 text-muted-foreground" /></div>
@@ -295,7 +295,7 @@ function MetricRow({ label, value, icon: Icon }: { label: string; value: string;
   );
 }
 
-function EarnOption({ title, desc, cta, icon: Icon, href }: { title: string; desc: string; cta: string; icon: any; href: string }) {
+function EarnOption({ title, desc, cta, icon: Icon, href }: { title: string; desc: string; cta: string; icon: UnsafeAny; href: string }) {
   return (
     <div className="flex items-center gap-3 p-2.5 rounded-lg bg-background border border-border/50">
       <div className="p-2 rounded-lg bg-accent/10"><Icon className="h-4 w-4 text-accent" /></div>

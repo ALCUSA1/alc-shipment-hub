@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 /* ── helpers ── */
-function pick(obj: any, ...keys: string[]) {
+function pick(obj: UnsafeAny, ...keys: string[]) {
   for (const k of keys) {
     const v = obj?.[k];
     if (v !== undefined && v !== null && v !== "") return v;
@@ -18,7 +18,7 @@ function pick(obj: any, ...keys: string[]) {
   return null;
 }
 
-async function resolveLocation(loc: any): Promise<string | null> {
+async function resolveLocation(loc: UnsafeAny): Promise<string | null> {
   if (!loc) return null;
   const unlocode = pick(loc, "UNLocationCode", "unLocationCode", "unlocode", "portCode");
   const name = pick(loc, "locationName", "facilityName", "name", "city");
@@ -53,7 +53,7 @@ async function resolveLocation(loc: any): Promise<string | null> {
   return data?.id ?? null;
 }
 
-async function resolveVessel(carrierId: string, v: any): Promise<string | null> {
+async function resolveVessel(carrierId: string, v: UnsafeAny): Promise<string | null> {
   if (!v) return null;
   const vesselName = pick(v, "vesselName", "vessel_name", "name");
   const imo = pick(v, "vesselIMONumber", "imoNumber", "imo");
@@ -82,7 +82,7 @@ async function resolveVessel(carrierId: string, v: any): Promise<string | null> 
   return data?.id ?? null;
 }
 
-function detectQueryType(p: any): string {
+function detectQueryType(p: UnsafeAny): string {
   const qt = pick(p, "queryType", "query_type", "scheduleType", "type");
   if (qt) {
     const lower = qt.toLowerCase().replace(/[\s-]/g, "_");
@@ -350,7 +350,7 @@ Deno.serve(async (req) => {
       }
 
       // 11. Schedule references
-      const refs: [string, any][] = [
+      const refs: [string, UnsafeAny][] = [
         ["service_code", pick(sched, "serviceCode")],
         ["service_name", pick(sched, "serviceName")],
         ["carrier_reference", pick(sched, "carrierReference", "scheduleID")],
@@ -396,7 +396,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, schedule_ids: results, raw_message_id: rawId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

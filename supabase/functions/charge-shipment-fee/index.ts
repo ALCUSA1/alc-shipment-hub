@@ -45,11 +45,11 @@ serve(async (req) => {
     if (!sub.per_shipment_fee_cents) throw new Error("No per-shipment fee configured");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil" as any,
+      apiVersion: "2025-08-27.basil" as UnsafeAny,
     });
 
     // Find the customer's default payment method
-    const customer = await stripe.customers.retrieve(sub.stripe_customer_id) as any;
+    const customer = await stripe.customers.retrieve(sub.stripe_customer_id) as UnsafeAny;
     let pmId: string | undefined =
       customer.invoice_settings?.default_payment_method ||
       sub.default_payment_method_id ||
@@ -74,7 +74,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, payment_intent_id: intent.id, status: intent.status }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: UnsafeAny) {
     const msg = e?.message || String(e);
     console.error("[charge-shipment-fee]", msg);
     return new Response(JSON.stringify({ error: msg, code: e?.code }), {

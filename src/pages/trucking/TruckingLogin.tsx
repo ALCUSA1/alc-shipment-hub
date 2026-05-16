@@ -24,7 +24,7 @@ const TruckingLogin = () => {
   const { roles, isLoading: rolesLoading } = useUserRole();
   
   useEffect(() => {
-    if (user && !rolesLoading && roles.includes("trucker" as any)) {
+    if (user && !rolesLoading && roles.includes("trucker" as UnsafeAny)) {
       navigate("/trucking");
     }
   }, [user, roles, rolesLoading, navigate]);

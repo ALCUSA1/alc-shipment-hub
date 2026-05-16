@@ -161,7 +161,7 @@ const CRM = () => {
       general_liability_expiry: selected.general_liability_expiry || null,
       w9_on_file: selected.w9_on_file, billing_email: selected.billing_email || null, billing_address: selected.billing_address || null,
       credit_terms: selected.credit_terms || null, credit_limit: selected.credit_limit, payment_terms_days: selected.payment_terms_days,
-      status: selected.status as any,
+      status: selected.status as UnsafeAny,
       user_id: user.id,
     };
 

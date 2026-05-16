@@ -32,7 +32,7 @@ export interface SailingOption {
   transit_days: number | null;
   valid_from: string;
   valid_until: string;
-  surcharges: any;
+  surcharges: UnsafeAny;
   notes: string | null;
   service_level: string | null;
   free_time_days: number | null;
@@ -125,9 +125,9 @@ const BookingFlow = () => {
       const [{ data, error }, hlagRes, quickRes] = await Promise.all([query, hlagPromise, quickQuotesPromise]);
       if (error) throw error;
 
-      const options: SailingOption[] = (data || []).map((r: any, idx: number) => {
+      const options: SailingOption[] = (data || []).map((r: UnsafeAny, idx: number) => {
         const surcharges = Array.isArray(r.surcharges) ? r.surcharges : [];
-        const surchargeTotal = surcharges.reduce((s: number, sc: any) => s + (Number(sc.amount) || 0), 0);
+        const surchargeTotal = surcharges.reduce((s: number, sc: UnsafeAny) => s + (Number(sc.amount) || 0), 0);
         const total = r.base_rate + surchargeTotal;
 
         // Generate ETD/ETA from valid_from + transit_days
@@ -162,8 +162,8 @@ const BookingFlow = () => {
       });
 
       // Append live Hapag-Lloyd sailings (indicative pricing) so users see real schedules
-      const hlagSailings: any[] = (hlagRes as any)?.data?.sailings || [];
-      const hlagOptions: SailingOption[] = hlagSailings.map((s: any, i: number) => {
+      const hlagSailings: UnsafeAny[] = (hlagRes as UnsafeAny)?.data?.sailings || [];
+      const hlagOptions: SailingOption[] = hlagSailings.map((s: UnsafeAny, i: number) => {
         const indicativeRate = params.containerSize === "20gp" ? 1850 : 2950;
         return {
           id: `hlag-${s.schedule_id || i}`,
@@ -190,8 +190,8 @@ const BookingFlow = () => {
       });
 
       // HLAG Quick Quotes — instant live pricing offers
-      const quickOffers: any[] = (quickRes as any)?.data?.offers || [];
-      const quickOptions: SailingOption[] = quickOffers.map((o: any, i: number) => ({
+      const quickOffers: UnsafeAny[] = (quickRes as UnsafeAny)?.data?.offers || [];
+      const quickOptions: SailingOption[] = quickOffers.map((o: UnsafeAny, i: number) => ({
         id: `hlag-quote-${o.offerId}`,
         carrier: "Hapag-Lloyd (Quick Quote)",
         origin_port: params.origin,
@@ -253,7 +253,7 @@ const BookingFlow = () => {
       const draft = await createShipmentDraft(rateSelection);
       toast.success(`Shipment ${draft.shipment_ref} created — complete your booking`);
       navigate(`/dashboard/shipments/${draft.id}/workspace`);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       console.error("Draft creation error:", err);
       toast.error(err.message || "Failed to create shipment. Please log in.");
     } finally {

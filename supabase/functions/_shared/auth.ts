@@ -8,7 +8,7 @@ export const corsHeaders = {
 };
 
 export type AuthResult =
-  | { ok: true; userId: string; claims: any; isServiceRole: false }
+  | { ok: true; userId: string; claims: UnsafeAny; isServiceRole: false }
   | { ok: true; userId: null; claims: null; isServiceRole: true }
   | { ok: false; response: Response };
 

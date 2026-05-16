@@ -18,7 +18,7 @@ interface Props {
   shipmentId: string;
   originPort: string;
   destinationPort: string;
-  shipment: any;
+  shipment: UnsafeAny;
   needsTrucking: boolean;
   setNeedsTrucking: (v: boolean) => void;
   needsWarehouse: boolean;
@@ -99,8 +99,8 @@ export function LogisticsSetupStep({
   const pickupSuggestions: TruckingSuggestion[] = useMemo(() => {
     if (truckingQuotes.length > 0) {
       return truckingQuotes
-        .filter((q: any) => q.service_type === "pickup" || q.service_type === "drayage_origin")
-        .map((q: any) => ({
+        .filter((q: UnsafeAny) => q.service_type === "pickup" || q.service_type === "drayage_origin")
+        .map((q: UnsafeAny) => ({
           id: q.id,
           company: q.carrier_name || "Trucking Co.",
           rate: q.rate || 0,
@@ -123,8 +123,8 @@ export function LogisticsSetupStep({
   const deliverySuggestions: TruckingSuggestion[] = useMemo(() => {
     if (truckingQuotes.length > 0) {
       return truckingQuotes
-        .filter((q: any) => q.service_type === "delivery" || q.service_type === "drayage_destination")
-        .map((q: any) => ({
+        .filter((q: UnsafeAny) => q.service_type === "delivery" || q.service_type === "drayage_destination")
+        .map((q: UnsafeAny) => ({
           id: q.id,
           company: q.carrier_name || "Trucking Co.",
           rate: q.rate || 0,
@@ -144,7 +144,7 @@ export function LogisticsSetupStep({
 
   const warehouseSuggestions: WarehouseSuggestion[] = useMemo(() => {
     if (warehouseOrders.length > 0) {
-      return warehouseOrders.map((w: any) => ({
+      return warehouseOrders.map((w: UnsafeAny) => ({
         id: w.id,
         name: w.facility_name || "Warehouse",
         location: w.address || "",

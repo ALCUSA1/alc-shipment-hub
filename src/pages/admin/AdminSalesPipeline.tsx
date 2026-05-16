@@ -41,9 +41,9 @@ const AdminSalesPipeline = () => {
   const queryClient = useQueryClient();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newLead, setNewLead] = useState({ full_name: "", email: "", phone: "", company_name: "", source: "manual", notes: "" });
-  const [convertLead, setConvertLead] = useState<any>(null);
+  const [convertLead, setConvertLead] = useState<UnsafeAny>(null);
   const [convertData, setConvertData] = useState({ company_name: "", email: "", phone: "", status: "prospect" as string });
-  const [activityLead, setActivityLead] = useState<any>(null);
+  const [activityLead, setActivityLead] = useState<UnsafeAny>(null);
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["admin-leads"],
@@ -69,8 +69,8 @@ const AdminSalesPipeline = () => {
   });
 
   const updateStage = useMutation({
-    mutationFn: async ({ id, stage, lead }: { id: string; stage: string; lead?: any }) => {
-      const update: any = { stage };
+    mutationFn: async ({ id, stage, lead }: { id: string; stage: string; lead?: UnsafeAny }) => {
+      const update: UnsafeAny = { stage };
       if (stage === "won") {
         update.converted_at = new Date().toISOString();
       }
@@ -103,7 +103,7 @@ const AdminSalesPipeline = () => {
           company_name: convertData.company_name,
           email: convertData.email || null,
           phone: convertData.phone || null,
-          status: convertData.status as any,
+          status: convertData.status as UnsafeAny,
           user_id: user.id,
         })
         .select("id")
@@ -137,12 +137,12 @@ const AdminSalesPipeline = () => {
       setConvertLead(null);
       toast.success("Lead converted to company successfully!");
     },
-    onError: (err: any) => toast.error(err.message || "Conversion failed"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "Conversion failed"),
   });
 
-  const searchFields = useCallback((l: any) => [l.full_name, l.email, l.company_name, l.phone], []);
-  const statusField = useCallback((l: any) => l.stage, []);
-  const dateField = useCallback((l: any) => l.created_at, []);
+  const searchFields = useCallback((l: UnsafeAny) => [l.full_name, l.email, l.company_name, l.phone], []);
+  const statusField = useCallback((l: UnsafeAny) => l.stage, []);
+  const dateField = useCallback((l: UnsafeAny) => l.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
     data: leads, searchFields, statusField, dateField,
@@ -151,11 +151,11 @@ const AdminSalesPipeline = () => {
   // Apply source filter manually
   const sourceFilter = filterValues.source;
   const finalFiltered = sourceFilter && sourceFilter !== "all"
-    ? filtered.filter((l: any) => l.source === sourceFilter)
+    ? filtered.filter((l: UnsafeAny) => l.source === sourceFilter)
     : filtered;
 
   const stageCounts = STAGES.reduce((acc, s) => {
-    acc[s] = finalFiltered.filter((l: any) => l.stage === s).length;
+    acc[s] = finalFiltered.filter((l: UnsafeAny) => l.stage === s).length;
     return acc;
   }, {} as Record<string, number>);
 
@@ -237,7 +237,7 @@ const AdminSalesPipeline = () => {
             <tbody>
               {finalFiltered.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No leads match your filters</td></tr>
-              ) : finalFiltered.map((l: any) => (
+              ) : finalFiltered.map((l: UnsafeAny) => (
                 <tr key={l.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3">
                     <div className="text-xs font-medium text-white cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => setActivityLead(l)}>{l.full_name}</div>

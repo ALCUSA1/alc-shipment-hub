@@ -84,7 +84,7 @@ export function BookingCreateForm({ shipmentId, onSuccess }: BookingFormProps) {
     mutationFn: async () => {
       if (!carrierCode) throw new Error("Carrier code is required");
 
-      const payload: Record<string, any> = {
+      const payload: Record<string, UnsafeAny> = {
         receiptTypeAtOrigin: receiptType,
         deliveryTypeAtDestination: deliveryType,
         serviceContractReference: serviceContract || undefined,
@@ -148,15 +148,15 @@ export function BookingCreateForm({ shipmentId, onSuccess }: BookingFormProps) {
       toast.success("Booking submitted to carrier");
       onSuccess?.(data.booking_id);
     },
-    onError: (err: any) => toast.error(`Booking failed: ${err.message}`),
+    onError: (err: UnsafeAny) => toast.error(`Booking failed: ${err.message}`),
   });
 
   const addEquipment = () => setEquipments([...equipments, { isoCode: "22G1", units: 1, isShipperOwned: false, commodities: [{ hsCode: "", description: "", weight: "", weightUnit: "KGM", packages: "", packageCode: "" }] }]);
   const addParty = () => setParties([...parties, { role: "", name: "", address: "", city: "", country: "", contactName: "", email: "" }]);
 
-  const updateEquipment = (idx: number, field: keyof EquipmentLine, value: any) => {
+  const updateEquipment = (idx: number, field: keyof EquipmentLine, value: UnsafeAny) => {
     const updated = [...equipments];
-    (updated[idx] as any)[field] = value;
+    (updated[idx] as UnsafeAny)[field] = value;
     setEquipments(updated);
   };
 

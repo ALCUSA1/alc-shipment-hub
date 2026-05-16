@@ -13,13 +13,13 @@ interface Message {
 
 const SUGGESTIONS = [
   "What should I do next?",
-  "Are there any risks?",
+  "Are there UnsafeAny risks?",
   "Summarize this shipment",
   "Explain the current status",
 ];
 
 interface Props {
-  shipmentContext: Record<string, any>;
+  shipmentContext: Record<string, UnsafeAny>;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shipment-assistant`;
@@ -123,7 +123,7 @@ export function AiShipmentAssistant({ shipmentContext }: Props) {
 
     try {
       await streamChat(updatedMessages);
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       setMessages(prev => [...prev, { role: "assistant", content: `⚠️ ${e.message || "Something went wrong. Please try again."}` }]);
     }
     setIsLoading(false);

@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import type { ScoredSailing } from "./types";
 import { SailingReminderButton } from "./SailingReminderButton";
 
-const LABEL_CONFIG: Record<string, { bg: string; icon: any }> = {
+const LABEL_CONFIG: Record<string, { bg: string; icon: UnsafeAny }> = {
   Recommended: { bg: "bg-accent/10 text-accent border-accent/20", icon: Sparkles },
   "Best Price": { bg: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20", icon: TrendingDown },
   Fastest: { bg: "bg-amber-500/10 text-amber-700 border-amber-500/20", icon: Zap },

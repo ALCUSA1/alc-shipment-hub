@@ -42,7 +42,8 @@ const AdminCampaigns = () => {
 
   const addCampaign = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("email_campaigns").insert({ ...newCampaign, created_by: user?.id! });
+      if (!user?.id) throw new Error("User must be signed in to create campaigns");
+      const { error } = await supabase.from("email_campaigns").insert({ ...newCampaign, created_by: user.id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -67,9 +68,9 @@ const AdminCampaigns = () => {
 
   const stats = {
     total: campaigns?.length || 0,
-    sent: campaigns?.filter((c: any) => c.status === "sent").length || 0,
-    totalSent: campaigns?.reduce((sum: number, c: any) => sum + (c.sent_count || 0), 0) || 0,
-    totalOpens: campaigns?.reduce((sum: number, c: any) => sum + (c.open_count || 0), 0) || 0,
+    sent: campaigns?.filter((c: UnsafeAny) => c.status === "sent").length || 0,
+    totalSent: campaigns?.reduce((sum: number, c: UnsafeAny) => sum + (c.sent_count || 0), 0) || 0,
+    totalOpens: campaigns?.reduce((sum: number, c: UnsafeAny) => sum + (c.open_count || 0), 0) || 0,
   };
 
   return (
@@ -133,7 +134,7 @@ const AdminCampaigns = () => {
         <div className="space-y-3">
           {(campaigns || []).length === 0 ? (
             <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-12 text-center text-xs text-[hsl(220,10%,40%)]">No campaigns yet — create your first one above</div>
-          ) : (campaigns || []).map((c: any) => (
+          ) : (campaigns || []).map((c: UnsafeAny) => (
             <div key={c.id} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-lg bg-[hsl(220,15%,15%)] flex items-center justify-center shrink-0">

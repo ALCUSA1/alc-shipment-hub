@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
 
     const filing = filings[0];
 
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, UnsafeAny> = {};
     let milestoneLabel = "";
     let milestoneStatus = "completed";
     let milestoneNotes = "";
@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, filing_id: filing.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("aes-webhook error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
 
 // ─── Terminal49 Webhook Handler ─────────────────────────────────────────────
 
-async function handleTerminal49Webhook(supabase: any, body: any, req?: Request) {
+async function handleTerminal49Webhook(supabase: UnsafeAny, body: UnsafeAny, req?: Request) {
   try {
     const webhookSecret = Deno.env.get("TERMINAL49_WEBHOOK_SECRET");
     if (!webhookSecret) {
@@ -275,7 +275,7 @@ async function handleTerminal49Webhook(supabase: any, body: any, req?: Request) 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("Terminal49 webhook error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

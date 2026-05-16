@@ -33,18 +33,18 @@ const AdminDocuments = () => {
     },
   });
 
-  const searchFields = useCallback((d: any) => [
-    d.doc_type, (d.shipments as any)?.shipment_ref,
+  const searchFields = useCallback((d: UnsafeAny) => [
+    d.doc_type, (d.shipments as UnsafeAny)?.shipment_ref,
   ], []);
-  const statusField = useCallback((d: any) => d.status, []);
-  const dateField = useCallback((d: any) => d.created_at, []);
+  const statusField = useCallback((d: UnsafeAny) => d.status, []);
+  const dateField = useCallback((d: UnsafeAny) => d.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
     data: docs, searchFields, statusField, dateField,
   });
 
   const filtered = filterValues.docType && filterValues.docType !== "all"
-    ? preFiltered.filter((d: any) => d.doc_type === filterValues.docType)
+    ? preFiltered.filter((d: UnsafeAny) => d.doc_type === filterValues.docType)
     : preFiltered;
 
   return (
@@ -60,8 +60,8 @@ const AdminDocuments = () => {
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {[
           { label: "Total", value: filtered.length, color: "text-white" },
-          { label: "Pending", value: filtered.filter((d: any) => d.status === "pending").length, color: "text-amber-400" },
-          { label: "Approved", value: filtered.filter((d: any) => d.status === "approved").length, color: "text-emerald-400" },
+          { label: "Pending", value: filtered.filter((d: UnsafeAny) => d.status === "pending").length, color: "text-amber-400" },
+          { label: "Approved", value: filtered.filter((d: UnsafeAny) => d.status === "approved").length, color: "text-emerald-400" },
         ].map(m => (
           <div key={m.label} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">{m.label}</p>
@@ -98,9 +98,9 @@ const AdminDocuments = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No documents match your filters</td></tr>
-              ) : filtered.map((d: any) => (
+              ) : filtered.map((d: UnsafeAny) => (
                 <tr key={d.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{(d.shipments as any)?.shipment_ref || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-medium text-white">{(d.shipments as UnsafeAny)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{getDocLabel(d.doc_type)}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{format(new Date(d.created_at), "MMM d, yyyy")}</td>
                   <td className="px-4 py-3 text-center"><Badge variant="outline" className="text-[10px]">{d.status}</Badge></td>

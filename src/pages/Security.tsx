@@ -34,7 +34,7 @@ const sections = [
   {
     icon: Scale,
     title: "Compliance & Privacy",
-    body: "User data is handled in accordance with GDPR data protection principles. Users can request account deletion, export their personal data, and update personal information at any time. Consent management and data minimization practices are applied across all data collection points. The platform does not sell or share user data with third parties.",
+    body: "User data is handled in accordance with GDPR data protection principles. Users can request account deletion, export their personal data, and update personal information at UnsafeAny time. Consent management and data minimization practices are applied across all data collection points. The platform does not sell or share user data with third parties.",
   },
   {
     icon: AlertTriangle,

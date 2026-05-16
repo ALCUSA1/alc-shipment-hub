@@ -186,7 +186,7 @@ export function SimulationPanel() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Competition Level</Label>
-                <Select value={input.competitionLevel} onValueChange={v => update("competitionLevel", v as any)}>
+                <Select value={input.competitionLevel} onValueChange={v => update("competitionLevel", v as UnsafeAny)}>
                   <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Low</SelectItem>
@@ -197,7 +197,7 @@ export function SimulationPanel() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Urgency</Label>
-                <Select value={input.urgency} onValueChange={v => update("urgency", v as any)}>
+                <Select value={input.urgency} onValueChange={v => update("urgency", v as UnsafeAny)}>
                   <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="standard">Standard</SelectItem>

@@ -89,7 +89,7 @@ export function BookingIntelligenceBanner({ origin, destination, mode, carrier, 
         });
         if (fnError) throw fnError;
         setIntelligence(data as Intelligence);
-      } catch (err: any) {
+      } catch (err: UnsafeAny) {
         console.error("Intelligence fetch error:", err);
         setError("Intelligence unavailable");
       } finally {

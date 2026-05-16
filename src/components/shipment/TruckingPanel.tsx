@@ -95,7 +95,7 @@ export function TruckingPanel({ shipmentId, shipmentStatus }: TruckingPanelProps
       queryClient.invalidateQueries({ queryKey: ["trucking_quotes_panel", shipmentId] });
       toast({ title: status === "accepted" ? "Quote accepted" : "Quote rejected" });
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Failed to update", description: err.message, variant: "destructive" });
     },
   });

@@ -52,9 +52,9 @@ serve(async (req) => {
     if (error) throw error;
 
     // Determine weight break for each rate
-    const enrichedRates = (rates || []).map((r: any) => {
+    const enrichedRates = (rates || []).map((r: UnsafeAny) => {
       const surcharges = Array.isArray(r.surcharges) ? r.surcharges : [];
-      const totalPerKg = r.base_rate + surcharges.reduce((s: number, sc: any) => s + (sc.amount || 0), 0);
+      const totalPerKg = r.base_rate + surcharges.reduce((s: number, sc: UnsafeAny) => s + (sc.amount || 0), 0);
       const estimatedTotal = weight_kg ? totalPerKg * weight_kg : null;
 
       return {
@@ -76,7 +76,7 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("fetch-air-rates error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

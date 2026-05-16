@@ -43,8 +43,8 @@ export function PortSelector({ ports, value, onValueChange, placeholder = "Selec
       const codes = new Set<string>();
       data.forEach(s => {
         if (isAir) {
-          if ((s as any).airport_of_departure) codes.add((s as any).airport_of_departure);
-          if ((s as any).airport_of_destination) codes.add((s as any).airport_of_destination);
+          if ((s as UnsafeAny).airport_of_departure) codes.add((s as UnsafeAny).airport_of_departure);
+          if ((s as UnsafeAny).airport_of_destination) codes.add((s as UnsafeAny).airport_of_destination);
         }
         if (s.origin_port) codes.add(s.origin_port);
         if (s.destination_port) codes.add(s.destination_port);

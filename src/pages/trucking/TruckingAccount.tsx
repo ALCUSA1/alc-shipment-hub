@@ -54,7 +54,7 @@ const TruckingAccount = () => {
       toast({ title: "Profile updated" });
       queryClient.invalidateQueries({ queryKey: ["trucker-profile"] });
     },
-    onError: (error: any) => {
+    onError: (error: UnsafeAny) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });

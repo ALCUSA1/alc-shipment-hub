@@ -33,7 +33,7 @@ const statusBadge: Record<string, string> = {
 const CustomerPortal = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [selectedQuote, setSelectedQuote] = useState<UnsafeAny>(null);
 
   const { data: shipments = [], isLoading: loadingShipments } = useQuery({
     queryKey: ["portal-shipments", user?.id],
@@ -320,7 +320,7 @@ const CustomerPortal = () => {
   );
 };
 
-function SummaryCard({ icon: Icon, label, value }: { icon: any; label: string; value: number }) {
+function SummaryCard({ icon: Icon, label, value }: { icon: UnsafeAny; label: string; value: number }) {
   return (
     <Card>
       <CardContent className="pt-5 pb-4 flex items-center gap-3">

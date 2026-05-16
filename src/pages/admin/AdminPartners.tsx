@@ -22,8 +22,8 @@ const AdminPartners = () => {
     },
   });
 
-  const searchFields = useCallback((c: any) => [
-    c.full_name, c.email, c.phone, c.role, (c.companies as any)?.company_name,
+  const searchFields = useCallback((c: UnsafeAny) => [
+    c.full_name, c.email, c.phone, c.role, (c.companies as UnsafeAny)?.company_name,
   ], []);
 
   const { search, setSearch, filtered } = useAdminFilters({
@@ -63,10 +63,10 @@ const AdminPartners = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No contacts match your search</td></tr>
-              ) : filtered.map((c: any) => (
+              ) : filtered.map((c: UnsafeAny) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{c.full_name}</td>
-                  <td className="px-4 py-3 text-xs">{(c.companies as any)?.company_name ? <Link to={`/admin/crm/${c.company_id}`} className="text-indigo-400 hover:text-indigo-300">{(c.companies as any).company_name}</Link> : "—"}</td>
+                  <td className="px-4 py-3 text-xs">{(c.companies as UnsafeAny)?.company_name ? <Link to={`/admin/crm/${c.company_id}`} className="text-indigo-400 hover:text-indigo-300">{(c.companies as UnsafeAny).company_name}</Link> : "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.role}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.email || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{c.phone || "—"}</td>

@@ -114,7 +114,7 @@ const Onboarding = () => {
         .trim();
 
     const target = normalize(trimmedName);
-    const conflict = (existingCompanies || []).find((c: any) => normalize(c.company_name) === target);
+    const conflict = (existingCompanies || []).find((c: UnsafeAny) => normalize(c.company_name) === target);
     if (conflict) {
       toast({
         title: "Company already exists",

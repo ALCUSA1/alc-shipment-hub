@@ -91,7 +91,7 @@ export function DealScorePanel({
     };
   }, [netProfit, platformRetained, netMargin, sellPrice, trueCost, customerType, urgency, hasComplexRouting, missingDocs]);
 
-  const SubScore = ({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) => (
+  const SubScore = ({ label, value, icon: Icon, color }: { label: string; value: number; icon: UnsafeAny; color: string }) => (
     <div className="flex items-center gap-2">
       <Icon className={`h-3 w-3 ${color} shrink-0`} />
       <div className="flex-1">

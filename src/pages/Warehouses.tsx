@@ -40,9 +40,9 @@ const Warehouses = () => {
     enabled: !!user,
   });
 
-  const inboundOrders = orders.filter((o: any) => o.order_type === "inbound");
-  const outboundOrders = orders.filter((o: any) => o.order_type === "release" || o.order_type === "outbound");
-  const activeOrders = orders.filter((o: any) => !["completed", "cancelled"].includes(o.status));
+  const inboundOrders = orders.filter((o: UnsafeAny) => o.order_type === "inbound");
+  const outboundOrders = orders.filter((o: UnsafeAny) => o.order_type === "release" || o.order_type === "outbound");
+  const activeOrders = orders.filter((o: UnsafeAny) => !["completed", "cancelled"].includes(o.status));
 
   const stats = {
     total: orders.length,
@@ -51,7 +51,7 @@ const Warehouses = () => {
     outbound: outboundOrders.length,
   };
 
-  const OrderCard = ({ order }: { order: any }) => (
+  const OrderCard = ({ order }: { order: UnsafeAny }) => (
     <Link
       to={`/dashboard/shipments/${order.shipment_id}`}
       className="block p-4 rounded-lg border hover:bg-secondary/50 transition-colors"
@@ -59,12 +59,12 @@ const Warehouses = () => {
       <div className="flex items-start justify-between mb-2">
         <div>
           <span className="text-sm font-medium text-foreground">
-            {(order.shipments as any)?.shipment_ref || "—"}
+            {(order.shipments as UnsafeAny)?.shipment_ref || "—"}
           </span>
-          {(order.warehouses as any)?.warehouse_name && (
+          {(order.warehouses as UnsafeAny)?.warehouse_name && (
             <span className="text-xs text-muted-foreground ml-2">
-              • {(order.warehouses as any).warehouse_name}
-              {(order.warehouses as any).city && `, ${(order.warehouses as any).city}`}
+              • {(order.warehouses as UnsafeAny).warehouse_name}
+              {(order.warehouses as UnsafeAny).city && `, ${(order.warehouses as UnsafeAny).city}`}
             </span>
           )}
         </div>
@@ -174,7 +174,7 @@ const Warehouses = () => {
                 <EmptyState message="No warehouse orders yet." sub="Warehouse orders are created from the shipment detail page." />
               ) : (
                 <div className="space-y-3">
-                  {orders.map((o: any) => <OrderCard key={o.id} order={o} />)}
+                  {orders.map((o: UnsafeAny) => <OrderCard key={o.id} order={o} />)}
                 </div>
               )}
             </CardContent>
@@ -192,7 +192,7 @@ const Warehouses = () => {
                 <EmptyState message="No inbound orders." sub="Inbound orders track cargo arriving at the warehouse." />
               ) : (
                 <div className="space-y-3">
-                  {inboundOrders.map((o: any) => <OrderCard key={o.id} order={o} />)}
+                  {inboundOrders.map((o: UnsafeAny) => <OrderCard key={o.id} order={o} />)}
                 </div>
               )}
             </CardContent>
@@ -210,7 +210,7 @@ const Warehouses = () => {
                 <EmptyState message="No outbound orders." sub="Release orders authorize cargo pickup from the warehouse." />
               ) : (
                 <div className="space-y-3">
-                  {outboundOrders.map((o: any) => <OrderCard key={o.id} order={o} />)}
+                  {outboundOrders.map((o: UnsafeAny) => <OrderCard key={o.id} order={o} />)}
                 </div>
               )}
             </CardContent>

@@ -40,8 +40,8 @@ export function RoutingSection({ data, onChange, ports, mode = "ocean" }: Props)
   const isAir = mode === "air";
 
   const filteredPorts = ports.filter(p => {
-    if (isAir) return (p as any).type === "air";
-    return (p as any).type === "sea" || !(p as any).type;
+    if (isAir) return (p as UnsafeAny).type === "air";
+    return (p as UnsafeAny).type === "sea" || !(p as UnsafeAny).type;
   });
 
   if (isAir) {

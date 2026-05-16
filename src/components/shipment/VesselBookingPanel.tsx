@@ -131,7 +131,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
       setLegs([emptyLeg(1, "feeder"), emptyLeg(2, "main")]);
       toast.success("Vessel booking created");
     },
-    onError: (err: any) => toast.error(err.message || "Failed to create booking"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "Failed to create booking"),
   });
 
   const updateStatus = useMutation({
@@ -158,7 +158,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
 
   const submitToCarrier = useMutation({
     mutationFn: async (bookingId: string) => {
-      const booking = bookings?.find((b: any) => b.id === bookingId);
+      const booking = bookings?.find((b: UnsafeAny) => b.id === bookingId);
       if (!booking) throw new Error("Booking not found");
 
       const { data, error } = await supabase.functions.invoke("carrier-booking", {
@@ -180,7 +180,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
       queryClient.invalidateQueries({ queryKey: ["vessel-bookings", shipmentId] });
       toast.success("Booking submitted to carrier via EDI");
     },
-    onError: (err: any) => toast.error(err.message || "EDI submission failed"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "EDI submission failed"),
   });
 
   const syncFromE2Open = useMutation({
@@ -200,7 +200,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
       const synced = data?.synced?.join(", ") || "data";
       toast.success(`Synced from e2open: ${synced}`);
     },
-    onError: (err: any) => toast.error(err.message || "e2open sync failed"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "e2open sync failed"),
   });
 
   const updateLeg = (index: number, field: string, value: string) => {
@@ -373,8 +373,8 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
         <p className={`text-xs text-center py-6 ${textSecondary}`}>No vessel bookings yet. Create one to start.</p>
       ) : (
         <div className="space-y-3">
-          {bookings.map((b: any) => {
-            const sortedLegs = [...(b.booking_legs || [])].sort((a: any, b: any) => a.leg_order - b.leg_order);
+          {bookings.map((b: UnsafeAny) => {
+            const sortedLegs = [...(b.booking_legs || [])].sort((a: UnsafeAny, b: UnsafeAny) => a.leg_order - b.leg_order);
             return (
               <div key={b.id} className={`rounded-lg border ${isAdmin ? "border-[hsl(220,15%,15%)] bg-[hsl(220,15%,8%)]" : "border-border bg-muted/30"} p-3`}>
                 <div className="flex items-center justify-between mb-2">
@@ -401,7 +401,7 @@ export function VesselBookingPanel({ shipmentId, variant = "shipper", bookingRef
                 {/* Voyage legs timeline */}
                 {sortedLegs.length > 0 && (
                   <div className="mt-2 space-y-1">
-                    {sortedLegs.map((leg: any, i: number) => (
+                    {sortedLegs.map((leg: UnsafeAny, i: number) => (
                       <div key={leg.id} className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
                           leg.leg_type === "feeder" ? "bg-cyan-500/15 text-cyan-400" : "bg-blue-500/15 text-blue-400"

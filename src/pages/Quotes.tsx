@@ -96,10 +96,10 @@ const Quotes = () => {
 
   const handleMarkPaid = async (quoteId: string) => {
     try {
-      await supabase.from("quotes").update({ payment_status: "paid" } as any).eq("id", quoteId);
+      await supabase.from("quotes").update({ payment_status: "paid" } as UnsafeAny).eq("id", quoteId);
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       toast({ title: "Payment recorded", description: "Quote marked as paid. Documents can now be released." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
@@ -119,7 +119,7 @@ const Quotes = () => {
       if (data?.url) {
         window.open(data.url, "_blank");
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment error", description: err.message, variant: "destructive" });
     }
   };
@@ -216,13 +216,13 @@ const Quotes = () => {
         status: "booked",
         shipment_id: shipment.id,
         payment_status: "unpaid",
-      } as any).eq("id", quote.id);
+      } as UnsafeAny).eq("id", quote.id);
 
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       toast({ title: "Booking Created", description: "Shipment booked from approved quote. You can now manage it in the workspace." });
       setConvertDialogQuote(null);
       navigate(`/dashboard/shipments/${shipment.id}`);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Booking failed", description: err.message, variant: "destructive" });
     } finally {
       setConvertingId(null);

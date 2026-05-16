@@ -21,7 +21,7 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
     if (!userId) return;
 
     const channelName = `global-new-messages-${userId}`;
-    // Remove any existing channel with this name to prevent duplicate subscription errors
+    // Remove UnsafeAny existing channel with this name to prevent duplicate subscription errors
     const existing = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
     if (existing) {
       supabase.removeChannel(existing);
@@ -33,7 +33,7 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         async (payload) => {
-          const msg = payload.new as any;
+          const msg = payload.new as UnsafeAny;
 
           // Ignore own messages
           if (msg.sender_id === userId) return;
@@ -68,7 +68,9 @@ export function useMessageNotifications({ userId, activeConversationId, currentU
             const audio = new Audio("data:audio/wav;base64,UklGRl9vT19teleXBldGVyZQBkYXRhAA==");
             audio.volume = 0.3;
             audio.play().catch(() => {});
-          } catch {}
+          } catch {
+        // Ignore notification-sound playback failures; the visual notification still appears.
+      }
         }
       )
       .subscribe();

@@ -20,7 +20,7 @@ const json = (body: unknown, status = 200) =>
 /* ─── helpers ─── */
 
 /** Pick first non-nullish value from candidate keys (camelCase + snake_case) */
-const pick = (obj: Record<string, any> | null | undefined, ...keys: string[]) => {
+const pick = (obj: Record<string, UnsafeAny> | null | undefined, ...keys: string[]) => {
   if (!obj) return null;
   for (const k of keys) {
     if (obj[k] != null) return obj[k];
@@ -32,7 +32,7 @@ const pick = (obj: Record<string, any> | null | undefined, ...keys: string[]) =>
 };
 
 /** Resolve or create a normalized location, returns id */
-async function resolveLocation(loc: any): Promise<string | null> {
+async function resolveLocation(loc: UnsafeAny): Promise<string | null> {
   if (!loc) return null;
   if (typeof loc === "string") {
     const { data: byName } = await supabase
@@ -76,7 +76,7 @@ async function resolveLocation(loc: any): Promise<string | null> {
 }
 
 /** Resolve or create a vessel record, returns id */
-async function resolveVessel(v: any, carrierId: string): Promise<string | null> {
+async function resolveVessel(v: UnsafeAny, carrierId: string): Promise<string | null> {
   if (!v) return null;
   const vesselName = typeof v === "string" ? v : pick(v, "vesselName", "name");
   if (!vesselName) return null;
@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
 
       return json({ success: true, raw_message_id: rawId, ...result });
-    } catch (txErr: any) {
+    } catch (txErr: UnsafeAny) {
       await supabase.from("integration_jobs")
         .update({ job_status: "failed", last_error: txErr.message, completed_at: new Date().toISOString() })
         .eq("id", job.id);
@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
       throw txErr;
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("td-ingest error:", err);
     return json({ error: err.message }, 500);
   }
@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
    Transform raw carrier TD payload → ALC canonical tables
    ═══════════════════════════════════════════════════════════════ */
 
-async function transformTransportDocument(carrierId: string, rawId: string, p: Record<string, any>) {
+async function transformTransportDocument(carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   // ── Extract canonical TD fields ──
   const tdRef = pick(p, "transportDocumentReference", "tdReference");
   const blNumber = pick(p, "billOfLadingNumber", "blNumber");
@@ -314,7 +314,7 @@ async function transformTransportDocument(carrierId: string, rawId: string, p: R
     shipmentId = newShip?.id ?? null;
   } else {
     // Update shipment with latest location and link data
-    const updates: Record<string, any> = { shipping_instruction_id: siId };
+    const updates: Record<string, UnsafeAny> = { shipping_instruction_id: siId };
     if (originLocId) updates.origin_location_id = originLocId;
     if (polLocId) updates.pol_location_id = polLocId;
     if (podLocId) updates.pod_location_id = podLocId;
@@ -408,12 +408,12 @@ interface Ctx {
 /* ─── child record writers ─── */
 
 async function writeReferences(
-  ctx: Ctx, p: Record<string, any>,
+  ctx: Ctx, p: Record<string, UnsafeAny>,
   tdRef: string | null, blNumber: string | null, bookingRef: string | null, siRef: string | null
 ) {
   if (!ctx.tdId) return;
 
-  const refs: any[] = [];
+  const refs: UnsafeAny[] = [];
   if (blNumber) refs.push({ reference_type: "bill_of_lading", reference_value: blNumber, is_primary: true });
   if (tdRef && tdRef !== blNumber) refs.push({ reference_type: "transport_document", reference_value: tdRef, is_primary: !blNumber });
   if (bookingRef) refs.push({ reference_type: "booking_number", reference_value: bookingRef, is_primary: false });
@@ -450,13 +450,13 @@ async function writeReferences(
   );
 }
 
-async function writeParties(ctx: Ctx, p: Record<string, any>) {
+async function writeParties(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const parties = pick(p, "documentParties", "parties") || [];
   if (!Array.isArray(parties) || !parties.length || !ctx.tdId) return;
 
   await supabase.from("shipment_parties").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = parties.map((pt: any) => {
+  const rows = parties.map((pt: UnsafeAny) => {
     // Handle nested party structure: { party: {...}, partyFunction: "OS" }
     const partyObj = pick(pt, "party") || pt;
     const role = pick(pt, "partyFunction", "role", "partyRole") || "unknown";
@@ -499,13 +499,13 @@ async function writeParties(ctx: Ctx, p: Record<string, any>) {
   await supabase.from("shipment_parties").insert(rows);
 }
 
-async function writeConsignmentItems(ctx: Ctx, p: Record<string, any>) {
+async function writeConsignmentItems(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const items = pick(p, "consignmentItems") || [];
   if (!Array.isArray(items) || !items.length || !ctx.tdId) return;
 
   await supabase.from("transport_document_consignment_items").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = items.map((ci: any, idx: number) => ({
+  const rows = items.map((ci: UnsafeAny, idx: number) => ({
     transport_document_id: ctx.tdId,
     alc_carrier_id: ctx.carrierId,
     source_message_id: ctx.rawId,
@@ -524,13 +524,13 @@ async function writeConsignmentItems(ctx: Ctx, p: Record<string, any>) {
   await supabase.from("transport_document_consignment_items").insert(rows);
 }
 
-async function writeCargo(ctx: Ctx, p: Record<string, any>) {
+async function writeCargo(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const items = pick(p, "cargoItems", "cargo", "commodities") || [];
   if (!Array.isArray(items) || !items.length || !ctx.tdId) return;
 
   await supabase.from("cargo_details").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = items.map((cl: any, idx: number) => ({
+  const rows = items.map((cl: UnsafeAny, idx: number) => ({
     transport_document_id: ctx.tdId,
     shipping_instruction_id: ctx.siId,
     booking_id: ctx.bookingId,
@@ -551,18 +551,18 @@ async function writeCargo(ctx: Ctx, p: Record<string, any>) {
   await supabase.from("cargo_details").insert(rows);
 }
 
-async function writeEquipment(ctx: Ctx, p: Record<string, any>) {
+async function writeEquipment(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const items = pick(p, "utilizedTransportEquipments", "equipments", "containers") || [];
   if (!Array.isArray(items) || !items.length || !ctx.tdId) return;
 
   await supabase.from("transport_document_equipments").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = items.map((eq: any) => {
+  const rows = items.map((eq: UnsafeAny) => {
     // Handle nested equipment structure: { equipment: { equipmentReference: "..." }, seals: [...] }
     const eqObj = pick(eq, "equipment") || eq;
     const seals = pick(eq, "seals") || pick(eqObj, "seals");
     const sealStr = Array.isArray(seals) && seals.length
-      ? seals.map((s: any) => pick(s, "sealNumber", "number") || (typeof s === "string" ? s : "")).filter(Boolean).join(", ")
+      ? seals.map((s: UnsafeAny) => pick(s, "sealNumber", "number") || (typeof s === "string" ? s : "")).filter(Boolean).join(", ")
       : pick(eqObj, "sealNumber");
 
     return {
@@ -590,7 +590,7 @@ async function writeEquipment(ctx: Ctx, p: Record<string, any>) {
   await supabase.from("transport_document_equipments").insert(rows);
 }
 
-async function writeTransportPlan(ctx: Ctx, p: Record<string, any>) {
+async function writeTransportPlan(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const legs = pick(p, "transports", "transportPlan", "transportLegs", "routing") || [];
   if (!Array.isArray(legs) || !legs.length || !ctx.tdId) return;
 
@@ -629,13 +629,13 @@ async function writeTransportPlan(ctx: Ctx, p: Record<string, any>) {
   if (rows.length) await supabase.from("transport_plans").insert(rows);
 }
 
-async function writeCharges(ctx: Ctx, p: Record<string, any>) {
+async function writeCharges(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const items = pick(p, "charges", "freightCharges") || [];
   if (!Array.isArray(items) || !items.length || !ctx.tdId) return;
 
   await supabase.from("transport_document_charges").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = items.map((ch: any) => ({
+  const rows = items.map((ch: UnsafeAny) => ({
     transport_document_id: ctx.tdId,
     alc_carrier_id: ctx.carrierId,
     source_message_id: ctx.rawId,
@@ -650,13 +650,13 @@ async function writeCharges(ctx: Ctx, p: Record<string, any>) {
   await supabase.from("transport_document_charges").insert(rows);
 }
 
-async function writeInstructions(ctx: Ctx, p: Record<string, any>) {
+async function writeInstructions(ctx: Ctx, p: Record<string, UnsafeAny>) {
   const items = pick(p, "clauses", "documentClauses", "instructions", "termsAndConditions") || [];
   if (!Array.isArray(items) || !items.length || !ctx.tdId) return;
 
   await supabase.from("transport_document_instructions").delete().eq("transport_document_id", ctx.tdId);
 
-  const rows = items.map((cl: any) => ({
+  const rows = items.map((cl: UnsafeAny) => ({
     transport_document_id: ctx.tdId,
     alc_carrier_id: ctx.carrierId,
     source_message_id: ctx.rawId,

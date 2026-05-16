@@ -66,7 +66,7 @@ export function HsCodeAutocomplete({ value, commodity, onChange, className, plac
     try {
       const isNumeric = /^[\d.]+$/.test(search);
       let q = supabase
-        .from("hs_code_reference" as any)
+        .from("hs_code_reference" as UnsafeAny)
         .select("code, description, duty_rate, category")
         .limit(15);
 
@@ -77,7 +77,7 @@ export function HsCodeAutocomplete({ value, commodity, onChange, className, plac
       }
 
       const { data } = await q;
-      setRefCodes((data || []).map((d: any) => ({
+      setRefCodes((data || []).map((d: UnsafeAny) => ({
         code: d.code,
         description: d.description,
         duty_rate: d.duty_rate,

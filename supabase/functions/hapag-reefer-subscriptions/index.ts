@@ -47,7 +47,7 @@ async function hlagFetch(path: string, init: RequestInit) {
     try { text = await res.clone().text(); } catch { /* ignore */ }
     let json: unknown = null;
     try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
-    return { ok: res.ok, status: res.status, body: (json ?? text) as any };
+    return { ok: res.ok, status: res.status, body: (json ?? text) as UnsafeAny };
   } catch (e) {
     return { ok: false, status: 0, body: (e as Error).message };
   } finally {
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: userData } = token
       ? await userClient.auth.getUser(token)
-      : ({ data: { user: null } } as any);
+      : ({ data: { user: null } } as UnsafeAny);
     const userId = userData?.user?.id;
 
     const body = (await req.json()) as Body;

@@ -74,9 +74,9 @@ export function HlagLiveTelemetryTab({
     return () => { supabase.removeChannel(ch); };
   }, [shipmentId, qc]);
 
-  const activeSub = subs.find((s: any) => s.status === "active") || subs[0];
-  const reeferEvents = useMemo(() => events.filter((e: any) => e.feed_type === "reefer"), [events]);
-  const iotEvents = useMemo(() => events.filter((e: any) => e.feed_type === "iot"), [events]);
+  const activeSub = subs.find((s: UnsafeAny) => s.status === "active") || subs[0];
+  const reeferEvents = useMemo(() => events.filter((e: UnsafeAny) => e.feed_type === "reefer"), [events]);
+  const iotEvents = useMemo(() => events.filter((e: UnsafeAny) => e.feed_type === "iot"), [events]);
   const latestReefer = reeferEvents[0];
   const latestIot = iotEvents[0];
 
@@ -84,7 +84,7 @@ export function HlagLiveTelemetryTab({
     return [...reeferEvents]
       .reverse()
       .slice(-50)
-      .map((e: any) => ({
+      .map((e: UnsafeAny) => ({
         time: format(new Date(e.event_datetime), "HH:mm"),
         temp: e.temperature_celsius,
         humidity: e.humidity_percent,
@@ -117,7 +117,7 @@ export function HlagLiveTelemetryTab({
           : `Live ${feed === "reefer" ? "telemetry" : "position"} feed is active.`,
       });
       qc.invalidateQueries({ queryKey: ["hlag-live-subs", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Failed to subscribe", description: err.message, variant: "destructive" });
     } finally {
       setBusy(false);
@@ -134,7 +134,7 @@ export function HlagLiveTelemetryTab({
       if (error) throw error;
       toast({ title: "Subscription cancelled" });
       qc.invalidateQueries({ queryKey: ["hlag-live-subs", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Failed to cancel", description: err.message, variant: "destructive" });
     } finally {
       setBusy(false);
@@ -191,7 +191,7 @@ export function HlagLiveTelemetryTab({
             </div>
           ) : (
             <div className="space-y-2">
-              {subs.map((s: any) => (
+              {subs.map((s: UnsafeAny) => (
                 <div key={s.id} className="flex items-center justify-between border rounded-lg px-3 py-2 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.status === "active" ? <Wifi className="h-4 w-4 text-accent" /> : <WifiOff className="h-4 w-4 text-muted-foreground" />}
@@ -212,12 +212,12 @@ export function HlagLiveTelemetryTab({
                 </div>
               ))}
               <div className="flex gap-2 pt-2">
-                {!subs.some((s: any) => s.feed_type === "reefer" && s.status === "active") && (
+                {!subs.some((s: UnsafeAny) => s.feed_type === "reefer" && s.status === "active") && (
                   <Button size="sm" variant="outline" onClick={() => subscribe("reefer")} disabled={busy || !bookingRef}>
                     <Thermometer className="h-3.5 w-3.5 mr-1.5" /> Add Reefer
                   </Button>
                 )}
-                {!subs.some((s: any) => s.feed_type === "iot" && s.status === "active") && (
+                {!subs.some((s: UnsafeAny) => s.feed_type === "iot" && s.status === "active") && (
                   <Button size="sm" variant="outline" onClick={() => subscribe("iot")} disabled={busy || !bookingRef}>
                     <MapPin className="h-3.5 w-3.5 mr-1.5" /> Add Position
                   </Button>
@@ -293,7 +293,7 @@ export function HlagLiveTelemetryTab({
             </div>
           ) : (
             <div className="space-y-1.5 max-h-96 overflow-y-auto">
-              {events.slice(0, 50).map((e: any) => (
+              {events.slice(0, 50).map((e: UnsafeAny) => (
                 <div key={e.id} className="flex items-center justify-between border-b border-border/50 py-1.5 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     <Badge variant="outline" className="text-xs capitalize">{e.feed_type}</Badge>
@@ -320,7 +320,7 @@ export function HlagLiveTelemetryTab({
   );
 }
 
-function MetricCard({ icon: Icon, label, value, sub }: any) {
+function MetricCard({ icon: Icon, label, value, sub }: UnsafeAny) {
   return (
     <Card>
       <CardContent className="p-3">

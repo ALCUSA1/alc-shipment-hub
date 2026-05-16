@@ -56,10 +56,10 @@ const ComplianceReviewPanel = () => {
   });
 
   const getProfile = (userId: string) =>
-    (profiles || []).find((p: any) => p.user_id === userId);
+    (profiles || []).find((p: UnsafeAny) => p.user_id === userId);
 
-  const pendingReviews = (reviews || []).filter((r: any) => r.status === "pending_review" || r.status === "info_requested");
-  const completedReviews = (reviews || []).filter((r: any) => r.status === "approved" || r.status === "rejected");
+  const pendingReviews = (reviews || []).filter((r: UnsafeAny) => r.status === "pending_review" || r.status === "info_requested");
+  const completedReviews = (reviews || []).filter((r: UnsafeAny) => r.status === "approved" || r.status === "rejected");
 
   const handleApprove = async (reviewId: string) => {
     setProcessing(reviewId);
@@ -75,7 +75,7 @@ const ComplianceReviewPanel = () => {
       if (error) throw error;
       toast.success("Compliance review approved");
       queryClient.invalidateQueries({ queryKey: ["admin-compliance-reviews"] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to approve");
     } finally {
       setProcessing(null);
@@ -104,14 +104,14 @@ const ComplianceReviewPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-compliance-reviews"] });
       setDialogId(null);
       setAdminNotes("");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to update review");
     } finally {
       setProcessing(null);
     }
   };
 
-  const detailReview = detailId ? (reviews || []).find((r: any) => r.id === detailId) : null;
+  const detailReview = detailId ? (reviews || []).find((r: UnsafeAny) => r.id === detailId) : null;
 
   if (isLoading) {
     return (
@@ -138,7 +138,7 @@ const ComplianceReviewPanel = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {pendingReviews.map((review: any) => {
+            {pendingReviews.map((review: UnsafeAny) => {
               const profile = getProfile(review.user_id);
               return (
                 <div
@@ -232,7 +232,7 @@ const ComplianceReviewPanel = () => {
             Recent Decisions ({completedReviews.length})
           </h3>
           <div className="space-y-2">
-            {completedReviews.slice(0, 10).map((review: any) => {
+            {completedReviews.slice(0, 10).map((review: UnsafeAny) => {
               const profile = getProfile(review.user_id);
               return (
                 <div

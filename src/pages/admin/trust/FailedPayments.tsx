@@ -16,14 +16,14 @@ export default function FailedPayments() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
+      const { data } = await (supabase as UnsafeAny)
         .from("payments")
         .select("user_id, amount, created_at")
         .eq("status", "failed")
         .order("created_at", { ascending: false })
         .limit(1000);
       const map = new Map<string, Row>();
-      for (const p of (data || []) as any[]) {
+      for (const p of (data || []) as UnsafeAny[]) {
         const k = p.user_id || "unknown";
         const cur = map.get(k) || { user_id: p.user_id, count: 0, total: 0, last_at: null };
         cur.count += 1;

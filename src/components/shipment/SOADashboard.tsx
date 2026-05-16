@@ -77,8 +77,8 @@ export function SOADashboard() {
       const status = paidAmount >= f.amount ? "paid" : paidAmount > 0 ? "partial" : agingDays > 30 ? "overdue" : "unpaid";
       return {
         ...f,
-        shipmentRef: (f.shipments as any)?.shipment_ref || "—",
-        route: `${(f.shipments as any)?.origin_port || "—"} → ${(f.shipments as any)?.destination_port || "—"}`,
+        shipmentRef: (f.shipments as UnsafeAny)?.shipment_ref || "—",
+        route: `${(f.shipments as UnsafeAny)?.origin_port || "—"} → ${(f.shipments as UnsafeAny)?.destination_port || "—"}`,
         agingDays: Math.max(0, agingDays),
         paidAmount,
         outstanding: Math.max(0, f.amount - paidAmount),

@@ -25,7 +25,7 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
  * Returns true if no restriction is defined for the path (open to all authenticated users).
  */
 export function canAccessRoute(path: string, userRoles: AppRole[]): boolean {
-  // Users with no roles can only access unrestricted routes — deny any role-gated path
+  // Users with no roles can only access unrestricted routes — deny UnsafeAny role-gated path
   if (userRoles.length === 0) {
     const isRestricted = Object.keys(ROUTE_PERMISSIONS).some((prefix) => path.startsWith(prefix));
     return !isRestricted;

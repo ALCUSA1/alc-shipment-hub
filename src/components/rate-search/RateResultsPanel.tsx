@@ -391,7 +391,7 @@ export function RateResultsPanel({ rates, origin, destination, containerSize, mo
                             const draft = await createShipmentDraft(rateSelection);
                             toast.success(`Shipment ${draft.shipment_ref} created!`);
                             navigate(`/book?step=details&id=${draft.id}`);
-                          } catch (err: any) {
+                          } catch (err: UnsafeAny) {
                             toast.error(err.message || "Failed to create shipment");
                             setBookingRateId(null);
                           }

@@ -39,8 +39,8 @@ const AdminDashboard = () => {
       }
 
       const totalRevenue = allQuotes
-        .filter((q: any) => q.status === "accepted" || q.status === "converted")
-        .reduce((sum: number, q: any) => sum + (q.customer_price || 0), 0);
+        .filter((q: UnsafeAny) => q.status === "accepted" || q.status === "converted")
+        .reduce((sum: number, q: UnsafeAny) => sum + (q.customer_price || 0), 0);
 
       return {
         userCount: profiles.count || 0,

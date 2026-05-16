@@ -22,7 +22,7 @@ const statusStyles: Record<string, string> = {
 
 const TruckingQuotes = () => {
   const { user } = useAuth();
-  const [assignQuote, setAssignQuote] = useState<any>(null);
+  const [assignQuote, setAssignQuote] = useState<UnsafeAny>(null);
 
   const { data: quotes, isLoading } = useQuery({
     queryKey: ["my-trucking-quotes", user?.id],
@@ -85,7 +85,7 @@ const TruckingQuotes = () => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-foreground">
-                        {(quote.shipments as any)?.shipment_ref || "N/A"}
+                        {(quote.shipments as UnsafeAny)?.shipment_ref || "N/A"}
                       </span>
                       <Badge className={statusStyles[quote.status] || "bg-secondary"} variant="secondary">
                         {quote.status}
@@ -93,12 +93,12 @@ const TruckingQuotes = () => {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>
-                        {(quote.shipments as any)?.pickup_location ||
-                          (quote.shipments as any)?.origin_port ||
+                        {(quote.shipments as UnsafeAny)?.pickup_location ||
+                          (quote.shipments as UnsafeAny)?.origin_port ||
                           "TBD"}{" "}
                         →{" "}
-                        {(quote.shipments as any)?.delivery_location ||
-                          (quote.shipments as any)?.destination_port ||
+                        {(quote.shipments as UnsafeAny)?.delivery_location ||
+                          (quote.shipments as UnsafeAny)?.destination_port ||
                           "TBD"}
                       </span>
                       {quote.pickup_date && (
@@ -152,12 +152,12 @@ const TruckingQuotes = () => {
           quoteId={assignQuote.id}
           shipmentId={assignQuote.shipment_id}
           pickupAddress={
-            (assignQuote.shipments as any)?.pickup_location ||
-            (assignQuote.shipments as any)?.origin_port
+            (assignQuote.shipments as UnsafeAny)?.pickup_location ||
+            (assignQuote.shipments as UnsafeAny)?.origin_port
           }
           deliveryAddress={
-            (assignQuote.shipments as any)?.delivery_location ||
-            (assignQuote.shipments as any)?.destination_port
+            (assignQuote.shipments as UnsafeAny)?.delivery_location ||
+            (assignQuote.shipments as UnsafeAny)?.destination_port
           }
         />
       )}

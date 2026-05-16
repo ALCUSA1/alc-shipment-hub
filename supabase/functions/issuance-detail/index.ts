@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const tdId = url.searchParams.get("transport_document_id");
     const ebillId = url.searchParams.get("ebill_identifier");
 
-    let record: any = null;
+    let record: UnsafeAny = null;
 
     if (issuanceId) {
       const { data } = await supabase.from("issuance_records").select("*").eq("id", issuanceId).maybeSingle();
@@ -67,8 +67,8 @@ Deno.serve(async (req) => {
     ]);
 
     // Fetch linked booking and SI references
-    let booking: any = null;
-    let shippingInstruction: any = null;
+    let booking: UnsafeAny = null;
+    let shippingInstruction: UnsafeAny = null;
     if (record.booking_id) {
       const { data } = await supabase.from("bookings").select("carrier_booking_number, booking_status").eq("id", record.booking_id).maybeSingle();
       booking = data;
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: UnsafeAny) {
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

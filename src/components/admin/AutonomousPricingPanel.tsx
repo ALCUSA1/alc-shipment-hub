@@ -17,7 +17,7 @@ import {
 
 type AutoMode = "safe" | "balanced" | "aggressive" | "manual";
 
-const MODE_META: Record<AutoMode, { label: string; desc: string; color: string; icon: any }> = {
+const MODE_META: Record<AutoMode, { label: string; desc: string; color: string; icon: UnsafeAny }> = {
   safe: { label: "Safe Mode", desc: "Only high-confidence, rule-compliant deals", color: "text-emerald-500", icon: Shield },
   balanced: { label: "Balanced Mode", desc: "Moderate flexibility within rule boundaries", color: "text-blue-400", icon: Target },
   aggressive: { label: "Aggressive Mode", desc: "Maximize speed and win rate within limits", color: "text-amber-400", icon: Zap },

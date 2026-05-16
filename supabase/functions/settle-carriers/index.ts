@@ -113,7 +113,7 @@ serve(async (req) => {
           .eq("id", split.id);
 
         results.push({ split_id: split.id, carrier: split.carrier_name, status: "settled" });
-      } catch (transferError: any) {
+      } catch (transferError: UnsafeAny) {
         console.error(`Transfer failed for split ${split.id}:`, transferError);
 
         await supabaseAdmin
@@ -134,19 +134,19 @@ serve(async (req) => {
     }
 
     // Check if all splits for each payment are settled, update parent payment
-    const paymentIds = [...new Set(pendingSplits.map((s: any) => s.payment_id))];
+    const paymentIds = [...new Set(pendingSplits.map((s: UnsafeAny) => s.payment_id))];
     for (const pid of paymentIds) {
       const { data: allSplits } = await supabaseAdmin
         .from("payment_splits")
         .select("status")
         .eq("payment_id", pid);
 
-      if (allSplits && allSplits.every((s: any) => s.status === "settled")) {
+      if (allSplits && allSplits.every((s: UnsafeAny) => s.status === "settled")) {
         await supabaseAdmin
           .from("payments")
           .update({ carrier_settlement_status: "settled" })
           .eq("id", pid);
-      } else if (allSplits && allSplits.some((s: any) => s.status === "failed")) {
+      } else if (allSplits && allSplits.some((s: UnsafeAny) => s.status === "failed")) {
         await supabaseAdmin
           .from("payments")
           .update({ carrier_settlement_status: "partial_failed" })
@@ -164,7 +164,7 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: UnsafeAny) {
     console.error("Settle error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

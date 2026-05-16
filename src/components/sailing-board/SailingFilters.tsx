@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sparkles, Zap, DollarSign, CalendarClock, LayoutList, ArrowUpDown } from "lucide-react";
 import type { SortKey, FilterKey } from "./types";
 
-const FILTERS: { key: FilterKey; label: string; icon: any }[] = [
+const FILTERS: { key: FilterKey; label: string; icon: UnsafeAny }[] = [
   { key: "all", label: "All", icon: LayoutList },
   { key: "recommended", label: "Recommended", icon: Sparkles },
   { key: "fastest", label: "Fastest", icon: Zap },

@@ -33,7 +33,7 @@ const WarehouseInbound = () => {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const updates: Record<string, unknown> = { status };
       if (status === "confirmed") updates.actual_date = new Date().toISOString().split("T")[0];
-      const { error } = await supabase.from("warehouse_orders").update(updates as any).eq("id", id);
+      const { error } = await supabase.from("warehouse_orders").update(updates as UnsafeAny).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -78,7 +78,7 @@ const WarehouseInbound = () => {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => {
-                const shipment = (order as any).shipments;
+                const shipment = (order as UnsafeAny).shipments;
                 return (
                   <div key={order.id} className="rounded-lg border p-4 space-y-3">
                     <div className="flex items-center justify-between">
@@ -114,10 +114,10 @@ const WarehouseInbound = () => {
                     </div>
 
                     {/* Trucking coordination: who is delivering */}
-                    {(order as any).trucking_company_name && (
+                    {(order as UnsafeAny).trucking_company_name && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 p-2 rounded-lg border border-blue-200 dark:border-blue-800">
                         <Truck className="h-3.5 w-3.5 text-blue-600" />
-                        <span>Expected trucking company: <strong className="text-foreground">{(order as any).trucking_company_name}</strong></span>
+                        <span>Expected trucking company: <strong className="text-foreground">{(order as UnsafeAny).trucking_company_name}</strong></span>
                       </div>
                     )}
 

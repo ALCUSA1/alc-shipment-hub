@@ -96,7 +96,7 @@ const Shipments = () => {
       if (error) throw error;
       toast({ title: "Seed data created", description: `${rows.length} pending shipments added.` });
       queryClient.invalidateQueries({ queryKey: ["shipments-list"] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Seed failed", description: err.message, variant: "destructive" });
     } finally {
       setSeeding(false);
@@ -114,7 +114,7 @@ const Shipments = () => {
       if (error) throw error;
       toast({ title: "Shipment deleted", description: `${ref} has been removed.` });
       queryClient.invalidateQueries({ queryKey: ["shipments-list"] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Delete failed", description: err.message, variant: "destructive" });
     } finally {
       setDeletingId(null);
@@ -149,7 +149,7 @@ const Shipments = () => {
       if (typeFilter !== "all" && s.shipment_type !== typeFilter) return false;
       if (search) {
         const q = search.toLowerCase();
-        const companyName = ((s.companies as any)?.company_name || "").toLowerCase();
+        const companyName = ((s.companies as UnsafeAny)?.company_name || "").toLowerCase();
         const ref = (s.shipment_ref || "").toLowerCase();
         const bookingRef = (s.booking_ref || "").toLowerCase();
         const customerRef = (s.customer_reference || "").toLowerCase();
@@ -160,10 +160,10 @@ const Shipments = () => {
     });
 
     // Sort
-    const getValue = (s: any): string => {
+    const getValue = (s: UnsafeAny): string => {
       switch (sortKey) {
         case "shipment_ref": return s.shipment_ref || "";
-        case "customer": return (s.companies as any)?.company_name || "";
+        case "customer": return (s.companies as UnsafeAny)?.company_name || "";
         case "origin_port": return s.origin_port || "";
         case "shipment_type": return s.shipment_type || "";
         case "status": return s.status || "";
@@ -330,7 +330,7 @@ const Shipments = () => {
                 </thead>
                 <tbody>
                   {paginatedRows.map((s) => {
-                    const companyName = (s.companies as any)?.company_name;
+                    const companyName = (s.companies as UnsafeAny)?.company_name;
                     return (
                       <tr key={s.id} className={`border-b last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer ${selectedIds.has(s.id) ? "bg-accent/5" : ""}`} onClick={() => navigate(`/dashboard/shipments/${s.id}`)}>
                         <td className="p-4" onClick={(e) => e.stopPropagation()}>
@@ -338,7 +338,11 @@ const Shipments = () => {
                             checked={selectedIds.has(s.id)}
                             onCheckedChange={(checked) => {
                               const next = new Set(selectedIds);
-                              checked ? next.add(s.id) : next.delete(s.id);
+                              if (checked) {
+                                next.add(s.id);
+                              } else {
+                                next.delete(s.id);
+                              }
                               setSelectedIds(next);
                             }}
                           />

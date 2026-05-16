@@ -70,7 +70,7 @@ serve(async (req) => {
     // when a rateId is supplied. Never trust client-provided pricing.
     let rate: RateSelection = clientRate;
 
-    let canonical: any = null;
+    let canonical: UnsafeAny = null;
     if (clientRate.rateId) {
       const { data } = await adminClient
         .from("carrier_rates")
@@ -81,30 +81,30 @@ serve(async (req) => {
     }
 
     if (canonical) {
-      const surchargesArr = Array.isArray((canonical as any).surcharges) ? (canonical as any).surcharges : [];
+      const surchargesArr = Array.isArray((canonical as UnsafeAny).surcharges) ? (canonical as UnsafeAny).surcharges : [];
       const surchargeTotal = surchargesArr.reduce(
-        (sum: number, s: any) => sum + (Number(s?.amount) || 0),
+        (sum: number, s: UnsafeAny) => sum + (Number(s?.amount) || 0),
         0,
       );
-      const baseRate = Number((canonical as any).base_rate) || 0;
+      const baseRate = Number((canonical as UnsafeAny).base_rate) || 0;
       const totalRate = baseRate + surchargeTotal;
 
       rate = {
         ...clientRate,
-        carrier: (canonical as any).carrier,
-        originPort: (canonical as any).origin_port,
-        destinationPort: (canonical as any).destination_port,
-        mode: (canonical as any).mode,
-        containerType: (canonical as any).container_type,
-        currency: (canonical as any).currency,
+        carrier: (canonical as UnsafeAny).carrier,
+        originPort: (canonical as UnsafeAny).origin_port,
+        destinationPort: (canonical as UnsafeAny).destination_port,
+        mode: (canonical as UnsafeAny).mode,
+        containerType: (canonical as UnsafeAny).container_type,
+        currency: (canonical as UnsafeAny).currency,
         baseRate,
         surcharges: surchargesArr,
         totalRate,
-        transitDays: (canonical as any).transit_days ?? null,
-        serviceLevel: (canonical as any).service_level ?? null,
-        freeTimeDays: (canonical as any).free_time_days ?? null,
-        validFrom: (canonical as any).valid_from,
-        validUntil: (canonical as any).valid_until,
+        transitDays: (canonical as UnsafeAny).transit_days ?? null,
+        serviceLevel: (canonical as UnsafeAny).service_level ?? null,
+        freeTimeDays: (canonical as UnsafeAny).free_time_days ?? null,
+        validFrom: (canonical as UnsafeAny).valid_from,
+        validUntil: (canonical as UnsafeAny).valid_until,
       };
     } else {
       // No canonical rateId — strictly validate client-supplied figures.

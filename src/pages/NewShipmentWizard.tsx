@@ -177,7 +177,7 @@ const NewShipmentWizard = () => {
 
       toast({ title: "Shipment request created", description: `${row.shipment_ref} — Pending Pricing` });
       navigate(`/dashboard/shipments/${shipmentId}`);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -322,7 +322,7 @@ const NewShipmentWizard = () => {
                       <Select value={companyId} onValueChange={setCompanyId}>
                         <SelectTrigger className="mt-1"><SelectValue placeholder="Select customer" /></SelectTrigger>
                         <SelectContent>
-                          {companies.map((c: any) => (
+                          {companies.map((c: UnsafeAny) => (
                             <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
                           ))}
                         </SelectContent>

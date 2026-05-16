@@ -17,7 +17,7 @@ interface Props {
   canDelete: boolean;
   containers: ContainerLine[];
   allContainers: ContainerLine[];
-  onUpdate: (field: keyof CargoLine, value: any) => void;
+  onUpdate: (field: keyof CargoLine, value: UnsafeAny) => void;
   onDelete: () => void;
   onMoveToContainer: (targetContainerId: string) => void;
   isNested?: boolean;

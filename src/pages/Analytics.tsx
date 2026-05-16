@@ -15,7 +15,7 @@ import {
 } from "@/components/charts/ModernCharts";
 
 function KPICard({ icon: Icon, label, value, sub, gradient }: {
-  icon: any; label: string; value: string | number; sub: string; gradient: string;
+  icon: UnsafeAny; label: string; value: string | number; sub: string; gradient: string;
 }) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

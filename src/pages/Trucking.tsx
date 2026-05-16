@@ -54,14 +54,14 @@ const Trucking = () => {
     enabled: !!user,
   });
 
-  const activeQuotes = quotes.filter((q: any) => !["completed", "rejected"].includes(q.status));
-  const completedQuotes = quotes.filter((q: any) => ["completed", "rejected"].includes(q.status));
+  const activeQuotes = quotes.filter((q: UnsafeAny) => !["completed", "rejected"].includes(q.status));
+  const completedQuotes = quotes.filter((q: UnsafeAny) => ["completed", "rejected"].includes(q.status));
 
   const stats = {
     total: quotes.length,
     active: activeQuotes.length,
-    accepted: quotes.filter((q: any) => q.status === "accepted").length,
-    pending: quotes.filter((q: any) => ["available", "submitted", "accepted_by_carrier"].includes(q.status)).length,
+    accepted: quotes.filter((q: UnsafeAny) => q.status === "accepted").length,
+    pending: quotes.filter((q: UnsafeAny) => ["available", "submitted", "accepted_by_carrier"].includes(q.status)).length,
   };
 
   const getFilteredQuotes = () => {
@@ -69,9 +69,9 @@ const Trucking = () => {
       case "active":
         return activeQuotes;
       case "accepted":
-        return quotes.filter((q: any) => q.status === "accepted");
+        return quotes.filter((q: UnsafeAny) => q.status === "accepted");
       case "pending":
-        return quotes.filter((q: any) => ["available", "submitted", "accepted_by_carrier"].includes(q.status));
+        return quotes.filter((q: UnsafeAny) => ["available", "submitted", "accepted_by_carrier"].includes(q.status));
       default:
         return activeQuotes;
     }
@@ -86,7 +86,7 @@ const Trucking = () => {
     pending: "Pending trucking quotes (available, submitted, awaiting carrier)",
   };
 
-  const statCards: { label: string; value: number; icon: any; filter: FilterType }[] = [
+  const statCards: { label: string; value: number; icon: UnsafeAny; filter: FilterType }[] = [
     { label: "Total Quotes", value: stats.total, icon: Truck, filter: "all" },
     { label: "Active", value: stats.active, icon: Clock, filter: "active" },
     { label: "Accepted", value: stats.accepted, icon: Package, filter: "accepted" },
@@ -145,12 +145,12 @@ const Trucking = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredQuotes.map((q: any) => (
+                  {filteredQuotes.map((q: UnsafeAny) => (
                     <div key={q.id} className="p-4 rounded-lg border">
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <span className="text-sm font-medium text-foreground">
-                            {(q.shipments as any)?.shipment_ref || "—"}
+                            {(q.shipments as UnsafeAny)?.shipment_ref || "—"}
                           </span>
                           {q.company_name && (
                             <span className="text-xs text-muted-foreground ml-2">• {q.company_name}</span>
@@ -184,10 +184,10 @@ const Trucking = () => {
                             {q.driver_name}
                           </span>
                         )}
-                        {(q.shipments as any)?.origin_port && (
+                        {(q.shipments as UnsafeAny)?.origin_port && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {(q.shipments as any).origin_port} → {(q.shipments as any).destination_port}
+                            {(q.shipments as UnsafeAny).origin_port} → {(q.shipments as UnsafeAny).destination_port}
                           </span>
                         )}
                       </div>
@@ -211,14 +211,14 @@ const Trucking = () => {
                 <p className="text-sm text-muted-foreground text-center py-8">No driver assignments yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {assignments.map((a: any) => (
+                  {assignments.map((a: UnsafeAny) => (
                     <div key={a.id} className="p-3 rounded-lg border">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-medium text-foreground">{a.driver_name || "Unassigned"}</span>
                         <Badge variant="outline" className="text-[10px]">{formatStatus(a.status)}</Badge>
                       </div>
                       <div className="text-xs text-muted-foreground space-y-0.5">
-                        <p>{(a.shipments as any)?.shipment_ref || "—"}</p>
+                        <p>{(a.shipments as UnsafeAny)?.shipment_ref || "—"}</p>
                         {a.pickup_address && <p className="truncate">From: {a.pickup_address}</p>}
                         {a.delivery_address && <p className="truncate">To: {a.delivery_address}</p>}
                       </div>
@@ -237,9 +237,9 @@ const Trucking = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {completedQuotes.slice(0, 5).map((q: any) => (
+                  {completedQuotes.slice(0, 5).map((q: UnsafeAny) => (
                     <div key={q.id} className="flex items-center justify-between p-2 rounded">
-                      <span className="text-sm text-muted-foreground">{(q.shipments as any)?.shipment_ref || "—"}</span>
+                      <span className="text-sm text-muted-foreground">{(q.shipments as UnsafeAny)?.shipment_ref || "—"}</span>
                       <Badge className={statusStyle[q.status] || "bg-secondary"} variant="outline">
                         {formatStatus(q.status)}
                       </Badge>

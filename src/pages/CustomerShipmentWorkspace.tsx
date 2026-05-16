@@ -86,7 +86,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 /* ── Summary Status Card ── */
-function StatusCard({ icon: Icon, label, status, color }: { icon: any; label: string; status: string; color: "green" | "yellow" | "blue" | "red" | "muted" }) {
+function StatusCard({ icon: Icon, label, status, color }: { icon: UnsafeAny; label: string; status: string; color: "green" | "yellow" | "blue" | "red" | "muted" }) {
   const colors = {
     green: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
     yellow: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
@@ -112,7 +112,7 @@ import { DocumentLifecycleBar } from "@/components/shipment/DocumentLifecycleBar
 import { CustomerFundingPanel } from "@/components/shipment/CustomerFundingPanel";
 
 function SparkShareDialog({ open, onOpenChange, shipment, onNavigateToSpark }: {
-  open: boolean; onOpenChange: (o: boolean) => void; shipment: any; onNavigateToSpark: () => void;
+  open: boolean; onOpenChange: (o: boolean) => void; shipment: UnsafeAny; onNavigateToSpark: () => void;
 }) {
   const route = `${shipment.origin_port || "Origin"} → ${shipment.destination_port || "Destination"}`;
   const ref = shipment.shipment_ref || shipment.id?.slice(0, 8);
@@ -284,7 +284,7 @@ const CustomerShipmentWorkspace = () => {
   }
 
   const isAir = shipment.mode === "air";
-  const companyName = (shipment as any).companies?.company_name as string | undefined;
+  const companyName = (shipment as UnsafeAny).companies?.company_name as string | undefined;
   const containersSummary = (containers || []).map(c => `${c.quantity || 1}x${c.container_type}`).join(", ") || "—";
   const firstCargo = cargo?.[0];
 
@@ -406,7 +406,7 @@ const CustomerShipmentWorkspace = () => {
                   shipment_type: shipment.shipment_type,
                   incoterms: shipment.incoterms,
                 };
-                const { error } = await supabase.from("shipment_templates").insert([templateData as any]);
+                const { error } = await supabase.from("shipment_templates").insert([templateData as UnsafeAny]);
                 if (error) {
                   toast({ title: "Failed to save template", description: error.message, variant: "destructive" });
                 } else {
@@ -555,8 +555,8 @@ const CustomerShipmentWorkspace = () => {
                 <InfoRow label="Shipment Type" value={fmt(shipment.shipment_type)} />
                 {isAir ? (
                   <>
-                    <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
-                    <InfoRow label="Flight" value={(shipment as any).flight_number || "TBD"} />
+                    <InfoRow label="Airline" value={(shipment as UnsafeAny).airline || "TBD"} />
+                    <InfoRow label="Flight" value={(shipment as UnsafeAny).flight_number || "TBD"} />
                   </>
                 ) : (
                   <>
@@ -569,7 +569,7 @@ const CustomerShipmentWorkspace = () => {
                 <InfoRow label="Destination" value={shipment.destination_port || "—"} />
                 <InfoRow label="ETD" value={shipment.etd ? format(new Date(shipment.etd), "MMM d, yyyy") : "TBD"} />
                 <InfoRow label="ETA" value={shipment.eta ? format(new Date(shipment.eta), "MMM d, yyyy") : "TBD"} />
-                <InfoRow label="Incoterms" value={(shipment as any).incoterms || "—"} />
+                <InfoRow label="Incoterms" value={(shipment as UnsafeAny).incoterms || "—"} />
               </div>
             </CardContent>
           </Card>
@@ -681,9 +681,9 @@ const CustomerShipmentWorkspace = () => {
             <CardContent>
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
                 <InfoRow label="Booking Number" value={shipment.booking_ref || "Pending"} />
-                <InfoRow label={isAir ? "Airline" : "Carrier / Shipping Line"} value={isAir ? (shipment as any).airline || "TBD" : shipment.vessel ? "See vessel below" : "TBD"} />
+                <InfoRow label={isAir ? "Airline" : "Carrier / Shipping Line"} value={isAir ? (shipment as UnsafeAny).airline || "TBD" : shipment.vessel ? "See vessel below" : "TBD"} />
                 {isAir ? (
-                  <InfoRow label="Flight Number" value={(shipment as any).flight_number || "TBD"} />
+                  <InfoRow label="Flight Number" value={(shipment as UnsafeAny).flight_number || "TBD"} />
                 ) : (
                   <>
                     <InfoRow label="Vessel" value={shipment.vessel || "TBD"} />
@@ -699,15 +699,15 @@ const CustomerShipmentWorkspace = () => {
               </div>
 
               {/* Cutoff dates if available */}
-              {((shipment as any).cy_cutoff || (shipment as any).doc_cutoff || (shipment as any).vgm_cutoff) && (
+              {((shipment as UnsafeAny).cy_cutoff || (shipment as UnsafeAny).doc_cutoff || (shipment as UnsafeAny).vgm_cutoff) && (
                 <>
                   <Separator className="my-5" />
                   <h4 className="text-sm font-semibold text-foreground mb-3">Cutoff Dates</h4>
                   <div className="grid sm:grid-cols-3 gap-x-8 gap-y-4">
-                    {(shipment as any).cy_cutoff && <InfoRow label="CY Cutoff" value={format(new Date((shipment as any).cy_cutoff), "MMM d, yyyy")} />}
-                    {(shipment as any).doc_cutoff && <InfoRow label="Document Cutoff" value={format(new Date((shipment as any).doc_cutoff), "MMM d, yyyy")} />}
-                    {(shipment as any).vgm_cutoff && <InfoRow label="VGM Cutoff" value={format(new Date((shipment as any).vgm_cutoff), "MMM d, yyyy")} />}
-                    {(shipment as any).si_cutoff && <InfoRow label="SI Cutoff" value={format(new Date((shipment as any).si_cutoff), "MMM d, yyyy")} />}
+                    {(shipment as UnsafeAny).cy_cutoff && <InfoRow label="CY Cutoff" value={format(new Date((shipment as UnsafeAny).cy_cutoff), "MMM d, yyyy")} />}
+                    {(shipment as UnsafeAny).doc_cutoff && <InfoRow label="Document Cutoff" value={format(new Date((shipment as UnsafeAny).doc_cutoff), "MMM d, yyyy")} />}
+                    {(shipment as UnsafeAny).vgm_cutoff && <InfoRow label="VGM Cutoff" value={format(new Date((shipment as UnsafeAny).vgm_cutoff), "MMM d, yyyy")} />}
+                    {(shipment as UnsafeAny).si_cutoff && <InfoRow label="SI Cutoff" value={format(new Date((shipment as UnsafeAny).si_cutoff), "MMM d, yyyy")} />}
                   </div>
                 </>
               )}
@@ -885,7 +885,7 @@ const CustomerShipmentWorkspace = () => {
 };
 
 /* ── Customer Trucking Section ── */
-function CustomerTruckingSection({ pickups }: { pickups: any[] }) {
+function CustomerTruckingSection({ pickups }: { pickups: UnsafeAny[] }) {
   if (pickups.length === 0) {
     return (
       <Card>

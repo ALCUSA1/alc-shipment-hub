@@ -45,7 +45,7 @@ export function VoyageDatesEditor({ shipmentId, etd, eta, vessel, voyage, readOn
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
       setEditing(false);
       toast({ title: "Voyage details updated", description: "ETD, ETA, vessel and voyage have been saved." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Save failed", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);

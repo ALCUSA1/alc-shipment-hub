@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Save, Plus, Trash2, Loader2 } from "lucide-react";
 
 interface AesFilingFormProps {
-  filing: any;
+  filing: UnsafeAny;
   onSaved: () => void;
 }
 
@@ -107,7 +107,7 @@ export function AesFilingForm({ filing, onSaved }: AesFilingFormProps) {
   const [commodities, setCommodities] = useState<CommodityLine[]>(() => {
     const hts = Array.isArray(filing.hts_codes) ? filing.hts_codes : [];
     if (hts.length === 0) return [emptyCommodity()];
-    return hts.map((h: any) => ({
+    return hts.map((h: UnsafeAny) => ({
       code: h.code || h.hts_code || "",
       description: h.description || h.commodity || "",
       quantity: h.quantity ?? null,
@@ -121,11 +121,11 @@ export function AesFilingForm({ filing, onSaved }: AesFilingFormProps) {
     }));
   });
 
-  const updateField = useCallback((field: string, value: any) => {
+  const updateField = useCallback((field: string, value: UnsafeAny) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const updateCommodity = useCallback((idx: number, field: string, value: any) => {
+  const updateCommodity = useCallback((idx: number, field: string, value: UnsafeAny) => {
     setCommodities((prev) => prev.map((c, i) => i === idx ? { ...c, [field]: value } : c));
   }, []);
 
@@ -153,13 +153,13 @@ export function AesFilingForm({ filing, onSaved }: AesFilingFormProps) {
         .update({
           ...form,
           hts_codes: htsCodes.length > 0 ? htsCodes : null,
-        } as any)
+        } as UnsafeAny)
         .eq("id", filing.id);
 
       if (error) throw error;
       toast({ title: "Filing Saved", description: "AES filing data has been updated." });
       onSaved();
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Save Failed", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);

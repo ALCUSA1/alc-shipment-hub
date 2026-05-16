@@ -51,7 +51,7 @@ const QuoteApproval = () => {
   const handleAction = async (action: "accepted" | "declined") => {
     if (!quote) return;
     setActing(true);
-    const updateData: any = { status: action };
+    const updateData: UnsafeAny = { status: action };
     if (action === "accepted") updateData.approved_at = new Date().toISOString();
 
     const { error: err } = await supabase

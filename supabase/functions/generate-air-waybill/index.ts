@@ -47,9 +47,9 @@ serve(async (req) => {
       .select("*")
       .eq("shipment_id", shipment_id);
 
-    const shipper = parties?.find((p: any) => p.role === "shipper");
-    const consignee = parties?.find((p: any) => p.role === "consignee");
-    const forwarder = parties?.find((p: any) => p.role === "forwarder");
+    const shipper = parties?.find((p: UnsafeAny) => p.role === "shipper");
+    const consignee = parties?.find((p: UnsafeAny) => p.role === "consignee");
+    const forwarder = parties?.find((p: UnsafeAny) => p.role === "forwarder");
 
     // Fetch cargo
     const { data: cargo } = await supabase
@@ -58,10 +58,10 @@ serve(async (req) => {
       .eq("shipment_id", shipment_id);
 
     // Calculate totals
-    const totalPieces = (cargo || []).reduce((sum: number, c: any) => sum + (c.pieces || c.num_packages || 0), 0);
-    const totalGrossWeight = (cargo || []).reduce((sum: number, c: any) => sum + (c.gross_weight || 0), 0);
-    const totalChargeableWeight = (cargo || []).reduce((sum: number, c: any) => sum + (c.chargeable_weight || c.gross_weight || 0), 0);
-    const totalVolume = (cargo || []).reduce((sum: number, c: any) => sum + (c.volume || 0), 0);
+    const totalPieces = (cargo || []).reduce((sum: number, c: UnsafeAny) => sum + (c.pieces || c.num_packages || 0), 0);
+    const totalGrossWeight = (cargo || []).reduce((sum: number, c: UnsafeAny) => sum + (c.gross_weight || 0), 0);
+    const totalChargeableWeight = (cargo || []).reduce((sum: number, c: UnsafeAny) => sum + (c.chargeable_weight || c.gross_weight || 0), 0);
+    const totalVolume = (cargo || []).reduce((sum: number, c: UnsafeAny) => sum + (c.volume || 0), 0);
 
     // Build IATA standard AWB data structure
     const awbData = {
@@ -107,7 +107,7 @@ serve(async (req) => {
       volume: totalVolume,
       rateClass: shipment.rate_class || "Q",
       commodityItemNumber: shipment.commodity_item_number || "",
-      natureAndQuantity: shipment.nature_and_quantity || (cargo || []).map((c: any) => c.commodity).filter(Boolean).join("; "),
+      natureAndQuantity: shipment.nature_and_quantity || (cargo || []).map((c: UnsafeAny) => c.commodity).filter(Boolean).join("; "),
 
       // Values
       declaredValueForCarriage: shipment.declared_value_for_carriage || "NVD",
@@ -148,7 +148,7 @@ serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("generate-air-waybill error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,

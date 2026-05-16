@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 
-const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
+const primaryNav: { title: string; url: string; icon: UnsafeAny; navKey: NavItemKey }[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, navKey: "dashboard" },
   { title: "Shipments", url: "/dashboard/shipments", icon: Package, navKey: "shipments" },
   { title: "Quotes", url: "/dashboard/quotes", icon: Inbox, navKey: "quotes" },
@@ -38,7 +38,7 @@ const primaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[
   { title: "Messages", url: "/dashboard/messages", icon: MessageSquare, navKey: "messages" },
 ];
 
-const secondaryNav: { title: string; url: string; icon: any; navKey: NavItemKey }[] = [
+const secondaryNav: { title: string; url: string; icon: UnsafeAny; navKey: NavItemKey }[] = [
   { title: "Spark", url: "/dashboard/spark", icon: Sparkles, navKey: "spark" },
   { title: "Alerts", url: "/dashboard/alerts", icon: Bell, navKey: "alerts" },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, navKey: "analytics" },
@@ -69,9 +69,9 @@ export function AppSidebar() {
     enabled: !!user,
   });
 
-  const logoSrc = (profile as any)?.logo_url || alcLogo;
+  const logoSrc = (profile as UnsafeAny)?.logo_url || alcLogo;
   const companyLabel = profile?.company_name || "ALC Shipper Portal";
-  const userName = (profile as any)?.full_name || user?.email?.split("@")[0] || "User";
+  const userName = (profile as UnsafeAny)?.full_name || user?.email?.split("@")[0] || "User";
 
   // Unread message count
   const { data: unreadCount = 0 } = useQuery({

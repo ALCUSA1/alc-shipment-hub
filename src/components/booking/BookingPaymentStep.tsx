@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 interface BookingPaymentStepProps {
-  shipment: any;
-  financials: any[];
+  shipment: UnsafeAny;
+  financials: UnsafeAny[];
   shipmentId: string;
   onBack: () => void;
   onBookLater: () => void;
@@ -39,7 +39,7 @@ export function BookingPaymentStep({ shipment, financials, shipmentId, onBack, o
       } else {
         throw new Error("No checkout URL returned");
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to initiate payment");
       setPayingNow(false);
     }

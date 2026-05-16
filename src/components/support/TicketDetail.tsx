@@ -85,17 +85,17 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
               <h2 className="text-lg font-semibold text-foreground">{ticket.subject}</h2>
             </div>
             <div className="flex items-center gap-2">
-              <PriorityBadge priority={(ticket as any).priority || "normal"} />
+              <PriorityBadge priority={(ticket as UnsafeAny).priority || "normal"} />
               <Badge variant="outline">{ticket.category}</Badge>
               <Badge variant={sc.variant}>{sc.label}</Badge>
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{ticket.description}</p>
-          {(ticket as any).shipments && (
+          {(ticket as UnsafeAny).shipments && (
             <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-muted/50 w-fit">
               <Package className="h-4 w-4 text-primary" />
               <span className="text-xs font-medium text-foreground">
-                {(ticket as any).shipments.reference} — {(ticket as any).shipments.origin} → {(ticket as any).shipments.destination}
+                {(ticket as UnsafeAny).shipments.reference} — {(ticket as UnsafeAny).shipments.origin} → {(ticket as UnsafeAny).shipments.destination}
               </span>
             </div>
           )}
@@ -108,7 +108,7 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
         {messages.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">No replies yet. Our team will respond shortly.</p>
         )}
-        {messages.map((msg: any) => (
+        {messages.map((msg: UnsafeAny) => (
           <div key={msg.id} className={`flex gap-3 ${msg.is_staff ? "" : "flex-row-reverse"}`}>
             <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${msg.is_staff ? "bg-primary/10" : "bg-accent/10"}`}>
               {msg.is_staff ? <Headphones className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-accent" />}

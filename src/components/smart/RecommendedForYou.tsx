@@ -73,7 +73,7 @@ export function RecommendedForYou({ variant = "dashboard", maxItems = 5 }: Recom
       toast({ title: "New matches generated!", description: "We found opportunities tailored for you." });
       setGenerating(false);
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Error generating matches", description: err.message, variant: "destructive" });
       setGenerating(false);
     },

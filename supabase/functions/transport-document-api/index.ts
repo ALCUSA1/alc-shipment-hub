@@ -35,7 +35,7 @@ async function getConnection(carrierId: string, env = "production") {
   return data;
 }
 
-function apiKeyHeaders(conn: any): Record<string, string> {
+function apiKeyHeaders(conn: UnsafeAny): Record<string, string> {
   const keyName = conn.credential_key_name;
   const apiKey = keyName ? Deno.env.get(keyName) : null;
   if (!apiKey) throw new Error(`API key secret '${keyName}' not configured`);
@@ -45,7 +45,7 @@ function apiKeyHeaders(conn: any): Record<string, string> {
   };
 }
 
-async function getOAuthToken(conn: any): Promise<string> {
+async function getOAuthToken(conn: UnsafeAny): Promise<string> {
   if (conn.access_token_encrypted && conn.token_expires_at) {
     const expiresAt = new Date(conn.token_expires_at).getTime();
     if (Date.now() < expiresAt - 60_000) return conn.access_token_encrypted;
@@ -90,7 +90,7 @@ async function getOAuthToken(conn: any): Promise<string> {
   return accessToken;
 }
 
-async function getAuthHeaders(conn: any): Promise<Record<string, string>> {
+async function getAuthHeaders(conn: UnsafeAny): Promise<Record<string, string>> {
   if (conn.auth_type === "oauth") {
     const token = await getOAuthToken(conn);
     return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -106,8 +106,8 @@ async function storeRaw(
   carrierId: string,
   messageType: string,
   externalRef: string | null,
-  requestPayload: any,
-  responsePayload: any,
+  requestPayload: UnsafeAny,
+  responsePayload: UnsafeAny,
   responseStatus: number
 ) {
   const { data, error } = await supabase.from("carrier_raw_messages").insert({
@@ -131,7 +131,7 @@ async function storeRaw(
    Ingest trigger — calls td-ingest internally
    ═══════════════════════════════════════════ */
 
-async function triggerIngest(carrierId: string, rawMessageId: string, payload: any) {
+async function triggerIngest(carrierId: string, rawMessageId: string, payload: UnsafeAny) {
   // Resolve carrier code for td-ingest
   const { data: carrier } = await supabase
     .from("alc_carriers").select("carrier_code").eq("id", carrierId).single();
@@ -174,7 +174,7 @@ async function triggerIngest(carrierId: string, rawMessageId: string, payload: a
    ═══════════════════════════════════════════ */
 
 /** 1. Fetch Transport Document from carrier API */
-async function handleFetch(body: any) {
+async function handleFetch(body: UnsafeAny) {
   const { carrier_code, transport_document_reference, environment = "production" } = body;
   if (!carrier_code || !transport_document_reference) {
     return json({ error: "carrier_code and transport_document_reference required" }, 400);
@@ -205,7 +205,7 @@ async function handleFetch(body: any) {
 }
 
 /** 2. Approve Transport Document */
-async function handleApprove(body: any) {
+async function handleApprove(body: UnsafeAny) {
   const { carrier_code, transport_document_reference, environment = "production" } = body;
   if (!carrier_code || !transport_document_reference) {
     return json({ error: "carrier_code and transport_document_reference required" }, 400);
@@ -249,7 +249,7 @@ async function handleApprove(body: any) {
 }
 
 /** 3. Poll / Sync Transport Document status */
-async function handleSync(body: any) {
+async function handleSync(body: UnsafeAny) {
   const { carrier_code, transport_document_reference, environment = "production" } = body;
   if (!carrier_code || !transport_document_reference) {
     return json({ error: "carrier_code and transport_document_reference required" }, 400);
@@ -279,7 +279,7 @@ async function handleSync(body: any) {
 }
 
 /** 4. Receive Transport Document notification (webhook) */
-async function handleNotification(body: any) {
+async function handleNotification(body: UnsafeAny) {
   const { carrier_code, carrier_id: directCarrierId, payload } = body;
   if (!payload) return json({ error: "payload required" }, 400);
 
@@ -322,7 +322,7 @@ async function handleNotification(body: any) {
 }
 
 /** 5. Reject / Void Transport Document */
-async function handleStatusChange(body: any) {
+async function handleStatusChange(body: UnsafeAny) {
   const { carrier_code, transport_document_reference, target_status, environment = "production" } = body;
   if (!carrier_code || !transport_document_reference || !target_status) {
     return json({ error: "carrier_code, transport_document_reference, and target_status required" }, 400);
@@ -405,7 +405,7 @@ Deno.serve(async (req) => {
           },
         }, 400);
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("transport-document-api error:", err);
     return json({ error: err.message }, 500);
   }

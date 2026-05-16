@@ -79,7 +79,7 @@ const BookingConfirmationEmail = ({
 
 export const template = {
   component: BookingConfirmationEmail,
-  subject: (data: Record<string, any>) =>
+  subject: (data: Record<string, UnsafeAny>) =>
     data?.bookingReference
       ? `Booking confirmed — ${data.bookingReference}`
       : 'Your booking is confirmed',

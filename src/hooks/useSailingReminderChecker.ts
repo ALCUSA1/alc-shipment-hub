@@ -21,7 +21,7 @@ export function useSailingReminderChecker() {
     const checkReminders = async () => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
-        .from("sailing_reminders" as any)
+        .from("sailing_reminders" as UnsafeAny)
         .select("*")
         .eq("user_id", user.id)
         .eq("is_triggered", false)
@@ -29,12 +29,12 @@ export function useSailingReminderChecker() {
 
       if (error || !data || data.length === 0) return;
 
-      for (const reminder of data as any[]) {
+      for (const reminder of data as UnsafeAny[]) {
         const priceRange = reminder.price_min || reminder.price_max
-          ? ` | Target: ${reminder.price_min ? `$${Number(reminder.price_min).toLocaleString()}` : "any"} – ${reminder.price_max ? `$${Number(reminder.price_max).toLocaleString()}` : "any"}`
+          ? ` | Target: ${reminder.price_min ? `$${Number(reminder.price_min).toLocaleString()}` : "UnsafeAny"} – ${reminder.price_max ? `$${Number(reminder.price_max).toLocaleString()}` : "UnsafeAny"}`
           : "";
         const dateRange = reminder.date_from || reminder.date_to
-          ? ` | Dates: ${reminder.date_from || "any"} to ${reminder.date_to || "any"}`
+          ? ` | Dates: ${reminder.date_from || "UnsafeAny"} to ${reminder.date_to || "UnsafeAny"}`
           : "";
 
         const message = `Your rate alert for ${reminder.carrier} sailing from ${reminder.origin_port} to ${reminder.destination_port}${reminder.etd ? ` (ETD: ${new Date(reminder.etd).toLocaleDateString()})` : ""} is now due.${priceRange}${dateRange} Check availability!`;
@@ -90,8 +90,8 @@ export function useSailingReminderChecker() {
 
           // Mark email sent
           await supabase
-            .from("sailing_reminders" as any)
-            .update({ email_sent: true } as any)
+            .from("sailing_reminders" as UnsafeAny)
+            .update({ email_sent: true } as UnsafeAny)
             .eq("id", reminder.id);
         } catch (emailErr) {
           console.error("Failed to send reminder email:", emailErr);
@@ -99,8 +99,8 @@ export function useSailingReminderChecker() {
 
         // 4. Mark as triggered
         await supabase
-          .from("sailing_reminders" as any)
-          .update({ is_triggered: true } as any)
+          .from("sailing_reminders" as UnsafeAny)
+          .update({ is_triggered: true } as UnsafeAny)
           .eq("id", reminder.id);
       }
     };

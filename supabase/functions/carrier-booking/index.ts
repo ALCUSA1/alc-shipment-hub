@@ -19,7 +19,7 @@ const CARRIER_ENDPOINTS: Record<string, { bookingUrl: string; name: string }> = 
  * This is a standardized abstraction — each carrier adapter transforms
  * this into the carrier-specific format before sending.
  */
-function buildIFTMIN(shipment: any, cargo: any[], containers: any[], parties: any[]) {
+function buildIFTMIN(shipment: UnsafeAny, cargo: UnsafeAny[], containers: UnsafeAny[], parties: UnsafeAny[]) {
   return {
     messageType: "IFTMIN",
     messageFunction: "9", // Original
@@ -31,11 +31,11 @@ function buildIFTMIN(shipment: any, cargo: any[], containers: any[], parties: an
       placeOfDelivery: shipment.delivery_location || shipment.destination_port,
       requestedETD: shipment.etd,
     },
-    equipment: containers.map((c: any) => ({
+    equipment: containers.map((c: UnsafeAny) => ({
       containerType: c.container_type,
       quantity: c.quantity,
     })),
-    goods: cargo.map((c: any) => ({
+    goods: cargo.map((c: UnsafeAny) => ({
       description: c.commodity,
       hsCode: c.hs_code,
       grossWeight: c.gross_weight,
@@ -43,7 +43,7 @@ function buildIFTMIN(shipment: any, cargo: any[], containers: any[], parties: an
       packages: c.num_packages,
       packageType: c.package_type,
     })),
-    parties: parties.map((p: any) => ({
+    parties: parties.map((p: UnsafeAny) => ({
       role: p.role,
       name: p.company_name,
       contact: p.contact_name,
@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
       message: `Booking request sent to ${carrierConfig.name}`,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
   }
 });

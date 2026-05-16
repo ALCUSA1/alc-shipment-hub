@@ -68,7 +68,7 @@ export function WarehousePanel({ shipmentId }: WarehousePanelProps) {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["warehouse_orders", shipmentId] });
       toast({ title: "Warehouse receiving requested", description: "Your warehouse partner will be notified." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Request failed", description: err.message, variant: "destructive" });
     } finally {
       setCreating(false);

@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function NormalizedIssuanceView({ shipmentId }: Props) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<UnsafeAny>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -195,7 +195,7 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {errors.map((err: any, i: number) => (
+              {errors.map((err: UnsafeAny, i: number) => (
                 <div key={err.id || i} className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 space-y-1">
                   <div className="flex items-center gap-2">
                     {err.error_code && (
@@ -263,7 +263,7 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {references.map((ref: any, i: number) => (
+              {references.map((ref: UnsafeAny, i: number) => (
                 <div key={i} className="flex items-center justify-between py-1.5 border-b last:border-0">
                   <span className="text-sm text-muted-foreground capitalize">
                     {(ref.reference_type || "").replace(/_/g, " ")}
@@ -284,7 +284,7 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {documents.map((doc: any, i: number) => (
+              {documents.map((doc: UnsafeAny, i: number) => (
                 <div key={i} className="flex items-center gap-3 py-2 border-b last:border-0">
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -303,7 +303,7 @@ export function NormalizedIssuanceView({ shipmentId }: Props) {
   );
 }
 
-function InfoItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoItem({ icon: Icon, label, value }: { icon: UnsafeAny; label: string; value: string }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

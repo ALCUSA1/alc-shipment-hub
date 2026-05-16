@@ -33,7 +33,7 @@ async function resolveCarrier(code: string) {
 }
 
 // ─── API Key auth: return headers ───
-function apiKeyHeaders(conn: any): Record<string, string> {
+function apiKeyHeaders(conn: UnsafeAny): Record<string, string> {
   const keyName = conn.credential_key_name;
   const apiKey = keyName ? Deno.env.get(keyName) : null;
   if (!apiKey) throw new Error(`API key secret '${keyName}' not configured`);
@@ -45,7 +45,7 @@ function apiKeyHeaders(conn: any): Record<string, string> {
 }
 
 // ─── OAuth: request or refresh token (supports client_credentials and password grant) ───
-async function getOAuthToken(conn: any): Promise<string> {
+async function getOAuthToken(conn: UnsafeAny): Promise<string> {
   // Check if cached token is still valid (with 60s buffer)
   if (conn.access_token_encrypted && conn.token_expires_at) {
     const expiresAt = new Date(conn.token_expires_at).getTime();
@@ -116,7 +116,7 @@ async function getOAuthToken(conn: any): Promise<string> {
 }
 
 // ─── Build auth headers based on connection type ───
-async function getAuthHeaders(conn: any): Promise<Record<string, string>> {
+async function getAuthHeaders(conn: UnsafeAny): Promise<Record<string, string>> {
   if (conn.auth_type === "oauth") {
     const token = await getOAuthToken(conn);
     return {
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return new Response(
       JSON.stringify({ error: err.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

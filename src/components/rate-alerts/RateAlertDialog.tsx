@@ -60,7 +60,7 @@ export function RateAlertDialog({
       toast({ title: "Rate Alert Created", description: `You'll be notified when rates drop below $${parseFloat(threshold).toLocaleString()}.` });
       queryClient.invalidateQueries({ queryKey: ["rate-alerts"] });
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);

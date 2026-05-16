@@ -20,7 +20,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-function num(v: any): number | null {
+function num(v: UnsafeAny): number | null {
   if (v == null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     const bookingRef = payload.carrierBookingReference || payload.carrier_booking_reference || null;
 
     // Locate subscription by id, or by booking+equipment combo
-    let sub: any = null;
+    let sub: UnsafeAny = null;
     if (subParam) {
       const { data } = await supabase.from("hlag_live_subscriptions")
         .select("*").eq("id", subParam).maybeSingle();
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("hapag-live-webhook error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

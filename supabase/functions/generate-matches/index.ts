@@ -161,7 +161,7 @@ Return a JSON array of matches.`;
     await supabase.from("ai_matches").delete().eq("user_id", user.id).eq("status", "active");
 
     // Insert new matches
-    const inserts = matches.map((m: any) => ({
+    const inserts = matches.map((m: UnsafeAny) => ({
       user_id: user.id,
       match_type: m.match_type,
       title: m.title,

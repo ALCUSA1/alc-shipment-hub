@@ -101,7 +101,7 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
   });
 
   const selectedRate = useMemo(() => {
-    if (selectedRateId) return carrierRates?.find((r: any) => r.id === selectedRateId);
+    if (selectedRateId) return carrierRates?.find((r: UnsafeAny) => r.id === selectedRateId);
     return null;
   }, [selectedRateId, carrierRates]);
 
@@ -185,7 +185,7 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">$</span>
         <Input
           type="number"
-          value={(costs as any)[field] || ""}
+          value={(costs as UnsafeAny)[field] || ""}
           onChange={(e) => updateCost(field, e.target.value)}
           className="h-7 pl-5 text-xs bg-card border-border text-foreground w-full"
         />
@@ -193,8 +193,8 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
     </div>
   );
 
-  const SectionToggle = ({ id, label, total, color, icon: Icon }: { id: string; label: string; total: number; color: string; icon: any }) => (
-    <Collapsible open={(sections as any)[id]} onOpenChange={(o) => setSections(p => ({ ...p, [id]: o }))}>
+  const SectionToggle = ({ id, label, total, color, icon: Icon }: { id: string; label: string; total: number; color: string; icon: UnsafeAny }) => (
+    <Collapsible open={(sections as UnsafeAny)[id]} onOpenChange={(o) => setSections(p => ({ ...p, [id]: o }))}>
       <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-secondary/50 transition-colors">
         <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
           <Icon className={`h-3.5 w-3.5 ${color}`} />
@@ -202,7 +202,7 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
         </span>
         <div className="flex items-center gap-2">
           <span className={`text-xs font-semibold ${color}`}>{fmt(total)}</span>
-          {(sections as any)[id] ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
+          {(sections as UnsafeAny)[id] ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 pr-2 space-y-0.5 pb-2 pt-1">
@@ -346,7 +346,7 @@ export function ShipmentPricingTab({ shipmentId, shipmentType, originPort, desti
               <div className="border border-border rounded-lg bg-secondary/30 p-2 max-h-48 overflow-y-auto">
                 {ratesLoading ? <Skeleton className="h-16" /> : (carrierRates || []).length === 0 ? (
                   <p className="text-[10px] text-muted-foreground text-center py-3">No matching rates</p>
-                ) : (carrierRates || []).map((r: any) => (
+                ) : (carrierRates || []).map((r: UnsafeAny) => (
                   <div key={r.id} onClick={() => handleSelectRate(r.id)}
                     className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors mb-0.5 ${
                       selectedRateId === r.id ? 'bg-emerald-500/10 border border-emerald-500/30' : 'hover:bg-secondary'

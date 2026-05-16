@@ -62,7 +62,7 @@ async function callHlag(
       console.warn(`HLAG live ${method} → ${resp.status}: ${text.slice(0, 300)}`);
       return { simulated: true, subscriptionId: `sim-${crypto.randomUUID()}`, error: `${resp.status}: ${text.slice(0, 200)}` };
     }
-    let parsed: any = {};
+    let parsed: UnsafeAny = {};
     try { parsed = text ? JSON.parse(text) : {}; } catch (_) { parsed = {}; }
     return { simulated: false, subscriptionId: parsed.subscriptionId || parsed.id };
   } catch (err) {
@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("hapag-live-subscribe error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

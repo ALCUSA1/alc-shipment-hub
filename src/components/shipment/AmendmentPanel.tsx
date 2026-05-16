@@ -86,14 +86,14 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
       queryClient.invalidateQueries({ queryKey: ["shipment_amendments", shipmentId] });
       setDialogOpen(false);
       setForm({ amendment_type: "bl_correction", description: "", carrier_fee_required: false, carrier_fee_amount: "", payment_required_before_change: false, notes: "" });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePayAmendment = async (amendment: any) => {
+  const handlePayAmendment = async (amendment: UnsafeAny) => {
     setPayingId(amendment.id);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
@@ -112,7 +112,7 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
       if (data?.url) {
         window.open(data.url, "_blank");
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setPayingId(null);
@@ -148,7 +148,7 @@ export function AmendmentPanel({ shipmentId, vesselDeparted = false }: Amendment
             <p className="text-sm text-muted-foreground text-center py-4">No amendments requested.</p>
           ) : (
             <div className="space-y-3">
-              {amendments.map((a: any) => (
+              {amendments.map((a: UnsafeAny) => (
                 <div key={a.id} className="rounded-lg border p-3 space-y-1.5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">

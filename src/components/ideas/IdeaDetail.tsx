@@ -116,7 +116,7 @@ export function IdeaDetail({ ideaId, onBack }: IdeaDetailProps) {
       <h3 className="text-sm font-semibold text-foreground">Comments</h3>
       <div className="space-y-3 max-h-[350px] overflow-y-auto">
         {comments.length === 0 && <p className="text-center text-sm text-muted-foreground py-6">No comments yet</p>}
-        {comments.map((c: any) => (
+        {comments.map((c: UnsafeAny) => (
           <div key={c.id} className="flex gap-3">
             <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${c.is_staff ? "bg-primary/10" : "bg-muted"}`}>
               {c.is_staff ? <Shield className="h-3.5 w-3.5 text-primary" /> : <User className="h-3.5 w-3.5 text-muted-foreground" />}

@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PriorityBadge, type CustomerPriority } from "@/components/shared/PriorityBadge";
 
 interface Props {
-  shipment: Record<string, any>;
-  documents?: any[];
-  payments?: any[];
-  customsFilings?: any[];
+  shipment: Record<string, UnsafeAny>;
+  documents?: UnsafeAny[];
+  payments?: UnsafeAny[];
+  customsFilings?: UnsafeAny[];
 }
 
 interface Banner {
@@ -32,7 +32,7 @@ export function AiSmartBanners({ shipment, documents, payments, customsFilings }
       { key: "doc_cutoff", label: "Doc Cutoff" },
     ];
     for (const c of cutoffs) {
-      const val = (shipment as any)[c.key];
+      const val = (shipment as UnsafeAny)[c.key];
       if (val) {
         const hoursLeft = differenceInHours(parseISO(val), now);
         if (hoursLeft > 0 && hoursLeft <= 24) {

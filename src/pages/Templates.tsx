@@ -49,7 +49,7 @@ const Templates = () => {
     },
   });
 
-  const useTemplate = async (template: any) => {
+  const applyTemplate = async (template: UnsafeAny) => {
     // Increment use count
     await supabase
       .from("shipment_templates")
@@ -119,7 +119,7 @@ const Templates = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => useTemplate(t)} title="Use template">
+                        <Button variant="ghost" size="sm" onClick={() => applyTemplate(t)} title="Use template">
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button
@@ -140,7 +140,7 @@ const Templates = () => {
                     <FileText className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
                     <p className="text-sm text-muted-foreground">No templates saved yet</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">
-                      Save a shipment as template from any shipment detail page
+                      Save a shipment as template from UnsafeAny shipment detail page
                     </p>
                   </TableCell>
                 </TableRow>

@@ -28,21 +28,21 @@ const AdminTrucking = () => {
     },
   });
 
-  const searchFields = useCallback((p: any) => [
+  const searchFields = useCallback((p: UnsafeAny) => [
     p.pickup_location, p.delivery_location, p.driver_name, p.truck_plate,
-    (p.shipments as any)?.shipment_ref,
+    (p.shipments as UnsafeAny)?.shipment_ref,
   ], []);
-  const statusField = useCallback((p: any) => p.status, []);
-  const dateField = useCallback((p: any) => p.pickup_date || p.created_at, []);
+  const statusField = useCallback((p: UnsafeAny) => p.status, []);
+  const dateField = useCallback((p: UnsafeAny) => p.pickup_date || p.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
     data: pickups, searchFields, statusField, dateField,
   });
 
   const statusCounts = {
-    scheduled: filtered.filter((p: any) => p.status === "scheduled").length,
-    in_progress: filtered.filter((p: any) => p.status === "in_progress").length,
-    completed: filtered.filter((p: any) => p.status === "completed").length,
+    scheduled: filtered.filter((p: UnsafeAny) => p.status === "scheduled").length,
+    in_progress: filtered.filter((p: UnsafeAny) => p.status === "in_progress").length,
+    completed: filtered.filter((p: UnsafeAny) => p.status === "completed").length,
   };
 
   return (
@@ -98,9 +98,9 @@ const AdminTrucking = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No pickups match your filters</td></tr>
-              ) : filtered.map((p: any) => (
+              ) : filtered.map((p: UnsafeAny) => (
                 <tr key={p.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{(p.shipments as any)?.shipment_ref || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-medium text-white">{(p.shipments as UnsafeAny)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)] truncate max-w-[150px]">{p.pickup_location || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)] truncate max-w-[150px]">{p.delivery_location || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{p.driver_name || "—"}</td>

@@ -127,7 +127,7 @@ serve(async (req) => {
     }
 
     // Build checkout session options
-    const sessionParams: any = {
+    const sessionParams: UnsafeAny = {
       customer: customerId,
       payment_method_types: paymentMethodTypes,
       line_items: [

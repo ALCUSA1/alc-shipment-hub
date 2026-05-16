@@ -14,7 +14,7 @@ interface Props {
   onChange: (d: ShipmentDataset["basics"]) => void;
   ports: { code: string; name: string; country: string; type?: string }[];
   companies: { id: string; company_name: string }[];
-  onCustomerSelected?: (company: any) => void;
+  onCustomerSelected?: (company: UnsafeAny) => void;
 }
 
 export function BasicsSection({ data, onChange, ports, companies, onCustomerSelected }: Props) {
@@ -23,8 +23,8 @@ export function BasicsSection({ data, onChange, ports, companies, onCustomerSele
 
   // Filter ports by mode
   const filteredPorts = ports.filter(p => {
-    if (isAir) return (p as any).type === "air";
-    return (p as any).type === "sea" || !(p as any).type;
+    if (isAir) return (p as UnsafeAny).type === "air";
+    return (p as UnsafeAny).type === "sea" || !(p as UnsafeAny).type;
   });
 
   // Fetch full company details when a customer is selected for auto-fill

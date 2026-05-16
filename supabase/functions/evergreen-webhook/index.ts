@@ -28,7 +28,7 @@ function validateBearerToken(req: Request): boolean {
 }
 
 // ─── Idempotency: generate stable key from payload ───
-function deriveIdempotencyKey(payload: any): string | null {
+function deriveIdempotencyKey(payload: UnsafeAny): string | null {
   const explicit = payload.idempotency_key || payload.idempotencyKey || payload.messageId || payload.message_id;
   if (explicit) return String(explicit);
 
@@ -42,7 +42,7 @@ function deriveIdempotencyKey(payload: any): string | null {
 }
 
 // ─── Detect message family from payload ───
-function detectMessageFamily(payload: any): { family: string; type: string } {
+function detectMessageFamily(payload: UnsafeAny): { family: string; type: string } {
   if (payload.messageType || payload.message_type) {
     const mt = (payload.messageType || payload.message_type).toLowerCase();
     if (mt.includes("track") || mt.includes("event")) return { family: "tracking", type: "event" };
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
   try {
     const rawBody = await req.text();
-    let payload: any;
+    let payload: UnsafeAny;
     try {
       payload = JSON.parse(rawBody);
     } catch {
@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("[evergreen-webhook] error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),

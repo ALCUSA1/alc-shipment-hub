@@ -6,7 +6,7 @@ export type AdminNavItem = { title: string; url: string };
 export type AdminSection = {
   key: string;
   label: string;
-  icon: any;
+  icon: UnsafeAny;
   url: string;       // landing url (first sub-page)
   match: string[];   // route prefixes that activate this section
   tabs: AdminNavItem[];

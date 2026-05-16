@@ -100,7 +100,7 @@ const WarehouseDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {inboundPending.slice(0, 5).map((order: any) => {
+                {inboundPending.slice(0, 5).map((order: UnsafeAny) => {
                   const shipment = order.shipments;
                   return (
                     <Link key={order.id} to="/warehouse/inbound" className="block">
@@ -153,7 +153,7 @@ const WarehouseDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {outboundPending.slice(0, 5).map((order: any) => {
+                {outboundPending.slice(0, 5).map((order: UnsafeAny) => {
                   const shipment = order.shipments;
                   return (
                     <Link key={order.id} to="/warehouse/releases" className="block">

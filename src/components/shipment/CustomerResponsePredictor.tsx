@@ -96,7 +96,7 @@ export function CustomerResponsePredictor({
 
     // --- Recommended action ---
     let action: string;
-    let actionIcon: any;
+    let actionIcon: UnsafeAny;
     if (acceptProb >= 65) { action = "Send Current Quote"; actionIcon = Check; }
     else if (acceptProb >= 45 && negProb > 25) { action = "Offer Limited Concession"; actionIcon = Target; }
     else if (acceptProb >= 30) { action = "Send Safe Counter Offer"; actionIcon = MessageSquare; }

@@ -5,12 +5,12 @@ import { Ship, Plane, ArrowRight, Clock, MapPin, DollarSign, FileText, CheckCirc
 import { format } from "date-fns";
 
 interface BookingSummaryPanelProps {
-  shipment: any;
-  financials: any[];
-  cargo: any[];
-  parties: any[];
-  documents: any[];
-  services: any;
+  shipment: UnsafeAny;
+  financials: UnsafeAny[];
+  cargo: UnsafeAny[];
+  parties: UnsafeAny[];
+  documents: UnsafeAny[];
+  services: UnsafeAny;
 }
 
 export function BookingSummaryPanel({ shipment, financials, cargo, parties, documents, services }: BookingSummaryPanelProps) {

@@ -17,7 +17,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const pick = (obj: Record<string, any> | null | undefined, ...keys: string[]) => {
+const pick = (obj: Record<string, UnsafeAny> | null | undefined, ...keys: string[]) => {
   if (!obj) return null;
   for (const k of keys) if (obj[k] != null) return obj[k];
   return null;
@@ -27,7 +27,7 @@ const pick = (obj: Record<string, any> | null | undefined, ...keys: string[]) =>
    Location & Vessel helpers
    ═══════════════════════════════════════ */
 
-async function resolveLocation(loc: any): Promise<{ id: string | null; name: string | null }> {
+async function resolveLocation(loc: UnsafeAny): Promise<{ id: string | null; name: string | null }> {
   if (!loc) return { id: null, name: null };
   const unlocode = pick(loc, "UNLocationCode", "unlocode", "portCode");
   const facilityCode = pick(loc, "facilityCode");
@@ -69,7 +69,7 @@ async function getCarrierConnection(carrierId: string) {
   return data;
 }
 
-async function getCarrierAuthHeaders(connection: any): Promise<Record<string, string>> {
+async function getCarrierAuthHeaders(connection: UnsafeAny): Promise<Record<string, string>> {
   if (!connection) throw new Error("No active carrier connection found");
 
   if (connection.auth_type === "api_key") {
@@ -121,7 +121,7 @@ async function getCarrierAuthHeaders(connection: any): Promise<Record<string, st
   throw new Error(`Unsupported auth type: ${connection.auth_type}`);
 }
 
-async function storeRawMessage(carrierId: string, channel: string, msgType: string, ref: string | null, reqPayload: any, resPayload: any = null, httpStatus: number | null = null, status = "pending") {
+async function storeRawMessage(carrierId: string, channel: string, msgType: string, ref: string | null, reqPayload: UnsafeAny, resPayload: UnsafeAny = null, httpStatus: number | null = null, status = "pending") {
   const { data, error } = await supabase
     .from("carrier_raw_messages")
     .insert({
@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       case "cancel": return await handleCancel(body);
       default: return json({ error: `Unknown action: ${action}` }, 400);
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("dcsa-booking error:", err);
     return json({ error: err.message }, 500);
   }
@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
    1. CREATE BOOKING
    ═══════════════════════════════════════ */
 
-async function handleCreate(body: any) {
+async function handleCreate(body: UnsafeAny) {
   const { carrier_code, shipment_id, payload } = body;
   if (!carrier_code || !payload) return json({ error: "carrier_code and payload required" }, 400);
 
@@ -215,7 +215,7 @@ async function handleCreate(body: any) {
     .select("id").single();
 
   try {
-    let carrierResponse: any = null;
+    let carrierResponse: UnsafeAny = null;
     let carrierBookingRequestRef: string | null = null;
 
     // Call carrier Booking API
@@ -244,7 +244,7 @@ async function handleCreate(body: any) {
     }
 
     // Create booking record
-    const bookingData: Record<string, any> = {
+    const bookingData: Record<string, UnsafeAny> = {
       alc_carrier_id: carrierId,
       source_message_id: rawId,
       shipment_id: linkedShipmentId,
@@ -313,7 +313,7 @@ async function handleCreate(body: any) {
     await supabase.from("carrier_raw_messages").update({ processing_status: "processed", processed_at: new Date().toISOString() }).eq("id", rawId);
 
     return json({ success: true, booking_id: bookingId, carrier_booking_request_reference: carrierBookingRequestRef, shipment_id: linkedShipmentId });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     await supabase.from("integration_jobs").update({ job_status: "failed", last_error: err.message, completed_at: new Date().toISOString() }).eq("id", job!.id);
     await supabase.from("carrier_raw_messages").update({ processing_status: "error", error_message: err.message }).eq("id", rawId);
     throw err;
@@ -324,7 +324,7 @@ async function handleCreate(body: any) {
    2. SYNC BOOKING (Poll)
    ═══════════════════════════════════════ */
 
-async function handleSync(body: any) {
+async function handleSync(body: UnsafeAny) {
   const { booking_id, amended_content } = body;
   if (!booking_id) return json({ error: "booking_id required" }, 400);
 
@@ -367,7 +367,7 @@ async function handleSync(body: any) {
    3. UPDATE BOOKING (PUT)
    ═══════════════════════════════════════ */
 
-async function handleUpdate(body: any) {
+async function handleUpdate(body: UnsafeAny) {
   const { booking_id, payload } = body;
   if (!booking_id || !payload) return json({ error: "booking_id and payload required" }, 400);
 
@@ -422,7 +422,7 @@ async function handleUpdate(body: any) {
    4. NOTIFICATION (Inbound webhook)
    ═══════════════════════════════════════ */
 
-async function handleNotification(body: any) {
+async function handleNotification(body: UnsafeAny) {
   const { carrier_code, payload } = body;
   if (!payload) return json({ error: "payload required" }, 400);
 
@@ -440,7 +440,7 @@ async function handleNotification(body: any) {
   const rawId = await storeRawMessage(carrierId, "webhook", "booking_notification", reqRef || bkRef, payload, null, null, "pending");
 
   // Create notification record
-  const notifData: Record<string, any> = {
+  const notifData: Record<string, UnsafeAny> = {
     alc_carrier_id: carrierId,
     source_message_id: rawId,
     notification_id: pick(payload, "notificationId"),
@@ -455,7 +455,7 @@ async function handleNotification(body: any) {
   };
 
   // Match booking
-  let booking: any = null;
+  let booking: UnsafeAny = null;
   if (reqRef) {
     const { data } = await supabase.from("bookings")
       .select("id, alc_carrier_id, shipment_id")
@@ -475,7 +475,7 @@ async function handleNotification(body: any) {
     notifData.booking_id = booking.id;
 
     // Update booking status
-    const updates: Record<string, any> = { source_message_id: rawId, updated_datetime: new Date().toISOString() };
+    const updates: Record<string, UnsafeAny> = { source_message_id: rawId, updated_datetime: new Date().toISOString() };
     const newStatus = pick(payload, "bookingStatus");
     if (newStatus) updates.booking_status = newStatus;
     const amendedStatus = pick(payload, "amendedBookingStatus");
@@ -512,7 +512,7 @@ async function handleNotification(body: any) {
    5. CANCEL BOOKING
    ═══════════════════════════════════════ */
 
-async function handleCancel(body: any) {
+async function handleCancel(body: UnsafeAny) {
   const { booking_id } = body;
   if (!booking_id) return json({ error: "booking_id required" }, 400);
 
@@ -541,7 +541,7 @@ async function handleCancel(body: any) {
         processing_status: "processed",
         processed_at: new Date().toISOString(),
       }).eq("id", rawId);
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       console.error("Cancel API call failed:", e.message);
       await supabase.from("carrier_raw_messages").update({ processing_status: "error", error_message: e.message }).eq("id", rawId);
     }
@@ -560,8 +560,8 @@ async function handleCancel(body: any) {
    Shared: Update booking from carrier payload
    ═══════════════════════════════════════ */
 
-async function updateBookingFromPayload(bookingId: string, carrierId: string, shipmentId: string | null, rawId: string, p: Record<string, any>) {
-  const updates: Record<string, any> = {
+async function updateBookingFromPayload(bookingId: string, carrierId: string, shipmentId: string | null, rawId: string, p: Record<string, UnsafeAny>) {
+  const updates: Record<string, UnsafeAny> = {
     source_message_id: rawId,
     updated_datetime: new Date().toISOString(),
   };
@@ -653,7 +653,7 @@ function mapInternalStatus(bookingStatus: string, amendedStatus?: string | null)
    Child Record Mappers
    ═══════════════════════════════════════ */
 
-async function mapLocations(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function mapLocations(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "shipmentLocations", "locations");
   if (!Array.isArray(items) || !items.length) return;
 
@@ -676,13 +676,13 @@ async function mapLocations(bookingId: string, shipmentId: string | null, carrie
   if (rows.length) await supabase.from("booking_locations").insert(rows);
 }
 
-async function mapParties(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function mapParties(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "documentParties", "parties");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("booking_parties").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((party: any) => {
+  const rows = items.map((party: UnsafeAny) => {
     const partyObj = pick(party, "party") || party;
     return {
       booking_id: bookingId,
@@ -712,7 +712,7 @@ async function mapParties(bookingId: string, shipmentId: string | null, carrierI
   if (rows.length) await supabase.from("booking_parties").insert(rows);
 }
 
-async function mapEquipmentAndCommodities(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function mapEquipmentAndCommodities(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "requestedEquipments", "equipments", "equipment");
   if (!Array.isArray(items) || !items.length) return;
 
@@ -729,7 +729,7 @@ async function mapEquipmentAndCommodities(bookingId: string, shipmentId: string 
       resolveLocation(posLoc),
     ]);
 
-    const equipRow: Record<string, any> = {
+    const equipRow: Record<string, UnsafeAny> = {
       booking_id: bookingId,
       shipment_id: shipmentId,
       alc_carrier_id: carrierId,
@@ -767,7 +767,7 @@ async function mapEquipmentAndCommodities(bookingId: string, shipmentId: string 
     // Map commodities under this equipment
     const commodities = pick(eq, "commodities", "cargo") || [];
     if (Array.isArray(commodities) && commodities.length) {
-      const commodityRows = commodities.map((c: any) => ({
+      const commodityRows = commodities.map((c: UnsafeAny) => ({
         booking_equipment_id: insertedEquip.id,
         booking_id: bookingId,
         shipment_id: shipmentId,
@@ -793,13 +793,13 @@ async function mapEquipmentAndCommodities(bookingId: string, shipmentId: string 
   }
 }
 
-async function mapCustomsReferences(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function mapCustomsReferences(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "customsReferences", "customs");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("booking_customs_references").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((cr: any) => ({
+  const rows = items.map((cr: UnsafeAny) => ({
     booking_id: bookingId,
     shipment_id: shipmentId,
     alc_carrier_id: carrierId,

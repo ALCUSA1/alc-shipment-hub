@@ -21,28 +21,28 @@ export default function BlockedUsers() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any)
+    const { data, error } = await (supabase as UnsafeAny)
       .from("user_roles")
       .select("user_id, created_at, profiles:profiles!inner(email, full_name)")
       .eq("role", "blocked");
     if (error) {
       // fallback: query without join
-      const { data: roles } = await (supabase as any)
+      const { data: roles } = await (supabase as UnsafeAny)
         .from("user_roles")
         .select("user_id, created_at")
         .eq("role", "blocked");
-      const ids = (roles || []).map((r: any) => r.user_id);
+      const ids = (roles || []).map((r: UnsafeAny) => r.user_id);
       if (ids.length) {
-        const { data: profs } = await (supabase as any)
+        const { data: profs } = await (supabase as UnsafeAny)
           .from("profiles")
           .select("id, email, full_name")
           .in("id", ids);
-        const m = new Map<string, any>((profs || []).map((p: any) => [p.id, p]));
+        const m = new Map<string, UnsafeAny>((profs || []).map((p: UnsafeAny) => [p.id, p]));
         setRows(
-          (roles || []).map((r: any) => ({
+          (roles || []).map((r: UnsafeAny) => ({
             user_id: r.user_id,
-            email: (m.get(r.user_id) as any)?.email ?? null,
-            full_name: (m.get(r.user_id) as any)?.full_name ?? null,
+            email: (m.get(r.user_id) as UnsafeAny)?.email ?? null,
+            full_name: (m.get(r.user_id) as UnsafeAny)?.full_name ?? null,
             blocked_at: r.created_at,
           }))
         );
@@ -51,7 +51,7 @@ export default function BlockedUsers() {
       }
     } else {
       setRows(
-        (data || []).map((r: any) => ({
+        (data || []).map((r: UnsafeAny) => ({
           user_id: r.user_id,
           email: r.profiles?.email ?? null,
           full_name: r.profiles?.full_name ?? null,
@@ -68,9 +68,9 @@ export default function BlockedUsers() {
 
   const handleBlock = async () => {
     if (!newUserId.trim()) return;
-    const { error } = await (supabase as any)
+    const { error } = await (supabase as UnsafeAny)
       .from("user_roles")
-      .insert({ user_id: newUserId.trim(), role: "blocked" } as any);
+      .insert({ user_id: newUserId.trim(), role: "blocked" } as UnsafeAny);
     if (error) toast.error(error.message);
     else {
       toast.success("User blocked");
@@ -80,7 +80,7 @@ export default function BlockedUsers() {
   };
 
   const handleUnblock = async (userId: string) => {
-    const { error } = await (supabase as any)
+    const { error } = await (supabase as UnsafeAny)
       .from("user_roles")
       .delete()
       .eq("user_id", userId)

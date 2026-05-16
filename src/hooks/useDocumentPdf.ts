@@ -37,7 +37,7 @@ export function useDocumentPdf() {
       printWindow.document.close();
       // Give the browser a moment to parse the HTML before triggering print
       setTimeout(() => printWindow.print(), 600);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error generating document", description: err.message, variant: "destructive" });
     } finally {
       setGenerating(null);
@@ -47,7 +47,7 @@ export function useDocumentPdf() {
   return { generatePdf, generating };
 }
 
-function renderDocumentHtml(doc: Record<string, any>, label: string, shipRef: string): string {
+function renderDocumentHtml(doc: Record<string, UnsafeAny>, label: string, shipRef: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,7 +108,7 @@ function renderDocumentHtml(doc: Record<string, any>, label: string, shipRef: st
 </html>`;
 }
 
-function renderParties(doc: Record<string, any>): string {
+function renderParties(doc: Record<string, UnsafeAny>): string {
   const partyKeys = ["shipper", "consignee", "notify_party", "exporter"];
   const parties = partyKeys.filter((k) => doc[k] && typeof doc[k] === "object");
   if (parties.length === 0) return "";
@@ -131,7 +131,7 @@ function renderParties(doc: Record<string, any>): string {
   </div>`;
 }
 
-function renderKeyValues(doc: Record<string, any>): string {
+function renderKeyValues(doc: Record<string, UnsafeAny>): string {
   const skipKeys = new Set(["title", "subtitle", "ref", "date", "date_of_issue", "invoice_date", "invoice_number",
     "hawb_number", "mawb_number", "shipper", "consignee", "notify_party", "exporter", "forwarding_agent",
     "issuing_agent", "issuing_carrier_agent", "forwarder", "cargo_description", "cargo_items", "items",
@@ -151,7 +151,7 @@ function renderKeyValues(doc: Record<string, any>): string {
   </div>`;
 }
 
-function renderCargoTable(doc: Record<string, any>): string {
+function renderCargoTable(doc: Record<string, UnsafeAny>): string {
   const items = doc.cargo_description || doc.cargo_items || doc.items || doc.cargo_summary || doc.cargo;
   if (!Array.isArray(items) || items.length === 0) return "";
 
@@ -161,12 +161,12 @@ function renderCargoTable(doc: Record<string, any>): string {
     <div class="section-title">Cargo</div>
     <table>
       <thead><tr>${cols.map((c) => `<th>${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead>
-      <tbody>${items.map((row: any) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
+      <tbody>${items.map((row: UnsafeAny) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
     </table>
   </div>`;
 }
 
-function renderLineItems(doc: Record<string, any>): string {
+function renderLineItems(doc: Record<string, UnsafeAny>): string {
   const items = doc.line_items;
   if (!Array.isArray(items) || items.length === 0) return "";
 
@@ -175,13 +175,13 @@ function renderLineItems(doc: Record<string, any>): string {
     <div class="section-title">Line Items</div>
     <table>
       <thead><tr>${cols.map((c) => `<th>${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead>
-      <tbody>${items.map((row: any) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
+      <tbody>${items.map((row: UnsafeAny) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
     </table>
     ${doc.grand_total ? `<div style="text-align:right;margin-top:8px;font-weight:700;font-size:13px;">Grand Total: $${Number(doc.grand_total).toLocaleString()} ${doc.currency || "USD"}</div>` : ""}
   </div>`;
 }
 
-function renderContainers(doc: Record<string, any>): string {
+function renderContainers(doc: Record<string, UnsafeAny>): string {
   const containers = doc.containers;
   if (!Array.isArray(containers) || containers.length === 0) return "";
 
@@ -190,12 +190,12 @@ function renderContainers(doc: Record<string, any>): string {
     <div class="section-title">Containers</div>
     <table>
       <thead><tr>${cols.map((c) => `<th>${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead>
-      <tbody>${containers.map((row: any) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
+      <tbody>${containers.map((row: UnsafeAny) => `<tr>${cols.map((c) => `<td>${row[c] ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
     </table>
   </div>`;
 }
 
-function renderTotals(doc: Record<string, any>): string {
+function renderTotals(doc: Record<string, UnsafeAny>): string {
   if (!doc.totals || typeof doc.totals !== "object") return "";
   const entries = Object.entries(doc.totals);
   return `<div class="section">
@@ -206,7 +206,7 @@ function renderTotals(doc: Record<string, any>): string {
   </div>`;
 }
 
-function renderDeclaration(doc: Record<string, any>): string {
+function renderDeclaration(doc: Record<string, UnsafeAny>): string {
   const text = doc.declaration || doc.certification;
   if (!text) return "";
   return `<div class="declaration">${e(text)}</div>`;

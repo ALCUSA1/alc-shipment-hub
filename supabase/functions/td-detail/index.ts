@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const shipmentId = url.searchParams.get("shipment_id");
     const blNumber = url.searchParams.get("bl_number");
 
-    let td: any = null;
+    let td: UnsafeAny = null;
 
     if (tdId) {
       const { data } = await supabase.from("transport_documents").select("*").eq("id", tdId).maybeSingle();
@@ -70,14 +70,14 @@ Deno.serve(async (req) => {
 
     // Resolve route locations
     const locIds = [td.shipment_id].filter(Boolean);
-    let routeLocations: any = {};
+    let routeLocations: UnsafeAny = {};
     if (td.shipment_id) {
       const { data: shipment } = await supabase.from("shipments").select("origin_location_id, pol_location_id, pod_location_id, destination_location_id").eq("id", td.shipment_id).maybeSingle();
       if (shipment) {
         const ids = [shipment.origin_location_id, shipment.pol_location_id, shipment.pod_location_id, shipment.destination_location_id].filter(Boolean);
         if (ids.length) {
           const { data: locs } = await supabase.from("alc_locations").select("*").in("id", ids);
-          const locMap = Object.fromEntries((locs || []).map((l: any) => [l.id, l]));
+          const locMap = Object.fromEntries((locs || []).map((l: UnsafeAny) => [l.id, l]));
           routeLocations = {
             origin: locMap[shipment.origin_location_id] || null,
             pol: locMap[shipment.pol_location_id] || null,
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: UnsafeAny) {
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

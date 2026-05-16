@@ -75,14 +75,14 @@ const AdminSalesAnalytics = () => {
   // Build enriched dataset
   const enriched = useMemo(() => {
     if (!scenarios || !outputs || !shipments) return [];
-    const outputMap = new Map(outputs.map((o: any) => [o.scenario_id, o]));
-    const shipMap = new Map(shipments.map((s: any) => [s.id, s]));
-    const compMap = new Map((companies || []).map((c: any) => [c.id, c.company_name]));
-    const profMap = new Map((profiles || []).map((p: any) => [p.user_id, p.full_name]));
+    const outputMap = new Map(outputs.map((o: UnsafeAny) => [o.scenario_id, o]));
+    const shipMap = new Map(shipments.map((s: UnsafeAny) => [s.id, s]));
+    const compMap = new Map((companies || []).map((c: UnsafeAny) => [c.id, c.company_name]));
+    const profMap = new Map((profiles || []).map((p: UnsafeAny) => [p.user_id, p.full_name]));
 
     return scenarios
-      .filter((s: any) => s.is_selected)
-      .map((sc: any) => {
+      .filter((s: UnsafeAny) => s.is_selected)
+      .map((sc: UnsafeAny) => {
         const out = outputMap.get(sc.id);
         const ship = shipMap.get(sc.shipment_id);
         if (!ship) return null;
@@ -109,7 +109,7 @@ const AdminSalesAnalytics = () => {
           isPromo: buyRate > 0 && buyRate < totalCost * 0.7, // rough promo detection
         };
       })
-      .filter(Boolean) as any[];
+      .filter(Boolean) as UnsafeAny[];
   }, [scenarios, outputs, shipments, companies, profiles]);
 
   // KPIs
@@ -128,7 +128,7 @@ const AdminSalesAnalytics = () => {
 
   // Rep aggregation
   const repData = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, UnsafeAny>();
     enriched.forEach(d => {
       const existing = map.get(d.repName) || { rep: d.repName, sent: 0, won: 0, revenue: 0, netProfit: 0, platform: 0, margins: [], lowMargin: 0 };
       existing.sent++;
@@ -150,7 +150,7 @@ const AdminSalesAnalytics = () => {
 
   // Customer aggregation
   const customerData = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, UnsafeAny>();
     enriched.forEach(d => {
       const existing = map.get(d.customerName) || { name: d.customerName, count: 0, revenue: 0, netProfit: 0, platform: 0, margins: [], won: 0, total: 0 };
       existing.count++;
@@ -171,7 +171,7 @@ const AdminSalesAnalytics = () => {
 
   // Lane aggregation
   const laneData = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, UnsafeAny>();
     enriched.forEach(d => {
       const existing = map.get(d.lane) || { lane: d.lane, count: 0, revenue: 0, netProfit: 0, platform: 0, margins: [], promos: 0, won: 0, total: 0 };
       existing.count++;

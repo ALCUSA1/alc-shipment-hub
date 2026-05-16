@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("carrier-ingest error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),
@@ -145,7 +145,7 @@ interface TransformInput {
   jobId: string;
   messageFamily: string;
   messageType: string;
-  payload: any;
+  payload: UnsafeAny;
 }
 
 interface TransformResult {
@@ -175,7 +175,7 @@ async function resolveLocation(locCode: string, locName?: string): Promise<strin
   return newLoc?.id || null;
 }
 
-/** Find shipment ID by any reference value */
+/** Find shipment ID by UnsafeAny reference value */
 async function findShipmentByRef(refValue: string): Promise<string | null> {
   if (!refValue) return null;
   // Check shipment_references first
@@ -288,14 +288,14 @@ async function upsertReference(
 }
 
 /** Load event mappings for a carrier, keyed by external_code+classifier */
-async function loadEventMappings(carrierId: string, family: string): Promise<Map<string, any>> {
+async function loadEventMappings(carrierId: string, family: string): Promise<Map<string, UnsafeAny>> {
   const { data: mappings } = await supabase
     .from("carrier_event_mappings")
     .select("*")
     .eq("carrier_id", carrierId)
     .eq("message_family", family)
     .eq("active", true);
-  const map = new Map<string, any>();
+  const map = new Map<string, UnsafeAny>();
   for (const m of mappings || []) {
     // Key by code+classifier for precise lookup
     const compositeKey = `${m.external_code}|${m.event_classifier_code || ''}`;
@@ -309,7 +309,7 @@ async function loadEventMappings(carrierId: string, family: string): Promise<Map
 }
 
 /** Lookup mapping by code + classifier, falling back to code-only */
-function lookupMapping(mappings: Map<string, any>, eventCode: string, classifierCode?: string): any {
+function lookupMapping(mappings: Map<string, UnsafeAny>, eventCode: string, classifierCode?: string): UnsafeAny {
   if (classifierCode) {
     const precise = mappings.get(`${eventCode}|${classifierCode}`);
     if (precise) return precise;
@@ -348,7 +348,7 @@ async function transformPayload(input: TransformInput): Promise<TransformResult>
 
     // Unknown message type – store raw but skip transformation
     return { success: true, recordsCreated: 0 };
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return { success: false, recordsCreated: 0, error: err.message };
   }
 }
@@ -374,7 +374,7 @@ async function transformTrackingEvent(input: TransformInput): Promise<TransformR
     const locCode = evt.unlocode || evt.location_code || evt.facilityCode;
     const locationId = await resolveLocation(locCode, evt.location_name || evt.portName);
 
-    // Find shipment by any available reference
+    // Find shipment by UnsafeAny available reference
     const refValue = evt.booking_number || evt.bill_of_lading || evt.container_number
       || evt.shipmentReference || evt.bookingReference;
     const shipmentId = await findShipmentByRef(refValue);
@@ -721,7 +721,7 @@ async function transformEquipmentUpdate(input: TransformInput): Promise<Transfor
 
     if (containerId) {
       // Update container status/details
-      const updates: Record<string, any> = {};
+      const updates: Record<string, UnsafeAny> = {};
       if (ctn.status) updates.status = ctn.status;
       if (ctn.tare_weight || ctn.tareWeight) updates.tare_weight = ctn.tare_weight || ctn.tareWeight;
       if (ctn.vgm) updates.vgm = ctn.vgm;
@@ -778,7 +778,7 @@ async function transformTransportDocument(input: TransformInput): Promise<Transf
     return { success: true, recordsCreated: 0 };
   }
 
-  const tdData: Record<string, any> = {
+  const tdData: Record<string, UnsafeAny> = {
     shipment_id: shipmentId,
     alc_carrier_id: carrierId,
     source_message_id: rawMessageId,

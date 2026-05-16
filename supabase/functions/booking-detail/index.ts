@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
     const [partiesRes, documentsRes] = await Promise.all([
       sid
         ? supabase.from("shipment_parties").select("*").eq("shipment_id", sid)
-        : Promise.resolve({ data: [] as any[] }),
+        : Promise.resolve({ data: [] as UnsafeAny[] }),
       supabase.from("documents").select("id, doc_type, document_reference, status, created_at").eq("booking_id", resolvedBookingId),
     ]);
 
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("booking-detail error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),

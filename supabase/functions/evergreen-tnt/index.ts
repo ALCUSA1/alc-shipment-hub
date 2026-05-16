@@ -26,7 +26,7 @@ async function getEvergreenAuth(env = "production") {
     .single();
   if (!conn) throw new Error("No active Evergreen connection");
 
-  let headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
 
   if (conn.auth_type === "oauth") {
     // TNT API requires scope=TNT — request a fresh short-lived token (60s) each call
@@ -67,7 +67,7 @@ async function getEvergreenAuth(env = "production") {
     headers[headerName] = apiKey;
   }
 
-  // Normalize base URL to scheme://host (strip any accidental path/query)
+  // Normalize base URL to scheme://host (strip UnsafeAny accidental path/query)
   const rawBase = conn.base_url || Deno.env.get("EVERGREEN_BASE_URL") || "";
   let baseUrl = rawBase;
   try { const u = new URL(rawBase); baseUrl = `${u.protocol}//${u.host}`; } catch { baseUrl = rawBase.replace(/\/+$/, ""); }
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       }),
       { status: apiResp.ok ? 200 : 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("[evergreen-tnt] error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),

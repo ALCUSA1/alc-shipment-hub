@@ -17,7 +17,7 @@ interface Props {
   onUpdate: (field: keyof ContainerLine, value: string) => void;
   onDelete: () => void;
   onAddCargo: () => void;
-  onUpdateCargo: (originalIdx: number, field: keyof CargoLine, value: any) => void;
+  onUpdateCargo: (originalIdx: number, field: keyof CargoLine, value: UnsafeAny) => void;
   onDeleteCargo: (originalIdx: number) => void;
   onMoveCargo: (originalIdx: number, targetContainerId: string) => void;
   canDeleteCargo: boolean;

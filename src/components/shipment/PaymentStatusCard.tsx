@@ -72,7 +72,7 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
       } else {
         toast({ title: "Payment initiated", description: "Check your email for payment details." });
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setPaying(false);
@@ -91,7 +91,7 @@ export function PaymentStatusCard({ shipmentId }: PaymentStatusCardProps) {
       } else {
         toast({ title: "Bank transfer initiated", description: "Follow the wire instructions to complete your payment." });
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setPayingWire(false);

@@ -97,7 +97,7 @@ const TruckingOrderDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["my-quote", id] });
       queryClient.invalidateQueries({ queryKey: ["trucking-stats"] });
     },
-    onError: (error: any) => {
+    onError: (error: UnsafeAny) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });
@@ -119,11 +119,11 @@ const TruckingOrderDetail = () => {
     );
   }
 
-  const parties = (shipment.shipment_parties || []) as any[];
-  const shipper = parties.find((p: any) => p.role === "shipper");
-  const consignee = parties.find((p: any) => p.role === "consignee");
-  const notifyParty = parties.find((p: any) => p.role === "notify_party");
-  const hasDG = shipment.cargo?.some((c: any) => c.dangerous_goods) || false;
+  const parties = (shipment.shipment_parties || []) as UnsafeAny[];
+  const shipper = parties.find((p: UnsafeAny) => p.role === "shipper");
+  const consignee = parties.find((p: UnsafeAny) => p.role === "consignee");
+  const notifyParty = parties.find((p: UnsafeAny) => p.role === "notify_party");
+  const hasDG = shipment.cargo?.some((c: UnsafeAny) => c.dangerous_goods) || false;
   const isShipmentFinalized = ["delivered", "completed", "cancelled"].includes(shipment.status);
   const canSubmitQuote = !isShipmentFinalized && ["draft", "booked", "in_transit", "arrived", "booking_confirmed"].includes(shipment.status);
 
@@ -271,7 +271,7 @@ const TruckingOrderDetail = () => {
             <CardContent>
               {shipment.cargo?.length > 0 ? (
                 <div className="space-y-3">
-                  {shipment.cargo.map((cargo: any, idx: number) => (
+                  {shipment.cargo.map((cargo: UnsafeAny, idx: number) => (
                     <div key={idx} className="p-3 bg-secondary/50 rounded-lg space-y-2">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-foreground">{cargo.commodity || "General cargo"}</p>
@@ -314,7 +314,7 @@ const TruckingOrderDetail = () => {
             <CardContent>
               {shipment.containers?.length > 0 ? (
                 <div className="space-y-2">
-                  {shipment.containers.map((c: any, idx: number) => (
+                  {shipment.containers.map((c: UnsafeAny, idx: number) => (
                     <div key={idx} className="flex items-center gap-3 text-sm">
                       <Badge variant="secondary">
                         {c.quantity}x {c.container_size ? `${c.container_size} ` : ""}{c.container_type}
@@ -617,7 +617,7 @@ const TruckingOrderDetail = () => {
   );
 };
 
-function PartyBlock({ label, party }: { label: string; party: any }) {
+function PartyBlock({ label, party }: { label: string; party: UnsafeAny }) {
   const addressParts = [party.address, party.city, party.state, party.postal_code, party.country].filter(Boolean);
   return (
     <div className="space-y-1.5">

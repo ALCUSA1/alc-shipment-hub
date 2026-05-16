@@ -65,7 +65,7 @@ const ForwarderQuotes = () => {
                 quotes.map((q) => (
                   <TableRow key={q.id}>
                     <TableCell className="font-mono text-sm">
-                      {(q as any).shipments?.shipment_ref || "—"}
+                      {(q as UnsafeAny).shipments?.shipment_ref || "—"}
                     </TableCell>
                     <TableCell className="font-medium">
                       ${(q.amount || 0).toLocaleString()}

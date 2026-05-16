@@ -62,7 +62,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
       toast({ title: "Tracking synced", description: `${result?.new_events ?? 0} new event(s).` });
       queryClient.invalidateQueries({ queryKey: ["normalized-tracking", shipmentId] });
       queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       toast({ title: "Sync failed", description: e.message, variant: "destructive" });
     } finally {
       setSyncing(false);
@@ -90,10 +90,10 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
   }
 
   const { shipment, references, containers, tracking_timeline, transport_calls, carrier_documents } = data;
-  const carrier = (shipment as any).alc_carriers;
-  const bookingRef = references?.find((r: any) => r.reference_type === "booking_number")?.reference_value
+  const carrier = (shipment as UnsafeAny).alc_carriers;
+  const bookingRef = references?.find((r: UnsafeAny) => r.reference_type === "booking_number")?.reference_value
     || shipment.booking_ref;
-  const blRef = references?.find((r: any) => r.reference_type === "bill_of_lading")?.reference_value;
+  const blRef = references?.find((r: UnsafeAny) => r.reference_type === "bill_of_lading")?.reference_value;
 
   return (
     <div className="space-y-6">
@@ -168,7 +168,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
             {transport_calls && transport_calls.length > 0 && (
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Port Calls</p>
-                {transport_calls.map((tc: any, i: number) => {
+                {transport_calls.map((tc: UnsafeAny, i: number) => {
                   const loc = tc.alc_locations;
                   const vessel = tc.alc_vessels;
                   return (
@@ -213,7 +213,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {containers.map((c: any) => (
+              {containers.map((c: UnsafeAny) => (
                 <div key={c.id} className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-secondary/30 border border-border/50">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-accent/10 flex items-center justify-center">
@@ -231,7 +231,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
                       <div className="text-right">
                         <p className="text-[10px] text-muted-foreground uppercase">Seal</p>
                         <p className="text-xs font-mono text-foreground">
-                          {c.container_seals.map((s: any) => s.seal_number).join(", ")}
+                          {c.container_seals.map((s: UnsafeAny) => s.seal_number).join(", ")}
                         </p>
                       </div>
                     )}
@@ -259,7 +259,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
             <div className="relative">
               <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-border" />
               <div className="space-y-0">
-                {tracking_timeline.map((evt: any, i: number) => {
+                {tracking_timeline.map((evt: UnsafeAny, i: number) => {
                   const loc = evt.alc_locations;
                   const vessel = evt.alc_vessels;
                   const isLatest = i === tracking_timeline.length - 1;
@@ -332,7 +332,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {carrier_documents.map((doc: any) => (
+              {carrier_documents.map((doc: UnsafeAny) => (
                 <div key={doc.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                   <div>
                     <p className="text-sm font-medium text-foreground">{fmtStatus(doc.doc_type)}</p>
@@ -364,7 +364,7 @@ export function NormalizedTrackingView({ shipmentId }: NormalizedTrackingViewPro
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {references.map((ref: any, i: number) => (
+              {references.map((ref: UnsafeAny, i: number) => (
                 <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg bg-secondary/30">
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase">{fmtStatus(ref.reference_type)}</p>

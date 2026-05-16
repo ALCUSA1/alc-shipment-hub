@@ -133,7 +133,7 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
       queryClient.invalidateQueries({ queryKey: ["logistics-trucking-quotes", shipmentId] });
       setConfirmed(true);
       toast.success("Trucking rates confirmed and added to shipment!");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to confirm trucking");
     } finally {
       setConfirming(false);
@@ -147,7 +147,7 @@ export function TruckingRateSelector({ shipmentId, originPort, destinationPort, 
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["ws-shipment"] });
       toast.success("Shipment is now in transit!");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to update");
     } finally {
       setTransitLoading(false);

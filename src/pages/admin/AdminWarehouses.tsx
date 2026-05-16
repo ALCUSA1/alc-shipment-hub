@@ -30,19 +30,19 @@ const AdminWarehouses = () => {
     },
   });
 
-  const searchFields = useCallback((o: any) => [
+  const searchFields = useCallback((o: UnsafeAny) => [
     o.warehouse_name, o.warehouse_location, o.cargo_description,
-    (o.shipments as any)?.shipment_ref,
+    (o.shipments as UnsafeAny)?.shipment_ref,
   ], []);
-  const statusField = useCallback((o: any) => o.status, []);
-  const dateField = useCallback((o: any) => o.created_at, []);
+  const statusField = useCallback((o: UnsafeAny) => o.status, []);
+  const dateField = useCallback((o: UnsafeAny) => o.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
     data: ops, searchFields, statusField, dateField,
   });
 
   const filtered = filterValues.type && filterValues.type !== "all"
-    ? preFiltered.filter((o: any) => o.operation_type === filterValues.type)
+    ? preFiltered.filter((o: UnsafeAny) => o.operation_type === filterValues.type)
     : preFiltered;
 
   return (
@@ -57,9 +57,9 @@ const AdminWarehouses = () => {
 
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Pending", value: filtered.filter((o: any) => o.status === "pending").length, color: "text-amber-400" },
-          { label: "In Storage", value: filtered.filter((o: any) => o.status === "in_storage").length, color: "text-blue-400" },
-          { label: "Released", value: filtered.filter((o: any) => o.status === "released").length, color: "text-emerald-400" },
+          { label: "Pending", value: filtered.filter((o: UnsafeAny) => o.status === "pending").length, color: "text-amber-400" },
+          { label: "In Storage", value: filtered.filter((o: UnsafeAny) => o.status === "in_storage").length, color: "text-blue-400" },
+          { label: "Released", value: filtered.filter((o: UnsafeAny) => o.status === "released").length, color: "text-emerald-400" },
         ].map(m => (
           <div key={m.label} className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">{m.label}</p>
@@ -97,9 +97,9 @@ const AdminWarehouses = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No operations match your filters</td></tr>
-              ) : filtered.map((o: any) => (
+              ) : filtered.map((o: UnsafeAny) => (
                 <tr key={o.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{(o.shipments as any)?.shipment_ref || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-medium text-white">{(o.shipments as UnsafeAny)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{o.warehouse_name || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{o.operation_type}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)] truncate max-w-[200px]">{o.cargo_description || "—"}</td>

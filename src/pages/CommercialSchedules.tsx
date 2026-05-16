@@ -32,11 +32,11 @@ type ScheduleResult = {
   total_leg_count: number | null;
   is_direct_service: boolean | null;
   carrier: { carrier_code: string; carrier_name: string } | null;
-  legs: any[];
-  places: any[];
-  cutoffs: any[];
-  port_calls: any[];
-  vessel_schedule: any[];
+  legs: UnsafeAny[];
+  places: UnsafeAny[];
+  cutoffs: UnsafeAny[];
+  port_calls: UnsafeAny[];
+  vessel_schedule: UnsafeAny[];
 };
 
 const CommercialSchedules = () => {
@@ -96,27 +96,27 @@ const CommercialSchedules = () => {
       total_leg_count: sched.total_leg_count,
       is_direct_service: sched.is_direct_service,
       carrier: sched.alc_carriers ? { carrier_code: sched.alc_carriers.carrier_code, carrier_name: sched.alc_carriers.carrier_name } : null,
-      legs: (d.legs || []).map((l: any) => ({
+      legs: (d.legs || []).map((l: UnsafeAny) => ({
         sequence_number: l.sequence_number,
         vessel_name: l.vessel_name || l.alc_vessels?.vessel_name || null,
         voyage_number: l.voyage_number,
         load_port: l.alc_locations?.location_name || l.alc_locations?.unlocode || "—",
-        discharge_port: (l as any)["alc_locations!schedule_legs_discharge_location_id_fkey"]?.location_name ||
-          (l as any)["alc_locations!schedule_legs_discharge_location_id_fkey"]?.unlocode || "—",
+        discharge_port: (l as UnsafeAny)["alc_locations!schedule_legs_discharge_location_id_fkey"]?.location_name ||
+          (l as UnsafeAny)["alc_locations!schedule_legs_discharge_location_id_fkey"]?.unlocode || "—",
         planned_departure: l.planned_departure,
         planned_arrival: l.planned_arrival,
         service_code: l.service_code,
       })),
-      places: (d.places || []).map((p: any) => ({
+      places: (d.places || []).map((p: UnsafeAny) => ({
         place_role: p.place_role,
         location: p.alc_locations?.location_name || p.alc_locations?.unlocode || "—",
       })),
-      cutoffs: (d.cutoffs || []).map((c: any) => ({
+      cutoffs: (d.cutoffs || []).map((c: UnsafeAny) => ({
         cutoff_type: c.cutoff_type,
         cutoff_datetime: c.cutoff_datetime,
         location: c.alc_locations?.location_name || c.alc_locations?.unlocode || null,
       })),
-      port_calls: (d.port_calls || []).map((pc: any) => ({
+      port_calls: (d.port_calls || []).map((pc: UnsafeAny) => ({
         call_sequence: pc.call_sequence,
         vessel_name: pc.vessel_name || pc.alc_vessels?.vessel_name || null,
         voyage_number: pc.voyage_number,
@@ -125,12 +125,12 @@ const CommercialSchedules = () => {
         departure: pc.departure_datetime,
         port: pc.alc_locations?.location_name || pc.alc_locations?.unlocode || "—",
       })),
-      vessel_schedule: (d.vessel_schedule || []).map((vs: any) => ({
+      vessel_schedule: (d.vessel_schedule || []).map((vs: UnsafeAny) => ({
         vessel_name: vs.vessel_name || vs.alc_vessels?.vessel_name || null,
         voyage_number: vs.voyage_number,
         service_code: vs.service_code,
         first_port: vs.alc_locations?.location_name || null,
-        last_port: (vs as any)["alc_locations!vessel_schedules_last_port_location_id_fkey"]?.location_name || null,
+        last_port: (vs as UnsafeAny)["alc_locations!vessel_schedules_last_port_location_id_fkey"]?.location_name || null,
         first_departure: vs.first_departure_datetime,
         final_arrival: vs.final_arrival_datetime,
       })),
@@ -144,7 +144,7 @@ const CommercialSchedules = () => {
     setSearched(true);
 
     try {
-      let body: any = { query_type: queryType };
+      const body: UnsafeAny = { query_type: queryType };
 
       if (queryType === "point_to_point") {
         if (!p2pPol && !p2pOrigin) { setError("Enter origin or port of loading"); setLoading(false); return; }
@@ -181,7 +181,7 @@ const CommercialSchedules = () => {
       setResults(details.filter(Boolean) as ScheduleResult[]);
 
       toast({ title: "Schedules fetched", description: `${scheduleIds.length} result(s) from carrier API` });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       setError(err.message || "Unknown error");
     } finally {
       setLoading(false);

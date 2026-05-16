@@ -76,12 +76,12 @@ const DriverAssignmentDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["driver-assignments"] });
       toast({ title: "Status updated" });
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Update failed", description: err.message, variant: "destructive" });
     },
   });
 
-  const currentIdx = STATUS_FLOW.indexOf(assignment?.status as any);
+  const currentIdx = STATUS_FLOW.indexOf(assignment?.status as UnsafeAny);
   const nextStatus = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1 ? STATUS_FLOW[currentIdx + 1] : null;
 
   if (isLoading) {

@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
     for (const shipment of shipments) {
       for (const ct of cutoffTypes) {
-        const cutoffDate = (shipment as any)[ct.key];
+        const cutoffDate = (shipment as UnsafeAny)[ct.key];
         if (!cutoffDate) continue;
 
         const cutoff = new Date(cutoffDate);

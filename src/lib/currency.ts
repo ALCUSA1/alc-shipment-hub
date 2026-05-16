@@ -8,7 +8,7 @@ export interface ExchangeRate {
 }
 
 // Cache for exchange rates
-let rateCache: Map<string, number> = new Map();
+const rateCache: Map<string, number> = new Map();
 let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 

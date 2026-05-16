@@ -72,7 +72,7 @@ export default function Support() {
   const createTicket = useMutation({
     mutationFn: async () => {
       const ref = `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const insertData: any = {
+      const insertData: UnsafeAny = {
         user_id: user!.id,
         ticket_ref: ref,
         category: form.category.toLowerCase(),
@@ -93,7 +93,7 @@ export default function Support() {
     onError: () => toast.error("Failed to create ticket"),
   });
 
-  const filtered = tickets.filter((t: any) => {
+  const filtered = tickets.filter((t: UnsafeAny) => {
     if (filterStatus !== "all" && t.status !== filterStatus) return false;
     if (searchQuery && !t.subject.toLowerCase().includes(searchQuery.toLowerCase()) && !t.ticket_ref.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -108,9 +108,9 @@ export default function Support() {
   }
 
   const stats = {
-    open: tickets.filter((t: any) => t.status === "open").length,
-    inProgress: tickets.filter((t: any) => t.status === "in_progress").length,
-    resolved: tickets.filter((t: any) => t.status === "resolved" || t.status === "closed").length,
+    open: tickets.filter((t: UnsafeAny) => t.status === "open").length,
+    inProgress: tickets.filter((t: UnsafeAny) => t.status === "in_progress").length,
+    resolved: tickets.filter((t: UnsafeAny) => t.status === "resolved" || t.status === "closed").length,
   };
 
   return (
@@ -154,7 +154,7 @@ export default function Support() {
                   <Select value={form.shipment_id} onValueChange={(v) => setForm((p) => ({ ...p, shipment_id: v }))}>
                     <SelectTrigger><SelectValue placeholder="Select a shipment…" /></SelectTrigger>
                     <SelectContent>
-                      {shipments.map((s: any) => (
+                      {shipments.map((s: UnsafeAny) => (
                         <SelectItem key={s.id} value={s.id}>
                           {s.reference} — {s.origin} → {s.destination}
                         </SelectItem>
@@ -222,7 +222,7 @@ export default function Support() {
           ) : filtered.length === 0 ? (
             <Card><CardContent className="p-8 text-center text-muted-foreground">No tickets found. Create one to get started.</CardContent></Card>
           ) : (
-            filtered.map((ticket: any) => {
+            filtered.map((ticket: UnsafeAny) => {
               const sc = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
               return (
                 <Card key={ticket.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => setSelectedTicket(ticket.id)}>
@@ -232,7 +232,7 @@ export default function Support() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono text-muted-foreground">{ticket.ticket_ref}</span>
                         <Badge variant={sc.variant} className="text-[10px]">{sc.label}</Badge>
-                        <PriorityBadge priority={(ticket as any).priority || "normal"} size="sm" />
+                        <PriorityBadge priority={(ticket as UnsafeAny).priority || "normal"} size="sm" />
                         <Badge variant="outline" className="text-[10px]">{ticket.category}</Badge>
                       </div>
                       <p className="font-medium text-sm text-foreground truncate mt-0.5">{ticket.subject}</p>

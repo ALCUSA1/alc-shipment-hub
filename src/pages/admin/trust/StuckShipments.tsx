@@ -5,19 +5,19 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export default function StuckShipments() {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<UnsafeAny[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any)
+      const { data } = await (supabase as UnsafeAny)
         .from("admin_alerts")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       setRows(
         (data || []).filter(
-          (a: any) =>
+          (a: UnsafeAny) =>
             a.alert_type?.includes("stuck") || a.alert_type?.includes("shipment_stalled")
         )
       );
@@ -50,7 +50,7 @@ export default function StuckShipments() {
               ) : rows.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No stuck shipments.</td></tr>
               ) : (
-                rows.map((r: any) => (
+                rows.map((r: UnsafeAny) => (
                   <tr key={r.id} className="border-t border-border">
                     <td className="px-4 py-2">
                       <Badge variant={r.severity === "high" ? "destructive" : "secondary"}>

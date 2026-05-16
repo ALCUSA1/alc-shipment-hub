@@ -37,20 +37,20 @@ const AdminCRM = () => {
     },
   });
 
-  const searchFields = useCallback((c: any) => [
+  const searchFields = useCallback((c: UnsafeAny) => [
     c.company_name, c.email, c.city, c.state, c.fmc_license_number,
   ], []);
-  const statusField = useCallback((c: any) => c.status, []);
-  const dateField = useCallback((c: any) => c.created_at, []);
+  const statusField = useCallback((c: UnsafeAny) => c.status, []);
+  const dateField = useCallback((c: UnsafeAny) => c.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
     data: companies, searchFields, statusField, dateField,
   });
 
   const counts = {
-    active: filtered.filter((c: any) => c.status === "active").length,
-    prospect: filtered.filter((c: any) => c.status === "prospect").length,
-    pending: filtered.filter((c: any) => c.status === "pending_compliance").length,
+    active: filtered.filter((c: UnsafeAny) => c.status === "active").length,
+    prospect: filtered.filter((c: UnsafeAny) => c.status === "prospect").length,
+    pending: filtered.filter((c: UnsafeAny) => c.status === "pending_compliance").length,
   };
 
   return (
@@ -105,7 +105,7 @@ const AdminCRM = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No companies match your filters</td></tr>
-              ) : filtered.map((c: any) => (
+              ) : filtered.map((c: UnsafeAny) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium"><Link to={`/admin/crm/${c.id}`} className="text-indigo-400 hover:text-indigo-300">{c.company_name}</Link></td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{[c.city, c.state, c.country].filter(Boolean).join(", ") || "—"}</td>

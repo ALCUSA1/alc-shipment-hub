@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function ExecutionSection({ data, onChange }: Props) {
-  const set = (f: keyof typeof data, v: any) => onChange({ ...data, [f]: v });
+  const set = (f: keyof typeof data, v: UnsafeAny) => onChange({ ...data, [f]: v });
 
   const handlePickupAddress = (addr: StructuredAddress) => {
     onChange({

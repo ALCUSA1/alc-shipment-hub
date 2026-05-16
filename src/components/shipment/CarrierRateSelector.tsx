@@ -237,7 +237,7 @@ export function CarrierRateSelector({
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
       queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
       queryClient.invalidateQueries({ queryKey: ["edi_messages", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Booking Failed", description: err.message, variant: "destructive" });
     } finally {
       setBookingLoading(false);

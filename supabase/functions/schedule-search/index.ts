@@ -28,7 +28,7 @@ async function getConnection(carrierId: string) {
   return data;
 }
 
-async function getOAuthToken(conn: any): Promise<string> {
+async function getOAuthToken(conn: UnsafeAny): Promise<string> {
   // Commercial Schedules requires scope=DCSA_CS, tokens last 60s — always request fresh
   const tokenUrl = conn.oauth_token_url;
   const username =
@@ -59,7 +59,7 @@ async function getOAuthToken(conn: any): Promise<string> {
   return td.access_token;
 }
 
-async function getAuthHeaders(conn: any) {
+async function getAuthHeaders(conn: UnsafeAny) {
   if (conn.auth_type === "oauth") {
     return { Authorization: `Bearer ${await getOAuthToken(conn)}`, "Content-Type": "application/json" };
   }
@@ -69,7 +69,7 @@ async function getAuthHeaders(conn: any) {
 }
 
 /* ── Location / Vessel resolution ── */
-async function resolveLocation(loc: any): Promise<string | null> {
+async function resolveLocation(loc: UnsafeAny): Promise<string | null> {
   if (!loc) return null;
   const unlocode = loc.UNLocationCode || loc.unLocationCode || loc.unlocode || null;
   const name = loc.locationName || loc.facilityName || loc.name || null;
@@ -89,7 +89,7 @@ async function resolveLocation(loc: any): Promise<string | null> {
   return data?.id ?? null;
 }
 
-async function resolveVessel(carrierId: string, v: any): Promise<string | null> {
+async function resolveVessel(carrierId: string, v: UnsafeAny): Promise<string | null> {
   if (!v) return null;
   const imo = v.vesselIMONumber || v.imoNumber || v.imo || null;
   const name = v.vesselName || v.vessel_name || v.name || null;
@@ -107,7 +107,7 @@ async function resolveVessel(carrierId: string, v: any): Promise<string | null> 
 }
 
 /* ── Store raw message ── */
-async function storeRaw(carrierId: string, family: string, type: string, payload: any) {
+async function storeRaw(carrierId: string, family: string, type: string, payload: UnsafeAny) {
   const { data } = await supabase.from("carrier_raw_messages").insert({
     carrier_id: carrierId, source_channel: "api", message_family: family,
     message_type: type, payload_format: "json", response_payload_json: payload,
@@ -117,7 +117,7 @@ async function storeRaw(carrierId: string, family: string, type: string, payload
 }
 
 /* ── Point-to-Point handler ── */
-async function handlePointToPoint(carrierId: string, baseUrl: string, headers: Record<string, string>, params: any) {
+async function handlePointToPoint(carrierId: string, baseUrl: string, headers: Record<string, string>, params: UnsafeAny) {
   const qs = new URLSearchParams();
   if (params.placeOfReceipt) qs.set("placeOfReceipt", params.placeOfReceipt);
   if (params.placeOfDelivery) qs.set("placeOfDelivery", params.placeOfDelivery);
@@ -226,7 +226,7 @@ async function handlePointToPoint(carrierId: string, baseUrl: string, headers: R
     // Schedule places
     const placeOfReceipt = sol.placeOfReceipt || sol.originPlace;
     const placeOfDelivery = sol.placeOfDelivery || sol.destinationPlace;
-    const placePairs: [string, any][] = [
+    const placePairs: [string, UnsafeAny][] = [
       ["place_of_receipt", placeOfReceipt],
       ["port_of_loading", legArr[0]?.departureLocation || legArr[0]?.loadPort],
       ["port_of_discharge", legArr[legArr.length - 1]?.arrivalLocation || legArr[legArr.length - 1]?.dischargePort],
@@ -266,7 +266,7 @@ async function handlePointToPoint(carrierId: string, baseUrl: string, headers: R
 }
 
 /* ── Port Schedule handler ── */
-async function handlePortSchedule(carrierId: string, baseUrl: string, headers: Record<string, string>, params: any) {
+async function handlePortSchedule(carrierId: string, baseUrl: string, headers: Record<string, string>, params: UnsafeAny) {
   const qs = new URLSearchParams();
   if (params.unLocationCode) qs.set("UNLocationCode", params.unLocationCode);
   if (params.startDate) qs.set("startDate", params.startDate);
@@ -314,8 +314,8 @@ async function handlePortSchedule(carrierId: string, baseUrl: string, headers: R
 
     // Port call timestamps
     const timestamps = call.timestamps || call.transportCallTimestamps || [];
-    const arrTime = timestamps.find?.((t: any) => t.eventTypeCode === "ARRI")?.eventDateTime || call.arrivalDateTime || call.eta || null;
-    const depTime = timestamps.find?.((t: any) => t.eventTypeCode === "DEPA")?.eventDateTime || call.departureDateTime || call.etd || null;
+    const arrTime = timestamps.find?.((t: UnsafeAny) => t.eventTypeCode === "ARRI")?.eventDateTime || call.arrivalDateTime || call.eta || null;
+    const depTime = timestamps.find?.((t: UnsafeAny) => t.eventTypeCode === "DEPA")?.eventDateTime || call.departureDateTime || call.etd || null;
 
     await supabase.from("port_schedules").insert({
       commercial_schedule_id: schedId, carrier_id: carrierId, source_message_id: rawId,
@@ -350,7 +350,7 @@ async function handlePortSchedule(carrierId: string, baseUrl: string, headers: R
 }
 
 /* ── Vessel Schedule handler ── */
-async function handleVesselSchedule(carrierId: string, baseUrl: string, headers: Record<string, string>, params: any) {
+async function handleVesselSchedule(carrierId: string, baseUrl: string, headers: Record<string, string>, params: UnsafeAny) {
   const qs = new URLSearchParams();
   if (params.vesselIMONumber) qs.set("vesselIMONumber", params.vesselIMONumber);
   if (params.carrierServiceCode) qs.set("carrierServiceCode", params.carrierServiceCode);
@@ -410,8 +410,8 @@ async function handleVesselSchedule(carrierId: string, baseUrl: string, headers:
       const pcVesselId = await resolveVessel(carrierId, pc.vessel || { vesselName: pc.vesselName || sched.vesselName });
 
       const timestamps = pc.timestamps || [];
-      const arrTime = timestamps.find?.((t: any) => t.eventTypeCode === "ARRI")?.eventDateTime || pc.arrivalDateTime || pc.eta || null;
-      const depTime = timestamps.find?.((t: any) => t.eventTypeCode === "DEPA")?.eventDateTime || pc.departureDateTime || pc.etd || null;
+      const arrTime = timestamps.find?.((t: UnsafeAny) => t.eventTypeCode === "ARRI")?.eventDateTime || pc.arrivalDateTime || pc.eta || null;
+      const depTime = timestamps.find?.((t: UnsafeAny) => t.eventTypeCode === "DEPA")?.eventDateTime || pc.departureDateTime || pc.etd || null;
 
       if (i === 0) { firstLocId = locId; firstDeparture = depTime; }
       if (i === calls.length - 1) { lastLocId = locId; finalArrival = arrTime; }
@@ -499,7 +499,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, ...result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

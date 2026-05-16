@@ -41,22 +41,22 @@ const AdminAccounting = () => {
     },
   });
 
-  const searchFields = useCallback((f: any) => [
-    f.description, f.vendor, f.invoice_ref, (f.shipments as any)?.shipment_ref,
+  const searchFields = useCallback((f: UnsafeAny) => [
+    f.description, f.vendor, f.invoice_ref, (f.shipments as UnsafeAny)?.shipment_ref,
   ], []);
-  const statusField = useCallback((f: any) => f.entry_type, []);
-  const dateField = useCallback((f: any) => f.date || f.created_at, []);
+  const statusField = useCallback((f: UnsafeAny) => f.entry_type, []);
+  const dateField = useCallback((f: UnsafeAny) => f.date || f.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
     data, searchFields, statusField, dateField,
   });
 
   const filtered = filterValues.category && filterValues.category !== "all"
-    ? preFiltered.filter((f: any) => f.category === filterValues.category)
+    ? preFiltered.filter((f: UnsafeAny) => f.category === filterValues.category)
     : preFiltered;
 
-  const revenue = filtered.filter((f: any) => f.entry_type === "revenue").reduce((s: number, f: any) => s + (f.amount || 0), 0);
-  const costs = filtered.filter((f: any) => f.entry_type === "cost").reduce((s: number, f: any) => s + (f.amount || 0), 0);
+  const revenue = filtered.filter((f: UnsafeAny) => f.entry_type === "revenue").reduce((s: number, f: UnsafeAny) => s + (f.amount || 0), 0);
+  const costs = filtered.filter((f: UnsafeAny) => f.entry_type === "cost").reduce((s: number, f: UnsafeAny) => s + (f.amount || 0), 0);
   const profit = revenue - costs;
 
   return (
@@ -123,9 +123,9 @@ const AdminAccounting = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No entries match your filters</td></tr>
-              ) : filtered.slice(0, 50).map((f: any) => (
+              ) : filtered.slice(0, 50).map((f: UnsafeAny) => (
                 <tr key={f.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
-                  <td className="px-4 py-3 text-xs font-medium text-white">{(f.shipments as any)?.shipment_ref || "—"}</td>
+                  <td className="px-4 py-3 text-xs font-medium text-white">{(f.shipments as UnsafeAny)?.shipment_ref || "—"}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)] truncate max-w-[200px]">{f.description}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{f.category.replace(/_/g, " ")}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{f.entry_type}</td>

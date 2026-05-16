@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    let result: any = {};
+    let result: UnsafeAny = {};
 
     switch (action) {
       case "disable": {
@@ -122,12 +122,12 @@ Deno.serve(async (req) => {
           const { error } = await adminClient.auth.admin.updateUserById(target_user_id, { email });
           if (error) throw error;
         }
-        const profileUpdate: Record<string, any> = {};
+        const profileUpdate: Record<string, UnsafeAny> = {};
         if (full_name !== undefined) profileUpdate.full_name = full_name;
         if (email !== undefined) profileUpdate.email = email;
         if (company_name !== undefined) profileUpdate.company_name = company_name;
         if (Object.keys(profileUpdate).length > 0) {
-          const { error } = await adminClient.from("profiles").update(profileUpdate as any).eq("user_id", target_user_id);
+          const { error } = await adminClient.from("profiles").update(profileUpdate as UnsafeAny).eq("user_id", target_user_id);
           if (error) throw error;
         }
         result = { message: "Profile updated" };
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("admin-manage-user error:", err?.message, err?.stack);
     return new Response(
       JSON.stringify({ error: err.message }),

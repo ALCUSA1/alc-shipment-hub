@@ -162,7 +162,7 @@ async function fetchTerminal49Tracking(
       const included = eventsData.included || [];
 
       // Extract transport events from included resources
-      const transportEvents = included.filter((r: any) => r.type === "transport_event");
+      const transportEvents = included.filter((r: UnsafeAny) => r.type === "transport_event");
 
       for (const event of transportEvents) {
         const attrs = event.attributes || {};
@@ -298,7 +298,7 @@ async function fetchDirectCarrierTracking(
       ? data
       : data?.events || data?.containers?.[0]?.events || data?.transportEvents || [];
 
-    const events: TrackingResult[] = rawEvents.map((event: any) => {
+    const events: TrackingResult[] = rawEvents.map((event: UnsafeAny) => {
       const code = event.eventType || event.transportEventTypeCode || event.statusCode || "";
       return {
         milestone: mapDcsaEvent(code),
@@ -462,7 +462,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function processShipment(supabase: any, shipment: any): Promise<TrackingResult[]> {
+async function processShipment(supabase: UnsafeAny, shipment: UnsafeAny): Promise<TrackingResult[]> {
   const isAir = shipment.mode === "air";
 
   // Get existing tracking events to avoid duplicates
@@ -472,7 +472,7 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
     .eq("shipment_id", shipment.id);
 
   const existingKeys = new Set(
-    (existingEvents || []).map((e: any) => `${e.milestone}|${e.source || ""}|${e.raw_event_code || ""}`)
+    (existingEvents || []).map((e: UnsafeAny) => `${e.milestone}|${e.source || ""}|${e.raw_event_code || ""}`)
   );
 
   let trackingResults: TrackingResult[] = [];
@@ -485,7 +485,7 @@ async function processShipment(supabase: any, shipment: any): Promise<TrackingRe
     );
   } else {
     const containerNumbers = (shipment.containers || [])
-      .map((c: any) => c.container_number)
+      .map((c: UnsafeAny) => c.container_number)
       .filter(Boolean);
 
     const carrierKey = detectCarrier(shipment.carrier, shipment.vessel);

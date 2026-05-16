@@ -12,9 +12,9 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
-  shipment: any;
-  documents?: any[];
-  customsFilings?: any[];
+  shipment: UnsafeAny;
+  documents?: UnsafeAny[];
+  customsFilings?: UnsafeAny[];
   className?: string;
 }
 
@@ -219,7 +219,7 @@ export function ShipmentIntelligencePanel({ shipment, documents, customsFilings,
   );
 }
 
-function generateNextActions(shipment: any, documents?: any[], customsFilings?: any[]): string[] {
+function generateNextActions(shipment: UnsafeAny, documents?: UnsafeAny[], customsFilings?: UnsafeAny[]): string[] {
   const actions: string[] = [];
   const stage = shipment?.lifecycle_stage || shipment?.status;
 
@@ -227,7 +227,7 @@ function generateNextActions(shipment: any, documents?: any[], customsFilings?: 
     // Check documents
     const pendingDocs = (documents || []).filter(d => d.status === "pending");
     if (pendingDocs.length > 0) {
-      actions.push(`Upload ${pendingDocs.length} pending document${pendingDocs.length > 1 ? "s" : ""} (${pendingDocs.map((d: any) => d.doc_type?.replace(/_/g, " ")).join(", ")})`);
+      actions.push(`Upload ${pendingDocs.length} pending document${pendingDocs.length > 1 ? "s" : ""} (${pendingDocs.map((d: UnsafeAny) => d.doc_type?.replace(/_/g, " ")).join(", ")})`);
     }
     // Check customs
     const hasFiling = (customsFilings || []).some(f => ["submitted", "approved", "filed"].includes(f.status));

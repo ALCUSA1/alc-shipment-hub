@@ -28,15 +28,15 @@ const TruckingDashboard = () => {
     enabled: !!user,
   });
 
-  const activeOrders = quotes.filter((q: any) => ["accepted", "accepted_by_carrier", "available"].includes(q.status));
-  const pendingQuotes = quotes.filter((q: any) => q.status === "submitted");
-  const completedOrders = quotes.filter((q: any) => ["completed", "delivered"].includes(q.status));
+  const activeOrders = quotes.filter((q: UnsafeAny) => ["accepted", "accepted_by_carrier", "available"].includes(q.status));
+  const pendingQuotes = quotes.filter((q: UnsafeAny) => q.status === "submitted");
+  const completedOrders = quotes.filter((q: UnsafeAny) => ["completed", "delivered"].includes(q.status));
   const totalEarnings = quotes
-    .filter((q: any) => q.status === "accepted")
-    .reduce((sum: number, q: any) => sum + Number(q.price || 0), 0);
+    .filter((q: UnsafeAny) => q.status === "accepted")
+    .reduce((sum: number, q: UnsafeAny) => sum + Number(q.price || 0), 0);
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const todayJobs = quotes.filter((q: any) => q.pickup_date === todayStr && ["accepted", "accepted_by_carrier"].includes(q.status));
+  const todayJobs = quotes.filter((q: UnsafeAny) => q.pickup_date === todayStr && ["accepted", "accepted_by_carrier"].includes(q.status));
 
   const statCards = [
     { title: "Active Orders", value: activeOrders.length, icon: Truck, color: "text-accent", bgColor: "bg-accent/10" },
@@ -108,7 +108,7 @@ const TruckingDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {todayJobs.map((q: any) => {
+                {todayJobs.map((q: UnsafeAny) => {
                   const s = q.shipments;
                   return (
                     <Link key={q.id} to={`/trucking/orders/${q.shipment_id}`} className="block">
@@ -149,7 +149,7 @@ const TruckingDashboard = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {activeOrders.slice(0, 5).map((q: any) => {
+                {activeOrders.slice(0, 5).map((q: UnsafeAny) => {
                   const s = q.shipments;
                   return (
                     <Link key={q.id} to={`/trucking/orders/${q.shipment_id}`} className="block">

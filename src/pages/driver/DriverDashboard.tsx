@@ -90,7 +90,7 @@ const DriverDashboard = () => {
   );
 };
 
-function AssignmentCard({ assignment }: { assignment: any }) {
+function AssignmentCard({ assignment }: { assignment: UnsafeAny }) {
   return (
     <Link
       to={`/driver/job/${assignment.id}`}

@@ -138,7 +138,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
       queryClient.invalidateQueries({ queryKey: ["dcsa-booking", bookingId] });
       queryClient.invalidateQueries({ queryKey: ["booking-notifications", bookingId] });
     },
-    onError: (err: any) => toast.error(`Sync failed: ${err.message}`),
+    onError: (err: UnsafeAny) => toast.error(`Sync failed: ${err.message}`),
   });
 
   const cancelMutation = useMutation({
@@ -153,7 +153,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
       toast.success("Cancellation requested");
       queryClient.invalidateQueries({ queryKey: ["dcsa-booking", bookingId] });
     },
-    onError: (err: any) => toast.error(`Cancel failed: ${err.message}`),
+    onError: (err: UnsafeAny) => toast.error(`Cancel failed: ${err.message}`),
   });
 
   if (isLoading) return <Skeleton className="h-96 w-full" />;
@@ -293,7 +293,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                 <p className="text-muted-foreground text-sm">No locations mapped</p>
               ) : (
                 <div className="space-y-3">
-                  {locations.map((loc: any) => (
+                  {locations.map((loc: UnsafeAny) => (
                     <div key={loc.id} className="flex items-center gap-3 p-3 border rounded-lg">
                       <Badge variant="outline" className="text-xs min-w-[60px] justify-center">
                         {loc.location_type_code}
@@ -321,7 +321,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                 <p className="text-muted-foreground text-sm">No parties mapped</p>
               ) : (
                 <div className="space-y-3">
-                  {parties.map((p: any) => (
+                  {parties.map((p: UnsafeAny) => (
                     <div key={p.id} className="p-3 border rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
@@ -354,8 +354,8 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                 <p className="text-muted-foreground text-sm">No equipment records</p>
               ) : (
                 <div className="space-y-3">
-                  {equipments.map((eq: any) => {
-                    const eqCommodities = commodities?.filter((c: any) => c.booking_equipment_id === eq.id) || [];
+                  {equipments.map((eq: UnsafeAny) => {
+                    const eqCommodities = commodities?.filter((c: UnsafeAny) => c.booking_equipment_id === eq.id) || [];
                     return (
                       <div key={eq.id} className="p-3 border rounded-lg">
                         <div className="flex items-center justify-between">
@@ -376,7 +376,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                         )}
                         {eqCommodities.length > 0 && (
                           <div className="mt-2 pl-3 border-l-2 border-muted space-y-1">
-                            {eqCommodities.map((c: any) => (
+                            {eqCommodities.map((c: UnsafeAny) => (
                               <div key={c.id} className="text-xs">
                                 <span className="font-medium">{c.hs_code || "—"}</span>
                                 {c.package_description && ` · ${c.package_description}`}
@@ -415,7 +415,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {commodities.map((c: any) => (
+                      {commodities.map((c: UnsafeAny) => (
                         <tr key={c.id} className="border-b">
                           <td className="py-2 font-mono">{c.hs_code || "—"}</td>
                           <td className="py-2">{c.commodity_type || "—"}</td>
@@ -441,7 +441,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
                 <p className="text-muted-foreground text-sm">No notifications received</p>
               ) : (
                 <div className="space-y-2">
-                  {notifications.map((n: any) => (
+                  {notifications.map((n: UnsafeAny) => (
                     <div key={n.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <div className="flex items-center gap-2">
@@ -477,7 +477,7 @@ export function BookingDetailPanel({ bookingId }: BookingDetailPanelProps) {
 
 /* ─── Status Timeline sub-component ─── */
 
-function BookingStatusTimeline({ booking, notifications }: { booking: any; notifications: any[] }) {
+function BookingStatusTimeline({ booking, notifications }: { booking: UnsafeAny; notifications: UnsafeAny[] }) {
   const LIFECYCLE_STEPS = [
     { key: "submitted", label: "Submitted", icon: ArrowRight },
     { key: "received", label: "Received", icon: CheckCircle2 },

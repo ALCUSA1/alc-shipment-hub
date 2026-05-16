@@ -92,7 +92,7 @@ Respond with a JSON object using this exact structure (use tool calling):
 
 RULES:
 - Be specific about THIS route and carrier
-- Flag any global disruptions affecting this trade lane (Red Sea, canal issues, port congestion)
+- Flag UnsafeAny global disruptions affecting this trade lane (Red Sea, canal issues, port congestion)
 - If detention history exists, calculate risk
 - Recommend compliance requirements based on commodity and destination
 - Estimate costs based on historical rate data
@@ -108,7 +108,7 @@ RULES:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Analyze this shipping route: ${origin} to ${destination} via ${mode} with ${carrier || "any carrier"}. Commodity: ${commodity || "general cargo"}. Provide intelligence insights.` },
+          { role: "user", content: `Analyze this shipping route: ${origin} to ${destination} via ${mode} with ${carrier || "UnsafeAny carrier"}. Commodity: ${commodity || "general cargo"}. Provide intelligence insights.` },
         ],
         tools: [
           {

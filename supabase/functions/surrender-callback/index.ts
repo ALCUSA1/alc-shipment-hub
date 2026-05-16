@@ -17,7 +17,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const pick = (obj: any, ...keys: string[]) => {
+const pick = (obj: UnsafeAny, ...keys: string[]) => {
   if (!obj) return null;
   for (const k of keys) {
     if (obj[k] != null) return obj[k];
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
 
       return json({ success: true, raw_message_id: rawId, ...result });
-    } catch (txErr: any) {
+    } catch (txErr: UnsafeAny) {
       await supabase.from("integration_jobs")
         .update({ job_status: "failed", last_error: txErr.message, completed_at: new Date().toISOString() })
         .eq("id", job!.id);
@@ -101,13 +101,13 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
       throw txErr;
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("surrender-callback error:", err);
     return json({ error: err.message }, 500);
   }
 });
 
-async function processCallback(carrierId: string, rawId: string, p: any) {
+async function processCallback(carrierId: string, rawId: string, p: UnsafeAny) {
   const surrenderRef = pick(p, "surrenderRequestReference", "surrenderReference");
   const tdRef = pick(p, "transportDocumentReference", "tdReference");
   const responseCode = pick(p, "surrenderRequestCode", "surrenderResponseCode", "responseCode");
@@ -115,7 +115,7 @@ async function processCallback(carrierId: string, rawId: string, p: any) {
   const callbackAt = pick(p, "responseDateTime", "callbackDateTime") || new Date().toISOString();
 
   // ── Find existing surrender request ──
-  let surrenderRequest: any = null;
+  let surrenderRequest: UnsafeAny = null;
   if (surrenderRef) {
     const { data } = await supabase.from("surrender_requests").select("*")
       .eq("surrender_request_reference", surrenderRef).eq("alc_carrier_id", carrierId).maybeSingle();
@@ -171,7 +171,7 @@ async function processCallback(carrierId: string, rawId: string, p: any) {
   const errors = pick(p, "errors", "validationErrors") || [];
   if (Array.isArray(errors) && errors.length) {
     await supabase.from("surrender_errors").delete().eq("surrender_request_id", surrenderRequest.id).eq("source_message_id", rawId);
-    await supabase.from("surrender_errors").insert(errors.map((e: any) => ({
+    await supabase.from("surrender_errors").insert(errors.map((e: UnsafeAny) => ({
       surrender_request_id: surrenderRequest.id,
       alc_carrier_id: carrierId,
       source_message_id: rawId,

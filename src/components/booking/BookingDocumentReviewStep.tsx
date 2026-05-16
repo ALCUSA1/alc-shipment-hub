@@ -6,12 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, CheckCircle2, Circle, ArrowLeft, ArrowRight, Save, Shield, Truck, Package } from "lucide-react";
 
 interface BookingDocumentReviewStepProps {
-  shipment: any;
-  documents: any[];
-  services: any;
-  financials: any[];
-  cargo: any[];
-  parties: any[];
+  shipment: UnsafeAny;
+  documents: UnsafeAny[];
+  services: UnsafeAny;
+  financials: UnsafeAny[];
+  cargo: UnsafeAny[];
+  parties: UnsafeAny[];
   onBack: () => void;
   onSaveDraft: () => void;
   onContinue: () => void;

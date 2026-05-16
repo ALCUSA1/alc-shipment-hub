@@ -154,7 +154,7 @@ function TrendingSidebar() {
             <div>
               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2">Latest RFQs</p>
               <div className="space-y-1.5">
-                {latestRfqs.map((rfq: any) => (
+                {latestRfqs.map((rfq: UnsafeAny) => (
                   <div key={rfq.id} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-xs">
                     <Package className="h-3.5 w-3.5 text-primary/60 shrink-0" />
                     <span className="text-foreground font-medium truncate">
@@ -276,7 +276,7 @@ function MentionPopover({ open, search, onSelect }: { open: boolean; search: str
         ) : users.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-4">No users found</p>
         ) : (
-          users.map((u: any) => (
+          users.map((u: UnsafeAny) => (
             <button key={u.user_id} onClick={() => onSelect(u.full_name || "User")}
               className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-accent/10 transition-colors text-left">
               <Avatar className="h-7 w-7">
@@ -558,7 +558,7 @@ function ReviewsCard({ companyId, onWriteReview }: { companyId: string; onWriteR
     enabled: !!companyId,
   });
 
-  const avg = reviews.length > 0 ? reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length : 0;
+  const avg = reviews.length > 0 ? reviews.reduce((s: number, r: UnsafeAny) => s + r.rating, 0) / reviews.length : 0;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -576,7 +576,7 @@ function ReviewsCard({ companyId, onWriteReview }: { companyId: string; onWriteR
                 <span className="text-xs text-muted-foreground">({reviews.length})</span>
               </div>
               <div className="space-y-3">
-                {reviews.slice(0, 3).map((r: any) => (
+                {reviews.slice(0, 3).map((r: UnsafeAny) => (
                   <div key={r.id} className="border-t border-border/30 pt-2.5">
                     <div className="flex items-center gap-2 mb-1">
                       <StarRating value={r.rating} size="sm" />
@@ -721,7 +721,7 @@ function TeamSection({ userId }: { userId: string }) {
         <CardContent className="p-6">
           <h3 className="font-semibold text-foreground mb-3">Team ({team.length})</h3>
           <div className="grid grid-cols-2 gap-3">
-            {team.map((m: any) => (
+            {team.map((m: UnsafeAny) => (
               <div key={m.user_id} className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={m.avatar_url || ""} />
@@ -845,7 +845,7 @@ function PostComposer({ profile }: { profile: CompanyProfile | null }) {
 }
 
 /* ─── External Share Dialog ─── */
-function ExternalShareDialog({ open, onOpenChange, post }: { open: boolean; onOpenChange: (o: boolean) => void; post: any }) {
+function ExternalShareDialog({ open, onOpenChange, post }: { open: boolean; onOpenChange: (o: boolean) => void; post: UnsafeAny }) {
   const shareUrl = `${window.location.origin}/dashboard/spark`;
   const shareText = post.content?.slice(0, 200) || "Check out this post on Spark";
   const postTypeLabel = POST_TYPES.find((t) => t.value === post.post_type)?.label || "Post";
@@ -908,7 +908,7 @@ function ExternalShareDialog({ open, onOpenChange, post }: { open: boolean; onOp
 }
 
 /* ─── Post Card ─── */
-function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentUserId: string; index: number; isAdmin?: boolean }) {
+function PostCard({ post, currentUserId, index, isAdmin }: { post: UnsafeAny; currentUserId: string; index: number; isAdmin?: boolean }) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -930,8 +930,8 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
     queryFn: async () => { const { data } = await supabase.from("profiles").select("full_name, avatar_url, company_name").eq("user_id", currentUserId).maybeSingle(); return data; },
   });
 
-  const getReactionsByType = (type: string) => reactions.filter((r: any) => r.reaction_type === type);
-  const hasReacted = (type: string) => reactions.some((r: any) => r.user_id === currentUserId && r.reaction_type === type);
+  const getReactionsByType = (type: string) => reactions.filter((r: UnsafeAny) => r.reaction_type === type);
+  const hasReacted = (type: string) => reactions.some((r: UnsafeAny) => r.user_id === currentUserId && r.reaction_type === type);
   const totalReactions = reactions.length;
 
   const toggleReaction = useMutation({
@@ -1089,7 +1089,7 @@ function PostCard({ post, currentUserId, index, isAdmin }: { post: any; currentU
             {showComments && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
                 className="mt-3 border-t border-border/40 pt-3 ml-[52px] space-y-3 overflow-hidden">
-                {comments.map((c: any) => (
+                {comments.map((c: UnsafeAny) => (
                   <div key={c.id} className="flex items-start gap-2">
                     <Avatar className="h-7 w-7"><AvatarImage src={c.author_avatar_url || ""} /><AvatarFallback className="text-[10px] bg-muted">{(c.author_name || "?")[0]}</AvatarFallback></Avatar>
                     <div className="bg-muted/40 rounded-2xl px-3 py-2 flex-1">
@@ -1134,7 +1134,7 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
     },
   });
 
-  const userIds = companies.map((c: any) => c.user_id);
+  const userIds = companies.map((c: UnsafeAny) => c.user_id);
   const { data: logos = [] } = useQuery({
     queryKey: ["spark-dir-logos", userIds.join(",")],
     queryFn: async () => {
@@ -1145,7 +1145,7 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
     enabled: userIds.length > 0,
   });
 
-  const logoMap = new Map(logos.map((l: any) => [l.user_id, l]));
+  const logoMap = new Map(logos.map((l: UnsafeAny) => [l.user_id, l]));
 
   return (
     <div>
@@ -1165,8 +1165,8 @@ function CompanyDirectory({ onSelectCompany }: { onSelectCompany: (id: string) =
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {companies.map((c: any, i: number) => {
-            const profileData = logoMap.get(c.user_id) as any;
+          {companies.map((c: UnsafeAny, i: number) => {
+            const profileData = logoMap.get(c.user_id) as UnsafeAny;
             const location = [c.city, c.state, c.country].filter(Boolean).join(", ");
             return (
               <motion.div key={c.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
@@ -1203,7 +1203,7 @@ function MarketplaceTab() {
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedRfq, setSelectedRfq] = useState<any>(null);
+  const [selectedRfq, setSelectedRfq] = useState<UnsafeAny>(null);
   const [bidDialogOpen, setBidDialogOpen] = useState(false);
   const [bidRfqId, setBidRfqId] = useState<string | null>(null);
 
@@ -1366,7 +1366,7 @@ function MarketplaceTab() {
                   <p className="text-sm text-muted-foreground/50 italic">No bids yet</p>
                 ) : (
                   <div className="space-y-2">
-                    {bids.map((bid: any) => (
+                    {bids.map((bid: UnsafeAny) => (
                       <Card key={bid.id} className="border-border/40">
                         <CardContent className="p-4 flex items-center justify-between">
                           <div>
@@ -1500,7 +1500,7 @@ function MarketplaceTab() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {rfqs.map((rfq: any, i: number) => (
+          {rfqs.map((rfq: UnsafeAny, i: number) => (
             <motion.div key={rfq.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
               <Card className="border-border/50 hover:shadow-md transition-all cursor-pointer group" onClick={() => setSelectedRfq(rfq)}>
                 <CardContent className="p-4">
@@ -1584,7 +1584,7 @@ const Spark = () => {
     queryFn: async () => { const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id); return data || []; },
     enabled: !!user,
   });
-  const isAdmin = userRoles.some((r: any) => r.role === "admin");
+  const isAdmin = userRoles.some((r: UnsafeAny) => r.role === "admin");
 
   const companyName = profile?.company_name;
   const { data: posts = [], isLoading: postsLoading } = useQuery({
@@ -1604,7 +1604,7 @@ const Spark = () => {
   useEffect(() => {
     const channel = supabase.channel("spark-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "feed_posts" }, (payload) => {
-        const newPost = payload.new as any;
+        const newPost = payload.new as UnsafeAny;
         if (newPost.user_id !== user?.id) {
           toast({ title: "New post on Spark", description: `${newPost.author_name || "Someone"} shared a ${newPost.post_type || "post"}` });
         }
@@ -1677,7 +1677,7 @@ const Spark = () => {
                     { value: "rfqs", label: "RFQs", icon: Package },
                   ].map((tab) => (
                     <button key={tab.value}
-                      onClick={() => setMainTab(tab.value as any)}
+                      onClick={() => setMainTab(tab.value as UnsafeAny)}
                       className={`flex items-center gap-1.5 rounded-full text-xs font-semibold px-4 py-2 transition-all ${
                         mainTab === tab.value
                           ? "bg-white text-primary shadow-md"
@@ -1729,7 +1729,7 @@ const Spark = () => {
                     </Card>
                   </motion.div>
                 ) : (
-                  posts.map((post: any, i: number) => (
+                  posts.map((post: UnsafeAny, i: number) => (
                     <PostCard key={post.id} post={post} currentUserId={user!.id} index={i} isAdmin={isAdmin} />
                   ))
                 )}

@@ -27,7 +27,7 @@ const PaymentSuccess = () => {
         });
         if (fnError) throw fnError;
         setResult(data);
-      } catch (err: any) {
+      } catch (err: UnsafeAny) {
         setError(err.message || "Failed to verify payment.");
       } finally {
         setVerifying(false);

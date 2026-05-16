@@ -192,7 +192,7 @@ export function QuoteShareActions({ quote, onSparkShare }: QuoteShareActionsProp
       toast({ title: "Shared on Spark!", description: "Your quote has been posted to the Spark feed." });
       setSparkDialogOpen(false);
       setSparkMessage("");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Failed to share", description: err.message, variant: "destructive" });
     } finally {
       setPosting(false);

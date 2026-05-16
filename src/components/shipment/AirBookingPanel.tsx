@@ -60,7 +60,7 @@ export function AirBookingPanel({ shipmentId, airline, flightNumber, mawbNumber,
       setSaved(true);
       toast({ title: "Air booking saved", description: "Flight and MAWB details updated." });
       setTimeout(() => setSaved(false), 3000);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Save failed", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -79,7 +79,7 @@ export function AirBookingPanel({ shipmentId, airline, flightNumber, mawbNumber,
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast({ title: "eAWB Submitted", description: data?.message || "Electronic Air Waybill submitted successfully." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "eAWB Failed", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -140,7 +140,7 @@ export function AirBookingPanel({ shipmentId, airline, flightNumber, mawbNumber,
         </div>
         <div>
           <Label className="text-[10px] text-muted-foreground">Space Status</Label>
-          <Select value={booking.spaceStatus} onValueChange={(v: any) => setBooking(p => ({ ...p, spaceStatus: v }))}>
+          <Select value={booking.spaceStatus} onValueChange={(v: UnsafeAny) => setBooking(p => ({ ...p, spaceStatus: v }))}>
             <SelectTrigger className="mt-1 h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">Pending</SelectItem>

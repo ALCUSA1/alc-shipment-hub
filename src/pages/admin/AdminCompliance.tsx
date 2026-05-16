@@ -46,17 +46,17 @@ const AdminCompliance = () => {
     },
   });
 
-  const searchFields = useCallback((c: any) => [
+  const searchFields = useCallback((c: UnsafeAny) => [
     c.company_name, c.fmc_license_number, c.ein, c.oti_bond_number,
   ], []);
-  const statusField = useCallback((c: any) => c.status, []);
+  const statusField = useCallback((c: UnsafeAny) => c.status, []);
 
   const { search, setSearch, filterValues, onFilterChange, filtered } = useAdminFilters({
     data: companies, searchFields, statusField,
   });
 
   const today = new Date();
-  const expiringFields = filtered.reduce((acc: any, c: any) => {
+  const expiringFields = filtered.reduce((acc: UnsafeAny, c: UnsafeAny) => {
     const fields = [
       { name: "FMC License", date: c.fmc_license_expiry },
       { name: "Cargo Insurance", date: c.cargo_insurance_expiry },
@@ -71,7 +71,7 @@ const AdminCompliance = () => {
       }
     }
     return acc;
-  }, { expired: [] as any[], expiring: [] as any[] });
+  }, { expired: [] as UnsafeAny[], expiring: [] as UnsafeAny[] });
 
   return (
     <AdminLayout>
@@ -128,14 +128,14 @@ const AdminCompliance = () => {
             <h2 className="text-sm font-semibold text-white">Compliance Alerts</h2>
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {expiringFields.expired.map((e: any, i: number) => (
+            {expiringFields.expired.map((e: UnsafeAny, i: number) => (
               <div key={i} className="flex items-center gap-3 text-xs">
                 <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20 text-[10px]">Expired</Badge>
                 <span className="text-white font-medium">{e.company}</span>
                 <span className="text-[hsl(220,10%,50%)]">— {e.field} ({Math.abs(e.days)} days ago)</span>
               </div>
             ))}
-            {expiringFields.expiring.map((e: any, i: number) => (
+            {expiringFields.expiring.map((e: UnsafeAny, i: number) => (
               <div key={`e-${i}`} className="flex items-center gap-3 text-xs">
                 <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">Expiring</Badge>
                 <span className="text-white font-medium">{e.company}</span>
@@ -163,7 +163,7 @@ const AdminCompliance = () => {
               </tr>
             </thead>
             <tbody>
-              {customs.map((f: any) => (
+              {customs.map((f: UnsafeAny) => (
                 <tr key={f.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs text-white font-medium">{f.filing_type}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{f.exporter_name || "—"}</td>
@@ -206,7 +206,7 @@ const AdminCompliance = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={7} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No companies match your filters</td></tr>
-              ) : filtered.map((c: any) => (
+              ) : filtered.map((c: UnsafeAny) => (
                 <tr key={c.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium"><Link to={`/admin/crm/${c.id}`} className="text-indigo-400 hover:text-indigo-300">{c.company_name}</Link></td>
                   <td className="px-4 py-3 text-center"><ComplianceDot value={c.fmc_license_number} /></td>

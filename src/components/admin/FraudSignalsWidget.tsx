@@ -13,10 +13,10 @@ export function FraudSignalsWidget() {
       const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
       const [a, b, c, d] = await Promise.all([
-        (supabase as any).from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since24),
-        (supabase as any).from("payments").select("id", { count: "exact", head: true }).eq("status", "failed").gte("created_at", since7d),
-        (supabase as any).from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "blocked"),
-        (supabase as any).from("admin_alerts").select("id", { count: "exact", head: true }).gte("created_at", since24),
+        (supabase as UnsafeAny).from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since24),
+        (supabase as UnsafeAny).from("payments").select("id", { count: "exact", head: true }).eq("status", "failed").gte("created_at", since7d),
+        (supabase as UnsafeAny).from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "blocked"),
+        (supabase as UnsafeAny).from("admin_alerts").select("id", { count: "exact", head: true }).gte("created_at", since24),
       ]);
 
       setStats({

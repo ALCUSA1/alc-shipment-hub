@@ -109,7 +109,7 @@ export default function Alerts() {
     return <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-200">Active</Badge>;
   };
 
-  const renderRateAlertCard = (alert: any) => (
+  const renderRateAlertCard = (alert: UnsafeAny) => (
     <Card key={alert.id} className="group hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -154,7 +154,7 @@ export default function Alerts() {
     </Card>
   );
 
-  const renderSailingReminderCard = (reminder: any) => {
+  const renderSailingReminderCard = (reminder: UnsafeAny) => {
     const isTriggered = reminder.is_triggered === true;
     const isActive = reminder.is_active !== false;
 

@@ -108,7 +108,7 @@ const AdminApiHealth = () => {
       if (data?.error) throw new Error(data.error);
       setConnectionStatus(data);
       toast.success("Connection status retrieved");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       setConnError(err.message);
       toast.error("Connection test failed");
     } finally {
@@ -128,7 +128,7 @@ const AdminApiHealth = () => {
       setConnectionStatus(null);
       toast.success("Token refreshed successfully");
       await testConnection();
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       setConnError(err.message);
       toast.error("Token refresh failed");
     } finally {
@@ -157,7 +157,7 @@ const AdminApiHealth = () => {
       toast.success(data.success ? "Data fetched from Evergreen" : `Carrier returned HTTP ${data.http_status}`);
       refetchRaw();
       refetchJobs();
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       setTntError(err.message);
       toast.error("TNT fetch failed");
     } finally {
@@ -418,7 +418,7 @@ const AdminApiHealth = () => {
               <div className="divide-y divide-[hsl(220,15%,13%)]">
                 {(!rawMessages || rawMessages.length === 0) ? (
                   <div className="px-4 py-12 text-center text-xs text-[hsl(220,10%,35%)]">No raw messages yet. Use Manual Fetch to pull data.</div>
-                ) : rawMessages.map((msg: any) => (
+                ) : rawMessages.map((msg: UnsafeAny) => (
                   <div key={msg.id}>
                     <button
                       onClick={() => setExpandedRaw(expandedRaw === msg.id ? null : msg.id)}
@@ -490,7 +490,7 @@ const AdminApiHealth = () => {
                 <tbody>
                   {(!jobs || jobs.length === 0) ? (
                     <tr><td colSpan={5} className="px-4 py-12 text-center text-[hsl(220,10%,35%)]">No jobs yet</td></tr>
-                  ) : jobs.map((j: any) => (
+                  ) : jobs.map((j: UnsafeAny) => (
                     <tr key={j.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                       <td className="px-4 py-3 font-mono text-white">{j.job_type}</td>
                       <td className="px-4 py-3">

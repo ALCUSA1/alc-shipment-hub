@@ -145,7 +145,7 @@ export function DemurrageTracker({ shipmentId, shipmentStatus }: DemurrageTracke
       queryClient.invalidateQueries({ queryKey: ["demurrage_charges", shipmentId] });
       setDialogOpen(false);
       resetForm();
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -159,7 +159,7 @@ export function DemurrageTracker({ shipmentId, shipmentStatus }: DemurrageTracke
       if (error) throw error;
       toast({ title: "Charge removed" });
       queryClient.invalidateQueries({ queryKey: ["demurrage_charges", shipmentId] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setDeletingId(null);

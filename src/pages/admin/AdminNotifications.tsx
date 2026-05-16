@@ -40,17 +40,17 @@ const AdminNotifications = () => {
     },
   });
 
-  const searchFields = useCallback((n: any) => [n.title, n.message, n.type], []);
-  const statusField = useCallback((n: any) => n.type, []);
-  const dateField = useCallback((n: any) => n.created_at, []);
+  const searchFields = useCallback((n: UnsafeAny) => [n.title, n.message, n.type], []);
+  const statusField = useCallback((n: UnsafeAny) => n.type, []);
+  const dateField = useCallback((n: UnsafeAny) => n.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
     data: notifications, searchFields, statusField, dateField,
   });
 
   let filtered = preFiltered;
-  if (filterValues.read === "unread") filtered = filtered.filter((n: any) => !n.is_read);
-  else if (filterValues.read === "read") filtered = filtered.filter((n: any) => n.is_read);
+  if (filterValues.read === "unread") filtered = filtered.filter((n: UnsafeAny) => !n.is_read);
+  else if (filterValues.read === "read") filtered = filtered.filter((n: UnsafeAny) => n.is_read);
 
   return (
     <AdminLayout>
@@ -69,7 +69,7 @@ const AdminNotifications = () => {
         </div>
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">Unread</p>
-          <p className="text-2xl font-bold text-amber-400 mt-1">{notifications?.filter((n: any) => !n.is_read).length || 0}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{notifications?.filter((n: UnsafeAny) => !n.is_read).length || 0}</p>
         </div>
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">Users with Prefs</p>
@@ -105,7 +105,7 @@ const AdminNotifications = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No notifications match your filters</td></tr>
-              ) : filtered.map((n: any) => (
+              ) : filtered.map((n: UnsafeAny) => (
                 <tr key={n.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{n.title}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,50%)]">{n.type}</td>

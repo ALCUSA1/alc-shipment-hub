@@ -34,8 +34,8 @@ serve(async (req) => {
     const companyName = body.company_name ? String(body.company_name) : null;
     const notes = body.notes ? String(body.notes) : null;
 
-    if (!VALID_PLANS.includes(plan as any)) throw new Error("Invalid plan");
-    if (!VALID_INTERVALS.includes(interval as any)) throw new Error("Invalid billing_interval");
+    if (!VALID_PLANS.includes(plan as UnsafeAny)) throw new Error("Invalid plan");
+    if (!VALID_INTERVALS.includes(interval as UnsafeAny)) throw new Error("Invalid billing_interval");
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -55,7 +55,7 @@ serve(async (req) => {
         billing_interval: interval,
         status: isEnterprise ? "sales_lead" : "trialing",
         trial_ends_at: isEnterprise ? null : trialEnds,
-      } as any, { onConflict: "user_id" });
+      } as UnsafeAny, { onConflict: "user_id" });
 
     if (upsertErr) throw upsertErr;
 
@@ -67,7 +67,7 @@ serve(async (req) => {
         notes,
         plan_interest: "enterprise",
         status: "new",
-      } as any);
+      } as UnsafeAny);
     }
 
     return new Response(JSON.stringify({ ok: true, status: isEnterprise ? "sales_lead" : "trialing", trial_ends_at: isEnterprise ? null : trialEnds }), {

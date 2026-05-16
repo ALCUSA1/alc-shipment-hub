@@ -106,11 +106,11 @@ const TruckingOrders = () => {
             </CardContent>
           </Card>
         ) : (
-          shipments?.map((shipment: any) => {
-            const totalWeight = shipment.cargo?.reduce((sum: number, c: any) => sum + (c.gross_weight || 0), 0) || 0;
-            const containerSummary = shipment.containers?.map((c: any) => `${c.quantity}x ${c.container_type}`).join(", ") || "TBD";
-            const commodities = [...new Set(shipment.cargo?.map((c: any) => c.commodity).filter(Boolean))].join(", ") || "General cargo";
-            const hasDG = shipment.cargo?.some((c: any) => c.dangerous_goods) || false;
+          shipments?.map((shipment: UnsafeAny) => {
+            const totalWeight = shipment.cargo?.reduce((sum: number, c: UnsafeAny) => sum + (c.gross_weight || 0), 0) || 0;
+            const containerSummary = shipment.containers?.map((c: UnsafeAny) => `${c.quantity}x ${c.container_type}`).join(", ") || "TBD";
+            const commodities = [...new Set(shipment.cargo?.map((c: UnsafeAny) => c.commodity).filter(Boolean))].join(", ") || "General cargo";
+            const hasDG = shipment.cargo?.some((c: UnsafeAny) => c.dangerous_goods) || false;
             const isAir = shipment.mode === "air";
 
             return (

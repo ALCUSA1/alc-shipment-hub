@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       // Check each rate against threshold
       for (const rate of rates) {
         const surcharges = Array.isArray(rate.surcharges) ? rate.surcharges : [];
-        const surchargeTotal = surcharges.reduce((sum: number, s: any) => sum + (Number(s?.amount) || 0), 0);
+        const surchargeTotal = surcharges.reduce((sum: number, s: UnsafeAny) => sum + (Number(s?.amount) || 0), 0);
         const allInRate = rate.base_rate + surchargeTotal;
 
         if (allInRate <= alert.threshold_rate) {

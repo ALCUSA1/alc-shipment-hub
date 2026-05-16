@@ -13,7 +13,7 @@ import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, Loader2, Download
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BulkOperationsPanelProps {
-  shipments: any[];
+  shipments: UnsafeAny[];
 }
 
 const CSV_TEMPLATE = `shipment_type,mode,origin_port,destination_port,pickup_location,delivery_location,commodity,hs_code,gross_weight,volume,num_packages,package_type
@@ -68,7 +68,7 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
         const row = rows[i];
         try {
           // Create shipment
-          const shipmentData: any = {
+          const shipmentData: UnsafeAny = {
               user_id: user.id,
               shipment_type: row.shipment_type || "export",
               mode: row.mode || "ocean",
@@ -100,7 +100,7 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
           }
 
           success++;
-        } catch (err: any) {
+        } catch (err: UnsafeAny) {
           errors.push(`Row ${i + 2}: ${err.message}`);
         }
       }
@@ -110,7 +110,7 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
         queryClient.invalidateQueries({ queryKey: ["shipments"] });
         toast({ title: "Import Complete", description: `${success} shipment(s) created.` });
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Import Failed", description: err.message, variant: "destructive" });
     } finally {
       setImporting(false);
@@ -133,7 +133,7 @@ export function BulkOperationsPanel({ shipments }: BulkOperationsPanelProps) {
       setShowBatchUpdate(false);
       setSelectedIds(new Set());
       setBatchStatus("");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Update Failed", description: err.message, variant: "destructive" });
     } finally {
       setUpdating(false);

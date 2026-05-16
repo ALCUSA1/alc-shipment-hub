@@ -18,7 +18,7 @@ const AdminTeam = () => {
         .from("profiles")
         .select("user_id, full_name, company_name, avatar_url");
 
-      const userMap = new Map<string, { roles: string[]; profile: any }>();
+      const userMap = new Map<string, { roles: string[]; profile: UnsafeAny }>();
       for (const r of roles || []) {
         if (!userMap.has(r.user_id)) {
           const p = profiles?.find(pr => pr.user_id === r.user_id);

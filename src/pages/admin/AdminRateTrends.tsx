@@ -38,10 +38,10 @@ const AdminRateTrends = () => {
     },
   });
 
-  const searchFields = useCallback((r: any) => [
+  const searchFields = useCallback((r: UnsafeAny) => [
     r.carrier, r.origin_port, r.destination_port, r.container_type,
   ], []);
-  const dateField = useCallback((r: any) => r.valid_from, []);
+  const dateField = useCallback((r: UnsafeAny) => r.valid_from, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered: preFiltered } = useAdminFilters({
     data: rates, searchFields, dateField,
@@ -49,14 +49,14 @@ const AdminRateTrends = () => {
 
   let filtered = preFiltered;
   if (filterValues.carrier && filterValues.carrier !== "all") {
-    filtered = filtered.filter((r: any) => r.carrier === filterValues.carrier);
+    filtered = filtered.filter((r: UnsafeAny) => r.carrier === filterValues.carrier);
   }
   if (filterValues.container && filterValues.container !== "all") {
-    filtered = filtered.filter((r: any) => r.container_type === filterValues.container);
+    filtered = filtered.filter((r: UnsafeAny) => r.container_type === filterValues.container);
   }
 
-  const carriers = [...new Set(filtered.map((r: any) => r.carrier))];
-  const avgRate = filtered.length ? Math.round(filtered.reduce((s: number, r: any) => s + r.base_rate, 0) / filtered.length) : 0;
+  const carriers = [...new Set(filtered.map((r: UnsafeAny) => r.carrier))];
+  const avgRate = filtered.length ? Math.round(filtered.reduce((s: number, r: UnsafeAny) => s + r.base_rate, 0) / filtered.length) : 0;
 
   return (
     <AdminLayout>
@@ -79,7 +79,7 @@ const AdminRateTrends = () => {
         </div>
         <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(220,10%,40%)]">Active Rate Alerts</p>
-          <p className="text-2xl font-bold text-amber-400 mt-1">{alerts?.filter((a: any) => a.is_active).length || 0}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{alerts?.filter((a: UnsafeAny) => a.is_active).length || 0}</p>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ const AdminRateTrends = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-xs text-[hsl(220,10%,40%)]">No rates match your filters</td></tr>
-              ) : filtered.map((r: any) => (
+              ) : filtered.map((r: UnsafeAny) => (
                 <tr key={r.id} className="border-b border-[hsl(220,15%,13%)] hover:bg-[hsl(220,15%,12%)]">
                   <td className="px-4 py-3 text-xs font-medium text-white">{r.carrier}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(220,10%,60%)]">{r.origin_port} → {r.destination_port}</td>

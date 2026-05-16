@@ -14,7 +14,7 @@ export interface SailingReminderInput {
   date_to?: string;
   price_min?: number;
   price_max?: number;
-  sailing_data?: any;
+  sailing_data?: UnsafeAny;
 }
 
 export function useSailingReminders() {
@@ -25,12 +25,12 @@ export function useSailingReminders() {
     queryKey: ["sailing-reminders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("sailing_reminders" as any)
+        .from("sailing_reminders" as UnsafeAny)
         .select("*")
         .eq("user_id", user!.id)
         .order("remind_at", { ascending: true });
       if (error) throw error;
-      return data as any[];
+      return data as UnsafeAny[];
     },
     enabled: !!user,
   });
@@ -38,7 +38,7 @@ export function useSailingReminders() {
   const addReminder = useMutation({
     mutationFn: async (input: SailingReminderInput) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase.from("sailing_reminders" as any).insert({
+      const { error } = await supabase.from("sailing_reminders" as UnsafeAny).insert({
         user_id: user.id,
         carrier: input.carrier,
         origin_port: input.origin_port,
@@ -51,19 +51,19 @@ export function useSailingReminders() {
         price_min: input.price_min ?? null,
         price_max: input.price_max ?? null,
         sailing_data: input.sailing_data || null,
-      } as any);
+      } as UnsafeAny);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sailing-reminders"] });
       toast.success("Rate alert set! You'll be notified via app and email.");
     },
-    onError: (err: any) => toast.error(err.message || "Failed to set reminder"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "Failed to set reminder"),
   });
 
   const removeReminder = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("sailing_reminders" as any).delete().eq("id", id);
+      const { error } = await supabase.from("sailing_reminders" as UnsafeAny).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -74,7 +74,7 @@ export function useSailingReminders() {
 
   const hasReminder = (carrier: string, origin: string, destination: string, etd?: string) => {
     return reminders.some(
-      (r: any) =>
+      (r: UnsafeAny) =>
         r.carrier === carrier &&
         r.origin_port === origin &&
         r.destination_port === destination &&
@@ -84,7 +84,7 @@ export function useSailingReminders() {
 
   const findReminder = (carrier: string, origin: string, destination: string, etd?: string) => {
     return reminders.find(
-      (r: any) =>
+      (r: UnsafeAny) =>
         r.carrier === carrier &&
         r.origin_port === origin &&
         r.destination_port === destination &&

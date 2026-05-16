@@ -11,7 +11,7 @@ interface DocStatus {
   key: string;
   label: string;
   shortLabel: string;
-  icon: any;
+  icon: UnsafeAny;
   status: "completed" | "in_progress" | "pending" | "blocked" | "not_required";
   date?: string;
 }

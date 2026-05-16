@@ -83,7 +83,7 @@ async function hlagFetch(path: string, body: unknown) {
     }
     let json: unknown = null;
     try { json = text ? JSON.parse(text) : null; } catch { /* keep text */ }
-    return { ok: res.ok, status: res.status, body: (json ?? text) as any };
+    return { ok: res.ok, status: res.status, body: (json ?? text) as UnsafeAny };
   } catch (e) {
     const err = e as Error;
     console.warn("hlagFetch error:", err?.name, err?.message);
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: userData } = token
       ? await supabase.auth.getUser(token)
-      : ({ data: { user: null } } as any);
+      : ({ data: { user: null } } as UnsafeAny);
     const userId = userData?.user?.id;
     const userEmail = userData?.user?.email;
 
@@ -147,8 +147,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      const raw = upstream.body as any;
-      const offers = (raw?.offers ?? raw?.priceQuotes ?? []).map((o: any) => ({
+      const raw = upstream.body as UnsafeAny;
+      const offers = (raw?.offers ?? raw?.priceQuotes ?? []).map((o: UnsafeAny) => ({
         offerId: o.offerId ?? o.id,
         totalPrice: Number(o.totalPrice?.value ?? o.totalPrice ?? 0),
         currency: o.totalPrice?.currency ?? o.currency ?? "USD",
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
         body.customerIdentifier ?? userEmail ?? "platform@alllogisticscargo.com";
       const isSimulatedOffer = body.offerId.startsWith("sim-");
 
-      let upstream: any = null;
+      let upstream: UnsafeAny = null;
       let quotationReference: string | null = null;
       let simulated = isSimulatedOffer;
 

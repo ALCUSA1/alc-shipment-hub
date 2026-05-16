@@ -27,7 +27,7 @@ function ExpiryBadge({ date }: { date: string | null }) {
   return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">Valid — {days}d</Badge>;
 }
 
-const SectionCard = ({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) => (
+const SectionCard = ({ title, icon: Icon, children }: { title: string; icon: UnsafeAny; children: React.ReactNode }) => (
   <div className="rounded-xl border border-[hsl(220,15%,13%)] bg-[hsl(220,18%,10%)] p-5">
     <div className="flex items-center gap-2 mb-4">
       <Icon className="h-4 w-4 text-indigo-400" />

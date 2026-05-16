@@ -15,7 +15,7 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
 type Strategy = "max_profit" | "balanced" | "win_rate" | "strategic_growth";
 
-const STRATEGY_META: Record<Strategy, { label: string; icon: any; margin: number; winAdj: number }> = {
+const STRATEGY_META: Record<Strategy, { label: string; icon: UnsafeAny; margin: number; winAdj: number }> = {
   max_profit: { label: "Max Profit", icon: TrendingUp, margin: 1.35, winAdj: -12 },
   balanced: { label: "Balanced", icon: Target, margin: 1.0, winAdj: 0 },
   win_rate: { label: "Win Rate", icon: Trophy, margin: 0.7, winAdj: 18 },

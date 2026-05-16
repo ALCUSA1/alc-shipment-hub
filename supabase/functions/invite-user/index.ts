@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ message: `Invited ${normalizedEmail} to the company team`, user_id: invitedUserId }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     return new Response(
       JSON.stringify({ error: err.message }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },

@@ -12,7 +12,7 @@ interface Props {
 
 export function NormalizedTransportDocView({ shipmentId }: Props) {
   const { session } = useAuth();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<UnsafeAny>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -81,11 +81,11 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
     return map[s?.toLowerCase()] || "bg-muted text-muted-foreground border-border";
   };
 
-  const shipper = parties.find((p: any) => p.party_role === "shipper");
-  const consignee = parties.find((p: any) => p.party_role === "consignee");
-  const notifyParty = parties.find((p: any) => p.party_role === "notify_party");
+  const shipper = parties.find((p: UnsafeAny) => p.party_role === "shipper");
+  const consignee = parties.find((p: UnsafeAny) => p.party_role === "consignee");
+  const notifyParty = parties.find((p: UnsafeAny) => p.party_role === "notify_party");
 
-  const locName = (loc: any) => loc?.location_name || loc?.city || loc?.unlocode || "—";
+  const locName = (loc: UnsafeAny) => loc?.location_name || loc?.city || loc?.unlocode || "—";
 
   return (
     <div className="space-y-6">
@@ -190,7 +190,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
                   {party.email && <p className="text-xs text-muted-foreground">{party.email}</p>}
                 </div>
               ))}
-              {parties.filter((p: any) => !["shipper", "consignee", "notify_party"].includes(p.party_role)).map((p: any) => (
+              {parties.filter((p: UnsafeAny) => !["shipper", "consignee", "notify_party"].includes(p.party_role)).map((p: UnsafeAny) => (
                 <div key={p.id} className="p-3 rounded-lg bg-muted/40 border border-border space-y-1">
                   <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{p.party_role?.replace(/_/g, " ")}</p>
                   <p className="text-sm font-medium text-foreground">{p.company_name || p.contact_name}</p>
@@ -209,7 +209,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {equipments.map((eq: any) => (
+              {equipments.map((eq: UnsafeAny) => (
                 <div key={eq.id} className="p-3 rounded-lg bg-muted/40 border border-border space-y-1">
                   <p className="text-sm font-semibold text-foreground font-mono">{eq.container_number || eq.equipment_reference || "—"}</p>
                   <p className="text-xs text-muted-foreground">ISO: {eq.iso_equipment_code || eq.equipment_type_code || "—"}</p>
@@ -245,7 +245,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {consignmentItems.map((ci: any) => (
+                  {consignmentItems.map((ci: UnsafeAny) => (
                     <tr key={ci.id} className="border-b border-border/50">
                       <td className="py-2 pr-3 text-muted-foreground">{ci.consignment_item_number}</td>
                       <td className="py-2 pr-3 font-medium">{ci.description || "—"}</td>
@@ -269,7 +269,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
             <CardTitle className="text-base flex items-center gap-2"><Ship className="h-4 w-4 text-primary" />Transport Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {transportPlan.map((leg: any) => (
+            {transportPlan.map((leg: UnsafeAny) => (
               <div key={leg.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/40 border border-border">
                 <div className="flex-1 grid sm:grid-cols-4 gap-3 text-sm">
                   <div>
@@ -318,7 +318,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {charges.map((ch: any) => (
+                  {charges.map((ch: UnsafeAny) => (
                     <tr key={ch.id} className="border-b border-border/50">
                       <td className="py-2 pr-3">{ch.charge_description || ch.charge_code || "—"}</td>
                       <td className="py-2 pr-3 text-right font-mono">{ch.amount?.toLocaleString() ?? "—"}</td>
@@ -340,7 +340,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
             <CardTitle className="text-base flex items-center gap-2"><ScrollText className="h-4 w-4 text-primary" />Document Clauses & Instructions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {instructions.map((instr: any) => (
+            {instructions.map((instr: UnsafeAny) => (
               <div key={instr.id} className="p-3 rounded-lg bg-muted/40 border border-border">
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">{instr.instruction_type?.replace(/_/g, " ")}</p>
                 <p className="text-sm text-foreground">{instr.instruction_text}</p>
@@ -358,7 +358,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {references.map((ref: any) => (
+              {references.map((ref: UnsafeAny) => (
                 <div key={ref.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/40 border border-border">
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{ref.reference_type?.replace(/_/g, " ")}</p>
@@ -375,7 +375,7 @@ export function NormalizedTransportDocView({ shipmentId }: Props) {
   );
 }
 
-function InfoItem({ label, value }: { label: string; value: any }) {
+function InfoItem({ label, value }: { label: string; value: UnsafeAny }) {
   if (!value && value !== 0) return null;
   return (
     <div>

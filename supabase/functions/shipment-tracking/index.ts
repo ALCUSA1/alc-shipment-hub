@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
       JSON.stringify(response),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("shipment-tracking error:", err);
     return new Response(
       JSON.stringify({ error: err.message }),

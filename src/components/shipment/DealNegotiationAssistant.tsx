@@ -18,7 +18,7 @@ const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
 type NegMode = "margin_protection" | "balanced" | "win_deal" | "strategic" | "walk_away";
 
-const MODE_META: Record<NegMode, { label: string; icon: any; color: string; desc: string }> = {
+const MODE_META: Record<NegMode, { label: string; icon: UnsafeAny; color: string; desc: string }> = {
   margin_protection: { label: "Protect Margin", icon: Shield, color: "text-emerald-500", desc: "Hold price unless small reduction preserves strong profit" },
   balanced: { label: "Balanced", icon: Target, color: "text-blue-400", desc: "Allow moderate reduction with healthy retained profit" },
   win_deal: { label: "Win the Deal", icon: Zap, color: "text-amber-400", desc: "More aggressive pricing if win probability justifies it" },

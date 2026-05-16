@@ -12,7 +12,7 @@ import { e } from "@/lib/html-escape";
 
 interface ShipmentMultiSelectActionsProps {
   selectedIds: Set<string>;
-  shipments: any[];
+  shipments: UnsafeAny[];
   onClearSelection: () => void;
 }
 
@@ -49,7 +49,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
 
       // Build aging data
       const invoiceRows = (financials || []).map(f => {
-        const shipRef = (f.shipments as any)?.shipment_ref || "—";
+        const shipRef = (f.shipments as UnsafeAny)?.shipment_ref || "—";
         const dueDate = f.date ? new Date(new Date(f.date).getTime() + 30 * 86400000) : today;
         const agingDays = Math.max(0, differenceInDays(today, dueDate));
         const bucket = agingDays <= 30 ? "Current" : agingDays <= 60 ? "31–60" : agingDays <= 90 ? "61–90" : "Over 90";
@@ -94,7 +94,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
       setTimeout(() => printWindow.print(), 600);
 
       toast({ title: "SOA Generated", description: `Statement of Account for ${e(selectedShipments.length)} shipments ready.` });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "SOA generation failed", description: err.message, variant: "destructive" });
     } finally {
       setGeneratingSOA(false);
@@ -114,7 +114,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
         if (error || data?.error) continue;
 
         const docs = data.documents || {};
-        const allHtml = Object.entries(docs).map(([key, doc]: [string, any]) => {
+        const allHtml = Object.entries(docs).map(([key, doc]: [string, UnsafeAny]) => {
           const label = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
           return `<div style="page-break-before:always;">
             <h2 style="text-align:center;margin-bottom:20px;font-size:18px;text-transform:uppercase;letter-spacing:2px;">${e(label)}</h2>
@@ -134,7 +134,7 @@ export function ShipmentMultiSelectActions({ selectedIds, shipments, onClearSele
       }
 
       toast({ title: "Document packs ready", description: "Print dialog opened for each shipment." });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Pack generation failed", description: err.message, variant: "destructive" });
     } finally {
       setGeneratingPack(false);
@@ -178,7 +178,7 @@ function renderSOAHtml(data: {
   shipmentCount: number;
   totalOutstanding: number;
   bucketTotals: { current: number; b3160: number; b6190: number; over90: number };
-  invoiceRows: any[];
+  invoiceRows: UnsafeAny[];
 }): string {
   const { customerName, dateGenerated, shipmentCount, totalOutstanding, bucketTotals, invoiceRows } = data;
   const fmt = (n: number) => `$${e(n.toLocaleString("en-US", { minimumFractionDigits: 2 }))}`;
@@ -293,10 +293,10 @@ function renderSOAHtml(data: {
 </html>`;
 }
 
-function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
+function renderPackHtml(docs: Record<string, UnsafeAny>, shipRef: string): string {
   const docEntries = Object.entries(docs);
   
-  const renderDoc = ([key, doc]: [string, any], idx: number) => {
+  const renderDoc = ([key, doc]: [string, UnsafeAny], idx: number) => {
     const label = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
     const pageBreak = idx > 0 ? 'style="page-break-before:always;"' : '';
     
@@ -316,7 +316,7 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
     const cargoHtml = Array.isArray(cargo) && cargo.length > 0 ? `
       <table style="width:100%;border-collapse:collapse;margin-top:8px;">
         <thead><tr>${Object.keys(cargo[0]).map(c => `<th style="background:#f5f5f5;font-weight:700;text-transform:uppercase;font-size:9px;border:1px solid #ddd;padding:6px;">${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead>
-        <tbody>${cargo.map((row: any) => `<tr>${Object.values(row).map(v => `<td style="border:1px solid #ddd;padding:5px;font-size:10px;">${v ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
+        <tbody>${cargo.map((row: UnsafeAny) => `<tr>${Object.values(row).map(v => `<td style="border:1px solid #ddd;padding:5px;font-size:10px;">${v ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody>
       </table>` : "";
 
     return `<div ${e(pageBreak)}>

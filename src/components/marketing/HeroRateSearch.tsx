@@ -18,7 +18,7 @@ export function HeroRateSearch() {
   };
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
-  const [results, setResults] = useState<any[] | null>(null);
+  const [results, setResults] = useState<UnsafeAny[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchDone, setSearchDone] = useState(false);
 

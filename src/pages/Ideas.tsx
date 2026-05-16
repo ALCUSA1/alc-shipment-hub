@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { IdeaDetail } from "@/components/ideas/IdeaDetail";
 
-const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; icon: UnsafeAny; color: string }> = {
   under_review: { label: "Under Review", icon: Eye, color: "text-muted-foreground" },
   planned: { label: "Planned", icon: Rocket, color: "text-primary" },
   in_progress: { label: "In Progress", icon: Lightbulb, color: "text-accent" },
@@ -51,7 +51,7 @@ export default function Ideas() {
     queryFn: async () => {
       const { data, error } = await supabase.from("feature_request_votes").select("feature_request_id").eq("user_id", user!.id);
       if (error) throw error;
-      return data.map((v: any) => v.feature_request_id);
+      return data.map((v: UnsafeAny) => v.feature_request_id);
     },
     enabled: !!user,
   });
@@ -79,10 +79,10 @@ export default function Ideas() {
       const hasVoted = userVotes.includes(ideaId);
       if (hasVoted) {
         await supabase.from("feature_request_votes").delete().eq("feature_request_id", ideaId).eq("user_id", user!.id);
-        await supabase.from("feature_requests").update({ vote_count: (ideas.find((i: any) => i.id === ideaId)?.vote_count || 1) - 1 }).eq("id", ideaId);
+        await supabase.from("feature_requests").update({ vote_count: (ideas.find((i: UnsafeAny) => i.id === ideaId)?.vote_count || 1) - 1 }).eq("id", ideaId);
       } else {
         await supabase.from("feature_request_votes").insert({ feature_request_id: ideaId, user_id: user!.id });
-        await supabase.from("feature_requests").update({ vote_count: (ideas.find((i: any) => i.id === ideaId)?.vote_count || 0) + 1 }).eq("id", ideaId);
+        await supabase.from("feature_requests").update({ vote_count: (ideas.find((i: UnsafeAny) => i.id === ideaId)?.vote_count || 0) + 1 }).eq("id", ideaId);
       }
     },
     onSuccess: () => {
@@ -92,12 +92,12 @@ export default function Ideas() {
   });
 
   const filtered = ideas
-    .filter((i: any) => {
+    .filter((i: UnsafeAny) => {
       if (filterCategory !== "all" && i.category !== filterCategory.toLowerCase()) return false;
       if (searchQuery && !i.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     })
-    .sort((a: any, b: any) => sortBy === "votes" ? b.vote_count - a.vote_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a: UnsafeAny, b: UnsafeAny) => sortBy === "votes" ? b.vote_count - a.vote_count : new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   if (selectedIdea) {
     return (
@@ -161,7 +161,7 @@ export default function Ideas() {
               {IDEA_CATEGORIES.map((c) => <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as UnsafeAny)}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="votes">Most Voted</SelectItem>
@@ -177,7 +177,7 @@ export default function Ideas() {
           ) : filtered.length === 0 ? (
             <Card><CardContent className="p-8 text-center text-muted-foreground">No ideas yet. Be the first to share one!</CardContent></Card>
           ) : (
-            filtered.map((idea: any) => {
+            filtered.map((idea: UnsafeAny) => {
               const sc = STATUS_CONFIG[idea.status] || STATUS_CONFIG.under_review;
               const StatusIcon = sc.icon;
               const voted = userVotes.includes(idea.id);

@@ -23,7 +23,7 @@ export function ForwarderGate({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  const hasForwarderRole = roles.includes("forwarder" as any);
+  const hasForwarderRole = roles.includes("forwarder" as UnsafeAny);
   if (roles.length > 0 && !hasForwarderRole) {
     return <Navigate to="/login" replace />;
   }

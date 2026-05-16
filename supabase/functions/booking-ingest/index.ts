@@ -20,13 +20,13 @@ const json = (body: unknown, status = 200) =>
 /* ─── helpers ─── */
 
 /** Pick first non-nullish value from a list of candidate keys */
-const pick = (obj: Record<string, any>, ...keys: string[]) => {
+const pick = (obj: Record<string, UnsafeAny>, ...keys: string[]) => {
   for (const k of keys) if (obj?.[k] != null) return obj[k];
   return null;
 };
 
 /** Resolve or create a normalized location, returns id */
-async function resolveLocation(loc: any): Promise<string | null> {
+async function resolveLocation(loc: UnsafeAny): Promise<string | null> {
   if (!loc) return null;
   const unlocode = pick(loc, "UNLocationCode", "unlocode", "portCode");
   const facilityCode = pick(loc, "facilityCode");
@@ -59,7 +59,7 @@ async function resolveLocation(loc: any): Promise<string | null> {
 }
 
 /** Resolve or create a vessel record, returns id */
-async function resolveVessel(v: any, carrierId: string): Promise<string | null> {
+async function resolveVessel(v: UnsafeAny, carrierId: string): Promise<string | null> {
   const vesselName = pick(v, "vesselName", "vessel_name");
   if (!vesselName) return null;
   const imo = pick(v, "imoNumber", "imo_number");
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
 
       return json({ success: true, raw_message_id: rawId, ...result });
-    } catch (txErr: any) {
+    } catch (txErr: UnsafeAny) {
       await supabase.from("integration_jobs")
         .update({ job_status: "failed", last_error: txErr.message, completed_at: new Date().toISOString() })
         .eq("id", job.id);
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
       throw txErr;
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("booking-ingest error:", err);
     return json({ error: err.message }, 500);
   }
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
    Transform raw booking payload → ALC canonical
    ═══════════════════════════════════════════════ */
 
-async function transformBooking(carrierId: string, rawId: string, p: Record<string, any>) {
+async function transformBooking(carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   // ── extract canonical fields (carrier-agnostic) ──
   const carrierBookingNumber = pick(p, "carrierBookingNumber", "bookingNumber", "booking_number");
   const bookingStatus       = pick(p, "bookingStatus", "status") || "confirmed";
@@ -277,13 +277,13 @@ async function transformBooking(carrierId: string, rawId: string, p: Record<stri
 
 /* ─── child record writers ─── */
 
-async function writeEquipment(bookingId: string, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeEquipment(bookingId: string, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "requestedEquipments", "equipments", "equipment");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("booking_equipments").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((eq: any) => ({
+  const rows = items.map((eq: UnsafeAny) => ({
     booking_id: bookingId,
     alc_carrier_id: carrierId,
     source_message_id: rawId,
@@ -305,17 +305,17 @@ async function writeEquipment(bookingId: string, carrierId: string, rawId: strin
   await supabase.from("booking_equipments").insert(rows);
   await supabase.from("bookings").update({
     requested_equipment_count: rows.length,
-    requested_container_count: rows.reduce((s: number, r: any) => s + (r.quantity || 1), 0),
+    requested_container_count: rows.reduce((s: number, r: UnsafeAny) => s + (r.quantity || 1), 0),
   }).eq("id", bookingId);
 }
 
-async function writeCargo(bookingId: string, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeCargo(bookingId: string, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "commodities", "cargoDetails", "cargo");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("cargo_details").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((c: any, i: number) => ({
+  const rows = items.map((c: UnsafeAny, i: number) => ({
     booking_id: bookingId,
     alc_carrier_id: carrierId,
     source_message_id: rawId,
@@ -335,7 +335,7 @@ async function writeCargo(bookingId: string, carrierId: string, rawId: string, p
   await supabase.from("bookings").update({ requested_commodity_count: rows.length }).eq("id", bookingId);
 }
 
-async function writeParties(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeParties(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "documentParties", "parties");
   if (!Array.isArray(items) || !items.length || !shipmentId) return;
 
@@ -345,7 +345,7 @@ async function writeParties(bookingId: string, shipmentId: string | null, carrie
     .eq("shipment_id", shipmentId)
     .eq("booking_id", bookingId);
 
-  const rows = items.map((party: any) => ({
+  const rows = items.map((party: UnsafeAny) => ({
     shipment_id: shipmentId,
     booking_id: bookingId,
     alc_carrier_id: carrierId,
@@ -366,7 +366,7 @@ async function writeParties(bookingId: string, shipmentId: string | null, carrie
   await supabase.from("shipment_parties").insert(rows);
 }
 
-async function writeTransportPlan(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeTransportPlan(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const legs = pick(p, "transportPlan", "transportLegs", "legs");
   if (!Array.isArray(legs) || !legs.length) return;
 
@@ -405,13 +405,13 @@ async function writeTransportPlan(bookingId: string, shipmentId: string | null, 
   await supabase.from("transport_plans").insert(rows);
 }
 
-async function writeCharges(bookingId: string, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeCharges(bookingId: string, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "charges");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("booking_charges").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((ch: any) => ({
+  const rows = items.map((ch: UnsafeAny) => ({
     booking_id: bookingId,
     alc_carrier_id: carrierId,
     source_message_id: rawId,
@@ -425,13 +425,13 @@ async function writeCharges(bookingId: string, carrierId: string, rawId: string,
   await supabase.from("booking_charges").insert(rows);
 }
 
-async function writeInstructions(bookingId: string, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeInstructions(bookingId: string, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "bookingInstructions", "instructions");
   if (!Array.isArray(items) || !items.length) return;
 
   await supabase.from("booking_instructions").delete().eq("booking_id", bookingId);
 
-  const rows = items.map((instr: any) => ({
+  const rows = items.map((instr: UnsafeAny) => ({
     booking_id: bookingId,
     alc_carrier_id: carrierId,
     source_message_id: rawId,
@@ -441,7 +441,7 @@ async function writeInstructions(bookingId: string, carrierId: string, rawId: st
   await supabase.from("booking_instructions").insert(rows);
 }
 
-async function writeReferences(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeReferences(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "references");
   if (!Array.isArray(items) || !items.length || !shipmentId) return;
 
@@ -471,7 +471,7 @@ async function writeReferences(bookingId: string, shipmentId: string | null, car
   }
 }
 
-async function writeDocuments(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, any>) {
+async function writeDocuments(bookingId: string, shipmentId: string | null, carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   const items = pick(p, "documents");
   if (!Array.isArray(items) || !items.length || !shipmentId) return;
 

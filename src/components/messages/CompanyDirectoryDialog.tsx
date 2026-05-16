@@ -53,7 +53,7 @@ export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, curre
         .select("id, full_name, email, phone, role, company_id, companies:company_id(company_name)")
         .order("full_name");
       if (error) throw error;
-      return (data || []).map((c: any) => ({
+      return (data || []).map((c: UnsafeAny) => ({
         id: c.id,
         full_name: c.full_name,
         email: c.email,
@@ -84,7 +84,7 @@ export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, curre
   });
 
   const filteredCrmContacts = scope === "external"
-    ? crmContacts.filter((c: any) => {
+    ? crmContacts.filter((c: UnsafeAny) => {
         const q = search.toLowerCase();
         if (!q) return true;
         return (
@@ -267,7 +267,7 @@ export function CompanyDirectoryDialog({ open, onOpenChange, onSelectUser, curre
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pt-3 pb-1">
                     CRM Contacts
                   </p>
-                  {filteredCrmContacts.map((contact: any) => (
+                  {filteredCrmContacts.map((contact: UnsafeAny) => (
                     <div
                       key={contact.id}
                       className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-secondary transition-colors text-left"

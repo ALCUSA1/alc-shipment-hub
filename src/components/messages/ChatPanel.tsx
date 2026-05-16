@@ -19,7 +19,7 @@ interface Message {
   sender_id: string;
   sender_name: string | null;
   content: string | null;
-  attachments: any[];
+  attachments: UnsafeAny[];
   created_at: string;
 }
 
@@ -32,7 +32,7 @@ interface ChatPanelProps {
   currentUserId: string;
   currentUserName: string;
   messages: Message[];
-  onSend: (content: string, attachments: any[]) => Promise<void>;
+  onSend: (content: string, attachments: UnsafeAny[]) => Promise<void>;
   loading: boolean;
   showProfile: boolean;
   onToggleProfile: () => void;

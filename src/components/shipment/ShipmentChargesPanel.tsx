@@ -51,7 +51,7 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
     },
   });
 
-  const handlePay = async (charge: any) => {
+  const handlePay = async (charge: UnsafeAny) => {
     setPayingId(charge.id);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
@@ -71,14 +71,14 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
       if (data?.url) {
         window.open(data.url, "_blank");
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setPayingId(null);
     }
   };
 
-  const handleWirePay = async (charge: any) => {
+  const handleWirePay = async (charge: UnsafeAny) => {
     setWirePayingId(charge.id);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
@@ -99,7 +99,7 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
       if (data?.url) {
         window.open(data.url, "_blank");
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Payment failed", description: err.message, variant: "destructive" });
     } finally {
       setWirePayingId(null);
@@ -109,8 +109,8 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
   if (charges.length === 0) return null;
 
   const unpaidTotal = charges
-    .filter((c: any) => c.payment_status === "unpaid")
-    .reduce((sum: number, c: any) => sum + Number(c.amount), 0);
+    .filter((c: UnsafeAny) => c.payment_status === "unpaid")
+    .reduce((sum: number, c: UnsafeAny) => sum + Number(c.amount), 0);
 
   return (
     <Card>
@@ -129,7 +129,7 @@ export function ShipmentChargesPanel({ shipmentId, blNumber }: ShipmentChargesPa
       </CardHeader>
       <CardContent>
         <div className="space-y-2.5">
-          {charges.map((charge: any) => (
+          {charges.map((charge: UnsafeAny) => (
             <div
               key={charge.id}
               className="flex items-center justify-between rounded-lg border p-3"

@@ -36,7 +36,7 @@ const WarehouseReleases = () => {
         updates.actual_date = new Date().toISOString().split("T")[0];
         updates.storage_end_date = new Date().toISOString().split("T")[0];
       }
-      const { error } = await supabase.from("warehouse_orders").update(updates as any).eq("id", id);
+      const { error } = await supabase.from("warehouse_orders").update(updates as UnsafeAny).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,7 +81,7 @@ const WarehouseReleases = () => {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => {
-                const shipment = (order as any).shipments;
+                const shipment = (order as UnsafeAny).shipments;
                 return (
                   <div key={order.id} className="rounded-lg border p-4 space-y-3">
                     <div className="flex items-center justify-between">

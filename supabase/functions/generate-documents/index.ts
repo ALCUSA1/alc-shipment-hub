@@ -69,9 +69,9 @@ Deno.serve(async (req) => {
     const profile = profileRes.data?.[0] || {};
     const customsFiling = filingRes.data?.[0] || null;
 
-    const shipper = parties.find((p: any) => p.role === "shipper");
-    const consignee = parties.find((p: any) => p.role === "consignee");
-    const notifyParty = parties.find((p: any) => p.role === "notify_party");
+    const shipper = parties.find((p: UnsafeAny) => p.role === "shipper");
+    const consignee = parties.find((p: UnsafeAny) => p.role === "consignee");
+    const notifyParty = parties.find((p: UnsafeAny) => p.role === "notify_party");
     const forwarder = { name: profile.company_name || "Freight Forwarder", fullName: profile.full_name };
 
     const isAir = ship.mode === "air";
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       : ["bill_of_lading", "commercial_invoice", "packing_list", "shipper_letter_of_instruction", "certificate_of_origin", "dock_receipt"]
     );
 
-    const documents: Record<string, any> = {};
+    const documents: Record<string, UnsafeAny> = {};
 
     for (const docType of requestedTypes) {
       switch (docType) {
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true, shipment_ref: ship.shipment_ref, mode: ship.mode || "ocean", documents }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("generate-documents error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
 
 // ── Document Builders ──
 
-function partyBlock(p: any) {
+function partyBlock(p: UnsafeAny) {
   if (!p) return { name: "—", address: "—", contact: "—", email: "—", phone: "—" };
   return {
     name: p.company_name || p.name || "—",
@@ -142,7 +142,7 @@ function partyBlock(p: any) {
   };
 }
 
-function buildBillOfLading(ship: any, shipper: any, consignee: any, notifyParty: any, cargo: any[], containers: any[], forwarder: any) {
+function buildBillOfLading(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, notifyParty: UnsafeAny, cargo: UnsafeAny[], containers: UnsafeAny[], forwarder: UnsafeAny) {
   const totalGrossWeight = cargo.reduce((s, c) => s + (c.gross_weight || 0), 0);
   const totalVolume = cargo.reduce((s, c) => s + (c.volume || 0), 0);
   const totalPackages = cargo.reduce((s, c) => s + (c.num_packages || 0), 0);
@@ -162,14 +162,14 @@ function buildBillOfLading(ship: any, shipper: any, consignee: any, notifyParty:
     place_of_delivery: ship.delivery_location || ship.destination_port || "—",
     vessel: ship.vessel || "TBD",
     voyage: ship.voyage || "TBD",
-    containers: containers.map((c: any) => ({
+    containers: containers.map((c: UnsafeAny) => ({
       number: c.container_number || "TBD",
       type: c.container_type,
       size: c.container_size || "",
       seal: c.seal_number || "—",
       vgm: c.vgm || "—",
     })),
-    cargo_description: cargo.map((c: any, i: number) => ({
+    cargo_description: cargo.map((c: UnsafeAny, i: number) => ({
       line: i + 1,
       commodity: c.commodity || "General Cargo",
       hs_code: c.hs_code || c.hts_code || c.schedule_b || "—",
@@ -190,7 +190,7 @@ function buildBillOfLading(ship: any, shipper: any, consignee: any, notifyParty:
   };
 }
 
-function buildHAWB(ship: any, shipper: any, consignee: any, notifyParty: any, cargo: any[], forwarder: any) {
+function buildHAWB(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, notifyParty: UnsafeAny, cargo: UnsafeAny[], forwarder: UnsafeAny) {
   const totalGross = cargo.reduce((s, c) => s + (c.gross_weight || 0), 0);
   const totalChargeable = cargo.reduce((s, c) => s + (c.chargeable_weight || c.gross_weight || 0), 0);
   const totalPieces = cargo.reduce((s, c) => s + (c.pieces || c.num_packages || 0), 0);
@@ -213,8 +213,8 @@ function buildHAWB(ship: any, shipper: any, consignee: any, notifyParty: any, ca
     gross_weight_kg: totalGross,
     chargeable_weight_kg: totalChargeable,
     rate_class: ship.rate_class || "Q",
-    nature_and_quantity: ship.nature_and_quantity || cargo.map((c: any) => c.commodity || "General Cargo").join(", "),
-    cargo_items: cargo.map((c: any) => ({
+    nature_and_quantity: ship.nature_and_quantity || cargo.map((c: UnsafeAny) => c.commodity || "General Cargo").join(", "),
+    cargo_items: cargo.map((c: UnsafeAny) => ({
       commodity: c.commodity || "General Cargo",
       pieces: c.pieces || c.num_packages || 0,
       gross_weight_kg: c.gross_weight || 0,
@@ -229,7 +229,7 @@ function buildHAWB(ship: any, shipper: any, consignee: any, notifyParty: any, ca
   };
 }
 
-function buildMAWB(ship: any, shipper: any, consignee: any, cargo: any[], forwarder: any) {
+function buildMAWB(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, cargo: UnsafeAny[], forwarder: UnsafeAny) {
   const totalGross = cargo.reduce((s, c) => s + (c.gross_weight || 0), 0);
   const totalChargeable = cargo.reduce((s, c) => s + (c.chargeable_weight || c.gross_weight || 0), 0);
   const totalPieces = cargo.reduce((s, c) => s + (c.pieces || c.num_packages || 0), 0);
@@ -249,7 +249,7 @@ function buildMAWB(ship: any, shipper: any, consignee: any, cargo: any[], forwar
     pieces: totalPieces,
     gross_weight_kg: totalGross,
     chargeable_weight_kg: totalChargeable,
-    nature_and_quantity: ship.nature_and_quantity || cargo.map((c: any) => c.commodity).filter(Boolean).join(", "),
+    nature_and_quantity: ship.nature_and_quantity || cargo.map((c: UnsafeAny) => c.commodity).filter(Boolean).join(", "),
     handling_information: ship.handling_information || "—",
     declared_value_carriage: ship.declared_value_for_carriage || "NVD",
     declared_value_customs: ship.declared_value_for_customs || "NCV",
@@ -257,8 +257,8 @@ function buildMAWB(ship: any, shipper: any, consignee: any, cargo: any[], forwar
   };
 }
 
-function buildCommercialInvoice(ship: any, shipper: any, consignee: any, cargo: any[], today: string) {
-  const lineItems = cargo.map((c: any, i: number) => ({
+function buildCommercialInvoice(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, cargo: UnsafeAny[], today: string) {
+  const lineItems = cargo.map((c: UnsafeAny, i: number) => ({
     line: i + 1,
     commodity: c.commodity || "General Cargo",
     hs_code: c.hs_code || c.hts_code || c.schedule_b || "—",
@@ -301,7 +301,7 @@ function buildCommercialInvoice(ship: any, shipper: any, consignee: any, cargo: 
   };
 }
 
-function buildPackingList(ship: any, shipper: any, consignee: any, cargo: any[], containers: any[], today: string) {
+function buildPackingList(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, cargo: UnsafeAny[], containers: UnsafeAny[], today: string) {
   const totalGross = cargo.reduce((s, c) => s + (c.gross_weight || 0), 0);
   const totalNet = cargo.reduce((s, c) => s + (c.net_weight || 0), 0);
   const totalVolume = cargo.reduce((s, c) => s + (c.volume || 0), 0);
@@ -315,7 +315,7 @@ function buildPackingList(ship: any, shipper: any, consignee: any, cargo: any[],
     consignee: partyBlock(consignee),
     origin: ship.origin_port || "—",
     destination: ship.destination_port || "—",
-    items: cargo.map((c: any, i: number) => ({
+    items: cargo.map((c: UnsafeAny, i: number) => ({
       line: i + 1,
       commodity: c.commodity || "General Cargo",
       packages: c.num_packages || c.pieces || 0,
@@ -327,14 +327,14 @@ function buildPackingList(ship: any, shipper: any, consignee: any, cargo: any[],
       marks: c.marks_and_numbers || "N/M",
     })),
     totals: { packages: totalPackages, gross_weight_kg: totalGross, net_weight_kg: totalNet, volume_cbm: totalVolume },
-    containers: containers.map((c: any) => ({ number: c.container_number || "TBD", type: c.container_type, seal: c.seal_number || "—" })),
+    containers: containers.map((c: UnsafeAny) => ({ number: c.container_number || "TBD", type: c.container_type, seal: c.seal_number || "—" })),
   };
 }
 
-function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, cargo: any[], containers: any[], forwarder: any, isAir: boolean, customsFiling: any) {
+function buildSLI(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, notifyParty: UnsafeAny, cargo: UnsafeAny[], containers: UnsafeAny[], forwarder: UnsafeAny, isAir: boolean, customsFiling: UnsafeAny) {
   const cf = customsFiling || {};
   const company = ship.companies || {};
-  const hasDG = cargo.some((c: any) => c.dangerous_goods === true);
+  const hasDG = cargo.some((c: UnsafeAny) => c.dangerous_goods === true);
 
   // Build full shipper address
   const shipperAddress = cf.usppi_address
@@ -349,7 +349,7 @@ function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, car
 
   // Commodity lines from customs filing or cargo
   const commodityLines = Array.isArray(cf.hts_codes) && cf.hts_codes.length > 0
-    ? cf.hts_codes.map((item: any, idx: number) => ({
+    ? cf.hts_codes.map((item: UnsafeAny, idx: number) => ({
         line: idx + 1,
         d_f: item.d_f || "D",
         schedule_b_number: item.code || "—",
@@ -362,7 +362,7 @@ function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, car
         license_number: item.license_number || "",
         export_info_code: item.export_info_code || "",
       }))
-    : cargo.map((c: any, idx: number) => ({
+    : cargo.map((c: UnsafeAny, idx: number) => ({
         line: idx + 1,
         d_f: c.country_of_origin === "US" || c.country_of_origin === "USA" ? "D" : "F",
         schedule_b_number: c.hts_code || c.schedule_b || c.hs_code || "—",
@@ -456,12 +456,12 @@ function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, car
     commodity_lines: commodityLines,
 
     // Totals
-    total_packages: cargo.reduce((s: number, c: any) => s + (c.num_packages || c.pieces || 0), 0),
-    total_gross_weight_kg: cargo.reduce((s: number, c: any) => s + (c.gross_weight || 0), 0),
-    total_value_usd: cargo.reduce((s: number, c: any) => s + (c.total_value || 0), 0),
+    total_packages: cargo.reduce((s: number, c: UnsafeAny) => s + (c.num_packages || c.pieces || 0), 0),
+    total_gross_weight_kg: cargo.reduce((s: number, c: UnsafeAny) => s + (c.gross_weight || 0), 0),
+    total_value_usd: cargo.reduce((s: number, c: UnsafeAny) => s + (c.total_value || 0), 0),
 
     // Containers
-    containers: containers.map((c: any) => ({
+    containers: containers.map((c: UnsafeAny) => ({
       number: c.container_number || "TBD",
       type: c.container_type,
       seal: c.seal_number || "—",
@@ -480,7 +480,7 @@ function buildSLI(ship: any, shipper: any, consignee: any, notifyParty: any, car
   };
 }
 
-function buildCertificateOfOrigin(ship: any, shipper: any, consignee: any, cargo: any[], today: string) {
+function buildCertificateOfOrigin(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, cargo: UnsafeAny[], today: string) {
   return {
     title: "CERTIFICATE OF ORIGIN",
     date: today,
@@ -489,7 +489,7 @@ function buildCertificateOfOrigin(ship: any, shipper: any, consignee: any, cargo
     country_of_origin: cargo[0]?.country_of_origin || "United States",
     country_of_destination: ship.destination_country || "—",
     transport_details: `${ship.vessel || ship.airline || "TBD"} / ${ship.voyage || ship.flight_number || "TBD"}`,
-    items: cargo.map((c: any, i: number) => ({
+    items: cargo.map((c: UnsafeAny, i: number) => ({
       line: i + 1,
       marks: c.marks_and_numbers || "N/M",
       commodity: c.commodity || "General Cargo",
@@ -502,7 +502,7 @@ function buildCertificateOfOrigin(ship: any, shipper: any, consignee: any, cargo
   };
 }
 
-function buildDockReceipt(ship: any, shipper: any, consignee: any, cargo: any[], containers: any[], forwarder: any, today: string) {
+function buildDockReceipt(ship: UnsafeAny, shipper: UnsafeAny, consignee: UnsafeAny, cargo: UnsafeAny[], containers: UnsafeAny[], forwarder: UnsafeAny, today: string) {
   return {
     title: "DOCK RECEIPT",
     date: today,
@@ -513,12 +513,12 @@ function buildDockReceipt(ship: any, shipper: any, consignee: any, cargo: any[],
     voyage: ship.voyage || "TBD",
     port_of_loading: ship.origin_port || "—",
     booking_ref: ship.booking_ref || "—",
-    containers: containers.map((c: any) => ({
+    containers: containers.map((c: UnsafeAny) => ({
       number: c.container_number || "TBD",
       type: c.container_type,
       seal: c.seal_number || "—",
     })),
-    cargo: cargo.map((c: any) => ({
+    cargo: cargo.map((c: UnsafeAny) => ({
       commodity: c.commodity || "General Cargo",
       packages: c.num_packages || 0,
       gross_weight_kg: c.gross_weight || 0,
@@ -529,7 +529,7 @@ function buildDockReceipt(ship: any, shipper: any, consignee: any, cargo: any[],
   };
 }
 
-function buildKnownShipperDeclaration(ship: any, shipper: any, forwarder: any, today: string) {
+function buildKnownShipperDeclaration(ship: UnsafeAny, shipper: UnsafeAny, forwarder: UnsafeAny, today: string) {
   return {
     title: "KNOWN SHIPPER DECLARATION",
     subtitle: "TSA Indirect Air Carrier Security — Known Shipper Verification",

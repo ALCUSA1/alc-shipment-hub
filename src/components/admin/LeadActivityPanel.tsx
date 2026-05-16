@@ -22,7 +22,7 @@ const ACTIVITY_TYPES = [
 ];
 
 interface LeadActivityPanelProps {
-  lead: any | null;
+  lead: UnsafeAny | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -157,7 +157,7 @@ export function LeadActivityPanel({ lead, open, onOpenChange }: LeadActivityPane
                   {/* Vertical line */}
                   <div className="absolute left-[11px] top-2 bottom-2 w-px bg-[hsl(220,15%,18%)]" />
                   <div className="space-y-4">
-                    {activities.map((a: any) => {
+                    {activities.map((a: UnsafeAny) => {
                       const cfg = ACTIVITY_TYPES.find((t) => t.value === a.activity_type) || ACTIVITY_TYPES[0];
                       const Icon = cfg.icon;
                       return (

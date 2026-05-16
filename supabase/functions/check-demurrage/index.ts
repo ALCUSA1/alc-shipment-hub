@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // Group charges by user to avoid duplicate notifications
     const userCharges: Record<string, typeof charges> = {};
     for (const charge of charges) {
-      const userId = (charge as any).shipments.user_id;
+      const userId = (charge as UnsafeAny).shipments.user_id;
       if (!userCharges[userId]) userCharges[userId] = [];
       userCharges[userId].push(charge);
     }
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       const urgent = userChargeList.reduce((prev, curr) =>
         (curr.daily_rate || 0) > (prev.daily_rate || 0) ? curr : prev
       );
-      const urgentShipRef = (urgent as any).shipments.shipment_ref;
+      const urgentShipRef = (urgent as UnsafeAny).shipments.shipment_ref;
       const urgentType =
         urgent.charge_type === "demurrage"
           ? "Demurrage"
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
           .sort((a, b) => (b.daily_rate || 0) - (a.daily_rate || 0))
           .slice(0, 3);
         for (const c of top3) {
-          const ref = (c as any).shipments.shipment_ref;
+          const ref = (c as UnsafeAny).shipments.shipment_ref;
           lines.push(
             `• ${ref}: $${c.daily_rate}/day (${c.charge_type})`
           );

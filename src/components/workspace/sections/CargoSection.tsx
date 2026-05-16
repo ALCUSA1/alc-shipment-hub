@@ -64,9 +64,9 @@ export function CargoSection({ cargoLines, containers, onCargoChange, onContaine
     prevContainerCount.current = containers.length;
   }, [containers.length]);
 
-  const updateCargo = (idx: number, f: keyof CargoLine, v: any) => {
+  const updateCargo = (idx: number, f: keyof CargoLine, v: UnsafeAny) => {
     const next = [...cargoLines];
-    (next[idx] as any)[f] = v;
+    (next[idx] as UnsafeAny)[f] = v;
 
     if (isAir && (f === "grossWeight" || f === "volume" || f === "dimensions")) {
       const line = next[idx];
@@ -89,7 +89,7 @@ export function CargoSection({ cargoLines, containers, onCargoChange, onContaine
 
   const updateContainer = (idx: number, f: keyof ContainerLine, v: string) => {
     const next = [...containers];
-    (next[idx] as any)[f] = v;
+    (next[idx] as UnsafeAny)[f] = v;
     onContainerChange(next);
   };
 

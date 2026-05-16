@@ -72,7 +72,7 @@ function PromoRulesPanel() {
 
         <div className="space-y-2">
           <Label className="text-xs">Default Action When Promo Detected</Label>
-          <Select value={rule.defaultAction} onValueChange={v => update("defaultAction", v as any)}>
+          <Select value={rule.defaultAction} onValueChange={v => update("defaultAction", v as UnsafeAny)}>
             <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
             <SelectContent>
               {Object.entries(PRICING_MODE_LABELS).map(([k, l]) => (
@@ -187,7 +187,7 @@ function CustomerStrategyPanel() {
 
 function ShipmentTypePanel() {
   const [rules, setRules] = useState<ShipmentTypeRule[]>(DEFAULT_SHIPMENT_TYPE_RULES);
-  const icons: Record<string, any> = { fcl: Ship, lcl: Package, air: Plane, trucking: Truck };
+  const icons: Record<string, UnsafeAny> = { fcl: Ship, lcl: Package, air: Plane, trucking: Truck };
 
   return (
     <Card>

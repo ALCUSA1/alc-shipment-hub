@@ -151,9 +151,9 @@ const NewShipment = () => {
           countryOfOrigin: c.country_of_origin || "",
           dangerousGoods: c.dangerous_goods,
           specialInstructions: c.special_instructions || "",
-          pieces: (c as any).pieces?.toString() || "",
-          chargeableWeight: (c as any).chargeable_weight?.toString() || "",
-          rateClass: (c as any).rate_class || "",
+          pieces: (c as UnsafeAny).pieces?.toString() || "",
+          chargeableWeight: (c as UnsafeAny).chargeable_weight?.toString() || "",
+          rateClass: (c as UnsafeAny).rate_class || "",
           containerId: "",
         })),
         containers: (containerRes.data || []).map(c => ({
@@ -195,10 +195,10 @@ const NewShipment = () => {
   }, [cloneId, user]);
 
   // Auto-fill consignee when customer selected
-  const handleCustomerSelected = useCallback((company: any) => {
+  const handleCustomerSelected = useCallback((company: UnsafeAny) => {
     if (!company || customerAutoFilled) return;
     setCustomerAutoFilled(true);
-    const primaryContact = company.company_contacts?.find((c: any) => c.is_primary) || company.company_contacts?.[0];
+    const primaryContact = company.company_contacts?.find((c: UnsafeAny) => c.is_primary) || company.company_contacts?.[0];
     setDs(prev => ({
       ...prev,
       parties: {
@@ -423,13 +423,13 @@ const NewShipment = () => {
         currency: c.currency, who_pays: c.whoPays, notes: c.notes || null,
       }));
 
-      const inserts: PromiseLike<any>[] = [];
+      const inserts: PromiseLike<UnsafeAny>[] = [];
       if (cargoInserts.length) inserts.push(supabase.from("cargo").insert(cargoInserts).then());
       if (partyInserts.length) inserts.push(supabase.from("shipment_parties").insert(partyInserts).then());
       if (chargeInserts.length) inserts.push(supabase.from("shipment_charges").insert(chargeInserts).then());
 
       // Insert containers and get back IDs for commodity mapping
-      let containerIdMap: Record<string, string> = {};
+      const containerIdMap: Record<string, string> = {};
       if (containerInserts.length) {
         const { data: insertedContainers } = await supabase
           .from("containers")
@@ -498,7 +498,7 @@ const NewShipment = () => {
       await Promise.all(inserts);
       toast({ title: "Shipment created", description: "All trade documents and records initialized." });
       navigate(`/dashboard/shipments/${shipmentId}/workspace`);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error creating shipment", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -551,7 +551,7 @@ const NewShipment = () => {
                     ein: party.taxId || null,
                   });
                   toast({ title: "Saved to CRM", description: `${party.companyName} added as ${type === "truckingPartner" ? "trucking partner" : "consignee"}.` });
-                } catch (err: any) {
+                } catch (err: UnsafeAny) {
                   toast({ title: "Save failed", description: err.message, variant: "destructive" });
                 }
               }}

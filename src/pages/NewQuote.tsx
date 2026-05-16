@@ -236,7 +236,7 @@ const NewQuote = () => {
 
       toast({ title: "Quote Created", description: `Quote for $${customerPrice.toLocaleString()} created with full trade documentation.` });
       navigate("/dashboard/quotes");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -271,7 +271,7 @@ const NewQuote = () => {
         customer_name: customerName || null,
         company_id: overview.companyId && overview.companyId !== "none" ? overview.companyId : null,
         status: "booked", payment_status: "unpaid",
-      } as any).select("id").single();
+      } as UnsafeAny).select("id").single();
       if (quoteErr) throw quoteErr;
 
       await supabase.from("shipments").update({ converted_from_quote_id: quote.id }).eq("id", shipment.id);
@@ -344,7 +344,7 @@ const NewQuote = () => {
 
       toast({ title: "Booking Created", description: `Shipment booked for $${customerPrice.toLocaleString()} with full documentation.` });
       navigate(`/dashboard/shipments/${shipment.id}`);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setSubmitting(false);

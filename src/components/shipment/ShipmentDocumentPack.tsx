@@ -91,7 +91,7 @@ export function ShipmentDocumentPack({ shipmentId, shipmentRef, mode }: Props) {
       setTimeout(() => printWindow.print(), 600);
 
       toast({ title: "Document Pack Ready", description: `${e(Object.keys(docs).length)} documents ready for print/download.` });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Pack generation failed", description: err.message, variant: "destructive" });
     } finally {
       setGeneratingPack(false);
@@ -158,7 +158,7 @@ export function ShipmentDocumentPack({ shipmentId, shipmentRef, mode }: Props) {
   );
 }
 
-function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
+function renderPackHtml(docs: Record<string, UnsafeAny>, shipRef: string): string {
   const entries = Object.entries(docs);
 
   return `<!DOCTYPE html>
@@ -206,7 +206,7 @@ function renderPackHtml(docs: Record<string, any>, shipRef: string): string {
     const kvHtml = kvs.length > 0 ? `<div class="section-title">Details</div><div class="kv-grid">${kvs.map(([k, v]) => `<div class="kv"><div class="k">${k.replace(/_/g, " ")}</div><div class="v">${v}</div></div>`).join("")}</div>` : "";
 
     const cargo = doc.cargo_description || doc.cargo_items || doc.items || [];
-    const cargoHtml = Array.isArray(cargo) && cargo.length > 0 ? `<div class="section-title">Cargo</div><table><thead><tr>${Object.keys(cargo[0]).map(c => `<th>${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead><tbody>${cargo.map((row: any) => `<tr>${Object.values(row).map(v => `<td>${v ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "";
+    const cargoHtml = Array.isArray(cargo) && cargo.length > 0 ? `<div class="section-title">Cargo</div><table><thead><tr>${Object.keys(cargo[0]).map(c => `<th>${c.replace(/_/g, " ")}</th>`).join("")}</tr></thead><tbody>${cargo.map((row: UnsafeAny) => `<tr>${Object.values(row).map(v => `<td>${v ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "";
 
     return `<div ${pageBreak}>
       <div class="doc-header">

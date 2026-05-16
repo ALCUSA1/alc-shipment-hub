@@ -115,7 +115,7 @@ const AdminActivity = () => {
                     <th className={tableHeaderClass}>Updated</th>
                   </tr></thead>
                   <tbody>
-                    {(recentShipments || []).map((s: any) => (
+                    {(recentShipments || []).map((s: UnsafeAny) => (
                       <tr key={s.id} className={tableRowClass}>
                         <td className={`${tableCellClass} font-mono font-medium text-blue-400`}>{s.shipment_ref}</td>
                         <td className={`${tableCellClass} text-white`}>{s.companies?.company_name || "—"}</td>
@@ -145,7 +145,7 @@ const AdminActivity = () => {
                     <th className={tableHeaderClass}>Updated</th>
                   </tr></thead>
                   <tbody>
-                    {(recentQuotes || []).map((q: any) => (
+                    {(recentQuotes || []).map((q: UnsafeAny) => (
                       <tr key={q.id} className={tableRowClass}>
                         <td className={`${tableCellClass} text-white`}>{q.origin_port && q.destination_port ? `${q.origin_port} → ${q.destination_port}` : "—"}</td>
                         <td className={`${tableCellClass} text-[hsl(220,10%,55%)]`}>{q.customer_name || "—"}</td>
@@ -173,7 +173,7 @@ const AdminActivity = () => {
                     <th className={tableHeaderClass}>Updated</th>
                   </tr></thead>
                   <tbody>
-                    {(recentDocuments || []).map((d: any) => (
+                    {(recentDocuments || []).map((d: UnsafeAny) => (
                       <tr key={d.id} className={tableRowClass}>
                         <td className={`${tableCellClass} text-white`}>{d.doc_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}</td>
                         <td className={tableCellClass}>{statusBadge(d.status)}</td>
@@ -200,7 +200,7 @@ const AdminActivity = () => {
                     <th className={tableHeaderClass}>Time</th>
                   </tr></thead>
                   <tbody>
-                    {(recentEdi || []).map((e: any) => (
+                    {(recentEdi || []).map((e: UnsafeAny) => (
                       <tr key={e.id} className={tableRowClass}>
                         <td className={`${tableCellClass} font-mono text-white`}>{e.message_type}</td>
                         <td className={`${tableCellClass} text-[hsl(220,10%,55%)]`}>{e.carrier}</td>

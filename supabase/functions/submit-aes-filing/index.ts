@@ -46,13 +46,13 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("submit-aes-filing error:", err);
     return jsonResponse({ error: err.message }, 500);
   }
 });
 
-function jsonResponse(body: any, status = 200) {
+function jsonResponse(body: UnsafeAny, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -61,7 +61,7 @@ function jsonResponse(body: any, status = 200) {
 
 // ─── AUTO-CREATE ────────────────────────────────────────────────────────────
 
-async function handleAutoCreate(supabase: any, shipment_id: string, userId: string) {
+async function handleAutoCreate(supabase: UnsafeAny, shipment_id: string, userId: string) {
   // Check if a draft already exists
   const { data: existing } = await supabase
     .from("customs_filings")
@@ -88,12 +88,12 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
   const parties = partiesRes.data || [];
   const cargoItems = cargoRes.data || [];
 
-  const shipper = parties.find((p: any) => p.role === "shipper");
-  const consignee = parties.find((p: any) => p.role === "consignee");
-  const forwarder = parties.find((p: any) => p.role === "freight_forwarder" || p.role === "forwarding_agent");
+  const shipper = parties.find((p: UnsafeAny) => p.role === "shipper");
+  const consignee = parties.find((p: UnsafeAny) => p.role === "consignee");
+  const forwarder = parties.find((p: UnsafeAny) => p.role === "freight_forwarder" || p.role === "forwarding_agent");
 
   // Build full address from parts
-  const buildFullAddress = (party: any) => {
+  const buildFullAddress = (party: UnsafeAny) => {
     if (!party) return null;
     const parts = [party.address, party.city, party.state, party.postal_code, party.country].filter(Boolean);
     return parts.length > 0 ? parts.join(", ") : null;
@@ -111,8 +111,8 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
   }
 
   const htsCodes = cargoItems
-    .filter((c: any) => c.hts_code || c.hs_code || c.schedule_b)
-    .map((c: any) => ({
+    .filter((c: UnsafeAny) => c.hts_code || c.hs_code || c.schedule_b)
+    .map((c: UnsafeAny) => ({
       code: c.hts_code || c.schedule_b || c.hs_code || "",
       description: c.commodity || "",
       quantity: c.num_packages || c.pieces || null,
@@ -136,7 +136,7 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
   const methodOfTransportation = isAir ? "40" : (ship.container_type ? "11" : "10");
 
   // Check for dangerous goods in cargo
-  const hasDangerousGoods = cargoItems.some((c: any) => c.dangerous_goods === true);
+  const hasDangerousGoods = cargoItems.some((c: UnsafeAny) => c.dangerous_goods === true);
 
   const { data: filing, error: insertErr } = await supabase
     .from("customs_filings")
@@ -202,7 +202,7 @@ async function handleAutoCreate(supabase: any, shipment_id: string, userId: stri
 
 // ─── SUBMIT TO ZEUSLOGICS ───────────────────────────────────────────────────
 
-async function handleSubmit(supabase: any, shipment_id: string, filing_id: string, userId: string) {
+async function handleSubmit(supabase: UnsafeAny, shipment_id: string, filing_id: string, userId: string) {
   if (!filing_id) {
     return jsonResponse({ error: "filing_id is required for submit action" }, 400);
   }
@@ -300,7 +300,7 @@ async function handleSubmit(supabase: any, shipment_id: string, filing_id: strin
       loading_pier: filing.loading_pier,
     },
     commodity_lines: Array.isArray(filing.hts_codes)
-      ? filing.hts_codes.map((item: any, idx: number) => ({
+      ? filing.hts_codes.map((item: UnsafeAny, idx: number) => ({
             line_sequence: idx + 1,
             schedule_b_number: item.code,
             commodity_description: item.description,
@@ -360,7 +360,7 @@ async function handleSubmit(supabase: any, shipment_id: string, filing_id: strin
     }, 502);
   }
 
-  const updateData: Record<string, any> = {
+  const updateData: Record<string, UnsafeAny> = {
     status: "submitted",
     submitted_at: new Date().toISOString(),
     broker_ref: aesData.filing_ref || aesData.reference || filing.broker_ref,

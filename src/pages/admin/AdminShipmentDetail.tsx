@@ -42,7 +42,7 @@ const AdminShipmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
-  const [editData, setEditData] = useState<Record<string, any>>({});
+  const [editData, setEditData] = useState<Record<string, UnsafeAny>>({});
 
   const { data: shipment, isLoading } = useQuery({
     queryKey: ["admin-shipment", id],
@@ -117,8 +117,8 @@ const AdminShipmentDetail = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updates: Record<string, any>) => {
-      const { error } = await supabase.from("shipments").update(updates as any).eq("id", id!);
+    mutationFn: async (updates: Record<string, UnsafeAny>) => {
+      const { error } = await supabase.from("shipments").update(updates as UnsafeAny).eq("id", id!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -128,7 +128,7 @@ const AdminShipmentDetail = () => {
       setEditData({});
       toast.success("Shipment updated successfully");
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: UnsafeAny) => toast.error(err.message),
   });
 
   const startEditing = () => {
@@ -149,9 +149,9 @@ const AdminShipmentDetail = () => {
   };
 
   const handleSave = () => {
-    const updates: Record<string, any> = {};
+    const updates: Record<string, UnsafeAny> = {};
     for (const [key, val] of Object.entries(editData)) {
-      if (val !== (shipment as any)?.[key] && val !== "") {
+      if (val !== (shipment as UnsafeAny)?.[key] && val !== "") {
         updates[key] = val || null;
       }
     }
@@ -244,7 +244,7 @@ const AdminShipmentDetail = () => {
             </Badge>
           </div>
           <p className="text-sm text-[hsl(220,10%,45%)] mt-1">
-            Owner: <span className="text-white">{owner?.full_name || "Unknown"}</span> · {owner?.company_name || (shipment as any).companies?.company_name || "—"}
+            Owner: <span className="text-white">{owner?.full_name || "Unknown"}</span> · {owner?.company_name || (shipment as UnsafeAny).companies?.company_name || "—"}
           </p>
         </div>
         <div className="flex gap-2">

@@ -78,7 +78,7 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
         toast({ title: "AES Filing Submitted", description: "Your filing has been submitted electronically. You'll receive an ITN shortly." });
       }
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "AES Submission Failed", description: err.message, variant: "destructive" });
     },
   });
@@ -96,7 +96,7 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
       queryClient.invalidateQueries({ queryKey: ["customs_filings", shipmentId] });
       toast({ title: "Draft Filing Created", description: "A draft AES filing has been pre-filled from shipment data." });
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Failed to create draft", description: err.message, variant: "destructive" });
     },
   });
@@ -243,7 +243,7 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
                         HTS / Schedule B Line Items
                       </h4>
                       <div className="space-y-2">
-                        {(filing.hts_codes as any[]).map((item: any, idx: number) => (
+                        {(filing.hts_codes as UnsafeAny[]).map((item: UnsafeAny, idx: number) => (
                           <div
                             key={idx}
                             className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs"
@@ -320,7 +320,7 @@ export function CustomsFilingPanel({ shipmentId, mode = "ocean" }: CustomsFiling
   );
 }
 
-function FilingDetails({ filing, isAir }: { filing: any; isAir: boolean }) {
+function FilingDetails({ filing, isAir }: { filing: UnsafeAny; isAir: boolean }) {
   return (
     <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3">
       <Row label="ITN" value={filing.itn || "—"} />
@@ -344,11 +344,11 @@ function FilingDetails({ filing, isAir }: { filing: any; isAir: boolean }) {
           <Row label="Voyage" value={filing.voyage_number || "—"} />
         </>
       )}
-      <Row label="Carrier ID" value={(filing as any).carrier_identification_code || "—"} />
-      <Row label="Filing Option" value={(filing as any).filing_option || "—"} />
-      <Row label="State of Origin" value={(filing as any).state_of_origin || "—"} />
-      <Row label="Containerized" value={(filing as any).containerized ? "Yes" : "No"} />
-      <Row label="Hazardous Materials" value={(filing as any).hazardous_materials ? "Yes" : "No"} />
+      <Row label="Carrier ID" value={(filing as UnsafeAny).carrier_identification_code || "—"} />
+      <Row label="Filing Option" value={(filing as UnsafeAny).filing_option || "—"} />
+      <Row label="State of Origin" value={(filing as UnsafeAny).state_of_origin || "—"} />
+      <Row label="Containerized" value={(filing as UnsafeAny).containerized ? "Yes" : "No"} />
+      <Row label="Hazardous Materials" value={(filing as UnsafeAny).hazardous_materials ? "Yes" : "No"} />
     </div>
   );
 }

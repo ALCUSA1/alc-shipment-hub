@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const severityConfig: Record<string, { icon: any; color: string; bg: string }> = {
+const severityConfig: Record<string, { icon: UnsafeAny; color: string; bg: string }> = {
   critical: { icon: XCircle, color: "text-red-400", bg: "bg-red-500/15" },
   warning: { icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/15" },
   info: { icon: Info, color: "text-blue-400", bg: "bg-blue-500/15" },
@@ -52,7 +52,7 @@ export function AdminAlertsBell() {
         { event: "INSERT", schema: "public", table: "admin_alerts" },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ["admin-alerts"] });
-          const alert = payload.new as any;
+          const alert = payload.new as UnsafeAny;
           toast.error(alert.title, { description: alert.message });
         }
       )

@@ -10,7 +10,7 @@ interface AuditTrailPanelProps {
   shipmentId: string;
 }
 
-const TABLE_ICONS: Record<string, any> = {
+const TABLE_ICONS: Record<string, UnsafeAny> = {
   shipments: Package,
   documents: FileText,
   customs_filings: Shield,
@@ -28,7 +28,7 @@ const TABLE_LABELS: Record<string, string> = {
   shipment_amendments: "Amendment",
 };
 
-const ACTION_STYLES: Record<string, { icon: any; color: string; label: string }> = {
+const ACTION_STYLES: Record<string, { icon: UnsafeAny; color: string; label: string }> = {
   INSERT: { icon: Plus, color: "text-green-600", label: "Created" },
   UPDATE: { icon: Edit3, color: "text-accent", label: "Updated" },
   DELETE: { icon: Trash2, color: "text-destructive", label: "Deleted" },
@@ -86,7 +86,7 @@ export function AuditTrailPanel({ shipmentId }: AuditTrailPanelProps) {
       <CardContent className="p-0">
         <ScrollArea className="h-[320px]">
           <div className="px-4 pb-4 space-y-1">
-            {logs.map((log: any) => {
+            {logs.map((log: UnsafeAny) => {
               const actionInfo = ACTION_STYLES[log.action] || ACTION_STYLES.UPDATE;
               const ActionIcon = actionInfo.icon;
               const TableIcon = TABLE_ICONS[log.table_name] || FileText;

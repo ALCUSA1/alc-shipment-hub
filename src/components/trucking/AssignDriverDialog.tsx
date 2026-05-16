@@ -84,7 +84,7 @@ export function AssignDriverDialog({
         delivery_contact_phone: form.delivery_contact_phone || null,
         instructions: form.instructions || null,
         container_numbers: containers.length > 0 ? containers : null,
-      } as any);
+      } as UnsafeAny);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -92,7 +92,7 @@ export function AssignDriverDialog({
       queryClient.invalidateQueries({ queryKey: ["my-trucking-quotes"] });
       onOpenChange(false);
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Failed to assign", description: err.message, variant: "destructive" });
     },
   });

@@ -77,12 +77,12 @@ export function LiveTrackingPanel({
         .eq("id", shipmentId)
         .maybeSingle();
 
-      const carrierCode = (ship as any)?.alc_carriers?.carrier_code;
-      const bl = (ship as any)?.bill_of_lading || null;
-      const bk = (ship as any)?.booking_ref || bookingRef || null;
-      const mawb = (ship as any)?.mawb_number || mawbNumber || null;
+      const carrierCode = (ship as UnsafeAny)?.alc_carriers?.carrier_code;
+      const bl = (ship as UnsafeAny)?.bill_of_lading || null;
+      const bk = (ship as UnsafeAny)?.booking_ref || bookingRef || null;
+      const mawb = (ship as UnsafeAny)?.mawb_number || mawbNumber || null;
 
-      // First container number (if any) for ocean
+      // First container number (if UnsafeAny) for ocean
       const { data: ctn } = await supabase
         .from("containers")
         .select("container_number")
@@ -125,7 +125,7 @@ export function LiveTrackingPanel({
         queryClient.invalidateQueries({ queryKey: ["tracking_events", shipmentId] });
         queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
       }, 1500);
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Sync Failed", description: err.message, variant: "destructive" });
     } finally {
       setSyncing(false);

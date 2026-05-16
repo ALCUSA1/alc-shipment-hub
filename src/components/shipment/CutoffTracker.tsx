@@ -84,7 +84,7 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
       } else {
         toast({ title: "Sync unavailable", description: data?.message || "Carrier API not configured for this shipment.", variant: "destructive" });
       }
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Sync failed", description: err.message, variant: "destructive" });
     } finally {
       setSyncing(false);
@@ -102,7 +102,7 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
       const d = setMinutes(setHours(subDays(etdDate, c.etdOffsetDays), 17), 0);
       newDraft[c.key] = toLocalDatetime(d.toISOString());
     }
-    setDraft(newDraft as any);
+    setDraft(newDraft as UnsafeAny);
     setEditing(true);
     toast({ title: "Cutoffs auto-calculated", description: `Based on ETD ${format(etdDate, "MMM d, yyyy")}. Review and save.` });
   };
@@ -117,13 +117,13 @@ export function CutoffTracker({ cutoffs, shipmentId, etd }: CutoffTrackerProps) 
       }
       const { error } = await supabase
         .from("shipments")
-        .update(update as any)
+        .update(update as UnsafeAny)
         .eq("id", shipmentId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
       setEditing(false);
       toast({ title: "Cutoffs updated" });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Save failed", description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);

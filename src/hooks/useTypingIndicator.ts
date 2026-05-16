@@ -30,7 +30,7 @@ export function useTypingIndicator(conversationId: string | null, currentUserId:
         const users: TypingUser[] = [];
         for (const [key, presences] of Object.entries(state)) {
           if (key === currentUserId) continue;
-          const p = (presences as any[])[0];
+          const p = (presences as UnsafeAny[])[0];
           if (p?.typing) {
             users.push({ userId: key, userName: p.userName || "Someone" });
           }

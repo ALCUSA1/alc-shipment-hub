@@ -68,7 +68,7 @@ const PendingApprovalsPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
       setRejectDialogId(null);
       setRejectionReason("");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || `Failed to ${action} request`);
     } finally {
       setProcessing(null);
@@ -97,7 +97,7 @@ const PendingApprovalsPanel = () => {
   return (
     <>
       <div className="space-y-2">
-        {requests.map((req: any) => {
+        {requests.map((req: UnsafeAny) => {
           const profile = getProfile(req.user_id);
           return (
             <div

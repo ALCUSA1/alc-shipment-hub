@@ -17,7 +17,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const pick = (obj: any, ...keys: string[]) => {
+const pick = (obj: UnsafeAny, ...keys: string[]) => {
   if (!obj) return null;
   for (const k of keys) {
     if (obj[k] != null) return obj[k];
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
 
       return json({ success: true, raw_message_id: rawId, ...result });
-    } catch (txErr: any) {
+    } catch (txErr: UnsafeAny) {
       await supabase.from("integration_jobs")
         .update({ job_status: "failed", last_error: txErr.message, completed_at: new Date().toISOString() })
         .eq("id", job!.id);
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
       throw txErr;
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("surrender-submit error:", err);
     return json({ error: err.message }, 500);
   }
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
    Transform surrender request payload → ALC
    ═══════════════════════════════════════════════ */
 
-async function transformSurrenderRequest(carrierId: string, rawId: string, p: any) {
+async function transformSurrenderRequest(carrierId: string, rawId: string, p: UnsafeAny) {
   const surrenderRef = pick(p, "surrenderRequestReference", "surrenderReference");
   const tdRef = pick(p, "transportDocumentReference", "tdReference");
   const tdSubRef = pick(p, "transportDocumentSubReference");
@@ -194,7 +194,7 @@ async function transformSurrenderRequest(carrierId: string, rawId: string, p: an
   if (Array.isArray(chain) && chain.length && surrenderId) {
     await supabase.from("surrender_endorsement_chain").delete().eq("surrender_request_id", surrenderId);
 
-    const rows = chain.map((e: any, i: number) => {
+    const rows = chain.map((e: UnsafeAny, i: number) => {
       const actor = pick(e, "actor", "actionParty") || {};
       const recipient = pick(e, "recipient", "recipientParty") || {};
       const actorTax = pick(actor, "taxReference", "taxRef") || {};
@@ -234,7 +234,7 @@ async function transformSurrenderRequest(carrierId: string, rawId: string, p: an
   if (Array.isArray(errors) && errors.length && surrenderId) {
     await supabase.from("surrender_errors").delete().eq("surrender_request_id", surrenderId);
 
-    const errRows = errors.map((e: any) => ({
+    const errRows = errors.map((e: UnsafeAny) => ({
       surrender_request_id: surrenderId,
       alc_carrier_id: carrierId,
       source_message_id: rawId,

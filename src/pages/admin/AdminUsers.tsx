@@ -51,7 +51,7 @@ const AdminUsers = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<UnsafeAny>(null);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
   const [addRoleUserId, setAddRoleUserId] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -59,7 +59,7 @@ const AdminUsers = () => {
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("");
   const [inviting, setInviting] = useState(false);
-  const [editUser, setEditUser] = useState<any>(null);
+  const [editUser, setEditUser] = useState<UnsafeAny>(null);
 
   // Fetch companies
   const { data: companies, isLoading: companiesLoading } = useQuery({
@@ -117,7 +117,7 @@ const AdminUsers = () => {
       if (error) {
         // Try to extract the real error message from the function response body
         try {
-          const ctx: any = (error as any).context;
+          const ctx: UnsafeAny = (error as UnsafeAny).context;
           if (ctx?.json) {
             const body = await ctx.json();
             if (body?.error) throw new Error(body.error);
@@ -125,7 +125,7 @@ const AdminUsers = () => {
             const text = await ctx.text();
             if (text) throw new Error(text);
           }
-        } catch (inner: any) {
+        } catch (inner: UnsafeAny) {
           if (inner?.message) throw inner;
         }
         throw error;
@@ -140,7 +140,7 @@ const AdminUsers = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-companies-list"] });
       queryClient.invalidateQueries({ queryKey: ["admin-company-members"] });
     },
-    onError: (err: any) => toast.error(err.message || "Action failed"),
+    onError: (err: UnsafeAny) => toast.error(err.message || "Action failed"),
   });
 
   const handleGetStatus = async (userId: string) => {
@@ -152,7 +152,7 @@ const AdminUsers = () => {
       if (data?.error) throw new Error(data.error);
       const profile = profiles?.find((p) => p.user_id === userId);
       setSelectedUser({ ...data, user_id: userId, full_name: profile?.full_name });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message);
     }
   };
@@ -173,14 +173,14 @@ const AdminUsers = () => {
       setInviteRole("");
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
       queryClient.invalidateQueries({ queryKey: ["admin-all-roles"] });
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(err.message || "Failed to invite user");
     } finally {
       setInviting(false);
     }
   };
 
-  const isBanned = (user: any) => user?.banned_until && new Date(user.banned_until) > new Date();
+  const isBanned = (user: UnsafeAny) => user?.banned_until && new Date(user.banned_until) > new Date();
 
   // Company stats
   const getCompanyStats = (companyId: string) => {
@@ -328,7 +328,7 @@ const AdminUsers = () => {
         <AssignRoleDialog open={addRoleOpen} onOpenChange={setAddRoleOpen} userId={addRoleUserId} onAssign={(role) => manageUser.mutate({ action: "add_role", target_user_id: addRoleUserId, role }, { onSuccess: () => setAddRoleOpen(false) })} />
         <UserStatusDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
         <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} email={inviteEmail} setEmail={setInviteEmail} name={inviteName} setName={setInviteName} role={inviteRole} setRole={setInviteRole} onInvite={handleInvite} inviting={inviting} />
-        <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as any, { onSuccess: () => setEditUser(null) })} />
+        <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as UnsafeAny, { onSuccess: () => setEditUser(null) })} />
       </AdminLayout>
     );
   }
@@ -432,7 +432,7 @@ const AdminUsers = () => {
                                 title="Delete empty company"
                                 onClick={() => {
                                   if (confirm(`Delete company "${c.company_name}"? It has no members.`)) {
-                                    manageUser.mutate({ action: "delete_company", target_user_id: c.id } as any);
+                                    manageUser.mutate({ action: "delete_company", target_user_id: c.id } as UnsafeAny);
                                   }
                                 }}
                               >
@@ -464,15 +464,15 @@ const AdminUsers = () => {
       <AssignRoleDialog open={addRoleOpen} onOpenChange={setAddRoleOpen} userId={addRoleUserId} onAssign={(role) => manageUser.mutate({ action: "add_role", target_user_id: addRoleUserId, role }, { onSuccess: () => setAddRoleOpen(false) })} />
       <UserStatusDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} email={inviteEmail} setEmail={setInviteEmail} name={inviteName} setName={setInviteName} role={inviteRole} setRole={setInviteRole} onInvite={handleInvite} inviting={inviting} />
-      <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as any, { onSuccess: () => setEditUser(null) })} />
+      <EditUserDialog user={editUser} onClose={() => setEditUser(null)} onSave={(updates) => editUser && manageUser.mutate({ action: "update_profile", target_user_id: editUser.user_id, ...updates } as UnsafeAny, { onSuccess: () => setEditUser(null) })} />
     </AdminLayout>
   );
 };
 
 // ---- Sub-components ----
 
-function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole, onEdit }: any) {
-  const filtered = profiles.filter((p: any) => {
+function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onManage, onAddRole, onEdit }: UnsafeAny) {
+  const filtered = profiles.filter((p: UnsafeAny) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (p.full_name || "").toLowerCase().includes(q) || (p.company_name || "").toLowerCase().includes(q);
@@ -494,7 +494,7 @@ function AllUsersTable({ profiles, search, getRoles, roleColor, onGetStatus, onM
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p: any) => {
+            {filtered.map((p: UnsafeAny) => {
               const roles = getRoles(p.user_id);
               return (
                 <tr key={p.id} className="border-b border-[hsl(220,15%,12%)] last:border-0 hover:bg-[hsl(220,15%,12%)] transition-colors">
@@ -571,7 +571,7 @@ function AssignRoleDialog({ open, onOpenChange, userId, onAssign }: { open: bool
   );
 }
 
-function UserStatusDialog({ user, onClose }: { user: any; onClose: () => void }) {
+function UserStatusDialog({ user, onClose }: { user: UnsafeAny; onClose: () => void }) {
   const isBanned = user?.banned_until && new Date(user.banned_until) > new Date();
   return (
     <Dialog open={!!user} onOpenChange={onClose}>
@@ -593,15 +593,15 @@ function UserStatusDialog({ user, onClose }: { user: any; onClose: () => void })
   );
 }
 
-function InviteDialog({ open, onOpenChange, email, setEmail, name, setName, role, setRole, onInvite, inviting }: any) {
+function InviteDialog({ open, onOpenChange, email, setEmail, name, setName, role, setRole, onInvite, inviting }: UnsafeAny) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[hsl(220,18%,10%)] border-[hsl(220,15%,15%)] text-white sm:max-w-sm">
         <DialogHeader><DialogTitle>Invite User</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <Input placeholder="Full name" value={name} onChange={(e: any) => setName(e.target.value)}
+          <Input placeholder="Full name" value={name} onChange={(e: UnsafeAny) => setName(e.target.value)}
             className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white placeholder:text-[hsl(220,10%,35%)]" />
-          <Input placeholder="Email" type="email" value={email} onChange={(e: any) => setEmail(e.target.value)}
+          <Input placeholder="Email" type="email" value={email} onChange={(e: UnsafeAny) => setEmail(e.target.value)}
             className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white placeholder:text-[hsl(220,10%,35%)]" />
           <Select value={role} onValueChange={setRole}>
             <SelectTrigger className="bg-[hsl(220,18%,12%)] border-[hsl(220,15%,18%)] text-white"><SelectValue placeholder="Select role…" /></SelectTrigger>
@@ -627,7 +627,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function EditUserDialog({ user, onClose, onSave }: { user: any; onClose: () => void; onSave: (updates: { full_name?: string; email?: string; company_name?: string }) => void }) {
+function EditUserDialog({ user, onClose, onSave }: { user: UnsafeAny; onClose: () => void; onSave: (updates: { full_name?: string; email?: string; company_name?: string }) => void }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -661,7 +661,7 @@ function EditUserDialog({ user, onClose, onSave }: { user: any; onClose: () => v
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
-                  const updates: any = {};
+                  const updates: UnsafeAny = {};
                   if (fullName !== (user.full_name || "")) updates.full_name = fullName;
                   if (email !== (user.email || "")) updates.email = email;
                   if (companyName !== (user.company_name || "")) updates.company_name = companyName;

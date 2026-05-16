@@ -19,7 +19,7 @@ const json = (body: unknown, status = 200) =>
 
 /* ─── helpers ─── */
 
-const pick = (obj: Record<string, any> | null | undefined, ...keys: string[]) => {
+const pick = (obj: Record<string, UnsafeAny> | null | undefined, ...keys: string[]) => {
   if (!obj) return null;
   for (const k of keys) {
     if (obj[k] != null) return obj[k];
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
 
       return json({ success: true, raw_message_id: rawId, ...result });
-    } catch (txErr: any) {
+    } catch (txErr: UnsafeAny) {
       await supabase.from("integration_jobs")
         .update({ job_status: "failed", last_error: txErr.message, completed_at: new Date().toISOString() })
         .eq("id", job.id);
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         .eq("id", rawId);
       throw txErr;
     }
-  } catch (err: any) {
+  } catch (err: UnsafeAny) {
     console.error("issuance-ingest error:", err);
     return json({ error: err.message }, 500);
   }
@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
    Transform raw eBL issuance payload → ALC
    ═══════════════════════════════════════════════ */
 
-async function transformIssuance(carrierId: string, rawId: string, p: Record<string, any>) {
+async function transformIssuance(carrierId: string, rawId: string, p: Record<string, UnsafeAny>) {
   // ── Unwrap nested DCSA structures ──
   const issuanceResponse = pick(p, "issuanceResponse") || p;
   const identifiedEBL = pick(issuanceResponse, "identifiedEBL", "identifiedEbl") || pick(p, "identifiedEBL", "identifiedEbl") || {};
@@ -370,7 +370,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
       // Delete previous errors for idempotency
       await supabase.from("issuance_errors").delete().eq("issuance_record_id", issuanceId);
 
-      const errorRows = errors.map((e: any) => ({
+      const errorRows = errors.map((e: UnsafeAny) => ({
         issuance_record_id: issuanceId,
         alc_carrier_id: carrierId,
         source_message_id: rawId,
@@ -396,7 +396,7 @@ async function transformIssuance(carrierId: string, rawId: string, p: Record<str
 
   // ── References ──
   if (issuanceId) {
-    const refs: any[] = [];
+    const refs: UnsafeAny[] = [];
     if (issuanceRef) refs.push({ reference_type: "issuance_reference", reference_value: issuanceRef, is_primary: true });
     if (ebillId) refs.push({ reference_type: "ebill_identifier", reference_value: ebillId, is_primary: false });
     if (blNumber) refs.push({ reference_type: "bill_of_lading", reference_value: blNumber, is_primary: false });

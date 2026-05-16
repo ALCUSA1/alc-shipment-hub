@@ -61,7 +61,7 @@ const ForwarderCustomers = () => {
       setCustomerEmail("");
       setCompanyName("");
     },
-    onError: (err: any) => {
+    onError: (err: UnsafeAny) => {
       toast({ title: "Failed to invite", description: err.message, variant: "destructive" });
     },
   });

@@ -57,13 +57,13 @@ const AdminShipments = () => {
     return map;
   }, [profiles]);
 
-  const searchFields = useCallback((s: any) => [
+  const searchFields = useCallback((s: UnsafeAny) => [
     s.shipment_ref, s.origin_port, s.destination_port, s.vessel,
     profileMap[s.user_id]?.name, profileMap[s.user_id]?.company,
-    (s as any).companies?.company_name,
+    (s as UnsafeAny).companies?.company_name,
   ], [profileMap]);
-  const statusField = useCallback((s: any) => s.status, []);
-  const dateField = useCallback((s: any) => s.created_at, []);
+  const statusField = useCallback((s: UnsafeAny) => s.status, []);
+  const dateField = useCallback((s: UnsafeAny) => s.created_at, []);
 
   const { search, setSearch, filterValues, onFilterChange, dateRange, setDateRange, filtered } = useAdminFilters({
     data: shipments, searchFields, statusField, dateField,
@@ -76,7 +76,7 @@ const AdminShipments = () => {
           <Package className="h-5 w-5 text-blue-400" />
           <h1 className="text-2xl font-bold text-white">Shipment Management</h1>
         </div>
-        <p className="text-sm text-[hsl(220,10%,50%)]">Search, view, and manage any customer's shipments</p>
+        <p className="text-sm text-[hsl(220,10%,50%)]">Search, view, and manage UnsafeAny customer's shipments</p>
       </div>
 
       <AdminFilterBar
@@ -115,7 +115,7 @@ const AdminShipments = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((s: any) => {
+                {filtered.map((s: UnsafeAny) => {
                   const owner = profileMap[s.user_id];
                   return (
                     <tr key={s.id} className="border-b border-[hsl(220,15%,12%)] last:border-0 hover:bg-[hsl(220,15%,12%)] transition-colors">
@@ -123,7 +123,7 @@ const AdminShipments = () => {
                       <td className="p-4">
                         <div>
                           <p className="text-white text-xs font-medium">{owner?.name || "Unknown"}</p>
-                          <p className="text-[10px] text-[hsl(220,10%,40%)]">{(s as any).companies?.company_name || owner?.company || "—"}</p>
+                          <p className="text-[10px] text-[hsl(220,10%,40%)]">{(s as UnsafeAny).companies?.company_name || owner?.company || "—"}</p>
                         </div>
                       </td>
                       <td className="p-4">

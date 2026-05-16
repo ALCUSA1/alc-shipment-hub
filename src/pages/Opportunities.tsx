@@ -152,7 +152,7 @@ const Opportunities = () => {
       setEngageModal(null);
       queryClient.invalidateQueries({ queryKey: ["pipeline-deals"] });
     },
-    onError: (err: any) => toast({ title: "Error", description: err.message, variant: "destructive" }),
+    onError: (err: UnsafeAny) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
   const saveMutation = useMutation({

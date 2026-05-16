@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function SurrenderView({ shipmentId, transportDocumentId }: Props) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<UnsafeAny>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [expandedChain, setExpandedChain] = useState<string | null>(null);
@@ -140,7 +140,7 @@ export function SurrenderView({ shipmentId, transportDocumentId }: Props) {
       )}
 
       {/* ── Surrender Request Cards ── */}
-      {requests.map((sr: any) => (
+      {requests.map((sr: UnsafeAny) => (
         <SurrenderRequestCard
           key={sr.id}
           sr={sr}
@@ -209,7 +209,7 @@ function SurrenderRequestForm({
       if (error) throw error;
       toast.success("Surrender request submitted successfully");
       onSubmitted();
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast.error(`Failed to submit: ${err.message}`);
     } finally {
       setSubmitting(false);
@@ -284,8 +284,8 @@ function SurrenderRequestCard({
   expandedChain,
   onToggleChain,
 }: {
-  sr: any;
-  carrier: any;
+  sr: UnsafeAny;
+  carrier: UnsafeAny;
   expandedChain: string | null;
   onToggleChain: (id: string) => void;
 }) {
@@ -381,7 +381,7 @@ function SurrenderRequestCard({
                 Carrier Responses ({responses.length})
               </h4>
               <div className="space-y-2">
-                {responses.map((r: any) => (
+                {responses.map((r: UnsafeAny) => (
                   <div key={r.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       {r.response_status_internal === "accepted" || r.response_status_internal === "completed"
@@ -423,7 +423,7 @@ function SurrenderRequestCard({
                 Errors ({errors.length})
               </h4>
               <div className="space-y-2">
-                {errors.map((err: any, i: number) => (
+                {errors.map((err: UnsafeAny, i: number) => (
                   <div key={err.id || i} className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 space-y-1">
                     <div className="flex items-center gap-2">
                       {err.error_code && (
@@ -467,7 +467,7 @@ function SurrenderRequestCard({
               </button>
               {expandedChain === sr.id && (
                 <div className="mt-3 space-y-3">
-                  {chain.map((entry: any, i: number) => (
+                  {chain.map((entry: UnsafeAny, i: number) => (
                     <div key={entry.id || i} className="relative pl-6 pb-3 border-l-2 border-muted last:border-0 last:pb-0">
                       <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-background border-2 border-primary" />
                       <div className="space-y-1">
@@ -527,7 +527,7 @@ function SurrenderRequestCard({
   );
 }
 
-function InfoItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoItem({ icon: Icon, label, value }: { icon: UnsafeAny; label: string; value: string }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

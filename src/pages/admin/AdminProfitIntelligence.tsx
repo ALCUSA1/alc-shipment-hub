@@ -80,7 +80,7 @@ const AdminProfitIntelligence = () => {
     const rateByShipment = new Map(rates.map(r => [r.shipment_id, r]));
     const shipmentMap = new Map(shipments.map(s => [s.id, s]));
 
-    const shipmentProfits: any[] = [];
+    const shipmentProfits: UnsafeAny[] = [];
     let totalRevenue = 0, totalCost = 0, totalNet = 0;
     let totalPlatformRetained = 0, totalNetworkPaid = 0;
     let totalReferralPaid = 0, totalCollabPaid = 0;
@@ -220,7 +220,7 @@ const AdminProfitIntelligence = () => {
 
   const marginRisk = useMemo(() => (processed?.shipmentProfits || []).filter(s => s.netMargin < 6), [processed]);
 
-  const KpiCard = ({ label, value, icon: Icon, positive, isPct, isCount }: any) => (
+  const KpiCard = ({ label, value, icon: Icon, positive, isPct, isCount }: UnsafeAny) => (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
@@ -234,11 +234,11 @@ const AdminProfitIntelligence = () => {
     </div>
   );
 
-  const TableHead = ({ children, className = "" }: any) => (
+  const TableHead = ({ children, className = "" }: UnsafeAny) => (
     <th className={cn("text-left p-3 font-medium text-muted-foreground text-xs", className)}>{children}</th>
   );
 
-  const TableCell = ({ children, className = "" }: any) => (
+  const TableCell = ({ children, className = "" }: UnsafeAny) => (
     <td className={cn("p-3 text-xs", className)}>{children}</td>
   );
 
@@ -340,7 +340,7 @@ const AdminProfitIntelligence = () => {
               <ResponsiveContainer width="100%" height={220}>
                 <RePieChart>
                   <Pie data={processed?.pieData} cx="50%" cy="45%" outerRadius={70} innerRadius={40} paddingAngle={2} dataKey="value">
-                    {(processed?.pieData || []).map((_: any, i: number) => (
+                    {(processed?.pieData || []).map((_: UnsafeAny, i: number) => (
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
@@ -437,7 +437,7 @@ const AdminProfitIntelligence = () => {
                     <tbody>
                       {(processed?.shipmentProfits || []).length === 0 ? (
                         <tr><td colSpan={11} className="text-center p-8 text-muted-foreground text-sm">No pricing data yet</td></tr>
-                      ) : (processed?.shipmentProfits || []).map((s: any) => (
+                      ) : (processed?.shipmentProfits || []).map((s: UnsafeAny) => (
                         <tr key={s.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                           <TableCell className="text-foreground font-medium">{s.ref}</TableCell>
                           <TableCell className="text-muted-foreground">{s.carrier}</TableCell>
@@ -485,7 +485,7 @@ const AdminProfitIntelligence = () => {
                     <tbody>
                       {(processed?.customers || []).length === 0 ? (
                         <tr><td colSpan={6} className="text-center p-8 text-muted-foreground text-sm">No data</td></tr>
-                      ) : (processed?.customers || []).map((c: any) => (
+                      ) : (processed?.customers || []).map((c: UnsafeAny) => (
                         <tr key={c.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                           <TableCell className="text-foreground font-medium">{c.id === "direct" ? "Direct / Unlinked" : c.id.slice(0, 8)}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{c.shipments}</TableCell>
@@ -524,7 +524,7 @@ const AdminProfitIntelligence = () => {
                     <tbody>
                       {(processed?.carriers || []).length === 0 ? (
                         <tr><td colSpan={6} className="text-center p-8 text-muted-foreground text-sm">No carrier data</td></tr>
-                      ) : (processed?.carriers || []).map((c: any) => (
+                      ) : (processed?.carriers || []).map((c: UnsafeAny) => (
                         <tr key={c.carrier} className="border-b border-border hover:bg-secondary/50 transition-colors">
                           <TableCell className="text-foreground font-medium">{c.carrier}</TableCell>
                           <TableCell className="text-right text-muted-foreground">{c.shipments}</TableCell>
@@ -570,7 +570,7 @@ const AdminProfitIntelligence = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {marginRisk.map((s: any) => (
+                      {marginRisk.map((s: UnsafeAny) => (
                         <tr key={s.id} className="border-b border-border hover:bg-destructive/5 transition-colors">
                           <TableCell className="text-foreground font-medium">{s.ref}</TableCell>
                           <TableCell className="text-muted-foreground">{s.carrier}</TableCell>

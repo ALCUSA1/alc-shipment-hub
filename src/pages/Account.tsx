@@ -94,7 +94,7 @@ const Account = () => {
         supabase.from("companies").select("*").eq("user_id", user.id).order("created_at", { ascending: true }).limit(1).maybeSingle(),
       ]);
       if (profileRes.data) {
-        const logoUrl = (profileRes.data as any).logo_url || "";
+        const logoUrl = (profileRes.data as UnsafeAny).logo_url || "";
         setProfile({ full_name: profileRes.data.full_name || "", company_name: profileRes.data.company_name || "", avatar_url: logoUrl || profileRes.data.avatar_url || "" });
       }
       if (companyRes.data) {
@@ -146,7 +146,7 @@ const Account = () => {
     }
     const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
     const logoUrl = urlData.publicUrl + `?t=${Date.now()}`;
-    await supabase.from("profiles").update({ logo_url: logoUrl } as any).eq("user_id", user.id);
+    await supabase.from("profiles").update({ logo_url: logoUrl } as UnsafeAny).eq("user_id", user.id);
     setProfile(p => ({ ...p, avatar_url: logoUrl }));
     toast({ title: "Logo uploaded" });
     setLogoUploading(false);
@@ -154,7 +154,7 @@ const Account = () => {
 
   const handleRemoveLogo = async () => {
     if (!user) return;
-    await supabase.from("profiles").update({ logo_url: null } as any).eq("user_id", user.id);
+    await supabase.from("profiles").update({ logo_url: null } as UnsafeAny).eq("user_id", user.id);
     setProfile(p => ({ ...p, avatar_url: "" }));
     toast({ title: "Logo removed" });
   };

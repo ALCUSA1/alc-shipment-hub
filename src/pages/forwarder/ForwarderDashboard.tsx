@@ -218,7 +218,7 @@ const ForwarderDashboard = () => {
               </div>
             ) : (
               <div className="space-y-1.5">
-                {(stats?.recentShipments ?? []).map((s: any) => {
+                {(stats?.recentShipments ?? []).map((s: UnsafeAny) => {
                   const ModeIcon = s.mode === "air" ? Plane : Ship;
                   const companyName = s.companies?.company_name;
                   return (

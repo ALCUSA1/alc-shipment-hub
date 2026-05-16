@@ -153,7 +153,7 @@ const ShipmentDetail = () => {
       if (error) throw error;
       toast({ title: "Shipment deleted", description: "The draft shipment has been removed." });
       navigate("/dashboard/shipments");
-    } catch (err: any) {
+    } catch (err: UnsafeAny) {
       toast({ title: "Delete failed", description: err.message, variant: "destructive" });
     } finally {
       setDeleting(false);
@@ -171,7 +171,7 @@ const ShipmentDetail = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tracking_events', filter: `shipment_id=eq.${id}` }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ["tracking_events", id] });
         if (payload.eventType === 'INSERT') {
-          const newEvent = payload.new as any;
+          const newEvent = payload.new as UnsafeAny;
           toast({ title: "Tracking Update", description: `${newEvent.milestone}${newEvent.location ? ` — ${newEvent.location}` : ''}` });
         }
       })
@@ -301,7 +301,7 @@ const ShipmentDetail = () => {
   const currentMilestoneIndex = (() => { let last = -1; milestones.forEach((m, i) => { if (m.completed) last = i; }); return last; })();
   const containersSummary = (containers || []).map((c) => `${c.quantity}x${c.container_type}`).join(", ") || "—";
   const firstCargo = cargo?.[0];
-  const companyName = (shipment as any).companies?.company_name as string | undefined;
+  const companyName = (shipment as UnsafeAny).companies?.company_name as string | undefined;
   const isDelivered = shipment.status === "delivered" || shipment.status === "completed" || shipment.status === "closed";
   const isBooked = ["booked", "in_transit", "arrived", "delivered", "completed", "closed"].includes(shipment.status);
   const isInTransitOrBeyond = ["in_transit", "arrived", "delivered", "completed", "closed"].includes(shipment.status);
@@ -399,8 +399,8 @@ const ShipmentDetail = () => {
                 <InfoRow label="Containers" value={containersSummary} />
                 {isAirShipment ? (
                   <>
-                    <InfoRow label="Airline" value={(shipment as any).airline || "TBD"} />
-                    <InfoRow label="Flight" value={(shipment as any).flight_number || "TBD"} />
+                    <InfoRow label="Airline" value={(shipment as UnsafeAny).airline || "TBD"} />
+                    <InfoRow label="Flight" value={(shipment as UnsafeAny).flight_number || "TBD"} />
                   </>
                 ) : (
                   <>
@@ -441,7 +441,7 @@ const ShipmentDetail = () => {
           {/* Execution panels for overview */}
           {!isDelivered && !isBooked && !isAirShipment && <VesselBookingPanel shipmentId={id!} variant="shipper" bookingRef={shipment.booking_ref} />}
           {!isDelivered && isAirShipment && (
-            <AirBookingPanel shipmentId={id!} airline={(shipment as any).airline} flightNumber={(shipment as any).flight_number} mawbNumber={(shipment as any).mawb_number} bookingRef={shipment.booking_ref} />
+            <AirBookingPanel shipmentId={id!} airline={(shipment as UnsafeAny).airline} flightNumber={(shipment as UnsafeAny).flight_number} mawbNumber={(shipment as UnsafeAny).mawb_number} bookingRef={shipment.booking_ref} />
           )}
           <CustomsFilingPanel shipmentId={id!} mode={isAirShipment ? "air" : "ocean"} />
           <TruckingPanel shipmentId={id!} shipmentStatus={shipment.status} />
@@ -535,8 +535,8 @@ const ShipmentDetail = () => {
           {/* Cutoff Deadlines */}
           {!isDelivered && (
             <CutoffTracker shipmentId={id!} etd={shipment.etd} cutoffs={{
-              cy_cutoff: (shipment as any).cy_cutoff, si_cutoff: (shipment as any).si_cutoff,
-              vgm_cutoff: (shipment as any).vgm_cutoff, doc_cutoff: (shipment as any).doc_cutoff,
+              cy_cutoff: (shipment as UnsafeAny).cy_cutoff, si_cutoff: (shipment as UnsafeAny).si_cutoff,
+              vgm_cutoff: (shipment as UnsafeAny).vgm_cutoff, doc_cutoff: (shipment as UnsafeAny).doc_cutoff,
             }} />
           )}
 
@@ -647,7 +647,7 @@ const ShipmentDetail = () => {
             <CustomerFinancialsTab
               shipmentId={id!}
               shipmentRef={shipment.shipment_ref}
-              customerName={(shipment as any).companies?.company_name}
+              customerName={(shipment as UnsafeAny).companies?.company_name}
             />
           )}
         </TabsContent>

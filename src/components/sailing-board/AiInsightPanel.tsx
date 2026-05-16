@@ -12,7 +12,7 @@ export function AiInsightPanel({ sailings }: AiInsightPanelProps) {
   const cheapest = [...sailings].sort((a, b) => a.total_rate - b.total_rate)[0];
   const fastest = [...sailings].sort((a, b) => (a.transit_days || 99) - (b.transit_days || 99))[0];
 
-  const insights: { icon: any; text: string }[] = [];
+  const insights: { icon: UnsafeAny; text: string }[] = [];
 
   if (cheapest.id !== recommended.id && recommended.transit_days && cheapest.transit_days) {
     const priceDiff = cheapest.total_rate - recommended.total_rate;

@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     const tdId = url.searchParams.get("transport_document_id");
 
     // ── Fetch surrender requests ──
-    let requests: any[] = [];
+    let requests: UnsafeAny[] = [];
 
     if (surrenderId) {
       const { data } = await supabase.from("surrender_requests").select("*").eq("id", surrenderId);
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Enrich each request ──
-    const enriched = await Promise.all(requests.map(async (sr: any) => {
+    const enriched = await Promise.all(requests.map(async (sr: UnsafeAny) => {
       const [
         { data: chain },
         { data: responses },
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     }));
 
     // ── Carrier info ──
-    let carrier: any = null;
+    let carrier: UnsafeAny = null;
     if (requests[0]?.alc_carrier_id) {
       const { data } = await supabase.from("alc_carriers").select("*")
         .eq("id", requests[0].alc_carrier_id).maybeSingle();
@@ -86,9 +86,9 @@ Deno.serve(async (req) => {
     }
 
     // ── Linked records ──
-    let transportDoc: any = null;
-    let booking: any = null;
-    let issuance: any = null;
+    let transportDoc: UnsafeAny = null;
+    let booking: UnsafeAny = null;
+    let issuance: UnsafeAny = null;
 
     if (requests[0]?.transport_document_id) {
       const { data } = await supabase.from("transport_documents")
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e: any) {
+  } catch (e: UnsafeAny) {
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

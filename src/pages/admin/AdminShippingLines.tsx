@@ -58,13 +58,13 @@ async function parseEvergreenWorkbook(file: ArrayBuffer): Promise<ParsedRate[]> 
   const ws = wb.worksheets.find((w) => w.name.toLowerCase() === "rate")
     || wb.worksheets.find((w) => w.name.toLowerCase().includes("rate"));
   if (!ws) throw new Error("Could not find a 'Rate' sheet in the workbook.");
-  const rows: any[][] = [];
+  const rows: UnsafeAny[][] = [];
   ws.eachRow({ includeEmpty: true }, (row) => {
-    const values = row.values as any[];
+    const values = row.values as UnsafeAny[];
     // exceljs row.values is 1-indexed; slice(1) to make 0-indexed
     const arr = values.slice(1).map((v) => {
-      if (v && typeof v === "object" && "result" in v) return (v as any).result; // formulas
-      if (v && typeof v === "object" && "text" in v) return (v as any).text; // rich text
+      if (v && typeof v === "object" && "result" in v) return (v as UnsafeAny).result; // formulas
+      if (v && typeof v === "object" && "text" in v) return (v as UnsafeAny).text; // rich text
       return v ?? null;
     });
     rows.push(arr);
@@ -104,7 +104,7 @@ async function parseEvergreenWorkbook(file: ArrayBuffer): Promise<ParsedRate[]> 
     const r = rows[i] || [];
     const pol = r[col.pol]; const pod = r[col.pod];
     if (!pol || !pod) continue;
-    const num = (v: any) => {
+    const num = (v: UnsafeAny) => {
       if (v === null || v === undefined || v === "") return null;
       const n = Number(String(v).replace(/[, ]/g, ""));
       return Number.isFinite(n) ? n : null;
@@ -138,21 +138,21 @@ function EvergreenTab() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
-  const [currentRates, setCurrentRates] = useState<any[]>([]);
+  const [history, setHistory] = useState<UnsafeAny[]>([]);
+  const [currentRates, setCurrentRates] = useState<UnsafeAny[]>([]);
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => {
     setLoading(true);
     const [{ data: hist }, { data: rates }] = await Promise.all([
-      supabase.from("carrier_rate_uploads" as any).select("*")
+      supabase.from("carrier_rate_uploads" as UnsafeAny).select("*")
         .eq("carrier_code", "EVERGREEN").order("created_at", { ascending: false }).limit(20),
-      supabase.from("carrier_manual_rates" as any).select("*")
+      supabase.from("carrier_manual_rates" as UnsafeAny).select("*")
         .eq("carrier_code", "EVERGREEN").order("pol").limit(500),
     ]);
-    setHistory((hist as any[]) || []);
-    setCurrentRates((rates as any[]) || []);
+    setHistory((hist as UnsafeAny[]) || []);
+    setCurrentRates((rates as UnsafeAny[]) || []);
     setLoading(false);
   };
   useEffect(() => { refresh(); }, []);
@@ -165,7 +165,7 @@ function EvergreenTab() {
       if (rows.length === 0) throw new Error("No rate rows found.");
       setParsed(rows);
       toast.success(`Parsed ${rows.length} rate rows from ${f.name}`);
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       setParseError(e?.message || "Failed to parse file");
       toast.error(e?.message || "Failed to parse file");
     }
@@ -176,7 +176,7 @@ function EvergreenTab() {
     setUploading(true);
     try {
       const { data: uploadRow, error: upErr } = await (supabase
-        .from("carrier_rate_uploads" as any)
+        .from("carrier_rate_uploads" as UnsafeAny)
         .insert({
           carrier_code: "EVERGREEN",
           file_name: file?.name || "evergreen_rates.xlsx",
@@ -185,20 +185,20 @@ function EvergreenTab() {
           valid_to: validTo || null,
           notes: notes || null,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
-        } as any)
+        } as UnsafeAny)
         .select()
         .single());
       if (upErr) throw upErr;
 
       // Replace all Evergreen rates
       const { error: delErr } = await supabase
-        .from("carrier_manual_rates" as any).delete().eq("carrier_code", "EVERGREEN");
+        .from("carrier_manual_rates" as UnsafeAny).delete().eq("carrier_code", "EVERGREEN");
       if (delErr) throw delErr;
 
       const payload = parsed.map((r) => ({
         ...r,
         carrier_code: "EVERGREEN",
-        upload_id: (uploadRow as any).id,
+        upload_id: (uploadRow as UnsafeAny).id,
         valid_from: validFrom || null,
         valid_to: validTo || null,
       }));
@@ -206,14 +206,14 @@ function EvergreenTab() {
       const chunkSize = 500;
       for (let i = 0; i < payload.length; i += chunkSize) {
         const chunk = payload.slice(i, i + chunkSize);
-        const { error } = await supabase.from("carrier_manual_rates" as any).insert(chunk as any);
+        const { error } = await supabase.from("carrier_manual_rates" as UnsafeAny).insert(chunk as UnsafeAny);
         if (error) throw error;
       }
       toast.success(`Replaced Evergreen rates with ${parsed.length} rows`);
       setFile(null); setParsed([]); setNotes("");
       if (fileRef.current) fileRef.current.value = "";
       await refresh();
-    } catch (e: any) {
+    } catch (e: UnsafeAny) {
       toast.error(e?.message || "Upload failed");
     } finally {
       setUploading(false); setConfirmOpen(false);

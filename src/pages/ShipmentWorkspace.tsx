@@ -73,7 +73,7 @@ const TABS = [
 ] as const;
 
 /* ── Price Header ── */
-function PriceHeader({ shipment, financials }: { shipment: any; financials: any[] }) {
+function PriceHeader({ shipment, financials }: { shipment: UnsafeAny; financials: UnsafeAny[] }) {
   const sellTotal = financials.filter(f => f.entry_type === "revenue").reduce((s, f) => s + (f.amount || 0), 0);
   const isAir = shipment.mode === "air";
 
@@ -121,7 +121,7 @@ const ShipmentWorkspace = () => {
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
 
   // If this is a draft shipment, redirect to the unified booking flow
-  const checkAndRedirect = (shipmentData: any) => {
+  const checkAndRedirect = (shipmentData: UnsafeAny) => {
     const isDraft = shipmentData?.lifecycle_stage === "draft" || shipmentData?.status === "draft";
     const isPendingPricing = shipmentData?.lifecycle_stage === "pending_pricing";
     if (isDraft || isPendingPricing) {
@@ -246,7 +246,7 @@ const ShipmentWorkspace = () => {
   const sellTotal = financials.filter(f => f.entry_type === "revenue").reduce((s, f) => s + (f.amount || 0), 0);
   const containersSummary = (containers || []).map(c => `${c.quantity || 1}x${c.container_type}`).join(", ") || "—";
   const firstCargo = cargo?.[0];
-  const companyName = (shipment as any).companies?.company_name as string | undefined;
+  const companyName = (shipment as UnsafeAny).companies?.company_name as string | undefined;
 
   return (
     <DashboardLayout>
@@ -285,7 +285,7 @@ const ShipmentWorkspace = () => {
                     if (error) throw error;
                     queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
                     toast.success("Shipment booked successfully!");
-                  } catch (err: any) {
+                  } catch (err: UnsafeAny) {
                     toast.error(err.message || "Failed to book shipment");
                   }
                 }}
@@ -302,7 +302,7 @@ const ShipmentWorkspace = () => {
                     if (error) throw error;
                     queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
                     toast.success("Shipment marked as in transit!");
-                  } catch (err: any) {
+                  } catch (err: UnsafeAny) {
                     toast.error(err.message || "Failed to update shipment");
                   }
                 }}
@@ -319,7 +319,7 @@ const ShipmentWorkspace = () => {
                     if (error) throw error;
                     queryClient.invalidateQueries({ queryKey: ["ws-shipment", id] });
                     toast.success("Shipment marked as delivered!");
-                  } catch (err: any) {
+                  } catch (err: UnsafeAny) {
                     toast.error(err.message || "Failed to update shipment");
                   }
                 }}
@@ -435,8 +435,8 @@ const ShipmentWorkspace = () => {
                   shipmentId={shipment.id}
                   originPort={shipment.origin_port || ""}
                   destinationPort={shipment.destination_port || ""}
-                  pickupLocation={(shipment as any).pickup_location || undefined}
-                  deliveryLocation={(shipment as any).delivery_location || undefined}
+                  pickupLocation={(shipment as UnsafeAny).pickup_location || undefined}
+                  deliveryLocation={(shipment as UnsafeAny).delivery_location || undefined}
                   containerType={containers?.[0]?.container_type}
                 />
               )}

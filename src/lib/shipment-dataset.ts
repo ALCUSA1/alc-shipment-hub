@@ -272,7 +272,7 @@ export interface DocReadiness {
   missing: string[];
 }
 
-function checkFields(data: Record<string, any>, fields: { key: string; label: string }[]): { percent: number; missing: string[] } {
+function checkFields(data: Record<string, UnsafeAny>, fields: { key: string; label: string }[]): { percent: number; missing: string[] } {
   const missing: string[] = [];
   for (const f of fields) {
     const val = f.key.split('.').reduce((o, k) => o?.[k], data);
@@ -286,7 +286,7 @@ function checkFields(data: Record<string, any>, fields: { key: string; label: st
 export function computeReadiness(ds: ShipmentDataset): DocReadiness[] {
   const isAir = ds.basics.mode === "air";
 
-  const flat: Record<string, any> = {
+  const flat: Record<string, UnsafeAny> = {
     ...ds.basics, ...ds.routing, ...ds.commercial, ...ds.compliance, ...ds.execution,
     shipperName: ds.parties.shipper.companyName,
     shipperAddress: ds.parties.shipper.address,
