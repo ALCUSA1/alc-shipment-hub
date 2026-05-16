@@ -10,6 +10,7 @@ import { validateBusinessEmail } from "@/lib/email-validation";
 import alcLogo from "@/assets/alc-logo.png";
 import { Package, Ship, Truck, Warehouse, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SEO } from "@/components/SEO";
 
 const ROLE_OPTIONS = [
   {
