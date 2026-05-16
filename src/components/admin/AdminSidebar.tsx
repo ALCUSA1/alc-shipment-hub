@@ -1,150 +1,67 @@
-import {
-  LayoutDashboard, Users, Activity, DollarSign, Server,
-  ArrowLeft, LogOut, Shield, Search, ChevronRight, Package,
-  FileText, Truck, Warehouse, FileCheck,
-  TrendingUp, Building2, Handshake, UserCog, Bell, Settings,
-  Radio, ShieldCheck, Target, Calculator, CreditCard, Ship
-} from "lucide-react";
+import { ArrowLeft, LogOut, Shield } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { ImpersonationSwitcher } from "./ImpersonationSwitcher";
+import { ADMIN_SECTIONS, getActiveSection } from "./adminNav";
 
-const navGroups = [
-  {
-    label: "Operations",
-    items: [
-      { title: "Dashboard", url: "/admin", icon: LayoutDashboard, end: true },
-      { title: "Shipments", url: "/admin/shipments", icon: Package },
-      { title: "Trucking Orders", url: "/admin/trucking", icon: Truck },
-      { title: "Warehouses", url: "/admin/warehouses", icon: Warehouse },
-      { title: "Documents", url: "/admin/documents", icon: FileCheck },
-    ],
-  },
-  {
-    label: "Commercial",
-    items: [
-      { title: "Quotes", url: "/admin/quotes", icon: FileText },
-      { title: "Pricing Engine", url: "/admin/pricing-engine", icon: Calculator },
-      { title: "Rate Intelligence", url: "/admin/rate-intelligence", icon: TrendingUp },
-      { title: "Shipping Lines", url: "/admin/shipping-lines", icon: Ship },
-      { title: "Commercial Command", url: "/admin/commercial", icon: Target },
-    ],
-  },
-  {
-    label: "Finance",
-    items: [
-      { title: "Accounting", url: "/admin/accounting", icon: DollarSign },
-      { title: "Payments", url: "/admin/payment-settings", icon: CreditCard },
-      { title: "Profit Intelligence", url: "/admin/profit", icon: TrendingUp },
-    ],
-  },
-  {
-    label: "Network",
-    items: [
-      { title: "Companies", url: "/admin/customers", icon: Building2 },
-      { title: "CRM", url: "/admin/crm", icon: Users },
-      { title: "Partners", url: "/admin/partners", icon: Handshake },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { title: "Users & Companies", url: "/admin/users", icon: UserCog },
-      { title: "Compliance", url: "/admin/compliance", icon: ShieldCheck },
-      { title: "API & Integrations", url: "/admin/api-health", icon: Radio },
-      { title: "System Health", url: "/admin/system", icon: Server },
-      { title: "Activity Feed", url: "/admin/activity", icon: Activity },
-      { title: "Notifications", url: "/admin/notifications", icon: Bell },
-      { title: "Account", url: "/admin/account", icon: Settings },
-    ],
-  },
-];
-
-export function AdminSidebar({ onClose }: { onClose: () => void }) {
+export function AdminSidebar() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const activeKey = getActiveSection(location.pathname).key;
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/admin/login");
-  };
-
-  const isActive = (url: string, end?: boolean) => {
-    if (end) return location.pathname === url;
-    return location.pathname.startsWith(url);
+    navigate("/login");
   };
 
   return (
-    <div className="h-screen w-64 flex flex-col bg-[hsl(220,18%,9%)] border-r border-[hsl(220,15%,13%)]">
-      {/* Brand */}
-      <div className="h-14 flex items-center gap-3 px-5 border-b border-[hsl(220,15%,13%)] shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/15">
-          <Shield className="h-4 w-4 text-white" />
+    <div className="h-screen w-60 flex flex-col bg-card border-r border-border">
+      <div className="h-14 flex items-center gap-3 px-5 border-b border-border shrink-0">
+        <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
+          <Shield className="h-4 w-4 text-primary-foreground" />
         </div>
-        <span className="font-bold text-sm text-white tracking-tight">Admin Console</span>
+        <span className="font-semibold text-sm text-foreground tracking-tight">Admin Console</span>
       </div>
 
-      {/* Search */}
-      <div className="px-4 py-3 shrink-0">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[hsl(220,15%,12%)] border border-[hsl(220,15%,16%)] text-[hsl(220,10%,35%)] text-xs">
-          <Search className="h-3.5 w-3.5" />
-          <span>Search…</span>
-          <kbd className="ml-auto text-[10px] bg-[hsl(220,15%,16%)] px-1.5 py-0.5 rounded">⌘K</kbd>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 overflow-y-auto pb-2">
-        {navGroups.map((group) => (
-          <div key={group.label} className="mb-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[hsl(220,10%,35%)] px-3 pt-3 pb-1.5">
-              {group.label}
-            </p>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const active = isActive(item.url, item.end);
-                return (
-                  <NavLink
-                    key={item.url}
-                    to={item.url}
-                    end={item.end}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-1.5 rounded-lg text-[13px] transition-all group",
-                      active
-                        ? "bg-[hsl(220,15%,15%)] text-white font-medium"
-                        : "text-[hsl(220,10%,50%)] hover:text-white hover:bg-[hsl(220,15%,12%)]"
-                    )}
-                  >
-                    <item.icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-red-400" : "text-[hsl(220,10%,40%)] group-hover:text-[hsl(220,10%,60%)]")} />
-                    <span className="truncate">{item.title}</span>
-                    {active && <ChevronRight className="h-3 w-3 ml-auto text-[hsl(220,10%,40%)] shrink-0" />}
-                  </NavLink>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+        {ADMIN_SECTIONS.map((s) => {
+          const active = s.key === activeKey;
+          const Icon = s.icon;
+          return (
+            <NavLink
+              key={s.key}
+              to={s.url}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                active
+                  ? "bg-accent text-accent-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{s.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* Impersonation Switcher */}
-      <div className="border-t border-[hsl(220,15%,13%)] shrink-0">
+      <div className="border-t border-border shrink-0">
         <ImpersonationSwitcher />
       </div>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-[hsl(220,15%,13%)] space-y-0.5 shrink-0">
+      <div className="p-3 border-t border-border space-y-0.5 shrink-0">
         <button
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[hsl(220,10%,50%)] hover:text-white hover:bg-[hsl(220,15%,12%)] transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors w-full"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to App</span>
         </button>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[hsl(220,10%,50%)] hover:text-red-400 hover:bg-red-400/5 transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors w-full"
         >
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>
