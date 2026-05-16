@@ -133,6 +133,11 @@ import AdminMarketIngestion from "./pages/admin/AdminMarketIngestion";
 import AdminLaneAutoQuote from "./pages/admin/AdminLaneAutoQuote";
 import AdminCommercialCommand from "./pages/admin/AdminCommercialCommand";
 import AdminWeeklyReview from "./pages/admin/AdminWeeklyReview";
+import TrustAlerts from "./pages/admin/trust/TrustAlerts";
+import BlockedUsers from "./pages/admin/trust/BlockedUsers";
+import FailedPayments from "./pages/admin/trust/FailedPayments";
+import StuckShipments from "./pages/admin/trust/StuckShipments";
+import Suspended from "./pages/Suspended";
 import Support from "./pages/Support";
 import Ideas from "./pages/Ideas";
 import Alerts from "./pages/Alerts";
@@ -168,6 +173,7 @@ const App = () => (
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/suspended" element={<Suspended />} />
             <Route path="/quote/approve" element={<QuoteApproval />} />
             {/* /pending-approval removed — direct role assignment on signup */}
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -257,6 +263,13 @@ const App = () => (
             <Route path="/admin/lane-auto-quote" element={<AdminGate><AdminLaneAutoQuote /></AdminGate>} />
             <Route path="/admin/commercial" element={<AdminGate><AdminCommercialCommand /></AdminGate>} />
             <Route path="/admin/weekly-review" element={<AdminGate><AdminWeeklyReview /></AdminGate>} />
+
+            {/* Trust & Safety */}
+            <Route path="/admin/trust" element={<Navigate to="/admin/trust/alerts" replace />} />
+            <Route path="/admin/trust/alerts" element={<AdminGate><TrustAlerts /></AdminGate>} />
+            <Route path="/admin/trust/blocked" element={<AdminGate><BlockedUsers /></AdminGate>} />
+            <Route path="/admin/trust/failed-payments" element={<AdminGate><FailedPayments /></AdminGate>} />
+            <Route path="/admin/trust/stuck-shipments" element={<AdminGate><StuckShipments /></AdminGate>} />
 
             {/* Forwarder Portal */}
             <Route path="/forwarder" element={<ForwarderGate><ForwarderDashboard /></ForwarderGate>} />
