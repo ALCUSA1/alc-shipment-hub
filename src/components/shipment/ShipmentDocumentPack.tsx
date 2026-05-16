@@ -9,10 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { useDocumentPdf } from "@/hooks/useDocumentPdf";
 import {
-import { e } from "@/lib/html-escape";
   FileText, Download, Loader2, Package, Check, Clock, Lock,
   Circle, Printer, Receipt, Ship, AlertTriangle,
 } from "lucide-react";
+import { e } from "@/lib/html-escape";
 
 interface Props {
   shipmentId: string;
