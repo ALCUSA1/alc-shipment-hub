@@ -1,63 +1,84 @@
 ## Goal
 
-After signup, every new user picks a plan (Solo / Team / Enterprise) and starts a **14-day free trial without entering a card**. When the trial ends, the portal is locked until they subscribe via Stripe Checkout. Enterprise is sales-led; Solo and Team are self-serve. Per-shipment fees ($59 / $49) are charged automatically per booking using the card on file once subscribed.
+Replace the current SaaS pricing model (Solo / Team / Enterprise) with the **Milestone Subsidy** model from the uploaded mockup:
 
-## User flow
+- **0–24 shipments/month**: standard rate, ALC earns $500/ship, agent earns $500/ship
+- **25+ shipments/month**: ALC absorbs $200 subsidy → agent rate drops $3,000 → $2,800. Agent earns $700 (or passes savings to client)
+- **50+ shipments/month**: $400 subsidy, agent rate $2,600. ALC restores margin via BCO carrier rates
 
-1. **Pricing page (`/pricing`)** — CTA on each plan card stores the selected plan slug (`solo` / `team` / `enterprise`) in `sessionStorage` and routes to `/signup`.
-2. **Signup** — unchanged auth (email + password, Google). After email verification and login, the user is routed to `/choose-plan` instead of straight to the portal.
-3. **Choose plan screen (new `/choose-plan`)** — shows the 3 plans, preselects whatever was stored from Pricing.
-   - **Solo / Team** → "Start 14-day free trial" button. Creates a `subscriptions` row with `status = 'trialing'`, `trial_ends_at = now() + 14 days`, `plan = solo|team`. No card collected.
-   - **Enterprise** → "Talk to sales" button. Opens a contact form / mailto and creates a `sales_leads` row; account stays in `trialing` on Team-equivalent access until sales activates it.
-4. **Portal access gate** — a `SubscriptionGate` wrapper on portal routes checks the user's subscription:
-   - `trialing` and `trial_ends_at > now()` → allow, show banner "X days left in trial — Subscribe".
-   - `active` → allow, no banner.
-   - `trialing` expired or `canceled` / null → redirect to `/subscribe` (locked screen with Stripe Checkout button + Talk to Sales for Enterprise).
-5. **Subscribe** — `/subscribe` calls a `create-checkout` edge function that opens Stripe Checkout in a new tab for the user's plan. On success Stripe redirects to `/subscribe/success`, which calls `check-subscription` to refresh state, then routes to the portal.
-6. **Per-shipment fee** — when a booking is confirmed, a `charge-shipment-fee` edge function charges the saved card via Stripe (off-session PaymentIntent on the customer's default payment method) for $59 (Solo) or $49 (Team). Enterprise = custom, skipped or invoiced separately.
+No subscription fees. Monetization shifts to per-shipment margin only.
 
-## Database changes (one migration)
+## 1. Public marketing page — rebuild `/pricing`
 
-- New table `public.subscriptions`:
-  - `id`, `user_id` (unique, FK auth.users), `company_id` (nullable),
-  - `plan` enum (`solo`, `team`, `enterprise`),
-  - `billing_interval` (`monthly`, `annual`),
-  - `status` (`trialing`, `active`, `past_due`, `canceled`, `incomplete`),
-  - `trial_ends_at`, `current_period_end`,
-  - `stripe_customer_id`, `stripe_subscription_id`, `stripe_price_id`,
-  - `per_shipment_fee_cents`, timestamps.
-  - RLS: user can read own row; only service_role can insert/update.
-- New table `public.sales_leads` for Enterprise inquiries (`user_id`, `company_name`, `notes`, `status`, RLS: own + admin).
-- Trigger on signup (extend `handle_new_user`) inserts a `subscriptions` row with `status = 'trialing'`, `trial_ends_at = now() + 14 days`, `plan = NULL` (filled in on `/choose-plan`).
+Convert the uploaded HTML into a polished React page using project tokens (replace raw hex colors with semantic Tailwind tokens, use shadcn `Card`, `Badge`, `Table`). Sections, in order:
 
-## Frontend changes
+1. Hero — "The $200 Carrier Subsidy Milestone" + sub
+2. Before vs After comparison (2 cards)
+3. Agent's two choices (pass to client / keep as profit)
+4. "ALC Earns More After Milestone" table
+5. "50 Agents at Milestone" platform-level dark stat panel
+6. Second milestone (50 ships) table
+7. Bottom KPI strip (6 stat tiles)
+8. CTA → "Become an ALC Agent" → `/signup`
 
-- `src/pages/Pricing.tsx` — CTAs write `selectedPlan` + `billingInterval` to `sessionStorage`, link to `/signup`.
-- `src/pages/SignUp.tsx` — after success, route to `/choose-plan` (instead of `/login` or portal).
-- `src/pages/ChoosePlan.tsx` (new) — plan picker, "Start free trial" / "Talk to sales".
-- `src/pages/Subscribe.tsx` (new) — locked-state screen with Stripe Checkout button.
-- `src/pages/SubscribeSuccess.tsx` (new) — verifies and redirects.
-- `src/components/auth/SubscriptionGate.tsx` (new) — wraps portal routes; reads `subscriptions` row, enforces gate, renders trial banner.
-- `src/App.tsx` — register `/choose-plan`, `/subscribe`, `/subscribe/success`; wrap portal routes with `SubscriptionGate`.
-- `src/contexts/AuthContext.tsx` (or equivalent) — fetch subscription on auth change, expose `subscription` + `daysLeftInTrial`.
+SEO: title "Agent Pricing — Volume-Based Subsidies | ALC", meta description.
 
-## Stripe / edge functions
+## 2. Forwarder Portal — live milestone widget
 
-- Create Stripe products + monthly & annual prices for **Solo** and **Team** via the Stripe MCP (Enterprise = no Stripe price, sales-led). Hardcode the resulting `price_id`s in a `src/config/plans.ts` map.
-- New edge functions (in `supabase/functions/`):
-  - `create-checkout` — creates a Stripe Checkout Session in `subscription` mode for the chosen plan + interval, attaches `user_id` in metadata.
-  - `check-subscription` — reads Stripe subscription by customer email, upserts `public.subscriptions` row, returns status. Called on auth change and on `/subscribe/success`.
-  - `charge-shipment-fee` — called server-side when a shipment is booked; charges per-shipment fee off-session.
-  - (Optional later) `customer-portal` — for plan changes / cancel.
-- All four use `STRIPE_SECRET_KEY` (already configured) and `npm:` specifiers.
+New component `src/components/forwarder/MilestoneSubsidyWidget.tsx` mounted on `ForwarderDashboard`:
 
-## Out of scope (for this plan)
+- Counts shipments for the forwarder's company in the **current calendar month** (`shipments` table, `company_id = forwarder's company`, `created_at >= start of month`)
+- Shows current tier, progress bar to next milestone, current per-shipment rate, MTD earnings
+- States: 0–24 (Building, progress to 25), 25–49 (Unlocked $200 subsidy, progress to 50), 50+ (Elite, $400 subsidy)
+- "View pricing details" link → `/pricing`
 
-- Annual vs monthly toggle wiring on `/choose-plan` (will mirror Pricing toggle).
-- Webhook-based reconciliation — using polling via `check-subscription` for now per Lovable Stripe convention.
-- Actually invoicing Enterprise per-shipment fees.
-- Refund / proration UX.
+## 3. Remove SaaS subscription gating
 
-## Open question to confirm before build
+Files to retire / simplify:
 
-Stripe products & prices — okay to create them now with these amounts: Solo $299/mo or $2,990/yr, Team $599/mo or $5,990/yr (matches the current `/pricing` page)? Enterprise stays sales-led with no Stripe price.
+- **Delete**: `src/pages/ChoosePlan.tsx`, `src/pages/Subscribe.tsx`, `src/pages/SubscribeSuccess.tsx`
+- **Delete edge functions**: `create-checkout`, `check-subscription` (keep `charge-shipment-fee` if it's used for per-shipment billing — verify)
+- **Simplify** `src/contexts/SubscriptionContext.tsx`: keep the file but make `hasAccess` always `true` and `needsPlanSelection` always `false`, so existing imports keep working without breaking the build. (Avoids touching every consumer in one pass.)
+- **Update** `src/App.tsx`: remove `/choose-plan`, `/subscribe`, `/subscribe/success` routes; remove `SubscriptionGate` wrapping if present
+- **Update** `src/pages/SignUp.tsx`: route to `/dashboard` (or role-routed home) instead of `/choose-plan`
+- **Update** `.lovable/plan.md`: mark SaaS plan as deprecated, point to milestone model
+- **Keep** `src/config/plans.ts` and `subscriptions` DB table untouched for now (no destructive DB changes — Stripe products stay dormant). Can be cleaned up later.
+
+## 4. Nav & links
+
+- Top nav already links to `/pricing` — content auto-updates
+- Forwarder sidebar: no change needed (widget appears on dashboard)
+- Footer: keep `/pricing` link
+
+## Out of scope
+
+- Actual computation of agent commissions / payouts (UI shows model; back-end accounting not built here)
+- Migrating existing trialing/subscribed users (none in production yet per project state)
+- Dropping the `subscriptions` table (preserved to avoid destructive migrations)
+- Admin tooling to manually override an agent's tier
+
+## Files touched
+
+Create:
+- `src/components/forwarder/MilestoneSubsidyWidget.tsx`
+
+Rewrite:
+- `src/pages/Pricing.tsx`
+
+Edit:
+- `src/App.tsx` (remove SaaS routes)
+- `src/pages/SignUp.tsx` (redirect target)
+- `src/contexts/SubscriptionContext.tsx` (always-allow shim)
+- `src/pages/forwarder/ForwarderDashboard.tsx` (mount widget)
+- `.lovable/plan.md` (deprecate SaaS section)
+
+Delete:
+- `src/pages/ChoosePlan.tsx`
+- `src/pages/Subscribe.tsx`
+- `src/pages/SubscribeSuccess.tsx`
+- `supabase/functions/create-checkout/`
+- `supabase/functions/check-subscription/`
+
+## Confirm before build
+
+Okay to proceed with this plan? Specifically: (a) deleting ChoosePlan/Subscribe pages and the two checkout edge functions, and (b) leaving the `subscriptions` DB table in place for now (no destructive migration).
