@@ -161,7 +161,7 @@ function EvergreenTab() {
     setFile(f); setParseError(null); setParsed([]);
     try {
       const buf = await f.arrayBuffer();
-      const rows = parseEvergreenWorkbook(buf);
+      const rows = await parseEvergreenWorkbook(buf);
       if (rows.length === 0) throw new Error("No rate rows found.");
       setParsed(rows);
       toast.success(`Parsed ${rows.length} rate rows from ${f.name}`);
