@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminAlertsBell } from "./AdminAlertsBell";
 import { NavLink, useLocation } from "react-router-dom";
@@ -12,11 +12,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const section = getActiveSection(location.pathname);
   const showTabs = section.tabs.length > 0;
 
+  useEffect(() => {
+    document.body.classList.add("admin-light-mode");
+    return () => document.body.classList.remove("admin-light-mode");
+  }, []);
+
   const isTabActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="admin-light-shell min-h-screen bg-background text-foreground flex">
       <div
         className={cn(
           "relative z-20 transition-all duration-300 shrink-0",

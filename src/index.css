@@ -94,6 +94,58 @@
 }
 
 @layer utilities {
+  .admin-light-shell {
+    --background: 0 0% 100%;
+    --foreground: 213 53% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 213 53% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 53% 14%;
+    --secondary: 216 33% 97%;
+    --secondary-foreground: 213 53% 14%;
+    --muted: 216 33% 97%;
+    --muted-foreground: 215 14% 45%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+  }
+
+  .admin-light-shell [class*="bg-[hsl(220"],
+  .admin-light-mode [class*="bg-[hsl(220"] {
+    background-color: hsl(var(--card));
+  }
+
+  .admin-light-shell [class*="hover:bg-[hsl(220"]:hover,
+  .admin-light-mode [class*="hover:bg-[hsl(220"]:hover {
+    background-color: hsl(var(--muted));
+  }
+
+  .admin-light-shell [class*="border-[hsl(220"],
+  .admin-light-mode [class*="border-[hsl(220"] {
+    border-color: hsl(var(--border));
+  }
+
+  .admin-light-shell [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]),
+  .admin-light-mode [class*="divide-[hsl(220"] > :not([hidden]) ~ :not([hidden]) {
+    border-color: hsl(var(--border));
+  }
+
+  .admin-light-shell :where(.text-white) {
+    color: hsl(var(--foreground));
+  }
+
+  .admin-light-shell [class*="text-[hsl(220"],
+  .admin-light-mode [class*="text-[hsl(220"] {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .admin-light-shell :where(.hover\:text-white:hover) {
+    color: hsl(var(--foreground));
+  }
+
+  .admin-light-shell :where(.text-white[class*="bg-red-"], .text-white[class*="bg-blue-"], .text-white[class*="bg-emerald-"], .text-white[class*="bg-green-"], .text-white[class*="bg-amber-"], .text-white[class*="bg-orange-"], .text-white[class*="bg-indigo-"], .text-white[class*="bg-purple-"], .text-white[class*="from-"], .text-white[class*="to-"]) {
+    color: hsl(var(--primary-foreground));
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(var(--navy)), hsl(var(--electric)));
